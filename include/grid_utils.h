@@ -1,24 +1,9 @@
 #ifndef GRID_UTILS_H
 #define GRID_UTILS_H
-#include <Eigen/Dense>
+
+#include "types.h"
 
 namespace mtao {
-
-    namespace internal {
-        template <typename T>
-            struct allocator_selector {
-                using type = std::allocator<T>;
-            };
-
-        template <typename T, int R, int C>
-            struct allocator_selector<Eigen::Matrix<T,R,C>> {
-                using type = Eigen::aligned_allocator<Eigen::Matrix<T,R,C>>;
-            };
-    }
-
-    template <typename T>
-        using allocator = typename internal::allocator_selector<T>::type;
-
 
     namespace internal {
         template <typename ArrayType>
