@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.9)
-PROJECT(KillingField)
+PROJECT(MtaoCore)
 
 SET(CMAKE_RUNTIME_OUTPUT_DIR ${PROJECT_BINARY_DIR}/bin)
 SET(CMAKE_LIBRARY_OUTPUT_DIR ${PROJECT_BINARY_DIR}/lib)
@@ -46,7 +46,7 @@ ENDIF(PROTOBUF_FOUND)
 #TARGET_LINK_LIBRARIES(advection_test pthread)
 
 
-ADD_EXECUTABLE(grid_test src/grid_test.cpp include/grid.h include/grid_utils.h
+ADD_EXECUTABLE(grid_test src/grid_test.cpp include/grid/grid.h include/grid/grid_utils.h
     )
 
 #ADD_EXECUTABLE(particle_sampling_test src/particle_sampling_test.cpp include/grid.h include/grid_utils.h

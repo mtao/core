@@ -44,19 +44,19 @@ namespace mtao {
 
                 template <int Dim=0, typename... Args>
                     size_t index(size_t a,Args... args) const {
-                        assert(a < m_shape[Dim], "Index out of bound");
+                        assert(int(a) < m_shape[Dim]);
                         return a + m_shape[Dim] * index<Dim+1>(args...);
                     }
                 template <int Dim=D-1>
                     size_t index(size_t a) const {
-                        assert(a < m_shape[Dim], "Index out of bound");
+                        assert(int(a) < m_shape[Dim]);
                         static_assert(Dim == D-1 || Dim == 0,"");
                         return a;
                     }
                     size_t index(const index_type& a) const {
                         size_t idx = 0;
                         for(int i = D-1; i >=0; --i) {
-                            assert(a[i] < m_shape[i], "Index out of bound");
+                            assert(int(a[i]) < m_shape[i]);
                             idx = a[i] + m_shape[i] * idx;
                         }
                         return idx;

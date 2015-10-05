@@ -1,5 +1,5 @@
 #include <iostream>
-#include "grid.h"
+#include "grid/grid.h"
 
 
 template <typename T>
@@ -14,7 +14,7 @@ void printGrid2(const T& g) {
 
 auto returnGrid(int i, int j) {
     mtao::Grid<float,2> a(i,j);
-    for(int i = 0; i < a.size(); ++i) {
+    for(size_t i = 0; i < a.size(); ++i) {
         a(i) = i;
     }
     return a;
@@ -139,7 +139,6 @@ void matlabTest() {
 
 int main(int argc, char * argv[]) {
     matlabTest();
-    return 0;
     testA();
     testB();
 }

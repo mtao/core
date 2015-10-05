@@ -21,8 +21,8 @@ namespace mtao{
 
     typedef Eigen::Vector3i Vec3i;
     typedef Eigen::Vector2i Vec2i;
-    typedef Coord<3> Coord3;
-    typedef Coord<2> Coord2;
+    typedef coord<3> Coord3;
+    typedef coord<2> Coord2;
     template <typename T>
         struct scalar_types {
             typedef Eigen::Matrix<T,2,1> Vec2;
@@ -39,7 +39,7 @@ namespace mtao{
             typedef Eigen::Matrix<int,Dim,1> Veci;
             typedef Eigen::Matrix<double,Dim,Dim> Matf;
             typedef Eigen::Matrix<float,Dim,Dim> Matd;
-            typedef mtao::Coord<Dim> Coord;
+            typedef mtao::coord<Dim> Coord;
         };
     template <typename T, int Dim>
         struct numerical_types {
