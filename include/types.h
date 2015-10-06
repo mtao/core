@@ -65,6 +65,20 @@ namespace mtao{
     template <typename T, typename Allocator = mtao::allocator<T>>
         using vector = std::vector<T,Allocator>;
 
+    template <typename T>
+        struct scalar_type {
+            using type = T;
+        }
+
+    template <typename T, int R, int C>
+        struct scalar_type<Eigen::Matrix<T,R,C> {
+            using type = T;
+        };
+
+    template <typename T>
+    using scalar_type_t = scalar_type<T>::type;
+
+
 
 }
 #endif
