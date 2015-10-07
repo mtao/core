@@ -48,6 +48,8 @@ ENDIF(PROTOBUF_FOUND)
 
 ADD_EXECUTABLE(grid_test src/grid_test.cpp include/grid/grid.h include/grid/grid_utils.h
     )
+ADD_EXECUTABLE(multi_loop_test src/multi_loop_test.cpp include/grid/grid.h include/grid/grid_utils.h
+    )
 
 #ADD_EXECUTABLE(particle_sampling_test src/particle_sampling_test.cpp include/grid.h include/grid_utils.h
 #    include/arguments.h include/particle_sampler.h)

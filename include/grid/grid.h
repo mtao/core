@@ -66,6 +66,8 @@ namespace mtao {
                 T& operator()(Args... args) {return m_storage(index(args...));}
                 template <typename... Args>
                 const T& operator()(Args... args) const {return m_storage(index(args...));}
+                T& get(size_t a) {return m_storage(a);}
+                const T& get(size_t a) const {return m_storage(a);}
 
                 T& operator()(const index_type& t) {return m_storage(index(t));}
                 const T& operator()(const index_type& t) const {return m_storage(index(t));}

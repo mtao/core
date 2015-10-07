@@ -15,7 +15,7 @@ void printGrid2(const T& g) {
 auto returnGrid(int i, int j) {
     mtao::Grid<float,2> a(i,j);
     for(size_t i = 0; i < a.size(); ++i) {
-        a(i) = i;
+        a.get(i) = i;
     }
     return a;
 }
