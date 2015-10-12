@@ -21,10 +21,10 @@ struct PerDimTest {
 
 int main(int argc, char * argv[]) {
     PerDimTest a{{1,2,3,4,5}};
-    mtao::static_loop<5>(a,[](int& b) {
+    mtao::static_loop<5>([](int& b) {
             b = b * 4;
-            });
-    mtao::const_static_loop<5>(a,[](int b) {
+            },a);
+    mtao::const_static_loop<5>([](int b) {
             std::cout << b << std::endl;
-            });
+            },a);
 }
