@@ -12,7 +12,6 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 ADD_DEFINITIONS(-Wall)
 ADD_DEFINITIONS(-Wno-deprecated-declarations)
 ADD_DEFINITIONS(-Wno-unused-variable)
-ADD_DEFINITIONS(-Wno-unused-local-typedef)
 
 
 
@@ -50,6 +49,8 @@ ADD_EXECUTABLE(grid_test src/grid_test.cpp include/grid/grid.h include/grid/grid
     )
 ADD_EXECUTABLE(multi_loop_test src/multi_loop_test.cpp include/grid/grid.h include/grid/grid_utils.h
     )
+ADD_EXECUTABLE(static_iteration_test src/static_iteration_test.cpp
+    include/static_iteration.h include/util.h)
 
 #ADD_EXECUTABLE(particle_sampling_test src/particle_sampling_test.cpp include/grid.h include/grid_utils.h
 #    include/arguments.h include/particle_sampler.h)

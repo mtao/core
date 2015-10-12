@@ -11,5 +11,12 @@ namespace mtao {
                 return value;
             }
         }
+
+    /*
+    template <typename ContainerType>
+        constexpr size_t size(const ContainerType& c) {
+            return c.size();
+        }
+        */
 }
 #endif//UTIL_H
