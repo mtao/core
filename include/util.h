@@ -11,6 +11,5 @@ namespace mtao {
                 return value;
             }
         }
-
 }
 #endif//UTIL_H
