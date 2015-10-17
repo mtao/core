@@ -18,14 +18,14 @@ namespace mtao {
 
                 //No return types
                 static void run(const FuncType& func, Args&... data) {
-                    func(getN<I>(data)...);
+                    func(I,getN<I>(data)...);
 
                     static_iterator<FuncType,D,I+1,Args...>::run(func,std::forward<Args&>(data)...);
                 }
                 //With return types
                 template <typename RetObj>
                     static void run(const FuncType& func, RetObj& ret,Args&... data ) {
-                        ret[I] = func(getN<I>(data)...);
+                        ret[I] = func(I,getN<I>(data)...);
                         static_iterator<FuncType,D,I+1,Args...>::run(func,ret,std::forward<Args&>(data)...);
                     }
             };

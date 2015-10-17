@@ -24,12 +24,12 @@ struct PerDimTest {
 
 int main(int argc, char * argv[]) {
     PerDimTest a{{{1,2,3,4,5}}};
-    mtao::static_loop<5>([](int& b) {
+    mtao::static_loop<5>([](int I,int& b) {
             b = b * 4;
             },a);
     std::copy(a.data().begin(),a.data().end(),std::ostream_iterator<int>(std::cout," "));
     std::cout << std::endl;
-    mtao::const_static_loop<5>([](int b) {
+    mtao::const_static_loop<5>([](int I, int b) {
             std::cout << b << " ";
             },a);
     std::cout << std::endl;
