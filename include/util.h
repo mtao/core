@@ -19,9 +19,9 @@ namespace mtao {
             return a * recursive_pow(a,b-1);
         }
     }
-    template <int A, int B, typename = std::enable_if<(B>=0),std::nullptr_t>::value>
+    template <int A, int B, typename = typename std::enable_if<(B>=0),std::nullptr_t>::type>
         struct pow {
-            constexpr static int value = recursive_pow(A,B);
+            constexpr static int value = internal::recursive_pow(A,B);
         };
 
     /*
