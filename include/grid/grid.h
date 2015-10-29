@@ -54,12 +54,7 @@ namespace mtao {
                         return a;
                     }
                     size_t index(const index_type& a) const {
-                        size_t idx = 0;
-                        for(int i = D-1; i >=0; --i) {
-                            assert(int(a[i]) < m_shape[i]);
-                            idx = a[i] + m_shape[i] * idx;
-                        }
-                        return idx;
+                        return mtao::grid_index<D>(m_shape,a);
                     }
 
                 template <typename... Args>

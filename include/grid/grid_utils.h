@@ -41,6 +41,15 @@ namespace mtao {
                 return zero<T>::value();
             }
     }
+    template <int D, typename index_type = mtao::compat::array<int,D> >
+        size_t grid_index(const index_type& shape, const index_type& a) {
+                        size_t idx = 0;
+                        for(int i = D-1; i >=0; --i) {
+                            assert(int(a[i]) < shape[i]);
+                            idx = a[i] + shape[i] * idx;
+                        }
+                        return idx;
+        }
     namespace internal {
         template <int N, int M, typename index_type, typename Func, bool Reverse = false>
             struct multi_looper {
