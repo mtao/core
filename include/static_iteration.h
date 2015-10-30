@@ -51,6 +51,20 @@ namespace mtao {
                 static void run_by_value(const FuncType& func,Args&... data) {
                 }
             };
+
+        template <int D, int I,typename T>
+            struct void_static_iterator: public void_static_iterator<D,I+1,T> {
+                static void run(T& v) {
+                    v.template run<I>();
+                    void_static_iterator<D,I+1,T>::run(v);
+                }
+
+            };
+        template <int D, typename T>
+            struct void_static_iterator<D,D,T> {
+                static void run(T& data) {
+                }
+            };
     }
 
     template <int D, typename FuncType, typename... Args>
@@ -74,6 +88,10 @@ namespace mtao {
     template <int D, typename FuncType, typename... Args>
         void static_loop_by_value(const FuncType& func,Args&... data) {
             internal::static_iterator<FuncType,D,0,Args...>::run_by_value(func,std::forward<Args&>(data)...);
+        }
+    template <int D, typename T>
+        void static_loop_void(T&data) {
+            internal::void_static_iterator<D,0,T>::run(std::forward<T&>(data));
         }
 
 }

@@ -21,6 +21,13 @@ struct PerDimTest {
     private:
         std::array<int,5> m_data;
 };
+struct PerDimTest2 {
+    using value_type = void;
+    template <int D>
+    void run() const {
+        std::cout << D << std::endl;
+    }
+};
 
 int main(int argc, char * argv[]) {
     PerDimTest a{{{1,2,3,4,5}}};
@@ -33,4 +40,7 @@ int main(int argc, char * argv[]) {
             std::cout << b << " ";
             },a);
     std::cout << std::endl;
+
+    PerDimTest2 pdt2;
+    mtao::static_loop_void<20>(pdt2);
 }
