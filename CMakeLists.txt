@@ -49,6 +49,9 @@ ADD_EXECUTABLE(grid_test src/grid_test.cpp include/grid/grid.h include/grid/grid
     )
 ADD_EXECUTABLE(multi_loop_test src/multi_loop_test.cpp include/grid/grid.h include/grid/grid_utils.h
     )
+ADD_EXECUTABLE(static_type_iteration_test src/static_type_iteration_test.cpp
+    include/static_iteration.h include/util.h)
+
 ADD_EXECUTABLE(static_iteration_test src/static_iteration_test.cpp
     include/static_iteration.h include/util.h)
 
