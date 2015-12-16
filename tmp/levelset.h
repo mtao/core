@@ -1,5 +1,5 @@
-#ifndef SCALAR_FUNC_H
-#define SCALAR_FUNC_H
+#ifndef LEVELSET_FUNC_H
+#define LEVELSET_FUNC_H
 #include <iostream>
 #include <Eigen/Dense>
 #include <memory>
@@ -11,11 +11,11 @@
 
 
 template <int _D>
-class ScalarFunction {
+class Levelset {
     public:
         static constexpr int D = _D;
         using Scalar = float;
-        using Ptr = std::shared_ptr<ScalarFunction<D>>;
+        using Ptr = std::shared_ptr<Levelset<D>>;
 
         using Vec = Eigen::Matrix<Scalar,D,1>;
         using Matrix = Eigen::Matrix<Scalar,D,D>;
@@ -24,6 +24,7 @@ class ScalarFunction {
         using VecVector = std::vector<Vec,Eigen::aligned_allocator<Vec> >;
 //        virtual Scalar operator()(const constVecRef& v) const ;
         virtual Scalar operator()(const constVecRef& v,Scalar t = 0) const = 0;
+        /*
         
         virtual Vec transform(const constVecRef& v, Scalar t = 0) const {
             return v;
@@ -31,6 +32,8 @@ class ScalarFunction {
         virtual Vec invtransform(const constVecRef& v, Scalar t) const {
             return this->transform(v,-t);
         }
+        */
+        /*
         virtual Vec dfdx(const constVecRef& v,Scalar t = 0, Scalar dx=0.01) const {
             auto&& me = *this;
             Vec ret;
@@ -44,6 +47,8 @@ class ScalarFunction {
             //ret.y() = -ret.y();
             return ret;
         }
+        */
+        /*
         virtual Matrix dudx(const constVecRef& v,Scalar t = 0, Scalar dx=0.01) const {
             Matrix ret;
             Vec p2;
@@ -59,6 +64,8 @@ class ScalarFunction {
             //ret.y() = -ret.y();
             return ret;
         }
+        */
+        /*
         Scalar dfdt(const constVecRef& v,Scalar t = 0, Scalar dt=0.001) const {
             auto&& me = *this;
             return (me(v,t+dt)-me(v,t-dt))/(2*dt);
@@ -66,17 +73,17 @@ class ScalarFunction {
         virtual Vec dxdt(const constVecRef& v,Scalar t = 0) const {
             return Vec::Zero();
         }
+        */
     private:
-
-
 };
 
 
-#define USE_BASE_SCALAR_FUNCTION_DEFS(BASE) \
+
+#define USE_BASE_LEVELSET_FUNCTION_DEFS(BASE) \
     static constexpr int D = _D;\
     using Base = BASE<D>;\
     using BasePtr = typename Base::Ptr;
-    using ZeroFunc = ZeroScalarFunction<D>;\
+    using ZeroFunc = ZeroLevelset<D>;\
     using Scalar = typename Base::Scalar;\
     using Vec = typename Base::Vec;\
     using Matrix = typename Base::Matrix;\
@@ -85,13 +92,13 @@ class ScalarFunction {
     using VecVector = typename Base::VecVector;
 
 template <int _D>
-class ZeroScalarFunction: public ScalarFunction<_D> {
+class ZeroLevelset: public Levelset<_D> {
     public:
-        USE_BASE_SCALAR_FUNCTION_DEFS(ScalarFunction)
+        USE_BASE_LEVELSET_FUNCTION_DEFS(Levelset)
         Scalar operator()(const constVecRef& v, Scalar t = 0) const {
             return Scalar(0);
         }
-        static std::shared_ptr<ZeroFunc> ptr() { return std::make_shared<ZeroScalarFunction<D>>();}
+        static std::shared_ptr<ZeroFunc> ptr() { return std::make_shared<ZeroLevelset<D>>();}
 };
 
-#endif//SCALAR_FUNC_H
+#endif//LEVELSET_FUNC_H
