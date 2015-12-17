@@ -142,7 +142,8 @@ namespace mtao {
 
     template <typename T>
         void barycentric(T a, int ni, int* i, T* di ) {
-            a = std::min<T>(std::max<T>(a,0),1-1e-5);
+            constexpr static T ome = 1 - std::numeric_limits<T>::epsilon();
+            a = std::min<T>(std::max<T>(a,0),ome);
             T v = a * (ni);
             T v2 = std::floor(v);
             *di = v-v2;
@@ -152,7 +153,7 @@ namespace mtao {
                 *i = 0;
             } else if(*i >= ni) {
                 *i = ni-1;
-                *di = 1-1e-9;
+                *di = ome;
             }
         }
 

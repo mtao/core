@@ -78,11 +78,13 @@ class Levelset {
 };
 
 
+template <int _D>
+class ZeroLevelset;
 
 #define USE_BASE_LEVELSET_FUNCTION_DEFS(BASE) \
     static constexpr int D = _D;\
     using Base = BASE<D>;\
-    using BasePtr = typename Base::Ptr;
+    using BasePtr = typename Base::Ptr;\
     using ZeroFunc = ZeroLevelset<D>;\
     using Scalar = typename Base::Scalar;\
     using Vec = typename Base::Vec;\

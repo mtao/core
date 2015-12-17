@@ -1,12 +1,13 @@
-#ifndef SCALAR_EXAMPLE_FUNC_H
-#define SCALAR_EXAMPLE_FUNC_H
-#include "scalar_function.h"
+#ifndef LEVELSET_EXAMPLE_FUNC_H
+#define LEVELSET_EXAMPLE_FUNC_H
 #include <Eigen/Dense>
 #include <memory>
 #include <Eigen/Geometry>
 #include <cmath>
-#include "coloring.h"
-#include <iostream>
+
+#include "levelset.h"
+#include "primitives.h"
+#include "transformations.h"
 
 
 
@@ -15,12 +16,12 @@
 
 
 
-
+/*
 template <int _D>
-class ScalarFunctionWithId: public ScalarFunction<_D> {
+class LevelsetWithId: public Levelset<_D> {
     public:
-        USE_BASE_SCALAR_FUNCTION_DEFS(ScalarFunction)
-            ScalarFunctionWithId(): id(counter++) {
+        USE_BASE_LEVELSET_FUNCTION_DEFS(Levelset)
+            LevelsetWithId(): id(counter++) {
             }
     private:
 
@@ -28,7 +29,8 @@ class ScalarFunctionWithId: public ScalarFunction<_D> {
         int id = 0;
 };
 template <int D>
-int ScalarFunctionWithId<D>::counter = 0;
+int LevelsetWithId<D>::counter = 0;
+*/
 
 
 
@@ -42,41 +44,44 @@ int ScalarFunctionWithId<D>::counter = 0;
 
 namespace examples {
     template <int D>
-        std::shared_ptr<ScalarFunction<D> > translate(const typename ScalarFunction<D>::Ptr& f, int Dim) {
+        std::shared_ptr<Levelset<D> > translate(const typename Levelset<D>::Ptr& f, int Dim) {
             using Scalar = float; 
             using Vec = Eigen::Matrix<Scalar,D,1>;
-            return std::make_shared<TranslatingScalarFunction<D>>(f,1.*Vec::Unit(Dim));
+            return std::make_shared<LevelsetTranslator<D>>(f,1.*Vec::Unit(Dim));
         }
     template <int D>
-        std::shared_ptr<ScalarFunction<D> > rotation(const typename ScalarFunction<D>::Ptr& f);
-    template <>
-        std::shared_ptr<ScalarFunction<2> > rotation(const typename ScalarFunction<2>::Ptr& f) ;
-    template <>
-        std::shared_ptr<ScalarFunction<3> > rotation(const typename ScalarFunction<3>::Ptr& f) ;
-    template <int D>
-        std::shared_ptr<ScalarFunction<D> > sphere() {
+        std::shared_ptr<Levelset<D> > rotation(const typename Levelset<D>::Ptr& f) {
             using Scalar = float; 
             using Vec = Eigen::Matrix<Scalar,D,1>;
-            return std::make_shared<SphereLevelset<D>>(Vec::Constant(.5),.3);
+            return std::make_shared<LevelsetRotator<3>>(f,Vec::Constant(.5),Vec::Unit(D-1),1);
         }
     template <int D>
-        std::shared_ptr<ScalarFunction<D> > blobby() {
+        std::shared_ptr<Levelset<D> > sphere() {
+            using Scalar = float; 
+            using Vec = Eigen::Matrix<Scalar,D,1>;
+            //return std::make_shared<SphereLevelset<D>>(Vec::Constant(.5),.3);
+            return std::make_shared<SphereLevelset<D>>(Vec::Zero(),1.);
+        }
+    /*
+    template <int D>
+        std::shared_ptr<Levelset<D> > blobby() {
             using Scalar = float; 
             using Vec = Eigen::Matrix<Scalar,D,1>;
             return std::make_shared<BlobbyLevelset<D>>(Vec::Constant(.5),.3);
         }
+    */
 
     template <int D>
-        std::shared_ptr<ScalarFunction<D> > ellipse() {
+        std::shared_ptr<Levelset<D> > ellipse() {
             using Scalar = float; 
             using Vec = Eigen::Matrix<Scalar,D,1>;
             auto s = std::make_shared<SphereLevelset<D>>(Vec::Constant(.5),.3);
-            return std::make_shared<ScalingScalarFunction<D> >(s,Vec::Constant(.5),Vec::LinSpaced(D,.8,1.));
+            return std::make_shared<LevelsetScaler<D> >(s,Vec::Constant(.5),Vec::LinSpaced(D,.8,1.));
         }
 
 
     template <int D>
-        std::shared_ptr<ScalarFunction<D> > uncenteredEllipse() {
+        std::shared_ptr<Levelset<D> > uncenteredEllipse() {
             using Scalar = float; 
             using Vec = Eigen::Matrix<Scalar,D,1>;
             using Vec2 = Eigen::Matrix<Scalar,2,1>;
@@ -87,12 +92,12 @@ namespace examples {
                 return v;
             };
             auto s = std::make_shared<SphereLevelset<D>>(Vec::Zero(),.2);
-            auto r = std::make_shared<ScalingScalarFunction<D> >(s,Vec::Zero(),Vec::LinSpaced(D,.6,1.));
-            return std::make_shared<TranslateScalarFunction<D> >(r,rp(0));
+            auto r = std::make_shared<LevelsetScaler<D> >(s,Vec::Zero(),Vec::LinSpaced(D,.6,1.));
+            return std::make_shared<LevelsetTranslator<D> >(r,rp(0));
 
         }
     template <int D>
-        std::shared_ptr<ScalarFunction<D> > uncenteredSphere() {
+        std::shared_ptr<Levelset<D> > uncenteredSphere() {
             using Scalar = float; 
             using Vec = Eigen::Matrix<Scalar,D,1>;
             using Vec2 = Eigen::Matrix<Scalar,2,1>;
@@ -104,12 +109,13 @@ namespace examples {
             };
 //            auto sphere1 = std::make_shared< BlobbyLevelset<D> >(rp(0),.2);
             auto sphere1 = std::make_shared< SphereLevelset<D> >(Vec::Zero(),.2);
-            return std::make_shared<TranslateScalarFunction<D> >(sphere1,Vec::Unit(1)*.3);
+            return std::make_shared<LevelsetTranslator<D> >(sphere1,Vec::Unit(1)*.3);
             return sphere1;
 
         }
+    /*
     template <int D>
-        std::shared_ptr<ScalarFunction<D> > uncenteredBlobby() {
+        std::shared_ptr<Levelset<D> > uncenteredBlobby() {
             using Scalar = float; 
             using Vec = Eigen::Matrix<Scalar,D,1>;
             using Vec2 = Eigen::Matrix<Scalar,2,1>;
@@ -120,11 +126,11 @@ namespace examples {
                 return v;
             };
             auto sphere1 = std::make_shared< BlobbyLevelset<D> >(rp(0),.2);
-            return std::make_shared<SumScalarFunction<D> >(sphere1);
+            return std::make_shared<SumLevelset<D> >(sphere1);
 
         }
     template <int D>
-        std::shared_ptr<ScalarFunction<D> > threeBlobbies() {
+        std::shared_ptr<Levelset<D> > threeBlobbies() {
             using Scalar = float; 
             using Vec = Eigen::Matrix<Scalar,D,1>;
             using Vec2 = Eigen::Matrix<Scalar,2,1>;
@@ -138,12 +144,12 @@ namespace examples {
             auto sphere2 = std::make_shared< BlobbyLevelset<D> >(rp(1),.2);
             auto sphere3 = std::make_shared< BlobbyLevelset<D> >(rp(2),.2);
             //                auto sphere4 = std::make_shared< SphereLevelset<2> >(Vec2(.5,.5),.2);
-            //return std::make_shared<MinScalarFunction<D> >(sphere1,sphere2,sphere3);
-            return std::make_shared<SumScalarFunction<D> >(sphere1,sphere2,sphere3);
+            //return std::make_shared<MinLevelset<D> >(sphere1,sphere2,sphere3);
+            return std::make_shared<SumLevelset<D> >(sphere1,sphere2,sphere3);
 
         }
     template <int D>
-        std::shared_ptr<ScalarFunction<D> > threeSpheres() {
+        std::shared_ptr<Levelset<D> > threeSpheres() {
             using Scalar = float; 
             using Vec = Eigen::Matrix<Scalar,D,1>;
             using Vec2 = Eigen::Matrix<Scalar,2,1>;
@@ -157,9 +163,10 @@ namespace examples {
             auto sphere2 = std::make_shared< SphereLevelset<D> >(rp(1),.2);
             auto sphere3 = std::make_shared< SphereLevelset<D> >(rp(2),.2);
             //                auto sphere4 = std::make_shared< SphereLevelset<2> >(Vec2(.5,.5),.2);
-            return std::make_shared<MinScalarFunction<D> >(sphere1,sphere2,sphere3);
+            return std::make_shared<MinLevelset<D> >(sphere1,sphere2,sphere3);
 
         }
+        */
 
 
 
@@ -174,4 +181,4 @@ namespace examples {
 
 
 
-#endif//SCALAR_EXAMPLE_FUNC_H
+#endif//LEVELSET_EXAMPLE_FUNC_H

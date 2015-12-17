@@ -1,7 +1,7 @@
 #ifndef DISCRETE_SCALAR_FUNC_H
 #define DISCRETE_SCALAR_FUNC_H
 #include "levelset.h"
-#include "grid/grid.h"
+#include "../grid/grid.h"
 
 #include <iostream>
 
@@ -29,13 +29,13 @@ class DenseDiscreteLevelset: public Levelset<_D> {
         void load(const typename Base::Ptr& f, Scalar start=0, Scalar end=1, size_t slices=50);
         void load(GridVector&& gv, Scalar start=0, Scalar end=1);//To reduce copying a lways use rvalue ref
         Scalar operator()(const constVecRef& v, Scalar t = 0) const {
-            t -= m_start;
-            if(t < 0){
+            Vec v2 = m_dx.cwiseProduct(v);//Put into unit cube
+            if(t <= 0){
                 return mtao::lerp(m_grids.front(),v);
-            } else if(t > m_grids.size() * m_dt) {
+            } else if(t >= 1) {
                 return mtao::lerp(m_grids.back(),v);
             } else {
-                Scalar p = t/m_dt;
+                Scalar p = t * m_grids.size();
                 size_t idx = std::floor(p);
                 auto a = mtao::lerp(m_grids[idx  ],v);
                 auto b = mtao::lerp(m_grids[idx+1],v);
@@ -56,7 +56,6 @@ class DenseDiscreteLevelset: public Levelset<_D> {
         IndexType m_nx;
         Vec m_dx;
         Scalar m_dt = Scalar(1e-2);
-        Scalar m_start=0,m_end=1;
         GridVector m_grids;
 
 

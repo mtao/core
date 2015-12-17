@@ -44,8 +44,41 @@ ENDIF(PROTOBUF_FOUND)
 #
 #TARGET_LINK_LIBRARIES(advection_test pthread)
 
+SET(CORE_HEADERS
+    include/compat.h
+    include/coord.h
+    include/conversion.h
+    include/static_iteration.h
+    include/types.h
+    include/util.h
+    )
 
-ADD_EXECUTABLE(grid_test src/grid_test.cpp include/grid/grid.h include/grid/grid_utils.h
+SET(GRID_HEADERS
+    ${CORE_HEADERS}
+    include/grid/grid.h
+    include/grid/grid_storage.h
+    include/grid/grid_utils.h
+    include/grid/index_map.h
+    include/grid/index_map_iterator.h
+    )
+
+SET(LEVELSET_HEADERS
+    ${GRID_HEADERS}
+    include/levelset/levelset.h
+    include/levelset/levelset_example.h
+    include/levelset/primitives.h
+    include/levelset/transformations.h
+    include/levelset/transformer.h
+    include/levelset/discrete.h
+    include/levelset/csg.h
+    include/levelset/animation.h
+    include/levelset/particle_sampler.h
+    )
+
+
+ADD_EXECUTABLE(grid_test src/grid_test.cpp ${GRID_HEADERS}
+    )
+ADD_EXECUTABLE(levelset_test src/levelset_test.cpp ${LEVELSET_HEADERS}
     )
 ADD_EXECUTABLE(multi_loop_test src/multi_loop_test.cpp include/grid/grid.h include/grid/grid_utils.h
     )

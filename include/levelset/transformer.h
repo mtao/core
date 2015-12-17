@@ -22,7 +22,7 @@ class LevelsetTransformer: public Levelset<_D> {
             return heldValue(this->transform(v,t),t);
         }
         virtual Scalar heldValue(const constVecRef& v, Scalar t) const {
-            return held()(v,t);
+            return (*held())(v,t);
         }
         /*
         virtual Vec dxdt(const constVecRef& v,Scalar t = 0) const {
@@ -57,12 +57,12 @@ class LevelsetTransformer: public Levelset<_D> {
 template <int _D>
 class LevelsetStaticTransformer: public LevelsetTransformer<_D> {
     public:
-        USE_BASE_LEVELSET_FUNCTION_DEFS(Levelset)
+        USE_BASE_LEVELSET_FUNCTION_DEFS(LevelsetTransformer)
         using LTPtr = std::shared_ptr<LevelsetTransformer<_D>>;
-        LevelsetStaticTransformer(const LTPtr& tohold): m_held(tohold) {}
+        LevelsetStaticTransformer(const LTPtr& tohold): Base(tohold) {}
 
         virtual Vec transform(const constVecRef& v, Scalar t=0) const {
-            return static_cast<LTPtr>(held())->transform(v,1);
+            return static_cast<LTPtr>(this->held())->transform(v,1);
         }
 };
 
@@ -71,17 +71,29 @@ class LevelsetRangedTransformer: public LevelsetTransformer<_D> {
     public:
         USE_BASE_LEVELSET_FUNCTION_DEFS(Levelset)
         using LTPtr = std::shared_ptr<LevelsetTransformer<_D>>;
-        LevelsetRangedTransformer(const LTPtr& tohold, Scalar start, Scalar end): m_held(tohold), m_start(start), m_range(end-start) {}
+        LevelsetRangedTransformer(const LTPtr& tohold, Scalar start=0, Scalar end=std::numeric_limits<Scalar>::infinity())
+            : Base(tohold), m_start(start), m_range(end-start) {}
 
         virtual Vec transform(const constVecRef& v, Scalar t) const {
-            Scalar t2 = t - m_start;
-            if(t >= 0 && t <= m_range) {
-                return static_cast<LTPtr>(held())->transform(t2/range);
+            if(in_range(t)) {
+                t -= m_start;
+                if(m_range < std::numeric_limits<Scalar>::infinity()) {
+                    t/=m_range;
+                }
+                return static_cast<LTPtr>(this->held())->transform(t);
 
             } else {
                 return v;
             }
         }
+        Scalar start() const {return m_start;}
+        Scalar range() const {return m_range;}
+        Scalar end() const {return m_start+m_range;}
+        bool in_range(Scalar t) const {
+            t -= m_start;
+            return t >= 0 && t <= m_range;
+        }
+    private:
         Scalar m_start;
         Scalar m_range;
 };

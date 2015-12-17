@@ -1,5 +1,6 @@
 #ifndef LEVELSET_TRANSFORMATIONS_H
 #define LEVELSET_TRANSFORMATIONS_H
+#include "transformer.h"
 
 
 template <int _D>
@@ -28,6 +29,8 @@ class LevelsetRotator<2>: public LevelsetTransformer<2> {
         USE_BASE_LEVELSET_FUNCTION_DEFS(LevelsetTransformer)
             template <typename Func, typename VecType>
             LevelsetRotator(const Func& f, const VecType& c,Scalar angvel): Base(f) , m_center(c), m_angvel(angvel) {}
+            template <typename Func, typename VecType, typename VecType2>
+            LevelsetRotator(const Func& f, const VecType& c, const VecType2& axis, Scalar angvel): Base(f) , m_center(c), m_angvel(angvel) {}
         /*
         virtual Vec dxdt(const constVecRef& v,Scalar t = 0) const {
             auto&& p = v - m_center;
@@ -130,4 +133,4 @@ class LevelsetScaler: public LevelsetTransformer<_D> {
 
 
 };
-#endif LEVELSET_TRANSFORMATIONS_H
+#endif//LEVELSET_TRANSFORMATIONS_H

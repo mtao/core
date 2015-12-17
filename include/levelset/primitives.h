@@ -4,10 +4,11 @@
 template <int _D>
 class SphereLevelset: public Levelset<_D> {
     public:
-        USE_BASE_SCALAR_FUNCTION_DEFS(Levelset)
+        USE_BASE_LEVELSET_FUNCTION_DEFS(Levelset)
             template <typename VecType>
             SphereLevelset(Scalar r = Scalar(1.0)): m_center(Vec::Zero()), m_radius(r) {
             }
+        template <typename VecType>
             SphereLevelset(const VecType& c, Scalar r): m_center(c), m_radius(r) {
             }
             Scalar operator()(const constVecRef& v, Scalar t) const {
@@ -28,10 +29,10 @@ class SphereLevelset: public Levelset<_D> {
 template <int _D>
 class CubeLevelset: public Levelset<_D> {
     public:
-        USE_BASE_SCALAR_FUNCTION_DEFS(Levelset)
-            template <typename VecType>
-            SphereLevelset(Scalar r = Scalar(1.0)): m_center(Vec::Zero()), m_radius(r) {
+        USE_BASE_LEVELSET_FUNCTION_DEFS(Levelset)
+            CubeLevelset(Scalar r = Scalar(1.0)): m_center(Vec::Zero()), m_radius(r) {
             }
+            template <typename VecType>
             CubeLevelset(const VecType& c, Scalar r): m_center(c), m_radius(r) {
             }
             Scalar operator()(const constVecRef& v, Scalar t) const {
@@ -65,7 +66,7 @@ class CubeLevelset: public Levelset<_D> {
 template <int _D>
 class BlobbyLevelset: public Levelset<_D> {
     public:
-        USE_BASE_SCALAR_FUNCTION_DEFS(Levelset)
+        USE_BASE_LEVELSET_FUNCTION_DEFS(Levelset)
             template <typename VecType>
             BlobbyLevelset(const VecType& c, Scalar r): m_center(c), m_radius(r) {
             }
@@ -98,3 +99,4 @@ class BlobbyLevelset: public Levelset<_D> {
 
 };
 */
+#endif//PRIMITIVES_H
