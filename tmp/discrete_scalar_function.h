@@ -1,18 +1,16 @@
 #ifndef DISCRETE_SCALAR_FUNC_H
 #define DISCRETE_SCALAR_FUNC_H
-#include "scalar_function.h"
-#include "grid.h"
-#include "utils.h"
-#include "particle_sampler.h"
+#include "levelset.h"
+#include "grid/grid.h"
 
 #include <iostream>
 
 template <int _D>
-class DenseDiscreteScalarFunction: public ScalarFunction<_D> {
+class DenseDiscreteLevelset: public Levelset<_D> {
     public:
-        USE_BASE_SCALAR_FUNCTION_DEFS(ScalarFunction)
+        USE_BASE_LEVELSET_FUNCTION_DEFS(Levelset)
 
-        using Ptr = std::shared_ptr<DenseDiscreteScalarFunction<D>>;
+        using Ptr = std::shared_ptr<DenseDiscreteLevelset<D>>;
         using GridType = typename mtao::Grid<Scalar,D>;
         using BBox = typename Eigen::AlignedBox<Scalar,D>;
         using IndexType = typename GridType::index_type;
@@ -22,7 +20,7 @@ class DenseDiscreteScalarFunction: public ScalarFunction<_D> {
         iterator end() {return m_grids.end();}
         const GridType& front() {return m_grids.front();}
         const GridType& back() {return m_grids.back();}
-        DenseDiscreteScalarFunction(const BBox& bb, const IndexType& nx): m_bbox(bb), m_nx(nx) {
+        DenseDiscreteLevelset(const BBox& bb, const IndexType& nx): m_bbox(bb), m_nx(nx) {
             auto range = bb.sizes();
             for(int i =0 ; i < D; ++i) {
                 m_dx[i] = range[i] / (nx[i]-1);
@@ -53,9 +51,6 @@ class DenseDiscreteScalarFunction: public ScalarFunction<_D> {
         IndexType& shape() {return m_nx;}
         GridVector& grids() {return m_grids;}
         const GridVector& grids() const {return m_grids;}
-        VecVector getDiscSurfacePoints(int frame) const {
-            return getParticles(m_grids[frame]);
-        }
     private:
         BBox m_bbox;
         IndexType m_nx;
@@ -68,7 +63,7 @@ class DenseDiscreteScalarFunction: public ScalarFunction<_D> {
 };
 
 template <int _D>
-void DenseDiscreteScalarFunction<_D>::load(const typename Base::Ptr& f, Scalar start, Scalar end, size_t slices) {
+void DenseDiscreteLevelset<_D>::load(const typename Base::Ptr& f, Scalar start, Scalar end, size_t slices) {
     m_dt = (end-start)/slices;
     m_dt = 1e-2;
     m_start = start;
@@ -96,11 +91,11 @@ void DenseDiscreteScalarFunction<_D>::load(const typename Base::Ptr& f, Scalar s
     //std::cout << std::endl;
 }
 template <int _D>
-void DenseDiscreteScalarFunction<_D>::load(GridVector&& g, Scalar start, Scalar end) {
+void DenseDiscreteLevelset<_D>::load(GridVector&& g, Scalar start, Scalar end) {
     size_t slices = g.size();
     m_dt = (end-start)/slices;
     m_start = start;
     m_end = end;
-    m_grids = g;
+    m_grids = std::move(g);
 }
 #endif//DISCRETE_SCALAR_FUNC_H

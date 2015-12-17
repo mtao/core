@@ -1,4 +1,5 @@
-
+#ifndef LEVELSET_TRANSFORMATIONS_H
+#define LEVELSET_TRANSFORMATIONS_H
 
 
 template <int _D>
@@ -70,7 +71,7 @@ class LevelsetRotator<3>: public LevelsetTransformer<3> {
             return p.cross(m_axis);
         }
         */
-        virtual Vec _transform(const constVecRef& v, Scalar t) const {
+        virtual Vec transform(const constVecRef& v, Scalar t) const {
             auto&& vc = v - m_center;
             return m_center + AngleAxis(m_angvel * t,m_axis) * (v-m_center);
         }
@@ -105,10 +106,10 @@ class LevelsetScaler: public LevelsetTransformer<_D> {
             return Base::dxdt(v,t);
         }
         */
-        virtual Vec _transform(const constVecRef& v, Scalar t) const {
+        virtual Vec transform(const constVecRef& v, Scalar t) const {
             auto cv = v - m_center;
             //auto scv = m_scale.cwiseProduct(cv);
-            auto scv = cv.cwiseQuotient(m_scale);
+            auto scv = cv.array() * m_scale.array().pow(t);
 
             return scv + m_center;
         }
@@ -129,3 +130,4 @@ class LevelsetScaler: public LevelsetTransformer<_D> {
 
 
 };
+#endif LEVELSET_TRANSFORMATIONS_H
