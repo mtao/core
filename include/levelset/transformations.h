@@ -113,9 +113,9 @@ class LevelsetScaler: public LevelsetDeformer<_D> {
         virtual Vec transform(const constVecRef& v, Scalar t) const {
             auto cv = v - m_center;
             //auto scv = m_scale.cwiseProduct(cv);
-            auto scv = cv.array() * m_scale.array().pow(t);
+            auto scv = cv.array() * (t * (m_scale.array() - 1)+1);
 
-            return scv + m_center;
+            return scv.matrix() + m_center;
         }
         /*
         virtual Vec _invtransform(const constVecRef& v, Scalar t) const {
@@ -148,6 +148,10 @@ class LevelsetScaler: public LevelsetDeformer<_D> {
             return std::make_shared<LevelsetRotator<D>>(f,center,axis.normalized(),axis.norm());
         }
 
+    template <int D, typename Vec = typename Levelset<D>::Vec>
+        auto scaling(const typename Levelset<D>::Ptr& f, const Vec& center = Vec::Zero(), const Vec& s = Vec::Ones()) {
+            return std::make_shared<LevelsetScaler<D>>(f,center,s);
+        }
 
 }
 

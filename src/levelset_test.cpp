@@ -63,14 +63,29 @@ void discreteTest() {
     for(auto&& g: dd->grids()) {
         levelset::discrete::print_grid(g);
     }
+}
+void squishTest() {
+    auto sphere = levelset::sphere<2>();
+    using DDLPTR = std::remove_reference<decltype(*levelset::dense_discrete<2>(sphere,1))>::type;
+    using BB =  DDLPTR::BBox;
+    //using Vec = DDLPTR::Vec;
+    using Vec = Eigen::Vector2f;
+    auto squish1 = levelset::scaling<2>(sphere,Vec(0,0),Vec(1.,2));
+    auto squish2 = levelset::scaling<2>(squish1,Vec(0,0),Vec(.5,1));
+    BB a(Vec::Constant(-3),Vec::Constant(3));
+    auto dd = levelset::dense_discrete<2>(squish2,100,2,a);
 
+    for(auto&& g: dd->grids()) {
+        levelset::discrete::print_grid(g);
+    }
 }
 
 
 int main( int argc, char * argv[]) {
-    translateTest();
-    unionTest();
-    discreteTest();
+    //translateTest();
+    //unionTest();
+    //discreteTest();
+    squishTest();
 
 
     auto zls = levelset::ZeroLevelset<2>();
