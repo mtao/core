@@ -11,14 +11,14 @@ class UnaryLevelsetOp: public Levelset<_D> {
     public:
         USE_BASE_LEVELSET_FUNCTION_DEFS(Levelset)
 
-        UnaryLevelsetOp(const BasePtr& tohold): m_held(tohold) {}
+        UnaryLevelsetOp(const LSPtr& tohold): m_held(tohold) {}
 
         virtual Scalar heldValue(const constVecRef& v, Scalar t) const {
             return (*held())(v,t);
         }
-        const BasePtr& held() const {return m_held;}
+        const LSPtr& held() const {return m_held;}
     protected:
-        const BasePtr m_held;
+        const LSPtr m_held;
 };
 
 template <int _D>
@@ -26,11 +26,11 @@ class BinaryLevelsetOp: public Levelset<_D> {
     public:
         USE_BASE_LEVELSET_FUNCTION_DEFS(Levelset)
 
-        BinaryLevelsetOp(const BasePtr& a, const BasePtr& b): m_first(a), m_second(b) {}
-        const BasePtr& first() const {return m_first;}
-        const BasePtr& second() const {return m_second;}
+        BinaryLevelsetOp(const LSPtr& a, const LSPtr& b): m_first(a), m_second(b) {}
+        const LSPtr& first() const {return m_first;}
+        const LSPtr& second() const {return m_second;}
     protected:
-        BasePtr m_first,m_second;
+        LSPtr m_first,m_second;
 };
 template <int _D>
 class TernaryLevelsetOp: public Levelset<_D> {

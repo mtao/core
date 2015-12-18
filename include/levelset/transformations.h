@@ -1,13 +1,13 @@
 #ifndef LEVELSET_TRANSFORMATIONS_H
 #define LEVELSET_TRANSFORMATIONS_H
-#include "transformer.h"
+#include "deformer.h"
 
 namespace levelset {
 
 template <int _D>
-class LevelsetTranslator: public LevelsetTransformer<_D> {
+class LevelsetTranslator: public LevelsetDeformer<_D> {
     public:
-        USE_BASE_LEVELSET_FUNCTION_DEFS(LevelsetTransformer)
+        USE_BASE_LEVELSET_FUNCTION_DEFS(LevelsetDeformer)
             template <typename Func, typename VecType>
             LevelsetTranslator(const Func& f, const VecType& vel): Base(f) , m_velocity(vel) {}
         virtual Vec transform(const constVecRef& v, Scalar t) const {
@@ -24,10 +24,10 @@ template <int _D>
 class LevelsetRotator;
 
 template <>
-class LevelsetRotator<2>: public LevelsetTransformer<2> {
+class LevelsetRotator<2>: public LevelsetDeformer<2> {
     public:
         static constexpr int _D = 2;
-        USE_BASE_LEVELSET_FUNCTION_DEFS(LevelsetTransformer)
+        USE_BASE_LEVELSET_FUNCTION_DEFS(LevelsetDeformer)
             template <typename Func, typename VecType>
             LevelsetRotator(const Func& f, const VecType& c,Scalar angvel): Base(f) , m_center(c), m_angvel(angvel) {}
             template <typename Func, typename VecType, typename VecType2>
@@ -62,10 +62,10 @@ class LevelsetRotator<2>: public LevelsetTransformer<2> {
 };
 
 template <>
-class LevelsetRotator<3>: public LevelsetTransformer<3> {
+class LevelsetRotator<3>: public LevelsetDeformer<3> {
     public:
         static constexpr int _D = 3;
-        USE_BASE_LEVELSET_FUNCTION_DEFS(LevelsetTransformer)
+        USE_BASE_LEVELSET_FUNCTION_DEFS(LevelsetDeformer)
             using AngleAxis = Eigen::AngleAxis<Scalar>;
             template <typename Func, typename VecType, typename VecType2>
             LevelsetRotator(const Func& f, const VecType& c, const VecType2& axis, Scalar angvel): Base(f) , m_center(c), m_axis(axis), m_angvel(angvel) {}
@@ -100,9 +100,9 @@ class LevelsetRotator<3>: public LevelsetTransformer<3> {
 };
 
 template <int _D>
-class LevelsetScaler: public LevelsetTransformer<_D> {
+class LevelsetScaler: public LevelsetDeformer<_D> {
     public:
-        USE_BASE_LEVELSET_FUNCTION_DEFS(LevelsetTransformer)
+        USE_BASE_LEVELSET_FUNCTION_DEFS(LevelsetDeformer)
             template <typename Func, typename VecType, typename VecType2>
             LevelsetScaler(const Func& f, const VecType& c, const VecType2& scale = Vec::Ones()): Base(f) ,m_center(c), m_scale(scale) {}
         /*

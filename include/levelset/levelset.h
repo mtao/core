@@ -17,6 +17,7 @@ class Levelset {
         static constexpr int D = _D;
         using Scalar = float;
         using Ptr = std::shared_ptr<Levelset<D>>;
+        using LSPtr = Ptr;
 
         using Vec = Eigen::Matrix<Scalar,D,1>;
         using Matrix = Eigen::Matrix<Scalar,D,D>;
@@ -85,7 +86,9 @@ class ZeroLevelset;
 #define USE_BASE_LEVELSET_FUNCTION_DEFS(BASE) \
     static constexpr int D = _D;\
     using Base = BASE<D>;\
-    using BasePtr = typename Base::Ptr;\
+    using LSPtr = typename Base::LSPtr;\
+    using LevelsetType = Levelset<D>;\
+    using BasePtr = typename LevelsetType::Ptr;\
     using ZeroFunc = ZeroLevelset<D>;\
     using Scalar = typename Base::Scalar;\
     using Vec = typename Base::Vec;\

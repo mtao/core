@@ -20,7 +20,7 @@ class CSGIntersection: public BinaryLevelsetOp<_D> {
         USE_BASE_LEVELSET_FUNCTION_DEFS(BinaryLevelsetOp)
         using Base::first;
         using Base::second;
-        CSGIntersection(const BasePtr& a, const BasePtr& b): Base(a,b) {}
+        CSGIntersection(const LSPtr& a, const LSPtr& b): Base(a,b) {}
         Scalar operator()(const constVecRef& v, Scalar t)  const {
             return std::max((*first())(v,t),(*second())(v,t));
         }
@@ -31,7 +31,7 @@ class CSGUnion: public BinaryLevelsetOp<_D> {
         USE_BASE_LEVELSET_FUNCTION_DEFS(BinaryLevelsetOp)
         using Base::first;
         using Base::second;
-        CSGUnion(const BasePtr& a, const BasePtr& b): Base(a,b) {}
+        CSGUnion(const LSPtr& a, const LSPtr& b): Base(a,b) {}
         Scalar operator()(const constVecRef& v,Scalar t)  const {
             return std::min((*first())(v,t),(*second())(v,t));
         }
@@ -43,7 +43,7 @@ class CSGDifference: public CSGUnion<_D> {
             using Base::Base;
         using Base::first;
         using Base::second;
-        //CSGDifference(const BasePtr& a, const BasePtr& b): Base(a,CSGInverse<_D>(b)) {}
+        //CSGDifference(const LSPtr& a, const LSPtr& b): Base(a,CSGInverse<_D>(b)) {}
         Scalar operator()(const constVecRef& v, Scalar t)  const {
             return std::min((*first())(v,t),-(*second())(v,t));
         }

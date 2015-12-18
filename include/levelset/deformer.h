@@ -1,12 +1,12 @@
-#ifndef LEVELSET_TRANSFORMER_H
-#define LEVELSET_TRANSFORMER_H
+#ifndef LEVELSET_DEFORMER_H
+#define LEVELSET_DEFORMER_H
 
 #include "levelset.h"
 #include "ops.h"
 namespace levelset {
 
 template <int _D>
-class LevelsetTransformer: public UnaryLevelsetOp<_D> {
+class LevelsetDeformer: public UnaryLevelsetOp<_D> {
     public:
         USE_BASE_LEVELSET_FUNCTION_DEFS(UnaryLevelsetOp)
         using Base::Base;
@@ -50,23 +50,33 @@ class LevelsetTransformer: public UnaryLevelsetOp<_D> {
 };
 
 template <int _D>
-class LevelsetStaticTransformer: public LevelsetTransformer<_D> {
+class LevelsetStaticDeformer: public LevelsetDeformer<_D> {
     public:
-        USE_BASE_LEVELSET_FUNCTION_DEFS(LevelsetTransformer)
-        using LTPtr = std::shared_ptr<LevelsetTransformer<_D>>;
-        LevelsetStaticTransformer(const LTPtr& tohold): Base(tohold) {}
+        USE_BASE_LEVELSET_FUNCTION_DEFS(LevelsetDeformer)
+        using LT= LevelsetDeformer<_D>;
+        using LTRawPtr = LevelsetDeformer<_D>*;
+        using LTPtr = std::shared_ptr<LT>;
+        LevelsetStaticDeformer(const LTPtr& tohold): Base(tohold) {}
 
         virtual Vec transform(const constVecRef& v, Scalar t=0) const {
-            return static_cast<LTPtr>(this->held())->transform(v,1);
+            return held_lt().transform(v,1);
+        }
+        virtual Scalar operator()(const constVecRef& v, Scalar t) const {
+            return held_lt().heldValue(this->transform(v,t),t);
+
+        }
+        const LT& held_lt() const {
+            return *dynamic_cast<const LTRawPtr>(this->held().get());
         }
 };
 
 template <int _D>
-class LevelsetRangedTransformer: public LevelsetTransformer<_D> {
+class LevelsetRangedDeformer: public LevelsetDeformer<_D> {
     public:
         USE_BASE_LEVELSET_FUNCTION_DEFS(Levelset)
-        using LTPtr = std::shared_ptr<LevelsetTransformer<_D>>;
-        LevelsetRangedTransformer(const LTPtr& tohold, Scalar start=0, Scalar end=std::numeric_limits<Scalar>::infinity())
+        using LTPtr = std::shared_ptr<LevelsetDeformer<_D>>;
+        using LTRawPtr = LevelsetDeformer<_D>*;
+        LevelsetRangedDeformer(const LTPtr& tohold, Scalar start=0, Scalar end=std::numeric_limits<Scalar>::infinity())
             : Base(tohold), m_start(start), m_range(end-start) {}
 
         virtual Vec transform(const constVecRef& v, Scalar t) const {
@@ -75,7 +85,7 @@ class LevelsetRangedTransformer: public LevelsetTransformer<_D> {
                 if(m_range < std::numeric_limits<Scalar>::infinity()) {
                     t/=m_range;
                 }
-                return static_cast<LTPtr>(this->held())->transform(t);
+                return dynamic_cast<const LTRawPtr>(this->held().get())->transform(v,t);
 
             } else {
                 return v;
@@ -93,7 +103,12 @@ class LevelsetRangedTransformer: public LevelsetTransformer<_D> {
         Scalar m_range;
 };
 
+template <typename LD>
+auto enstatic(const std::shared_ptr<LD>& ptr) {
+    constexpr static int D = LD::D;
+    return std::make_shared<LevelsetStaticDeformer<D>>(ptr);
+}
 
 
 }
-#endif//LEVELSET_TRANSFORMER_H
+#endif//LEVELSET_DEFORMER_H

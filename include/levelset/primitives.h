@@ -42,13 +42,9 @@ class CubeLevelset: public Levelset<_D> {
                 Scalar inside = (r.template lpNorm<Eigen::Infinity>() < m_radius)?-1:1;
                 for(int d = 0; d < _D; ++d) {
                     auto&& p = r(d);
-                    if(p > 0) {
-                        r(d) = v(d) - m_radius;
-                    } else {
-                        r(d) = m_radius + p;
-                    }
+                    r(d) = std::abs(v(d)) - m_radius;
                 }
-                return inside * std::min(r.minCoeff(),r.norm());
+                return std::min(r.maxCoeff(),inside * r.norm());
             }
             /*
         virtual Vec dfdx(const constVecRef& v,Scalar t = 0, float dx=0.01) const {

@@ -2,6 +2,7 @@
 #define DISCRETE_SCALAR_FUNC_H
 #include "levelset.h"
 #include "../grid/grid.h"
+#include <iostream>
 
 namespace levelset {
 
@@ -26,8 +27,7 @@ namespace levelset {
                     m_dx[i] = range[i] / (nx[i]-1);
                 }
             }
-            void load(const typename Base::Ptr& f, Scalar start=0, Scalar end=1, size_t slices=50);
-            void load(GridVector&& gv, Scalar start=0, Scalar end=1);//To reduce copying a lways use rvalue ref
+            void load(const typename Base::Ptr& f, size_t slices=50, Scalar duration=1.0);
             Scalar operator()(const constVecRef& v, Scalar t = 0) const {
                 Vec v2 = m_dx.cwiseProduct(v);//Put into unit cube
                 if(t <= 0){
@@ -62,40 +62,36 @@ namespace levelset {
     };
     
     template <int _D>
-    void DenseDiscreteLevelset<_D>::load(const typename Base::Ptr& f, Scalar start, Scalar end, size_t slices) {
-        m_dt = (end-start)/slices;
-        m_dt = 1e-2;
-        m_start = start;
-        m_end = end;
+    void DenseDiscreteLevelset<_D>::load(const typename Base::Ptr& f, size_t slices, Scalar duration) {
+        m_dt = duration/slices;
         using MapType = Eigen::Map<const Eigen::Matrix<typename IndexType::value_type,D,1>>;
         auto index2world = [&](auto&& index) -> auto {
-            return m_dx.cwiseProduct(MapType(index.begin()).template cast<Scalar>());
+            return m_dx.cwiseProduct(MapType(index.begin()).template cast<Scalar>()) + m_bbox.min();
         };
         m_grids.resize(slices,m_nx);
         for(size_t i = 0; i < slices; ++i) {
             auto&& g = m_grids[i];
-            Scalar t = start + m_dt * i;
+            Scalar t = m_dt * i;
             g.loop_write_idx([&](auto&& idx){
                     return (*f)(index2world(idx),t);
                     });
         }
-        //std::cout << "Grid sizes: ";
-        //for(auto&& g: m_grids) {
-        //    std::cout << "(";
-        //    for(auto&& d: g.shape()) {
-        //        std::cout << d << ", ";
-        //    }
-        //    std::cout << ": " << g.size() << ")";
-        //}
-        //std::cout << std::endl;
     }
-    template <int _D>
-    void DenseDiscreteLevelset<_D>::load(GridVector&& g, Scalar start, Scalar end) {
-        size_t slices = g.size();
-        m_dt = (end-start)/slices;
-        m_start = start;
-        m_end = end;
-        m_grids = std::move(g);
+    namespace internal {
+        template <int D>
+        constexpr mtao::compat::array<int,D> const_index(int N) {
+            mtao::compat::array<int,D> arr;
+            arr.fill(N);
+            return arr;
+        }
+    }
+    template <int D, typename LSPtr, class DDL = DenseDiscreteLevelset<D>, typename BBox = typename DDL::BBox, typename IndexType = typename DDL::IndexType, typename VecType = typename DDL::Vec>
+    auto dense_discrete(const LSPtr& ptr, int nframes = 10, float duration=1.0, const BBox& bb = BBox(-VecType::Ones(),VecType::Ones()), const IndexType& nx = internal::const_index<D>(50)) {
+
+        auto ret = std::make_shared<DDL>(bb,nx);
+        ret->load(ptr,nframes,duration);
+        return ret;
+
     }
 }
 #endif//DISCRETE_SCALAR_FUNC_H
