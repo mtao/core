@@ -1,6 +1,7 @@
 #ifndef PRIMITIVES_H
 #define PRIMITIVES_H
 #include "levelset.h"
+namespace levelset {
 template <int _D>
 class SphereLevelset: public Levelset<_D> {
     public:
@@ -38,6 +39,7 @@ class CubeLevelset: public Levelset<_D> {
             Scalar operator()(const constVecRef& v, Scalar t) const {
                 Scalar mindist = std::numeric_limits<Scalar>::max();;
                 Vec r = v - m_center;
+                Scalar inside = (r.template lpNorm<Eigen::Infinity>() < m_radius)?-1:1;
                 for(int d = 0; d < _D; ++d) {
                     auto&& p = r(d);
                     if(p > 0) {
@@ -46,8 +48,7 @@ class CubeLevelset: public Levelset<_D> {
                         r(d) = m_radius + p;
                     }
                 }
-                return std::min(r.minCoeff(),r.norm());
-                return (v - m_center).norm() - m_radius;
+                return inside * std::min(r.minCoeff(),r.norm());
             }
             /*
         virtual Vec dfdx(const constVecRef& v,Scalar t = 0, float dx=0.01) const {
@@ -61,6 +62,14 @@ class CubeLevelset: public Levelset<_D> {
         Scalar m_radius;
 
 };
+    template <int D, typename Scalar = typename Levelset<D>::Scalar, typename Vec = typename Levelset<D>::Vec>
+        auto sphere(const Vec& center = Vec::Zero(), Scalar radius = Scalar(1)) {
+            return std::make_shared<SphereLevelset<D>>(center,radius);
+        }
+    template <int D, typename Scalar = typename Levelset<D>::Scalar, typename Vec = typename Levelset<D>::Vec>
+        auto cube(const Vec& center = Vec::Zero(), Scalar radius = Scalar(1)) {
+            return std::make_shared<CubeLevelset<D>>(center,radius);
+        }
 
 /*
 template <int _D>
@@ -99,4 +108,5 @@ class BlobbyLevelset: public Levelset<_D> {
 
 };
 */
+}
 #endif//PRIMITIVES_H

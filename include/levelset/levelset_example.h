@@ -8,6 +8,7 @@
 #include "levelset.h"
 #include "primitives.h"
 #include "transformations.h"
+#include "csg.h"
 
 
 
@@ -42,34 +43,7 @@ int LevelsetWithId<D>::counter = 0;
 
 
 
-namespace examples {
-    template <int D>
-        std::shared_ptr<Levelset<D> > translate(const typename Levelset<D>::Ptr& f, int Dim) {
-            using Scalar = float; 
-            using Vec = Eigen::Matrix<Scalar,D,1>;
-            return std::make_shared<LevelsetTranslator<D>>(f,1.*Vec::Unit(Dim));
-        }
-    template <int D>
-        std::shared_ptr<Levelset<D> > rotation(const typename Levelset<D>::Ptr& f) {
-            using Scalar = float; 
-            using Vec = Eigen::Matrix<Scalar,D,1>;
-            return std::make_shared<LevelsetRotator<3>>(f,Vec::Constant(.5),Vec::Unit(D-1),1);
-        }
-    template <int D>
-        std::shared_ptr<Levelset<D> > sphere() {
-            using Scalar = float; 
-            using Vec = Eigen::Matrix<Scalar,D,1>;
-            //return std::make_shared<SphereLevelset<D>>(Vec::Constant(.5),.3);
-            return std::make_shared<SphereLevelset<D>>(Vec::Zero(),1.);
-        }
-    /*
-    template <int D>
-        std::shared_ptr<Levelset<D> > blobby() {
-            using Scalar = float; 
-            using Vec = Eigen::Matrix<Scalar,D,1>;
-            return std::make_shared<BlobbyLevelset<D>>(Vec::Constant(.5),.3);
-        }
-    */
+namespace levelset {
 
     template <int D>
         std::shared_ptr<Levelset<D> > ellipse() {
@@ -113,41 +87,6 @@ namespace examples {
             return sphere1;
 
         }
-    /*
-    template <int D>
-        std::shared_ptr<Levelset<D> > uncenteredBlobby() {
-            using Scalar = float; 
-            using Vec = Eigen::Matrix<Scalar,D,1>;
-            using Vec2 = Eigen::Matrix<Scalar,2,1>;
-            Scalar ang = 2 * 3.1415967 / 3;
-            auto rp = [&](Scalar a) -> Vec {
-                Vec v = Vec::Constant(.5);
-                v.template topRows<2>() += .1 * Vec2(cos(a*ang),sin(a*ang));
-                return v;
-            };
-            auto sphere1 = std::make_shared< BlobbyLevelset<D> >(rp(0),.2);
-            return std::make_shared<SumLevelset<D> >(sphere1);
-
-        }
-    template <int D>
-        std::shared_ptr<Levelset<D> > threeBlobbies() {
-            using Scalar = float; 
-            using Vec = Eigen::Matrix<Scalar,D,1>;
-            using Vec2 = Eigen::Matrix<Scalar,2,1>;
-            Scalar ang = 2 * 3.1415967 / 3;
-            auto rp = [&](Scalar a) -> Vec {
-                Vec v = Vec::Constant(.5);
-                v.template topRows<2>() += .1 * Vec2(cos(a*ang),sin(a*ang));
-                return v;
-            };
-            auto sphere1 = std::make_shared< BlobbyLevelset<D> >(rp(0),.2);
-            auto sphere2 = std::make_shared< BlobbyLevelset<D> >(rp(1),.2);
-            auto sphere3 = std::make_shared< BlobbyLevelset<D> >(rp(2),.2);
-            //                auto sphere4 = std::make_shared< SphereLevelset<2> >(Vec2(.5,.5),.2);
-            //return std::make_shared<MinLevelset<D> >(sphere1,sphere2,sphere3);
-            return std::make_shared<SumLevelset<D> >(sphere1,sphere2,sphere3);
-
-        }
     template <int D>
         std::shared_ptr<Levelset<D> > threeSpheres() {
             using Scalar = float; 
@@ -163,10 +102,9 @@ namespace examples {
             auto sphere2 = std::make_shared< SphereLevelset<D> >(rp(1),.2);
             auto sphere3 = std::make_shared< SphereLevelset<D> >(rp(2),.2);
             //                auto sphere4 = std::make_shared< SphereLevelset<2> >(Vec2(.5,.5),.2);
-            return std::make_shared<MinLevelset<D> >(sphere1,sphere2,sphere3);
+            return std::make_shared<TernaryCSGUnion<D> >(sphere1,sphere2,sphere3);
 
         }
-        */
 
 
 

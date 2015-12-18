@@ -2,14 +2,16 @@
 #define LEVELSET_TRANSFORMER_H
 
 #include "levelset.h"
+#include "ops.h"
+namespace levelset {
 
 template <int _D>
-class LevelsetTransformer: public Levelset<_D> {
+class LevelsetTransformer: public UnaryLevelsetOp<_D> {
     public:
-        USE_BASE_LEVELSET_FUNCTION_DEFS(Levelset)
+        USE_BASE_LEVELSET_FUNCTION_DEFS(UnaryLevelsetOp)
+        using Base::Base;
+        using Base::heldValue;
 
-        template <typename F>
-        LevelsetTransformer(const F& tohold): m_held(tohold) {}
 
         virtual Vec transform(const constVecRef& v, Scalar t) const {
             return v;
@@ -18,11 +20,7 @@ class LevelsetTransformer: public Levelset<_D> {
             return transform(v,-t);
         }
         virtual Scalar operator()(const constVecRef& v, Scalar t) const {
-
             return heldValue(this->transform(v,t),t);
-        }
-        virtual Scalar heldValue(const constVecRef& v, Scalar t) const {
-            return (*held())(v,t);
         }
         /*
         virtual Vec dxdt(const constVecRef& v,Scalar t = 0) const {
@@ -49,9 +47,6 @@ class LevelsetTransformer: public Levelset<_D> {
         //virtual Scalar dfdt(const constVecRef& v, Scalar t = 0, float dt=0.0) const {
         //    return dfdx(v,t).dot(m_held->dxdt(v,t));
         //}
-        const std::shared_ptr<Levelset<D> >& held() const {return m_held;}
-    protected:
-        const std::shared_ptr<Levelset<D> > m_held;
 };
 
 template <int _D>
@@ -99,4 +94,6 @@ class LevelsetRangedTransformer: public LevelsetTransformer<_D> {
 };
 
 
+
+}
 #endif//LEVELSET_TRANSFORMER_H

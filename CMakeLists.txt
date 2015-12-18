@@ -65,6 +65,7 @@ SET(GRID_HEADERS
 SET(LEVELSET_HEADERS
     ${GRID_HEADERS}
     include/levelset/levelset.h
+    include/levelset/ops.h
     include/levelset/levelset_example.h
     include/levelset/primitives.h
     include/levelset/transformations.h

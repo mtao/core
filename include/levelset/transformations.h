@@ -2,6 +2,7 @@
 #define LEVELSET_TRANSFORMATIONS_H
 #include "transformer.h"
 
+namespace levelset {
 
 template <int _D>
 class LevelsetTranslator: public LevelsetTransformer<_D> {
@@ -133,4 +134,22 @@ class LevelsetScaler: public LevelsetTransformer<_D> {
 
 
 };
+
+    template <int D, typename Vec = typename Levelset<D>::Vec>
+        auto translation(const typename Levelset<D>::Ptr& f, const Vec& dir) {
+            return std::make_shared<LevelsetTranslator<D>>(f,dir);
+        }
+    template <int D, typename Vec = typename Levelset<D>::Vec>
+        auto axis_translation(const typename Levelset<D>::Ptr& f, int Dim) {
+            return std::make_shared<LevelsetTranslator<D>>(f,Vec::Unit(Dim));
+        }
+    template <int D, typename Vec = typename Levelset<D>::Vec>
+        auto rotation(const typename Levelset<D>::Ptr& f, const Vec& center = Vec::Zero(), const Vec& axis = Vec::Unit(D-1)) {
+            return std::make_shared<LevelsetRotator<D>>(f,center,axis.normalized(),axis.norm());
+        }
+
+
+}
+
+
 #endif//LEVELSET_TRANSFORMATIONS_H

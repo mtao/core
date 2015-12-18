@@ -1,7 +1,8 @@
 #ifndef ANIMATION_H
 #define ANIMATION_H
-#include "transformer.h"
+#include "unary_ops.h"
 
+namespace levelset {
 
 template <int _D>
 class LevelsetTransformer: public Levelset<_D> {
@@ -24,5 +25,6 @@ class LevelsetTransformer: public Levelset<_D> {
     std::vector<LTPtr> m_sections;
 };
 
+}
 
 #endif//ANIMATION_H

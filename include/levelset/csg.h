@@ -1,70 +1,59 @@
-template <int _D>
-class BinaryLevelsetOp: public Levelset<_D> {
-    public:
-        USE_BASE_LEVELSET_FUNCTION_DEFS(Levelset)
+#ifndef LEVELSET_CSG_H
+#define LEVELSET_CSG_H
+#include "levelset.h"
+#include "ops.h"
 
-        template <typename... F>
-        BinaryLevelsetOp(const Base::Ptr& a, const Base::Ptr& b): m_first(a), m_second(b) {}
-        virtual Matrix J(const constVecRef& v, Scalar t) const {
-            return Matrix::Identity();
+namespace levelset {
+template <int _D>
+class CSGInverse: public UnaryLevelsetOp<_D> {
+    public:
+        USE_BASE_LEVELSET_FUNCTION_DEFS(UnaryLevelsetOp)
+        using Base::Base;
+        using Base::held;
+        Scalar operator()(const constVecRef& v, Scalar t)  const {
+            return -(*held())(v,t);
         }
-    protected:
-        Base::Ptr m_first,m_second;
 };
 template <int _D>
 class CSGIntersection: public BinaryLevelsetOp<_D> {
     public:
         USE_BASE_LEVELSET_FUNCTION_DEFS(BinaryLevelsetOp)
-        CSGIntersection(const Base::Ptr& a, const Base::Ptr& b): Base(a,b) {}
-        void operator()(const constVecRef& v)  const {
-            return std::max((*m_first)(v),(*m_second)(v));
+        using Base::first;
+        using Base::second;
+        CSGIntersection(const BasePtr& a, const BasePtr& b): Base(a,b) {}
+        Scalar operator()(const constVecRef& v, Scalar t)  const {
+            return std::max((*first())(v,t),(*second())(v,t));
         }
 };
 template <int _D>
 class CSGUnion: public BinaryLevelsetOp<_D> {
     public:
         USE_BASE_LEVELSET_FUNCTION_DEFS(BinaryLevelsetOp)
-        CSGUnion(const Base::Ptr& a, const Base::Ptr& b): Base(a,b) {}
-        void operator()(const constVecRef& v)  const {
-            return std::min((*m_first)(v),(*m_second)(v));
+        using Base::first;
+        using Base::second;
+        CSGUnion(const BasePtr& a, const BasePtr& b): Base(a,b) {}
+        Scalar operator()(const constVecRef& v,Scalar t)  const {
+            return std::min((*first())(v,t),(*second())(v,t));
         }
 };
 template <int _D>
 class CSGDifference: public CSGUnion<_D> {
     public:
         USE_BASE_LEVELSET_FUNCTION_DEFS(CSGUnion)
-        CSGDifference(const Base::Ptr& a, const Base::Ptr& b): Base(a,CSGInverse<_D>(b)) {}
+            using Base::Base;
+        using Base::first;
+        using Base::second;
+        //CSGDifference(const BasePtr& a, const BasePtr& b): Base(a,CSGInverse<_D>(b)) {}
+        Scalar operator()(const constVecRef& v, Scalar t)  const {
+            return std::min((*first())(v,t),-(*second())(v,t));
+        }
 };
 
 template <int _D>
-class CompositeLevelset: public Levelset<_D> {
+class SumLevelset: public TernaryLevelsetOp<_D> {
     public:
-        USE_BASE_LEVELSET_FUNCTION_DEFS(Levelset)
-
-        template <typename... F>
-        CompositeLevelset(F... tohold) {addFuncs(tohold...);}
-        //CompositeLevelset(const F& tohold): m_held(Base::upgradeF(tohold)) {}
-        virtual Matrix J(const constVecRef& v, Scalar t) const {
-            return Matrix::Identity();
-        }
-        template <typename FT>
-        void addFuncs(const FT& ft) {
-            m_held.push_back(ft);
-        }
-        template <typename FT, typename... Args>
-            void addFuncs(const FT& ft, Args... args) {
-                m_held.push_back(ft);
-                addFuncs(args...);
-            }
-    protected:
-        std::vector<std::shared_ptr<Levelset<D> > > m_held;
-};
-template <int _D>
-class SumLevelset: public CompositeLevelset<_D> {
-    public:
-        USE_BASE_LEVELSET_FUNCTION_DEFS(CompositeLevelset)
-            template <typename... Args>
-            SumLevelset(Args... args): Base(args...) {}
+        USE_BASE_LEVELSET_FUNCTION_DEFS(TernaryLevelsetOp)
+            using Base::Base;
         virtual Scalar operator()(const constVecRef& v, Scalar t) const {
             Scalar val = 0;
             for(auto&& f: Base::m_held) {
@@ -72,27 +61,61 @@ class SumLevelset: public CompositeLevelset<_D> {
             }
             return val+.1;
         }
-    private:
-
-
 };
 
 
 template <int _D>
-class MinLevelset: public CompositeLevelset<_D> {
+class TernaryCSGUnion: public TernaryLevelsetOp<_D> {
     public:
-        USE_BASE_LEVELSET_FUNCTION_DEFS(CompositeLevelset)
-            template <typename... Args>
-            MinLevelset(Args... args): Base(args...) {}
+        USE_BASE_LEVELSET_FUNCTION_DEFS(TernaryLevelsetOp)
+        using Base::Base;
+        using Base::held;
         virtual Scalar operator()(const constVecRef& v, Scalar t) const {
-            Scalar min = std::numeric_limits<Scalar>::max();
-            for(auto&& f: Base::m_held) {
-                min = std::min(min,f->operator()(v,t));
-            }
-            return min;
+            //Scalar min = std::numeric_limits<Scalar>::max();
+            return std::min(held().begin(),held().end(),[&](auto&& f) {
+                    return f->operator()(v,t);
+                    });
         }
-    private:
-
-
+};
+template <int _D>
+class TernaryCSGIntersection: public TernaryLevelsetOp<_D> {
+    public:
+        USE_BASE_LEVELSET_FUNCTION_DEFS(TernaryLevelsetOp)
+        using Base::Base;
+        using Base::held;
+        virtual Scalar operator()(const constVecRef& v, Scalar t) const {
+            //Scalar min = std::numeric_limits<Scalar>::max();
+            return std::max(held().begin(),held().end(),[&](auto&& f) {
+                    return f->operator()(v,t);
+                    });
+        }
 };
 
+template <int D, typename A>
+auto csg_inverse(const A& a) {
+    return std::make_shared<CSGInverse<D>>(a);
+}
+template <int D, typename A, typename B>
+auto csg_intersection(const A& a, const B& b) {
+    return std::make_shared<CSGIntersection<D>>(a,b);
+}
+template <int D, typename A, typename B>
+auto csg_union(const A& a, const B& b) {
+    return std::make_shared<CSGUnion<D>>(a,b);
+}
+template <int D, typename A, typename B>
+auto csg_difference(const A& a, const B& b) {
+    return std::make_shared<CSGDifference<D>>(a,b);
+}
+template <int D, typename... A>
+auto csg_multi_intersection(const A... a) {
+    return std::make_shared<TernaryCSGIntersection<D>>(a...);
+}
+template <int D, typename... A>
+auto csg_multi_union(const A... a) {
+    return std::make_shared<TernaryCSGUnion<D>>(a...);
+}
+
+}
+
+#endif//LEVELSET_CSG_H

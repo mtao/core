@@ -6,6 +6,7 @@
 #include <vector>
 //#include "mesh.h"
 
+namespace levelset {
 
 
 
@@ -102,5 +103,6 @@ class ZeroLevelset: public Levelset<_D> {
         }
         static std::shared_ptr<ZeroFunc> ptr() { return std::make_shared<ZeroLevelset<D>>();}
 };
+}
 
 #endif//LEVELSET_FUNC_H
