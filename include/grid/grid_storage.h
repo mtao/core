@@ -55,27 +55,27 @@ namespace mtao {
                         a.deallocate(m_data,size());
                     }
                     T& at(size_t idx) {
-                        if(!(idx < m_size)) {
+                        if(!(idx < size())) {
                             std::stringstream ss;
-                            ss << "Grid accessed out of range: " << idx << "/" << m_size;
+                            ss << "Grid accessed out of range: " << idx << "/" << size();
                             throw std::out_of_range(ss.str());
                         }
                         return m_data[idx];
                     }
                     const T& at(size_t idx) const {
-                        if(!(idx < m_size)) {
+                        if(!(idx < size())) {
                             std::stringstream ss;
-                            ss << "Grid accessed out of range: " << idx << "/" << m_size;
+                            ss << "Grid accessed out of range: " << idx << "/" << size();
                             throw std::out_of_range(ss.str());
                         }
                         return m_data[idx];
                     }
                     T& operator()(size_t idx) {
-                        assert(idx < m_size);
+                        assert(idx < size());
                         return m_data[idx];
                     }
                     const T& operator()(size_t idx) const {
-                        assert(idx < m_size);
+                        assert(idx < size());
                         return m_data[idx];
                     }
 
@@ -84,9 +84,9 @@ namespace mtao {
                         value_type* new_data = a.allocate(size);
                         if(m_data != nullptr) {
                             if(CopyOnResize) {
-                                size_t copy_size = std::min(size,m_size);
+                                size_t copy_size = std::min(size,size());
                                 std::copy(m_data,m_data+copy_size,new_data);
-                                if(copy_size < m_size) {
+                                if(copy_size < size()) {
                                     for(size_t i = copy_size; i < size; ++i) {
                                         a.construct(m_data+i,internal::zero_value<T>());
                                     }

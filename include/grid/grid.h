@@ -9,10 +9,11 @@
 
 
 namespace mtao {
-    template <typename T, int D_, typename Allocator = mtao::allocator<T>>
+    template <typename T, int D_, typename Allocator = mtao::allocator<T>, typename StorageType = internal::grid_storage<T,Allocator>>
         class Grid {
             public:
-                using storage_type = internal::grid_storage<T,Allocator>;
+                using storage_type = StorageType;
+                //using storage_type = internal::grid_storage<T,Allocator>;
                 using value_type = T;
                 using Scalar = T;//for eigen compat
                 static constexpr int D = D_;
@@ -153,11 +154,11 @@ namespace mtao {
             private:
                 static size_t size_from_shape(const index_type& shape) {
                     //return std::accumulate(shape.begin(),shape.end(),1,[](size_t a,size_t b) {return a*b;});
-size_t res = 1;
-for(auto&& p: shape) {
-res *= p;
-}
-return res;
+                    size_t res = 1;
+                    for(auto&& p: shape) {
+                        res *= p;
+                    }
+                    return res;
 
                 }
                 size_t size_from_shape() {
@@ -171,6 +172,15 @@ return res;
 
 
         };
+    /*
+    template <typename T, int D, typename Allocator = mtao::allocator<T>>
+        using DynamicGrid = Grid<T,Allocator,internal::grid_storage<T,Allocator>>;
+    template <typename T, int D, typename Allocator = mtao::allocator<T>>
+        using StaticGrid = DynamicGrid<T,D,Allocator,internal::static_storage<T>>;
+    template <typename T, int D, typename Allocator = mtao::allocator<T>>
+        using Grid = DynamicGrid<T,D,Allocator>;
+    */
+
 
 }
 
