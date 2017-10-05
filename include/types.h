@@ -4,6 +4,17 @@
 #include <Eigen/Dense>
 #include "coord.h"
 namespace mtao{ 
+    template <typename T, int A, int B>
+        using Matrix = Eigen::Matrix<T,A,B>;
+
+    template <typename T, int A>
+        using SquareMatrix = Eigen::Matrix<T,A,A>;
+    template <typename T, int D>
+        using Vector = Matrix<T,A,1>;
+    template <typename T, int D>
+        using RowVector = Matrix<T,1,A>;
+
+
 
     typedef Eigen::Matrix3f Mat3f;
     typedef Eigen::Matrix2f Mat2f;
