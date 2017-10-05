@@ -10,22 +10,24 @@ IF(CMAKE_BUILD_TYPE MATCHES Debug)
 ADD_DEFINITIONS(-ggdb)
 ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 ADD_DEFINITIONS(-Wall)
-ADD_DEFINITIONS(-Wno-deprecated-declarations)
-ADD_DEFINITIONS(-Wno-unused-variable)
+#ADD_DEFINITIONS(-Wno-deprecated-declarations)
+#ADD_DEFINITIONS(-Wno-unused-variable)
 
 
 
 # Include dirs
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include
-    /usr/local/include/eigen3
-)
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)
+INCLUDE_DIRECTORIES(/usr/include/eigen3)
 
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
-#SET(CMAKE_AUTOMOC ON)
-#find_package(Qt5Widgets)
+
+SET(IMGUI_PATH ${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui)
+INCLUDE_DIRECTORIES(${IMGUI_PATH})
+SET(IMGUI_SOURCES ${IMGUI_PATH}/imgui.cpp ${IMGUI_PATH}/imgui_draw.cpp)
 
 
-#FIND_PACKAGE(Protobuf)
+
+FIND_PACKAGE(Protobuf)
 IF ( PROTOBUF_FOUND )
     INCLUDE_DIRECTORIES( ${PROTOBUF_INCLUDE_DIR} )
     SET(PROTOBUF_IMPORT_DIRS proto)
@@ -36,13 +38,35 @@ ENDIF(PROTOBUF_FOUND)
 
 
 
-#ADD_EXECUTABLE(advection_test src/advection_test.cpp include/grid.h include/grid_utils.h
-#    src/scalar_function_examples.cpp
-#    include/discrete_scalar_function.h include/scalar_function.h
-#    include/scalar_function_examples.h
-#    include/arguments.h)
-#
-#TARGET_LINK_LIBRARIES(advection_test pthread)
+FIND_PACKAGE(OpenGL REQUIRED)
+if(OPENGL_FOUND)
+    LINK_DIRECTORIES(${OPENGL_LIBRARY_DIRS})
+    INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
+endif(OPENGL_FOUND)
+
+FIND_PACKAGE(PkgConfig REQUIRED)
+PKG_SEARCH_MODULE(GLFW REQUIRED glfw3)
+
+
+INCLUDE_DIRECTORIES(${GLFW3_INCLUDE_DIRS})
+
+ADD_LIBRARY(mtao_opengl 
+    ${IMGUI_SOURCES}
+    src/opengl/glad.c
+    src/opengl/imgui_impl.cpp
+    src/opengl/Window.cpp
+    src/opengl/bo.cpp
+    src/opengl/shader.cpp
+    src/opengl/vao.cpp
+    include/opengl/imgui_impl.h
+    include/opengl/Window.h
+    include/opengl/bo.h
+    include/opengl/shader.h
+    include/opengl/vao.h
+    )
+TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl)
+
+
 
 SET(CORE_HEADERS
     include/compat.h
@@ -77,35 +101,7 @@ SET(LEVELSET_HEADERS
     )
 
 
-ADD_EXECUTABLE(grid_test src/grid_test.cpp ${GRID_HEADERS}
-    )
-ADD_EXECUTABLE(levelset_test src/levelset_test.cpp ${LEVELSET_HEADERS}
-    )
-ADD_EXECUTABLE(multi_loop_test src/multi_loop_test.cpp include/grid/grid.h include/grid/grid_utils.h
-    )
-ADD_EXECUTABLE(static_type_iteration_test src/static_type_iteration_test.cpp
-    include/static_iteration.h include/util.h)
+ADD_SUBDIRECTORY(tests EXCLUDE_FROM_ALL)
+ADD_SUBDIRECTORY(examples)
 
-ADD_EXECUTABLE(static_iteration_test src/static_iteration_test.cpp
-    include/static_iteration.h include/util.h)
 
-#ADD_EXECUTABLE(particle_sampling_test src/particle_sampling_test.cpp include/grid.h include/grid_utils.h
-#    include/arguments.h include/particle_sampler.h)
-#
-#
-#ADD_EXECUTABLE(parsing_test src/parsing_test.cpp include/grid.h include/grid_utils.h
-#    include/arguments.h src/parsing_test.cpp src/data_parser.cpp
-#    src/coloring.cpp
-#    src/scalar_function_examples.cpp
-#    include/data_parser.h)
-#
-#ADD_EXECUTABLE(func_print_test src/function_print_test.cpp include/grid.h include/grid_utils.h
-#    src/scalar_function_examples.cpp
-#    src/coloring.cpp
-#    include/coloring.h
-#    include/discrete_scalar_function.h include/scalar_function.h
-#    include/scalar_function_examples.h
-#    include/arguments.h)
-#
-#
-#
