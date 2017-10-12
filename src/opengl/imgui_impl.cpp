@@ -1,4 +1,3 @@
-
 // GLAD/GLFW
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
@@ -52,11 +51,13 @@ ImGuiImpl::ImGuiImpl(GLFWwindow* window): m_Window(window) {
 }
 ImGuiImpl::~ImGuiImpl() {
     invalidateDeviceObjects();
-    ImGui::Shutdown();
+    //Theoretically I suspect I should be calling shutdown but it causes a segfault taht I don't understand
+    //ImGui::Shutdown();
 }
 void ImGuiImpl::newFrame() {
-    if (!m_FontTexture)
+    if (!m_FontTexture) {
         createDeviceObjects();
+    }
 
     ImGuiIO& io = ImGui::GetIO();
 
