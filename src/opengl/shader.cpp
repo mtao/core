@@ -73,16 +73,16 @@ bool ShaderProgram::compile() {
     return compilation_check();
 }
 
-void ShaderProgram::use()  {
-    glUseProgram(m_id);
+void ShaderProgram::release() {
+    release(m_id);
 }
-
-auto ShaderProgram::useRAII() -> ShaderProgramEnabled {
-    return ShaderProgramEnabled(id());
+void ShaderProgram::bind(GLuint id) {
+    glUseProgram(id);
 }
-void ShaderProgram::useNone() {
+void ShaderProgram::release(GLuint id) {
     glUseProgram(0);
 }
+
 bool ShaderProgram::compilation_check() {
     GLint isLinked = 0;
     glGetProgramiv(m_id, GL_LINK_STATUS, &isLinked);
@@ -102,13 +102,6 @@ bool ShaderProgram::compilation_check() {
 }
 
 
-
-ShaderProgram::ShaderProgramEnabled::ShaderProgramEnabled(GLuint id) {
-    glUseProgram(id);
-}
-ShaderProgram::ShaderProgramEnabled::~ShaderProgramEnabled() {
-    glUseProgram(0);
-}
 GLint ShaderProgram::getUniformLocation(const std::string& name) const {
     return glGetUniformLocation(id(), name.c_str());
 }

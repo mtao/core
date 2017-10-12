@@ -44,7 +44,7 @@ void IBO::drawElements() {
     bind();
     assert(target() == GL_ELEMENT_ARRAY_BUFFER);
     int size;  glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
-    glDrawElements(m_mode, size/sizeof_glenum(m_type), m_type, 0);
+    glDrawElements(m_mode, size/sizeof_glenum(m_type), m_type, indices);
 }
 }}
 

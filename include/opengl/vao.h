@@ -4,6 +4,7 @@
 #include <glm/vec3.hpp> // glm::vec3
 #include <glm/vec4.hpp> // glm::vec4
 #include <glm/mat4x4.hpp> // glm::mat4
+#include "opengl/util.h"
 
 
 namespace mtao { namespace opengl {
@@ -15,26 +16,25 @@ namespace mtao { namespace opengl {
             ~VAO();
             void bind();
             void release();
+            GLuint id();
 
         private:
             GLuint m_id;
 
     };
     //vertex attribute pointer
-    struct AO {
+    struct AO: public bind_enabled<AO> {
         public:
             AO(GLint id = GL_INVALID_VALUE);
+            using bind_enabled<AO>::bind;
+            using bind_enabled<AO>::release;
 
-            struct AttributeObjectEnabled {
-                public:
-                    AttributeObjectEnabled(GLint id);
-                    ~AttributeObjectEnabled();
-                private:
-                    GLint m_id;
-            };
-            AttributeObjectEnabled enableRAII() const;
+            auto enableRAII() const { return make_binder(*this); }
             void enable() const;
             void disable() const;
+            GLuint id() const { return m_id; }
+            static void bind(GLuint id);
+            static void release(GLuint id);
             //glVertexAttribPointer
             //Allowed types:
             //GL_BYTE, GL_UNSIGNED_BYTE, GL_SHORT, GL_UNSIGNED_SHORT, GL_INT, GL_UNSIGNED_INT

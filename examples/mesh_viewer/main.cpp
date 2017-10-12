@@ -62,7 +62,7 @@ auto prepareShaders(const char* vdata, const char* fdata, const char* geo = null
     vertex_attribute->bind();
 
 
-    return std::move(program);
+    return program;
 
 
 }

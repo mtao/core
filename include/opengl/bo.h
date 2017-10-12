@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 namespace mtao { namespace opengl {
 
+
 struct BO {
     public:
         BO(GLenum m_target = GL_ARRAY_BUFFER, GLenum usage = GL_STATIC_DRAW);
@@ -31,7 +32,7 @@ struct IBO: public BO {
     private:
         GLenum m_mode;
         GLenum m_type = GL_UNSIGNED_INT;
-        const GLvoid * indices;
+        const GLvoid * indices = 0;
 };
 }}
 

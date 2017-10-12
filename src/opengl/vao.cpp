@@ -21,22 +21,19 @@ void VAO::release() {
 
 AO::AO(GLint id): m_id(id) {}
 
-auto AO::enableRAII() const -> AttributeObjectEnabled {
-    return AttributeObjectEnabled(m_id);
-}
 
-AO::AttributeObjectEnabled::AttributeObjectEnabled(GLint id): m_id(id)  {
-    glEnableVertexAttribArray(m_id);
+void AO::bind(GLuint id) {
+    glEnableVertexAttribArray(id);
 }
-AO::AttributeObjectEnabled::~AttributeObjectEnabled()  {
-    glDisableVertexAttribArray(m_id);
+void AO::release(GLuint id)  {
+    glDisableVertexAttribArray(id);
 }
 
 void AO::enable() const {
-    glEnableVertexAttribArray(m_id);
+    bind();
 }
 void AO::disable() const {
-    glDisableVertexAttribArray(m_id);
+    release();
 }
 
 void AO::setPointer( GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *offset) {

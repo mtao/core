@@ -5,7 +5,7 @@ SET(CMAKE_RUNTIME_OUTPUT_DIR ${PROJECT_BINARY_DIR}/bin)
 SET(CMAKE_LIBRARY_OUTPUT_DIR ${PROJECT_BINARY_DIR}/lib)
 SET(CMAKE_ARCHIVE_OUTPUT_DIR ${PROJECT_BINARY_DIR}/lib)
 
-ADD_DEFINITIONS(-std=c++14)
+ADD_DEFINITIONS(-std=c++1z)
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
 ADD_DEFINITIONS(-ggdb)
 ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
@@ -58,11 +58,15 @@ ADD_LIBRARY(mtao_opengl
     src/opengl/bo.cpp
     src/opengl/shader.cpp
     src/opengl/vao.cpp
+    src/opengl/util.cpp
+    src/opengl/tex.cpp
     include/opengl/imgui_impl.h
     include/opengl/Window.h
     include/opengl/bo.h
     include/opengl/shader.h
     include/opengl/vao.h
+    include/opengl/util.h
+    include/opengl/tex.h
     )
 TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl)
 
@@ -79,29 +83,29 @@ SET(CORE_HEADERS
 
 SET(GRID_HEADERS
     ${CORE_HEADERS}
-    include/grid/grid.h
-    include/grid/grid_storage.h
-    include/grid/grid_utils.h
-    include/grid/index_map.h
-    include/grid/index_map_iterator.h
+    include/geometry/grid/grid.h
+    include/geometry/grid/grid_storage.h
+    include/geometry/grid/grid_utils.h
+    include/geometry/grid/index_map.h
+    include/geometry/grid/index_map_iterator.h
     )
 
 SET(LEVELSET_HEADERS
     ${GRID_HEADERS}
-    include/levelset/levelset.h
-    include/levelset/ops.h
-    include/levelset/levelset_example.h
-    include/levelset/primitives.h
-    include/levelset/transformations.h
-    include/levelset/transformer.h
-    include/levelset/discrete.h
-    include/levelset/csg.h
-    include/levelset/animation.h
-    include/levelset/particle_sampler.h
+    include/geometry/levelset/levelset.h
+    include/geometry/levelset/ops.h
+    include/geometry/levelset/levelset_example.h
+    include/geometry/levelset/primitives.h
+    include/geometry/levelset/transformations.h
+    include/geometry/levelset/transformer.h
+    include/geometry/levelset/discrete.h
+    include/geometry/levelset/csg.h
+    include/geometry/levelset/animation.h
+    include/geometry/levelset/particle_sampler.h
     )
 
 
 ADD_SUBDIRECTORY(tests EXCLUDE_FROM_ALL)
-ADD_SUBDIRECTORY(examples)
+ADD_SUBDIRECTORY(examples EXCLUDE_FROM_ALL)
 
 

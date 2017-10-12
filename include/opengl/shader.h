@@ -2,6 +2,7 @@
 #define SHADER_H
 #include <glad/glad.h>
 #include <string>
+#include "opengl/util.h"
 #include "vao.h"
 
 namespace mtao { namespace opengl {
@@ -20,22 +21,20 @@ struct Shader {
         GLuint m_id;
 };
 
-struct ShaderProgram {
+struct ShaderProgram: public bind_enabled<ShaderProgram> {
     public:
-        struct ShaderProgramEnabled {
-            public:
-                ShaderProgramEnabled(GLuint id);
-                ~ShaderProgramEnabled();
-        };
         ShaderProgram();
         ~ShaderProgram();
         void attach(GLuint shader);
         void attach(const Shader& shader);
         bool compile();
         GLuint id() const { return m_id; }
-        ShaderProgramEnabled useRAII();
+        auto useRAII() {return make_binder(*this);}
         void use();
-        static void useNone();
+        void bind();
+        void release();
+        static void bind(GLuint);
+        static void release(GLuint);
 
 
         UO getUniform(const std::string& name) const;
@@ -47,7 +46,7 @@ struct ShaderProgram {
             UO setUniform(const std::string& name, Args&&... args) const {
                 UO uo = getUniform(name);
                 uo.set(std::forward<Args>(args)...);
-                return std::move(uo);
+                return uo;
             }
     private:
         bool compilation_check();
