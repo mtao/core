@@ -162,7 +162,7 @@ void prepare_edge_shader(const Mesh& m) {
         }
         mean_edge_length /= m.F.size();
 
-        {auto&& p = edge_program->useRAII();
+        {auto p = edge_program->useRAII();
             edge_program->getAttrib("vPos").setPointer(3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*) 0);
             edge_program->getUniform("mean_edge_length").set(mean_edge_length);
         }
@@ -235,7 +235,7 @@ void prepare_mesh(const Mesh& m) {
 
 
 
-    {auto&& p = program->useRAII();
+    {auto p = program->useRAII();
 
         program->getAttrib("vPos").setPointer(3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*) 0);
 
