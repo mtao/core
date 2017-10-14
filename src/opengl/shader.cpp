@@ -116,4 +116,37 @@ AO ShaderProgram::getAttrib(const std::string& name) const {
     return AO(getAttribLocation(name));
 }
 
+
+
+
+std::unique_ptr<ShaderProgram> prepareShaders(const char* vdata, const char* fdata, const char* geo) {
+
+    Shader vertex_shader(GL_VERTEX_SHADER);
+    vertex_shader.compile(&vdata);
+    Shader fragment_shader (GL_FRAGMENT_SHADER);
+    fragment_shader.compile(&fdata);
+
+    std::unique_ptr<Shader> geometry_shader;
+    if(geo) {
+        geometry_shader = std::make_unique<Shader>(GL_GEOMETRY_SHADER);
+        geometry_shader->compile(&geo);
+    }
+
+
+    auto program = std::make_unique<ShaderProgram>();
+    program->attach(vertex_shader);
+    program->attach(fragment_shader);
+    if(geometry_shader) {
+        program->attach(*geometry_shader);
+    }
+    program->compile();
+
+
+
+
+    return program;
+
+
+}
+
 }}

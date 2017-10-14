@@ -34,6 +34,7 @@ std::unique_ptr<Window> window;
 bool index_buffer_active = false;
 bool use_barycentric_edges = true;
 
+ImVec4 clear_color = ImColor(114, 144, 154);
 
 auto prepareShaders(const char* vdata, const char* fdata, const char* geo = nullptr) {
 
@@ -188,9 +189,6 @@ void prepare_edge_shader(const Mesh& m) {
 
 }
 
-
-
-
 void prepare_mesh(const Mesh& m) {
     prepare_edge_shader(m);
     static const char* vertex_shader_text =
@@ -244,10 +242,6 @@ void prepare_mesh(const Mesh& m) {
         program->getUniform("range").set3f(range.x(),range.y(),range.z());
     }
 }
-
-
-
-ImVec4 clear_color = ImColor(114, 144, 154);
 
 void gui_func() {
     {
