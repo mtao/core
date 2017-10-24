@@ -4,7 +4,9 @@
 #include <string>
 #include <memory>
 #include "opengl/util.h"
-#include "vao.h"
+#include "opengl/vao.h"
+#include "type_utils.h"
+
 
 namespace mtao { namespace opengl {
     struct Shader {
@@ -56,7 +58,25 @@ namespace mtao { namespace opengl {
     };
 
 
+    Shader prepareShader(const char* data, GLenum type);
+    Shader prepareShader(const std::tuple<const char*, GLenum >& t);
+
+
     std::unique_ptr<ShaderProgram> prepareShaders(const char* vdata, const char* fdata, const char* geo = nullptr);
+    template <typename... Shaders>
+        std::unique_ptr<ShaderProgram> linkShaderProgram(const Shaders&... shaders) {
+            static_assert((std::is_same<Shaders, Shader>::value && ...));
+            auto program = std::make_unique<ShaderProgram>();
+            (program->attach(shaders), ...);
+            program->compile();
+            return program;
+        }
+    template <typename... ShaderData>
+    std::unique_ptr<ShaderProgram> prepareShaders(const std::tuple<ShaderData,GLenum>&... shaders) {
+            static_assert((std::is_convertible<ShaderData, const char*>::value && ...));
+
+            return linkShaderProgram(prepareShader(shaders)...);
+    }
 
 }}
 

@@ -36,37 +36,6 @@ bool use_barycentric_edges = true;
 
 ImVec4 clear_color = ImColor(114, 144, 154);
 
-auto prepareShaders(const char* vdata, const char* fdata, const char* geo = nullptr) {
-
-    Shader vertex_shader(GL_VERTEX_SHADER);
-    vertex_shader.compile(&vdata);
-    Shader fragment_shader (GL_FRAGMENT_SHADER);
-    fragment_shader.compile(&fdata);
-
-    std::unique_ptr<Shader> geometry_shader;
-    if(geo) {
-        geometry_shader = std::make_unique<Shader>(GL_GEOMETRY_SHADER);
-        geometry_shader->compile(&geo);
-    }
-
-
-    auto program = std::make_unique<ShaderProgram>();
-    program->attach(vertex_shader);
-    program->attach(fragment_shader);
-    if(geometry_shader) {
-        program->attach(*geometry_shader);
-    }
-    program->compile();
-
-
-    vertex_attribute = std::make_unique<VAO>();
-    vertex_attribute->bind();
-
-
-    return program;
-
-
-}
 
 auto make_bary_edge_shader() {
     static const char* vertex_shader_text =
@@ -123,7 +92,7 @@ auto make_bary_edge_shader() {
         "   }\n"
         "}\n";
 
-    return prepareShaders(vertex_shader_text,fragment_shader_text, geometry_shader_text);
+    return ::prepareShaders(vertex_shader_text,fragment_shader_text, geometry_shader_text);
 }
 
 auto make_edge_shader() {
@@ -145,7 +114,7 @@ auto make_edge_shader() {
             "    out_color= vec4(color,1.0);\n"
             "}\n";
 
-        return prepareShaders(vertex_shader_text,fragment_shader_text);
+        return ::prepareShaders(vertex_shader_text,fragment_shader_text);
 }
 
 void prepare_edge_shader(const Mesh& m) {
@@ -212,7 +181,7 @@ void prepare_mesh(const Mesh& m) {
         "    out_color= vec4(color,1.0);\n"
         "}\n";
 
-    program = prepareShaders(vertex_shader_text,fragment_shader_text);
+    program = ::prepareShaders(vertex_shader_text,fragment_shader_text);
 
 
     vertex_buffer = std::make_unique<BO>();
@@ -328,6 +297,8 @@ int main(int argc, char * argv[]) {
     window->set_gui_func(gui_func);
     window->set_render_func(render);
     window->makeCurrent();
+    vertex_attribute = std::make_unique<VAO>();
+    vertex_attribute->bind();
 
         Mesh m(argv[1]);
         prepare_mesh(m);
