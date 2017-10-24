@@ -67,6 +67,10 @@ ADD_LIBRARY(mtao_opengl
     include/opengl/vao.h
     include/opengl/util.h
     include/opengl/tex.h
+
+    include/opengl/renderers/renderer.h
+    include/opengl/renderers/mesh.h
+    src/opengl/renderers/mesh.cpp
     )
 TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl)
 

@@ -118,7 +118,6 @@ AO ShaderProgram::getAttrib(const std::string& name) const {
 
 
 Shader prepareShader(const char* data, GLenum type) {
-    std::cout << "Shader type: " << type << std::endl;
     Shader shader(type);
     shader.compile(&data);
     return shader;
