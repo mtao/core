@@ -23,10 +23,6 @@ glm::vec3 edge_color;
 
 
 std::unique_ptr<VAO> vertex_attribute;
-std::unique_ptr<IBO> index_buffer;
-std::unique_ptr<IBO> edge_index_buffer;
-std::unique_ptr<BO> vertex_buffer;
-std::unique_ptr<ShaderProgram> program;
 std::unique_ptr<renderers::MeshRenderer> renderer;
 
 std::unique_ptr<ShaderProgram> edge_program;

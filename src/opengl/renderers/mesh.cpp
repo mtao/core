@@ -6,7 +6,7 @@
 #include <glad/glad.h>
 #include "imgui.h"
 #include <glm/gtc/type_ptr.hpp>
-#include <iostream>
+#define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
 
 namespace mtao { namespace opengl { namespace renderers {
 
@@ -15,6 +15,7 @@ namespace mtao { namespace opengl { namespace renderers {
     std::unique_ptr<ShaderProgram> MeshRenderer::s_flat_program[2];
     std::unique_ptr<ShaderProgram> MeshRenderer::s_phong_program[2];
     std::unique_ptr<ShaderProgram> MeshRenderer::s_baryedge_program[2];
+    std::unique_ptr<ShaderProgram> MeshRenderer::s_vert_color_program[2];
     MeshRenderer::MeshRenderer(int dim): m_dim(dim) {
         if(dim == 2 || dim == 3) {
             if(!shaders_enabled()) {
@@ -52,6 +53,8 @@ namespace mtao { namespace opengl { namespace renderers {
             }
         }
         N.array().rowwise() /= areas.transpose().array();
+        N.colwise().normalize();
+
         return N;
 
 
@@ -138,6 +141,14 @@ namespace mtao { namespace opengl { namespace renderers {
         setEdgesFromFaces(F);
 
     }
+        void MeshRenderer::setColor(const MatrixXgf& C) {
+            if(!m_color_buffer) {
+                m_color_buffer = std::make_unique<BO>();
+            }
+            m_color_buffer->bind();
+            vert_color_program()->getAttrib("vColor").setPointer(3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*) 0);
+            m_color_buffer->setData(C.data(),sizeof(float) * C.size());
+        }
     void MeshRenderer::setEdges(const MatrixXui& E) {
 
         if(!m_edge_index_buffer) {
@@ -169,9 +180,11 @@ namespace mtao { namespace opengl { namespace renderers {
             vss << "in vec3 vPos;\n";
             vss << "in vec3 vNormal;\n";
         }
+        vss << "in vec3 vColor;\n";
         vss << "out vec3 fNormal;\n";
         vss << "out vec3 fPos;\n";
         vss << "out vec4 gPos;\n";
+        vss << "out vec3 fColor;\n";
         vss <<  "void main()\n"
             "{\n";
         if(dim == 2) {
@@ -186,6 +199,7 @@ namespace mtao { namespace opengl { namespace renderers {
         } else {
         vss << "    fPos = vPos;\n";
         vss << "    fNormal = vNormal;\n";
+        vss << "    fColor = vColor;\n";
         }
         vss << "}\n";
 
@@ -197,6 +211,14 @@ namespace mtao { namespace opengl { namespace renderers {
             "void main()\n"
             "{\n"
             "    out_color= vec4(color,1.0);\n"
+            "}\n";
+        static const char* vertex_color_fragment_shader_text =
+            "#version 330\n"
+            "in vec3 fColor;\n"
+            "out vec4 out_color;\n"
+            "void main()\n"
+            "{\n"
+            "    out_color= vec4(fColor,1.0);\n"
             "}\n";
 
         static const char* baryedge_geometry_shader_text =
@@ -282,20 +304,39 @@ namespace mtao { namespace opengl { namespace renderers {
         auto baryedge_fragment_shader = prepareShader(baryedge_fragment_shader_text, GL_FRAGMENT_SHADER);
         auto baryedge_geometry_shader = prepareShader(baryedge_geometry_shader_text, GL_GEOMETRY_SHADER);
         auto phong_fragment_shader= prepareShader(phong_fragment_shader_text, GL_FRAGMENT_SHADER);
+        auto vertex_color_fragment_shader = prepareShader(vertex_color_fragment_shader_text, GL_FRAGMENT_SHADER);
 
         flat_program() = linkShaderProgram(vertex_shader,flat_fragment_shader);
         baryedge_program() = linkShaderProgram(vertex_shader, baryedge_fragment_shader, baryedge_geometry_shader);
         phong_program() = linkShaderProgram(vertex_shader, phong_fragment_shader);
+        vert_color_program() = linkShaderProgram(vertex_shader,vertex_color_fragment_shader);
 
         shaders_enabled() = true;
     }
 
     void MeshRenderer::imgui_interface() {
         if(ImGui::TreeNode("Mesh Renderer")) {
-            ImGui::Checkbox("Phong Shading", &m_phong_faces);
+
+            static const char* shading_names[] = {
+                "Flat",
+                "Color",
+                "Phong",
+            };
+            int fs = static_cast<int>(m_face_style);
+            ImGui::Combo("Shading Style", &fs, shading_names,IM_ARRAYSIZE(shading_names));
+            m_face_style = static_cast<FaceStyle>(fs);
+
+            static const char* edge_types[] = {
+                "Disabled",
+                "BaryEdge",
+                "Mesh"
+            };
+            int et = static_cast<int>(m_edge_type);
+            ImGui::Combo("Edge Type", &et, edge_types,IM_ARRAYSIZE(edge_types));
+            m_edge_type = static_cast<EdgeType>(et);
 
 
-            if(m_phong_faces && ImGui::TreeNode("Phong Shading Parameters")) {
+            if(m_face_style == FaceStyle::Phong && ImGui::TreeNode("Phong Shading Parameters")) {
                 ImGui::ColorEdit3("ambient", glm::value_ptr(m_ambientMat));
                 ImGui::ColorEdit3("diffuse", glm::value_ptr(m_diffuseMat));
                 ImGui::ColorEdit3("specular", glm::value_ptr(m_specularMat));
@@ -304,14 +345,12 @@ namespace mtao { namespace opengl { namespace renderers {
                 update_phong_shading();
                 ImGui::TreePop();
             }
-            if(!m_phong_faces && ImGui::TreeNode("Flat Shading Parameters")) {
+            if(m_face_style == FaceStyle::Flat  && ImGui::TreeNode("Flat Shading Parameters")) {
                 ImGui::ColorEdit3("edge color", glm::value_ptr(m_edge_color));
                 ImGui::ColorEdit3("face color", glm::value_ptr(m_face_color));
                 ImGui::TreePop();
             }
 
-            ImGui::Checkbox("Draw Edges", &m_draw_edges);
-            ImGui::Checkbox("Use Barycentric Edges", &m_use_baryedge);
             ImGui::SliderFloat("edge_threshold", &m_edge_threshold, 0.0f, 0.01f,"%.5f");
             update_edge_threshold();
             ImGui::TreePop();
@@ -323,26 +362,24 @@ namespace mtao { namespace opengl { namespace renderers {
         if(!m_vertex_buffer) {
             return;
         }
-        if(m_draw_edges) {
-            if(m_use_baryedge && m_index_buffer) {
-                auto active = baryedge_program()->useRAII();
+        if(m_edge_type == EdgeType::BaryEdge && m_index_buffer) {
+            auto active = baryedge_program()->useRAII();
 
-                baryedge_program()->getUniform("color").setVector(m_edge_color);
-                auto vpos_active = baryedge_program()->getAttrib("vPos").enableRAII();
-                m_vertex_buffer->bind();
-                m_index_buffer->drawElements();
+            baryedge_program()->getUniform("color").setVector(m_edge_color);
+            auto vpos_active = baryedge_program()->getAttrib("vPos").enableRAII();
+            m_vertex_buffer->bind();
+            m_index_buffer->drawElements();
 
-            } else if(m_edge_index_buffer) {
-                auto active = flat_program()->useRAII();
-                flat_program()->getUniform("color").setVector(m_edge_color);
+        } else if(m_edge_type == EdgeType::Mesh  && m_edge_index_buffer) {
+            auto active = flat_program()->useRAII();
+            flat_program()->getUniform("color").setVector(m_edge_color);
 
-                auto vpos_active = flat_program()->getAttrib("vPos").enableRAII();
-                m_vertex_buffer->bind();
-                m_edge_index_buffer->drawElements();
-            }
+            auto vpos_active = flat_program()->getAttrib("vPos").enableRAII();
+            m_vertex_buffer->bind();
+            m_edge_index_buffer->drawElements();
         }
         if(m_index_buffer) {
-            if(m_phong_faces) {
+            if(m_face_style == FaceStyle::Phong) {
                 auto active = phong_program()->useRAII();
                 phong_program()->getUniform("color").setVector(m_face_color);
 
@@ -360,11 +397,20 @@ namespace mtao { namespace opengl { namespace renderers {
                 }
 
 
-            } else {
+            } else if(m_face_style == FaceStyle::Flat){
                 auto active = flat_program()->useRAII();
                 flat_program()->getUniform("color").setVector(m_face_color);
 
                 auto vpos_active = flat_program()->getAttrib("vPos").enableRAII();
+                m_vertex_buffer->bind();
+                m_index_buffer->drawElements();
+            } else if(m_face_style == FaceStyle::Color && m_color_buffer) {
+                auto active = vert_color_program()->useRAII();
+
+                auto vcol_active = phong_program()->getAttrib("vColor").enableRAII();
+                m_color_buffer->bind();
+
+                auto vpos_active = vert_color_program()->getAttrib("vPos").enableRAII();
                 m_vertex_buffer->bind();
                 m_index_buffer->drawElements();
             }
@@ -380,7 +426,7 @@ namespace mtao { namespace opengl { namespace renderers {
 
     }
     void MeshRenderer::set_mvp(const glm::mat4& mvp) {
-        std::list<ShaderProgram*> shaders({flat_program().get(), baryedge_program().get(), phong_program().get()});
+        std::list<ShaderProgram*> shaders({flat_program().get(), baryedge_program().get(), phong_program().get(), vert_color_program().get()});
         for(auto&& p: shaders) {
             auto active = p->useRAII();
             p->getUniform("MVP").setMatrix(mvp);

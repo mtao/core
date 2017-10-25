@@ -15,6 +15,9 @@ class MeshRenderer: public Renderer {
         using MatrixXgf = Eigen::Matrix<GLfloat, Eigen::Dynamic,Eigen::Dynamic>;
         using MatrixXui = Eigen::Matrix<GLuint, Eigen::Dynamic,Eigen::Dynamic>;
 
+        enum class FaceStyle: int { Flat = 0, Color, Phong };
+        enum class EdgeType: int { Disabled= 0, BaryEdge, Mesh};
+
         MeshRenderer(int dim);
 
         void render() const override;
@@ -23,6 +26,7 @@ class MeshRenderer: public Renderer {
         void set_mvp(const glm::mat4& mvp);
         void setMesh(const MatrixXgf& V, const MatrixXui& F, bool normalize = false);
         void setMesh(const MatrixXgf& V, const MatrixXui& F, const MatrixXgf& N, bool normalize=false);
+        void setColor(const MatrixXgf& C);
         MatrixXgf computeNormals(const MatrixXgf& V, const MatrixXui& F);
         void setEdges(const MatrixXui& E);
         void setEdgesFromFaces(const MatrixXui& E);
@@ -32,17 +36,23 @@ class MeshRenderer: public Renderer {
         void update_phong_shading();
 
         static bool s_shaders_enabled[2];
-        static std::unique_ptr<ShaderProgram> s_flat_program[2];
-        static std::unique_ptr<ShaderProgram> s_phong_program[2];
-        static std::unique_ptr<ShaderProgram> s_baryedge_program[2];
-
         inline bool shaders_enabled() const { return s_shaders_enabled[m_dim-2];; }
         inline bool& shaders_enabled() { return s_shaders_enabled[m_dim-2];; }
+
+        static std::unique_ptr<ShaderProgram> s_flat_program[2];
         inline std::unique_ptr<ShaderProgram>&  flat_program() {return s_flat_program[m_dim-2];};
-        inline std::unique_ptr<ShaderProgram>&  phong_program() {return s_phong_program[m_dim-2];};
-        inline std::unique_ptr<ShaderProgram>&  baryedge_program() {return s_baryedge_program[m_dim-2];};
         inline const std::unique_ptr<ShaderProgram>&  flat_program() const {return s_flat_program[m_dim-2];};
+
+        static std::unique_ptr<ShaderProgram> s_vert_color_program[2];
+        inline std::unique_ptr<ShaderProgram>&  vert_color_program() {return s_vert_color_program[m_dim-2];};
+        inline const std::unique_ptr<ShaderProgram>&  vert_color_program() const {return s_vert_color_program[m_dim-2];};
+
+        static std::unique_ptr<ShaderProgram> s_phong_program[2];
+        inline std::unique_ptr<ShaderProgram>&  phong_program() {return s_phong_program[m_dim-2];};
         inline const std::unique_ptr<ShaderProgram>&  phong_program() const {return s_phong_program[m_dim-2];};
+
+        static std::unique_ptr<ShaderProgram> s_baryedge_program[2];
+        inline std::unique_ptr<ShaderProgram>&  baryedge_program() {return s_baryedge_program[m_dim-2];};
         inline const std::unique_ptr<ShaderProgram>&  baryedge_program() const {return s_baryedge_program[m_dim-2];};
 
 
@@ -50,13 +60,13 @@ class MeshRenderer: public Renderer {
         std::unique_ptr<IBO> m_edge_index_buffer;
         std::unique_ptr<BO> m_vertex_buffer;
         std::unique_ptr<BO> m_normal_buffer;
+        std::unique_ptr<BO> m_color_buffer;
 
+        FaceStyle m_face_style = FaceStyle::Phong;
+        EdgeType m_edge_type = EdgeType::Disabled;
 
-        int m_dim;
+        int m_dim=2;
 
-        bool m_use_baryedge = true;
-        bool m_phong_faces = true;
-        bool m_draw_edges = false;
 
         glm::vec3 m_face_color = glm::vec3(1,0,0);
         glm::vec3 m_edge_color = glm::vec3(0,1,0);

@@ -10,13 +10,14 @@
 #include "opengl/renderers/mesh.h"
 
 #include <glm/gtc/matrix_transform.hpp> 
-#include <glm/gtc/type_ptr.hpp> 
 
 using namespace mtao::opengl;
 
 
 
 float look_distance = 0.4;
+float rotation_angle = 0.0;
+bool animate = false;
 std::unique_ptr<VAO> vertex_attribute;
 std::unique_ptr<Window> window;
 std::unique_ptr<renderers::MeshRenderer> renderer;
@@ -25,6 +26,9 @@ ImVec4 clear_color = ImColor(114, 144, 154);
 void prepare_mesh(const Mesh& m) {
     renderer = std::make_unique<renderers::MeshRenderer>(3);
     renderer->setMesh(m.V,m.F,true);
+
+    renderers::MeshRenderer::MatrixXgf C = renderer->computeNormals(m.V,m.F).array();
+    renderer->setColor(C);
 }
 
 void gui_func() {
@@ -37,6 +41,8 @@ void gui_func() {
         auto&& io = ImGui::GetIO();
         look_distance += .5 * io.MouseWheel;
         look_distance = std::min(std::max(look_distance,look_min),look_max);
+        ImGui::Checkbox("Animate",&animate);
+        ImGui::SliderFloat("angle", &rotation_angle,0,2*M_PI,"%.3f");
 
         renderer->imgui_interface();
     }
@@ -54,7 +60,8 @@ void render(int width, int height) {
     glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
 
     glm::mat4 m,v,mv,p,mvp;
-    m = glm::rotate(m,(float) glfwGetTime() / 5.0f,glm::vec3(0,1,0));
+    float rot_ang = animate?((float) glfwGetTime() / 5.0f):rotation_angle;
+    m = glm::rotate(m,rot_ang,glm::vec3(0,1,0));
     p = glm::perspective(45.f,ratio,.1f,10.0f);
     //p = glm::ortho(-ratio,ratio,-1.f,1.f,1.f,-1.f);
 
