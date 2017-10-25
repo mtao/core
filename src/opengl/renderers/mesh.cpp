@@ -424,22 +424,6 @@ namespace mtao { namespace opengl { namespace renderers {
             }
         }
     }
-    void MeshRenderer::set_mvp(const glm::mat4& mv, const glm::mat4&p) {
-        {auto a = phong_program()->useRAII();
-            phong_program()->getUniform("MV").setMatrix(mv);
-        }
-
-        set_mvp(p*mv);
-
-
-    }
-    void MeshRenderer::set_mvp(const glm::mat4& mvp) {
-        std::list<ShaderProgram*> shaders({flat_program().get(), baryedge_program().get(), phong_program().get(), vert_color_program().get()});
-        for(auto&& p: shaders) {
-            auto active = p->useRAII();
-            p->getUniform("MVP").setMatrix(mvp);
-        }
-    }
     void MeshRenderer::update_edge_threshold() {
             auto active = baryedge_program()->useRAII();
             baryedge_program()->getUniform("thresh").set(m_edge_threshold);
@@ -452,5 +436,11 @@ namespace mtao { namespace opengl { namespace renderers {
         phong_program()->getUniform("specularMaterial").setVector(m_specularMat);
         phong_program()->getUniform("diffuseMaterial").setVector(m_diffuseMat);
         phong_program()->getUniform("ambientMaterial").setVector(m_ambientMat);
+    }
+
+    std::list<ShaderProgram*> MeshRenderer::mvp_programs() const {
+        std::list<ShaderProgram*> ret({flat_program().get(), baryedge_program().get(), phong_program().get(), vert_color_program().get()});
+        ret.splice(ret.end(),Renderer::mvp_programs());
+        return ret;
     }
 }}}

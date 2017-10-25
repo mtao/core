@@ -22,8 +22,7 @@ class MeshRenderer: public Renderer {
 
         void render() const override;
         void imgui_interface() override;
-        void set_mvp(const glm::mat4& mv, const glm::mat4&p);
-        void set_mvp(const glm::mat4& mvp);
+        std::list<ShaderProgram*> mvp_programs() const override ;
         void setMesh(const MatrixXgf& V, const MatrixXui& F, bool normalize = false);
         void setMesh(const MatrixXgf& V, const MatrixXui& F, const MatrixXgf& N, bool normalize=false);
         void setColor(const MatrixXgf& C);
