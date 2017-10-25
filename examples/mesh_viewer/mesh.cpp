@@ -42,14 +42,6 @@ int get_slash_token(const std::string& str) {
 }
 
 
-static Tri process_triangle (TokIt begin, const TokIt& end) {
-    Tri t;
-
-    std::transform(begin,end,t.begin(),[](const std::string& s) {
-            return get_slash_token<0>(s);
-            });
-    return t;
-}
 
 Mesh::Mesh(const std::string& filename) {
     std::vector<Vec> vecs;
@@ -75,11 +67,12 @@ Mesh::Mesh(const std::string& filename) {
                 }
             }
             if(front[0] == 'f') {
-                tris.emplace_back(process_triangle(tokens.begin()+1,tokens.end()));
-                if(tokens.size() == 5) {
-                    GLuint last = get_slash_token<0>(tokens.back());
-                    auto&& p = tris.back();
-                    tris.emplace_back(Tri{{p[0],p[2],last}});
+                GLuint first = get_slash_token<0>(tokens[1]);
+                GLuint left = get_slash_token<0>(tokens[2]);
+                for(int i = 3; i < tokens.size(); ++i) {
+                    GLuint right = get_slash_token<0>(tokens[i]);
+                    tris.emplace_back(Tri{{first,left,right}});
+                    left = right;
                 }
             }
         }

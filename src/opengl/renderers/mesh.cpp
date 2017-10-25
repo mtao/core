@@ -95,7 +95,14 @@ namespace mtao { namespace opengl { namespace renderers {
             auto maxPos = V.rowwise().maxCoeff();
             auto range = maxPos - minPos;
 
-            MatrixXgf V2 = (V.colwise() - (minPos+maxPos)/2) / range.minCoeff();
+            float r = range.maxCoeff();;
+            for(int i = 0; i < range.cols(); ++i) {
+                if(range(i) > 1e-5) {
+                    r = std::min(r,range(i));
+                }
+            }
+
+            MatrixXgf V2 = (V.colwise() - (minPos+maxPos)/2) / r;
             m_vertex_buffer->setData(V2.data(),sizeof(float) * V2.size());
             mean_edge_length = compute_mean_edge_length(V2);
         } else {
