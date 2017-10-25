@@ -27,9 +27,11 @@ class MeshRenderer: public Renderer {
         void setMesh(const MatrixXgf& V, const MatrixXui& F, bool normalize = false);
         void setMesh(const MatrixXgf& V, const MatrixXui& F, const MatrixXgf& N, bool normalize=false);
         void setColor(const MatrixXgf& C);
-        MatrixXgf computeNormals(const MatrixXgf& V, const MatrixXui& F);
         void setEdges(const MatrixXui& E);
         void setEdgesFromFaces(const MatrixXui& E);
+
+        //Area weighted normal
+        MatrixXgf computeNormals(const MatrixXgf& V, const MatrixXui& F);
     private:
         void loadShaders(int dim);
         void update_edge_threshold();

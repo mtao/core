@@ -36,7 +36,8 @@ namespace mtao { namespace opengl { namespace renderers {
         }
         N.resizeLike(V);
         N.setZero();
-        Eigen::VectorXf areas(V.cols());
+        //Eigen::VectorXf areas(V.cols());
+        //areas.setZero();
         for(int i = 0; i < F.cols(); ++i) {
             auto f = F.col(i);
             auto a = V.col(f(0));
@@ -46,13 +47,13 @@ namespace mtao { namespace opengl { namespace renderers {
             Eigen::Vector3f ba = b-a;
             Eigen::Vector3f ca = c-a;
             Eigen::Vector3f n = ba.cross(ca);
-            float area = n.norm();
+            //float area = n.norm();
             for(int j = 0; j < 3; ++j) {
                 N.col(f(j)) += n;
-                areas(f(j)) += area;
+                //areas(f(j)) += area;
             }
         }
-        N.array().rowwise() /= areas.transpose().array();
+        //N.array().rowwise() /= areas.transpose().array();
         N.colwise().normalize();
 
         return N;
