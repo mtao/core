@@ -63,7 +63,21 @@ namespace mtao { namespace opengl { namespace renderers {
     }
     void MeshRenderer::setMesh(const MatrixXgf& V, const MatrixXui& F, const MatrixXgf& N, bool normalize) {
 
+        auto compute_mean_edge_length = [&](const MatrixXgf& V) -> float {
+            float ret = 0;
+            for(int i = 0; i < F.cols(); ++i) {
+                for(int j = 0; j < 3; ++j) {
+                    int a = F(j,i);
+                    int b = (F(j,i)+1)%3;
+                    ret += (V.col(a) - V.col(b)).norm();
+                }
+            }
+            ret /= F.size();
 
+            return ret;
+        };
+
+        float mean_edge_length = 0;//technically we want the mean dual edge length
 
         if(!m_vertex_buffer) {
             m_vertex_buffer = std::make_unique<BO>();
@@ -79,8 +93,10 @@ namespace mtao { namespace opengl { namespace renderers {
 
             MatrixXgf V2 = (V.colwise() - (minPos+maxPos)/2) / range.minCoeff();
             m_vertex_buffer->setData(V2.data(),sizeof(float) * V2.size());
+            mean_edge_length = compute_mean_edge_length(V2);
         } else {
             m_vertex_buffer->setData(V.data(),sizeof(float) * V.size());
+            mean_edge_length = compute_mean_edge_length(V);
         }
         m_index_buffer->bind();
         m_index_buffer->setData(F.data(),sizeof(int) * F.size());
@@ -115,15 +131,6 @@ namespace mtao { namespace opengl { namespace renderers {
             phong_program()->getAttrib("vNormal").setPointer(3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*) 0);
         }
 
-        float mean_edge_length = 0;//technically we want the mean dual edge length
-        for(int i = 0; i < F.cols(); ++i) {
-            for(int j = 0; j < 3; ++j) {
-                int a = F(j,i);
-                int b = (F(j,i)+1)%3;
-                mean_edge_length += (V.col(a) - V.col(b)).norm();
-            }
-        }
-        mean_edge_length /= F.size();
 
         {auto p = baryedge_program()->useRAII();
             baryedge_program()->getUniform("mean_edge_length").set(mean_edge_length);
@@ -285,20 +292,10 @@ namespace mtao { namespace opengl { namespace renderers {
 
     void MeshRenderer::imgui_interface() {
         if(ImGui::TreeNode("Mesh Renderer")) {
-            ImGui::SliderFloat("edge_threshold", &m_edge_threshold, 0.0f, 0.01f,"%.5f");
-            update_edge_threshold();
-
-            ImGui::Checkbox("Draw Edges", &m_draw_edges);
-            ImGui::Checkbox("Use Barycentric Edges", &m_use_baryedge);
             ImGui::Checkbox("Phong Shading", &m_phong_faces);
 
 
-            if(ImGui::TreeNode("Flat Shading Parameters")) {
-                ImGui::ColorEdit3("edge color", glm::value_ptr(m_edge_color));
-                ImGui::ColorEdit3("face color", glm::value_ptr(m_face_color));
-                ImGui::TreePop();
-            }
-            if(ImGui::TreeNode("Phong Shading Parameters")) {
+            if(m_phong_faces && ImGui::TreeNode("Phong Shading Parameters")) {
                 ImGui::ColorEdit3("ambient", glm::value_ptr(m_ambientMat));
                 ImGui::ColorEdit3("diffuse", glm::value_ptr(m_diffuseMat));
                 ImGui::ColorEdit3("specular", glm::value_ptr(m_specularMat));
@@ -307,9 +304,18 @@ namespace mtao { namespace opengl { namespace renderers {
                 update_phong_shading();
                 ImGui::TreePop();
             }
+            if(!m_phong_faces && ImGui::TreeNode("Flat Shading Parameters")) {
+                ImGui::ColorEdit3("edge color", glm::value_ptr(m_edge_color));
+                ImGui::ColorEdit3("face color", glm::value_ptr(m_face_color));
+                ImGui::TreePop();
+            }
+
+            ImGui::Checkbox("Draw Edges", &m_draw_edges);
+            ImGui::Checkbox("Use Barycentric Edges", &m_use_baryedge);
+            ImGui::SliderFloat("edge_threshold", &m_edge_threshold, 0.0f, 0.01f,"%.5f");
+            update_edge_threshold();
             ImGui::TreePop();
         }
-
     }
 
     void MeshRenderer::render() const {
