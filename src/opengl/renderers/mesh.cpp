@@ -84,7 +84,7 @@ namespace mtao { namespace opengl { namespace renderers {
         float mean_edge_length = 0;//technically we want the mean dual edge length
 
         if(!m_vertex_buffer) {
-            m_vertex_buffer = std::make_unique<BO>();
+            m_vertex_buffer = std::make_unique<VBO>(GL_POINTS);
         }
         if(!m_index_buffer) {
             m_index_buffer = std::make_unique<IBO>(GL_TRIANGLES);
@@ -326,6 +326,7 @@ namespace mtao { namespace opengl { namespace renderers {
         if(ImGui::TreeNode("Mesh Renderer")) {
 
             static const char* shading_names[] = {
+                "Disabled",
                 "Flat",
                 "Color",
                 "Phong",
@@ -353,14 +354,25 @@ namespace mtao { namespace opengl { namespace renderers {
                 update_phong_shading();
                 ImGui::TreePop();
             }
-            if(m_face_style == FaceStyle::Flat  && ImGui::TreeNode("Flat Shading Parameters")) {
-                ImGui::ColorEdit3("edge color", glm::value_ptr(m_edge_color));
-                ImGui::ColorEdit3("face color", glm::value_ptr(m_face_color));
+            if(m_face_style == FaceStyle::Flat || m_draw_points || m_edge_type != EdgeType::Disabled) {
+                if(ImGui::TreeNode("Flat Shading Parameters")) {
+                    if(m_draw_points) {
+                        ImGui::ColorEdit3("vertex color", glm::value_ptr(m_vertex_color));
+                    }
+                    if(m_edge_type != EdgeType::Disabled) {
+                        ImGui::ColorEdit3("edge color", glm::value_ptr(m_edge_color));
+                    }
+                    if(m_face_style ==FaceStyle::Flat) {
+                        ImGui::ColorEdit3("face color", glm::value_ptr(m_face_color));
+                    }
                 ImGui::TreePop();
+                }
             }
 
             ImGui::SliderFloat("edge_threshold", &m_edge_threshold, 0.0f, 0.01f,"%.5f");
             update_edge_threshold();
+
+            ImGui::Checkbox("Show Vertices", & m_draw_points);
             ImGui::TreePop();
         }
     }
@@ -369,6 +381,15 @@ namespace mtao { namespace opengl { namespace renderers {
 
         if(!m_vertex_buffer) {
             return;
+        }
+        if(m_draw_points) {
+            auto active = flat_program()->useRAII();
+            flat_program()->getUniform("color").setVector(m_vertex_color);
+
+            auto vpos_active = flat_program()->getAttrib("vPos").enableRAII();
+            m_vertex_buffer->bind();
+            m_vertex_buffer->drawArrays();
+
         }
         if(m_edge_type == EdgeType::BaryEdge && m_index_buffer) {
             auto active = baryedge_program()->useRAII();
