@@ -18,30 +18,55 @@ class MeshRenderer: public Renderer {
         MeshRenderer(int dim);
 
         void render() const override;
+        void imgui_interface() override;
+        void set_mvp(const glm::mat4& mv, const glm::mat4&p);
         void set_mvp(const glm::mat4& mvp);
-        void set_face_color(const glm::vec3& col);
-        void set_edge_color(const glm::vec3& col);
-        void set_edge_threshold(float thresh);
-        void setMesh(const MatrixXgf& V, const MatrixXui& F);
+        void setMesh(const MatrixXgf& V, const MatrixXui& F, bool normalize = false);
+        void setMesh(const MatrixXgf& V, const MatrixXui& F, const MatrixXgf& N, bool normalize=false);
+        MatrixXgf computeNormals(const MatrixXgf& V, const MatrixXui& F);
         void setEdges(const MatrixXui& E);
         void setEdgesFromFaces(const MatrixXui& E);
     private:
         void loadShaders(int dim);
+        void update_edge_threshold();
+        void update_phong_shading();
 
-        std::unique_ptr<ShaderProgram> m_flat_program;
-        std::unique_ptr<ShaderProgram> m_baryedge_program;
+        static bool s_shaders_enabled[2];
+        static std::unique_ptr<ShaderProgram> s_flat_program[2];
+        static std::unique_ptr<ShaderProgram> s_phong_program[2];
+        static std::unique_ptr<ShaderProgram> s_baryedge_program[2];
+
+        inline bool shaders_enabled() const { return s_shaders_enabled[m_dim-2];; }
+        inline bool& shaders_enabled() { return s_shaders_enabled[m_dim-2];; }
+        inline std::unique_ptr<ShaderProgram>&  flat_program() {return s_flat_program[m_dim-2];};
+        inline std::unique_ptr<ShaderProgram>&  phong_program() {return s_phong_program[m_dim-2];};
+        inline std::unique_ptr<ShaderProgram>&  baryedge_program() {return s_baryedge_program[m_dim-2];};
+        inline const std::unique_ptr<ShaderProgram>&  flat_program() const {return s_flat_program[m_dim-2];};
+        inline const std::unique_ptr<ShaderProgram>&  phong_program() const {return s_phong_program[m_dim-2];};
+        inline const std::unique_ptr<ShaderProgram>&  baryedge_program() const {return s_baryedge_program[m_dim-2];};
+
 
         std::unique_ptr<IBO> m_index_buffer;
         std::unique_ptr<IBO> m_edge_index_buffer;
         std::unique_ptr<BO> m_vertex_buffer;
+        std::unique_ptr<BO> m_normal_buffer;
 
+
+        int m_dim;
 
         bool m_use_baryedge = true;
-        bool m_phong_faces = false;
-        bool m_draw_edges = true;
+        bool m_phong_faces = true;
+        bool m_draw_edges = false;
 
         glm::vec3 m_face_color = glm::vec3(1,0,0);
         glm::vec3 m_edge_color = glm::vec3(0,1,0);
+        float m_edge_threshold = 0.001;
+
+        glm::vec3 m_light_pos = glm::vec3(0,10,0);
+        glm::vec4 m_ambientMat = glm::vec4(.1f,.1f,.1f,1.f);
+        glm::vec4 m_diffuseMat = glm::vec4(.7f,.7f,.7f,1.f);
+        glm::vec4 m_specularMat = glm::vec4(.99f,.99f,.99f,1.f);
+        float m_specularExpMat = 20.0f;
 
 
 

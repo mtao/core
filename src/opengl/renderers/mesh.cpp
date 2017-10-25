@@ -4,19 +4,67 @@
 #include <sstream>
 #include <list>
 #include <glad/glad.h>
+#include "imgui.h"
+#include <glm/gtc/type_ptr.hpp>
+#include <iostream>
 
 namespace mtao { namespace opengl { namespace renderers {
 
 
-    MeshRenderer::MeshRenderer(int dim) {
+    bool MeshRenderer::s_shaders_enabled[2] = {false,false};
+    std::unique_ptr<ShaderProgram> MeshRenderer::s_flat_program[2];
+    std::unique_ptr<ShaderProgram> MeshRenderer::s_phong_program[2];
+    std::unique_ptr<ShaderProgram> MeshRenderer::s_baryedge_program[2];
+    MeshRenderer::MeshRenderer(int dim): m_dim(dim) {
         if(dim == 2 || dim == 3) {
-            loadShaders(dim);
+            if(!shaders_enabled()) {
+                loadShaders(dim);
+            }
+            update_edge_threshold();
+            update_phong_shading();
         } else {
             throw std::invalid_argument("Meshes have to be dim 2 or 3");
         }
     }
 
-    void MeshRenderer::setMesh(const MatrixXgf& V, const MatrixXui& F) {
+    
+    auto MeshRenderer::computeNormals(const MatrixXgf& V, const MatrixXui& F) -> MatrixXgf {
+        MatrixXgf N;
+        if(m_dim == 2) {
+            return N;
+        }
+        N.resizeLike(V);
+        N.setZero();
+        Eigen::VectorXf areas(V.cols());
+        for(int i = 0; i < F.cols(); ++i) {
+            auto f = F.col(i);
+            auto a = V.col(f(0));
+            auto b = V.col(f(1));
+            auto c = V.col(f(2));
+
+            Eigen::Vector3f ba = b-a;
+            Eigen::Vector3f ca = c-a;
+            Eigen::Vector3f n = ba.cross(ca);
+            float area = n.norm();
+            for(int j = 0; j < 3; ++j) {
+                N.col(f(j)) += n;
+                areas(f(j)) += area;
+            }
+        }
+        N.array().rowwise() /= areas.transpose().array();
+        return N;
+
+
+    }
+
+    void MeshRenderer::setMesh(const MatrixXgf& V, const MatrixXui& F, bool normalize) {
+        auto N = computeNormals(V,F);
+        setMesh(V,F,N,normalize);
+    }
+    void MeshRenderer::setMesh(const MatrixXgf& V, const MatrixXui& F, const MatrixXgf& N, bool normalize) {
+
+
+
         if(!m_vertex_buffer) {
             m_vertex_buffer = std::make_unique<BO>();
         }
@@ -24,30 +72,49 @@ namespace mtao { namespace opengl { namespace renderers {
             m_index_buffer = std::make_unique<IBO>(GL_TRIANGLES);
         }
         m_vertex_buffer->bind();
-        m_vertex_buffer->setData(V.data(),sizeof(float) * V.size());
+        if(normalize) {
+            auto minPos = V.rowwise().minCoeff();
+            auto maxPos = V.rowwise().maxCoeff();
+            auto range = maxPos - minPos;
 
+            MatrixXgf V2 = (V.colwise() - (minPos+maxPos)/2) / range.minCoeff();
+            m_vertex_buffer->setData(V2.data(),sizeof(float) * V2.size());
+        } else {
+            m_vertex_buffer->setData(V.data(),sizeof(float) * V.size());
+        }
         m_index_buffer->bind();
         m_index_buffer->setData(F.data(),sizeof(int) * F.size());
 
+        if(m_dim == 3) {
+
+            if(!m_normal_buffer) {
+                m_normal_buffer = std::make_unique<BO>();
+            }
+            m_normal_buffer->bind();
+            m_normal_buffer->setData(N.data(),sizeof(float) * N.size());
+        }
 
 
-        Eigen::Matrix<GLfloat,3,1> minPos,maxPos,range;
-        minPos = V.rowwise().minCoeff();
-        maxPos = V.rowwise().maxCoeff();
-        range = maxPos - minPos;
 
 
-        std::list<ShaderProgram*> shaders({m_flat_program.get(), m_baryedge_program.get()});
+        std::list<ShaderProgram*> shaders({flat_program().get(), baryedge_program().get()});
         for(auto&& p: shaders) {
 
             auto active = p->useRAII();
 
-            p->getAttrib("vPos").setPointer(3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*) 0);
+            m_vertex_buffer->bind();
+            p->getAttrib("vPos").setPointer(m_dim, GL_FLOAT, GL_FALSE, sizeof(float) * m_dim, (void*) 0);
             /*
                program->getUniform("minPos").set3f(minPos.x(),minPos.y(),minPos.z());
                program->getUniform("range").set3f(range.x(),range.y(),range.z());
                */
         }
+        if(m_dim == 3) {
+            auto p = phong_program()->useRAII();
+            m_normal_buffer->bind();
+            phong_program()->getAttrib("vNormal").setPointer(3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*) 0);
+        }
+
         float mean_edge_length = 0;//technically we want the mean dual edge length
         for(int i = 0; i < F.cols(); ++i) {
             for(int j = 0; j < 3; ++j) {
@@ -58,8 +125,8 @@ namespace mtao { namespace opengl { namespace renderers {
         }
         mean_edge_length /= F.size();
 
-        {auto p = m_baryedge_program->useRAII();
-            m_baryedge_program->getUniform("mean_edge_length").set(mean_edge_length);
+        {auto p = baryedge_program()->useRAII();
+            baryedge_program()->getUniform("mean_edge_length").set(mean_edge_length);
         }
         setEdgesFromFaces(F);
 
@@ -93,7 +160,10 @@ namespace mtao { namespace opengl { namespace renderers {
             vss << "in vec2 vPos;\n";
         } else {
             vss << "in vec3 vPos;\n";
+            vss << "in vec3 vNormal;\n";
         }
+        vss << "out vec3 fNormal;\n";
+        vss << "out vec3 fPos;\n";
         vss << "out vec4 gPos;\n";
         vss <<  "void main()\n"
             "{\n";
@@ -103,6 +173,13 @@ namespace mtao { namespace opengl { namespace renderers {
             vss << "    gPos = MVP * vec4(vPos, 1.0);\n";
         }
         vss << "    gl_Position = gPos;\n";
+        if(dim == 2) {
+        vss << "    fPos = vec3(vPos,0);\n";
+        vss << "    fNormal = vec3(0,0,1);\n";
+        } else {
+        vss << "    fPos = vPos;\n";
+        vss << "    fNormal = vNormal;\n";
+        }
         vss << "}\n";
 
 
@@ -158,16 +235,82 @@ namespace mtao { namespace opengl { namespace renderers {
             "   }\n"
             "}\n";
 
+    static const char* phong_fragment_shader_text =
+        "#version 330\n"
+        //            "uniform vec3 color;\n"
+        "uniform mat4 MV;\n"
+        "uniform vec4 specularMaterial;\n"
+        "uniform float specularExpMaterial;\n"
+        "uniform vec4 diffuseMaterial;\n"
+        "uniform vec4 ambientMaterial;\n"
+        "uniform vec3 lightPos;\n"
+        "in vec3 fNormal;\n"
+        "in vec3 fPos;\n"
+        "out vec4 out_color;\n"
+        "void main()\n"
+        "{\n"
+        "   vec3 ambient = ambientMaterial.xyz;\n"
+        "   vec3 eyeDir = normalize(fPos);\n"
+        "   vec4 mvpos = MV * vec4(fPos,1);\n"
+        "   mvpos = vec4(fPos,1);\n"
+        "   vec3 lightDir = normalize(lightPos - mvpos.xyz/mvpos.w);\n"
+
+        "   float lightAng = max(0.0,dot(lightDir,fNormal));\n"
+        "   if(lightAng == 0) {\n"
+        "       out_color = vec4(ambient,1);\n"
+        "       return;\n"
+        "   }\n"
+
+        "   vec3 diffuse = lightAng * diffuseMaterial.xyz;\n"
+
+        "   vec3 reflection = normalize(reflect(lightDir, fNormal));\n"
+        "   float spec = max(0.0,dot(eyeDir, reflection));\n"
+        "   vec3 specular = pow(spec,specularExpMaterial) * specularMaterial.xyz;\n"
+        "   out_color= vec4(ambient + diffuse + specular,1.0);\n"
+        //"   out_color= vec4(ambient ,1.0);\n"
+        //"    out_color= vec4(normal,1.0);\n"
+        "}\n";
         auto vertex_shader = prepareShader(vss.str().c_str(), GL_VERTEX_SHADER);
         auto flat_fragment_shader = prepareShader(flat_fragment_shader_text, GL_FRAGMENT_SHADER);
         auto baryedge_fragment_shader = prepareShader(baryedge_fragment_shader_text, GL_FRAGMENT_SHADER);
         auto baryedge_geometry_shader = prepareShader(baryedge_geometry_shader_text, GL_GEOMETRY_SHADER);
+        auto phong_fragment_shader= prepareShader(phong_fragment_shader_text, GL_FRAGMENT_SHADER);
 
-        m_flat_program = linkShaderProgram(vertex_shader,flat_fragment_shader);
-        m_baryedge_program = linkShaderProgram(vertex_shader, baryedge_fragment_shader, baryedge_geometry_shader);
+        flat_program() = linkShaderProgram(vertex_shader,flat_fragment_shader);
+        baryedge_program() = linkShaderProgram(vertex_shader, baryedge_fragment_shader, baryedge_geometry_shader);
+        phong_program() = linkShaderProgram(vertex_shader, phong_fragment_shader);
 
+        shaders_enabled() = true;
     }
 
+    void MeshRenderer::imgui_interface() {
+        if(ImGui::TreeNode("Mesh Renderer")) {
+            ImGui::SliderFloat("edge_threshold", &m_edge_threshold, 0.0f, 0.01f,"%.5f");
+            update_edge_threshold();
+
+            ImGui::Checkbox("Draw Edges", &m_draw_edges);
+            ImGui::Checkbox("Use Barycentric Edges", &m_use_baryedge);
+            ImGui::Checkbox("Phong Shading", &m_phong_faces);
+
+
+            if(ImGui::TreeNode("Flat Shading Parameters")) {
+                ImGui::ColorEdit3("edge color", glm::value_ptr(m_edge_color));
+                ImGui::ColorEdit3("face color", glm::value_ptr(m_face_color));
+                ImGui::TreePop();
+            }
+            if(ImGui::TreeNode("Phong Shading Parameters")) {
+                ImGui::ColorEdit3("ambient", glm::value_ptr(m_ambientMat));
+                ImGui::ColorEdit3("diffuse", glm::value_ptr(m_diffuseMat));
+                ImGui::ColorEdit3("specular", glm::value_ptr(m_specularMat));
+                ImGui::SliderFloat("specular exp", &m_specularExpMat, 0.0,40,"%.4f");
+                ImGui::SliderFloat3("light_pos", glm::value_ptr(m_light_pos),-20,20);
+                update_phong_shading();
+                ImGui::TreePop();
+            }
+            ImGui::TreePop();
+        }
+
+    }
 
     void MeshRenderer::render() const {
 
@@ -176,49 +319,78 @@ namespace mtao { namespace opengl { namespace renderers {
         }
         if(m_draw_edges) {
             if(m_use_baryedge && m_index_buffer) {
-                auto active = m_baryedge_program->useRAII();
+                auto active = baryedge_program()->useRAII();
 
-                m_baryedge_program->getUniform("color").setVector(m_edge_color);
-                auto vpos_active = m_baryedge_program->getAttrib("vPos").enableRAII();
+                baryedge_program()->getUniform("color").setVector(m_edge_color);
+                auto vpos_active = baryedge_program()->getAttrib("vPos").enableRAII();
                 m_vertex_buffer->bind();
                 m_index_buffer->drawElements();
 
             } else if(m_edge_index_buffer) {
-                auto active = m_flat_program->useRAII();
-                m_flat_program->getUniform("color").setVector(m_edge_color);
+                auto active = flat_program()->useRAII();
+                flat_program()->getUniform("color").setVector(m_edge_color);
 
-                auto vpos_active = m_flat_program->getAttrib("vPos").enableRAII();
+                auto vpos_active = flat_program()->getAttrib("vPos").enableRAII();
                 m_vertex_buffer->bind();
                 m_edge_index_buffer->drawElements();
             }
         }
         if(m_index_buffer) {
             if(m_phong_faces) {
-            } else {
-                auto active = m_flat_program->useRAII();
-                m_flat_program->getUniform("color").setVector(m_face_color);
+                auto active = phong_program()->useRAII();
+                phong_program()->getUniform("color").setVector(m_face_color);
 
-                auto vpos_active = m_flat_program->getAttrib("vPos").enableRAII();
+                m_vertex_buffer->bind();
+                auto vpos_active = phong_program()->getAttrib("vPos").enableRAII();
+
+                if(m_normal_buffer) {
+                    m_normal_buffer->bind();
+                    auto vnor_active = phong_program()->getAttrib("vNormal").enableRAII();
+
+                    m_index_buffer->drawElements();
+                } else {
+
+                    m_index_buffer->drawElements();
+                }
+
+
+            } else {
+                auto active = flat_program()->useRAII();
+                flat_program()->getUniform("color").setVector(m_face_color);
+
+                auto vpos_active = flat_program()->getAttrib("vPos").enableRAII();
                 m_vertex_buffer->bind();
                 m_index_buffer->drawElements();
             }
         }
     }
+    void MeshRenderer::set_mvp(const glm::mat4& mv, const glm::mat4&p) {
+        {auto a = phong_program()->useRAII();
+            phong_program()->getUniform("MV").setMatrix(mv);
+        }
+
+        set_mvp(p*mv);
+
+
+    }
     void MeshRenderer::set_mvp(const glm::mat4& mvp) {
-        std::list<ShaderProgram*> shaders({m_flat_program.get(), m_baryedge_program.get()});
+        std::list<ShaderProgram*> shaders({flat_program().get(), baryedge_program().get(), phong_program().get()});
         for(auto&& p: shaders) {
             auto active = p->useRAII();
             p->getUniform("MVP").setMatrix(mvp);
         }
     }
-    void MeshRenderer::set_face_color(const glm::vec3& col) {
-        m_face_color = col;
+    void MeshRenderer::update_edge_threshold() {
+            auto active = baryedge_program()->useRAII();
+            baryedge_program()->getUniform("thresh").set(m_edge_threshold);
     }
-    void MeshRenderer::set_edge_color(const glm::vec3& col) {
-        m_edge_color = col;
-    }
-    void MeshRenderer::set_edge_threshold(float thresh) {
-            auto active = m_baryedge_program->useRAII();
-            m_baryedge_program->getUniform("thresh").set(thresh);
+    void MeshRenderer::update_phong_shading() {
+        auto a = phong_program()->useRAII();
+        phong_program()->getUniform("lightPos").setVector(m_light_pos);
+
+        phong_program()->setUniform("specularExpMaterial",m_specularExpMat);
+        phong_program()->getUniform("specularMaterial").setVector(m_specularMat);
+        phong_program()->getUniform("diffuseMaterial").setVector(m_diffuseMat);
+        phong_program()->getUniform("ambientMaterial").setVector(m_ambientMat);
     }
 }}}

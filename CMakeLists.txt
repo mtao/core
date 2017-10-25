@@ -7,7 +7,6 @@ SET(CMAKE_ARCHIVE_OUTPUT_DIR ${PROJECT_BINARY_DIR}/lib)
 
 ADD_DEFINITIONS(-std=c++1z)
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
-ADD_DEFINITIONS(-ggdb)
 ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 ADD_DEFINITIONS(-Wall)
 #ADD_DEFINITIONS(-Wno-deprecated-declarations)
@@ -71,6 +70,7 @@ ADD_LIBRARY(mtao_opengl
     include/opengl/renderers/renderer.h
     include/opengl/renderers/mesh.h
     src/opengl/renderers/mesh.cpp
+    src/opengl/renderers/renderer.cpp
     )
 TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl)
 
