@@ -6,6 +6,7 @@
 #include <glad/glad.h>
 #include "imgui.h"
 #include <glm/gtc/type_ptr.hpp>
+#include "opengl/shaders.h"
 #define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
 
 namespace mtao { namespace opengl { namespace renderers {
@@ -180,141 +181,16 @@ namespace mtao { namespace opengl { namespace renderers {
 
     void MeshRenderer::loadShaders(int dim) {
 
-        std::stringstream vss;
-
-        vss <<  "#version 330\n"
-            "uniform mat4 MVP;\n";
-        if(dim == 2) {
-            vss << "in vec2 vPos;\n";
-        } else {
-            vss << "in vec3 vPos;\n";
-            vss << "in vec3 vNormal;\n";
-        }
-        vss << "in vec3 vColor;\n";
-        vss << "out vec3 fNormal;\n";
-        vss << "out vec3 fPos;\n";
-        vss << "out vec4 gPos;\n";
-        vss << "out vec3 fColor;\n";
-        vss <<  "void main()\n"
-            "{\n";
-        if(dim == 2) {
-            vss << "    gPos = MVP * vec4(vPos, 0.0, 1.0);\n";
-        } else {
-            vss << "    gPos = MVP * vec4(vPos, 1.0);\n";
-        }
-        vss << "    gl_Position = gPos;\n";
-        if(dim == 2) {
-        vss << "    fPos = vec3(vPos,0);\n";
-        vss << "    fNormal = vec3(0,0,1);\n";
-        } else {
-        vss << "    fPos = vPos;\n";
-        vss << "    fNormal = vNormal;\n";
-        vss << "    fColor = vColor;\n";
-        }
-        vss << "}\n";
 
 
-        static const char* flat_fragment_shader_text =
-            "#version 330\n"
-            "uniform vec3 color;\n"
-            "out vec4 out_color;\n"
-            "void main()\n"
-            "{\n"
-            "    out_color= vec4(color,1.0);\n"
-            "}\n";
-        static const char* vertex_color_fragment_shader_text =
-            "#version 330\n"
-            "in vec3 fColor;\n"
-            "out vec4 out_color;\n"
-            "void main()\n"
-            "{\n"
-            "    out_color= vec4(fColor,1.0);\n"
-            "}\n";
 
-        static const char* baryedge_geometry_shader_text =
-            "#version 330\n"
-            "layout(triangles) in;\n"
-            "layout(triangle_strip,max_vertices = 3) out;\n"
-            "in vec4 gPos[3];\n"
-            "out vec3 bary;\n"
-            "uniform float mean_edge_length;\n"
-            "void main()\n"
-            "{\n"
-            "   int i;"
-            "   vec3 lens;"
-            "   lens.x = length(gPos[2]-gPos[1]);\n"
-            "   lens.y = length(gPos[0]-gPos[2]);\n"
-            "   lens.z = length(gPos[0]-gPos[1]);\n"
-            "   float s = (lens.x + lens.y + lens.z)/2;\n"
-            "   float area = sqrt(s * (s - lens.x) * (s - lens.y) * (s - lens.z));\n"
-            "   lens = (2 * area) / lens;\n"
-            "   for(i = 0; i < 3; i++)\n"
-            "   {\n"
-            "       bary = vec3(0);\n"
-            "       bary[i] = lens[i] / mean_edge_length;\n"
-            //"       bary[i] = 1.0;\n"
-            "       gl_Position = gPos[i];\n"
-            "       EmitVertex();\n"
-            "   }\n"
-            "EndPrimitive();\n"
-            "}\n";
 
-        static const char* baryedge_fragment_shader_text =
-            "#version 330\n"
-            "uniform vec3 color;\n"
-            "uniform float thresh;\n"
-            "in vec3 bary;\n"
-            "out vec4 out_color;\n"
-            "void main()\n"
-            "{\n"
-            "   if(min(bary.x,min(bary.y,bary.z)) < thresh){\n"
-            "       out_color= vec4(color,1.0);\n"
-            "   } else {\n"
-            "       discard;\n"
-            "   }\n"
-            "}\n";
-
-    static const char* phong_fragment_shader_text =
-        "#version 330\n"
-        //            "uniform vec3 color;\n"
-        "uniform mat4 MV;\n"
-        "uniform vec4 specularMaterial;\n"
-        "uniform float specularExpMaterial;\n"
-        "uniform vec4 diffuseMaterial;\n"
-        "uniform vec4 ambientMaterial;\n"
-        "uniform vec3 lightPos;\n"
-        "in vec3 fNormal;\n"
-        "in vec3 fPos;\n"
-        "out vec4 out_color;\n"
-        "void main()\n"
-        "{\n"
-        "   vec3 ambient = ambientMaterial.xyz;\n"
-        "   vec3 eyeDir = normalize(fPos);\n"
-        "   vec4 mvpos = MV * vec4(fPos,1);\n"
-        "   mvpos = vec4(fPos,1);\n"
-        "   vec3 lightDir = normalize(lightPos - mvpos.xyz/mvpos.w);\n"
-
-        "   float lightAng = max(0.0,dot(lightDir,fNormal));\n"
-        "   if(lightAng == 0) {\n"
-        "       out_color = vec4(ambient,1);\n"
-        "       return;\n"
-        "   }\n"
-
-        "   vec3 diffuse = lightAng * diffuseMaterial.xyz;\n"
-
-        "   vec3 reflection = normalize(reflect(lightDir, fNormal));\n"
-        "   float spec = max(0.0,dot(eyeDir, reflection));\n"
-        "   vec3 specular = pow(spec,specularExpMaterial) * specularMaterial.xyz;\n"
-        "   out_color= vec4(ambient + diffuse + specular,1.0);\n"
-        //"   out_color= vec4(ambient ,1.0);\n"
-        //"    out_color= vec4(normal,1.0);\n"
-        "}\n";
-        auto vertex_shader = prepareShader(vss.str().c_str(), GL_VERTEX_SHADER);
-        auto flat_fragment_shader = prepareShader(flat_fragment_shader_text, GL_FRAGMENT_SHADER);
-        auto baryedge_fragment_shader = prepareShader(baryedge_fragment_shader_text, GL_FRAGMENT_SHADER);
-        auto baryedge_geometry_shader = prepareShader(baryedge_geometry_shader_text, GL_GEOMETRY_SHADER);
-        auto phong_fragment_shader= prepareShader(phong_fragment_shader_text, GL_FRAGMENT_SHADER);
-        auto vertex_color_fragment_shader = prepareShader(vertex_color_fragment_shader_text, GL_FRAGMENT_SHADER);
+        auto vertex_shader = shaders::simple_vertex_shader(dim);
+        auto flat_fragment_shader = shaders::single_color_fragment_shader();
+        auto baryedge_fragment_shader = shaders::barycentric_edge_fragment_shader();
+        auto baryedge_geometry_shader = shaders::barycentric_edge_geometry_shader();
+        auto phong_fragment_shader= shaders::phong_fragment_shader();
+        auto vertex_color_fragment_shader = shaders::attribute_color_fragment_shader();
 
         flat_program() = linkShaderProgram(vertex_shader,flat_fragment_shader);
         baryedge_program() = linkShaderProgram(vertex_shader, baryedge_fragment_shader, baryedge_geometry_shader);
@@ -371,8 +247,10 @@ namespace mtao { namespace opengl { namespace renderers {
                 }
             }
 
-            ImGui::SliderFloat("edge_threshold", &m_edge_threshold, 0.0f, 0.01f,"%.5f");
-            update_edge_threshold();
+            if(m_edge_type == EdgeType::BaryEdge) {
+                ImGui::SliderFloat("edge_threshold", &m_edge_threshold, 0.0f, 0.01f,"%.5f");
+                update_edge_threshold();
+            }
 
             ImGui::Checkbox("Show Vertices", & m_draw_points);
             ImGui::TreePop();
