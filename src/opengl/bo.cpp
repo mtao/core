@@ -1,6 +1,7 @@
 #include "opengl/bo.h"
 #include <cassert>
 #include <GLFW/glfw3.h>
+#include <iostream>
 
 namespace mtao { namespace opengl {
 
@@ -28,7 +29,14 @@ void BO::bind() {
 
 
 void BO::setData(const GLvoid* data, GLsizeiptr size) {
+    bind();
     glBufferData(m_target, size, data, m_usage);
+}
+
+GLint BO::size() const {
+    int s;  glGetBufferParameteriv(target(), GL_BUFFER_SIZE, &s);
+    s = s/sizeof_glenum(type());
+    return s;
 }
 
 VBO::VBO(GLenum mode , GLenum usage , GLenum type ): BO(GL_ARRAY_BUFFER,usage,type), m_mode(mode) {
@@ -40,8 +48,7 @@ void VBO::drawArrays(GLenum mode) {
     }
     bind();
     assert(target() == GL_ARRAY_BUFFER);
-    int size;  glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
-    glDrawArrays(mode,first, size/sizeof_glenum(type()));
+    glDrawArrays(mode,first, size());
 }
 
 
@@ -57,8 +64,7 @@ IBO::IBO(GLenum mode, GLenum usage, GLenum type): BO(GL_ELEMENT_ARRAY_BUFFER, us
 void IBO::drawElements() {
     bind();
     assert(target() == GL_ELEMENT_ARRAY_BUFFER);
-    int size;  glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
-    glDrawElements(m_mode, size/sizeof_glenum(type()), type(), indices);
+    glDrawElements(m_mode, size(), type(), indices);
 }
 }}
 

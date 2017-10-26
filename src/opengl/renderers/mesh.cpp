@@ -123,6 +123,7 @@ namespace mtao { namespace opengl { namespace renderers {
 
 
 
+        auto m_vaoraii = vao().enableRAII();
 
         std::list<ShaderProgram*> shaders({flat_program().get(), baryedge_program().get()});
         for(auto&& p: shaders) {
@@ -178,6 +179,7 @@ namespace mtao { namespace opengl { namespace renderers {
     }
 
     void MeshRenderer::loadShaders(int dim) {
+
         std::stringstream vss;
 
         vss <<  "#version 330\n"
@@ -378,6 +380,7 @@ namespace mtao { namespace opengl { namespace renderers {
     }
 
     void MeshRenderer::render() const {
+        auto m_vaoraii = vao().enableRAII();
 
         if(!m_vertex_buffer) {
             return;
@@ -386,8 +389,8 @@ namespace mtao { namespace opengl { namespace renderers {
             auto active = flat_program()->useRAII();
             flat_program()->getUniform("color").setVector(m_vertex_color);
 
-            auto vpos_active = flat_program()->getAttrib("vPos").enableRAII();
             m_vertex_buffer->bind();
+            auto vpos_active = flat_program()->getAttrib("vPos").enableRAII();
             m_vertex_buffer->drawArrays();
 
         }

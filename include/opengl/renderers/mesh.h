@@ -31,30 +31,38 @@ class MeshRenderer: public Renderer {
 
         //Area weighted normal
         MatrixXgf computeNormals(const MatrixXgf& V, const MatrixXui& F);
+
+
+        inline bool shaders_enabled() const { return s_shaders_enabled[m_dim-2]; }
+        inline bool& shaders_enabled() { return s_shaders_enabled[m_dim-2]; }
+        inline std::unique_ptr<ShaderProgram>&  flat_program() {return s_flat_program[m_dim-2];}
+        inline const std::unique_ptr<ShaderProgram>&  flat_program() const {return s_flat_program[m_dim-2];}
+        inline std::unique_ptr<ShaderProgram>&  vert_color_program() {return s_vert_color_program[m_dim-2];}
+        inline const std::unique_ptr<ShaderProgram>&  vert_color_program() const {return s_vert_color_program[m_dim-2];}
+        inline std::unique_ptr<ShaderProgram>&  phong_program() {return s_phong_program[m_dim-2];}
+        inline const std::unique_ptr<ShaderProgram>&  phong_program() const {return s_phong_program[m_dim-2];}
+        inline std::unique_ptr<ShaderProgram>&  baryedge_program() {return s_baryedge_program[m_dim-2];}
+        inline const std::unique_ptr<ShaderProgram>&  baryedge_program() const {return s_baryedge_program[m_dim-2];}
+
+
+
+        inline void set_face_style(FaceStyle style=FaceStyle::Disabled) {
+            m_face_style = style;
+        }
     private:
         void loadShaders(int dim);
         void update_edge_threshold();
         void update_phong_shading();
 
         static bool s_shaders_enabled[2];
-        inline bool shaders_enabled() const { return s_shaders_enabled[m_dim-2]; }
-        inline bool& shaders_enabled() { return s_shaders_enabled[m_dim-2]; }
 
         static std::unique_ptr<ShaderProgram> s_flat_program[2];
-        inline std::unique_ptr<ShaderProgram>&  flat_program() {return s_flat_program[m_dim-2];}
-        inline const std::unique_ptr<ShaderProgram>&  flat_program() const {return s_flat_program[m_dim-2];}
 
         static std::unique_ptr<ShaderProgram> s_vert_color_program[2];
-        inline std::unique_ptr<ShaderProgram>&  vert_color_program() {return s_vert_color_program[m_dim-2];}
-        inline const std::unique_ptr<ShaderProgram>&  vert_color_program() const {return s_vert_color_program[m_dim-2];}
 
         static std::unique_ptr<ShaderProgram> s_phong_program[2];
-        inline std::unique_ptr<ShaderProgram>&  phong_program() {return s_phong_program[m_dim-2];}
-        inline const std::unique_ptr<ShaderProgram>&  phong_program() const {return s_phong_program[m_dim-2];}
 
         static std::unique_ptr<ShaderProgram> s_baryedge_program[2];
-        inline std::unique_ptr<ShaderProgram>&  baryedge_program() {return s_baryedge_program[m_dim-2];}
-        inline const std::unique_ptr<ShaderProgram>&  baryedge_program() const {return s_baryedge_program[m_dim-2];}
 
 
         std::unique_ptr<IBO> m_index_buffer;

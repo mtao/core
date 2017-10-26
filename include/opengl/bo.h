@@ -20,6 +20,8 @@ struct BO {
         GLenum target() const { return m_target; }
         GLenum usage() const { return m_usage; }
         GLenum type() const { return m_type; }
+
+        GLint size() const;
     private:
         GLuint m_id;
         GLenum m_target = GL_ARRAY_BUFFER;

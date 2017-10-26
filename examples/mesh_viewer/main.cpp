@@ -19,7 +19,6 @@ float look_distance = 0.4;
 float rotation_angle = 1.0;
 float rotation_angle2 = 0.5;
 bool animate = false;
-std::unique_ptr<VAO> vertex_attribute;
 std::unique_ptr<Window> window;
 std::unique_ptr<renderers::MeshRenderer> renderer;
 ImVec4 clear_color = ImColor(114, 144, 154);
@@ -27,7 +26,7 @@ ImVec4 clear_color = ImColor(114, 144, 154);
 void prepare_mesh(const Mesh& m) {
     renderer = std::make_unique<renderers::MeshRenderer>(3);
 
-    renderer->setMesh(m.V,m.F,true);
+    renderer->setMesh(m.V,m.F,false);
 
     renderers::MeshRenderer::MatrixXgf C = renderer->computeNormals(m.V,m.F).array();
     renderer->setColor(C);
@@ -95,8 +94,6 @@ int main(int argc, char * argv[]) {
     window->set_gui_func(gui_func);
     window->set_render_func(render);
     window->makeCurrent();
-    vertex_attribute = std::make_unique<VAO>();
-    vertex_attribute->bind();
 
     Mesh m(argv[1]);
     prepare_mesh(m);

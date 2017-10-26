@@ -2,6 +2,10 @@
 
 namespace mtao { namespace opengl { namespace renderers {
 
+    Renderer::Renderer() {
+
+        m_vertex_attributes = std::make_unique<VAO>();
+    }
     void Renderer::imgui_interface() {
 
     }

@@ -22,7 +22,6 @@ float rotation_angle;
 glm::vec3 edge_color;
 
 
-std::unique_ptr<VAO> vertex_attribute;
 std::unique_ptr<renderers::MeshRenderer> renderer;
 
 std::unique_ptr<ShaderProgram> edge_program;
@@ -113,8 +112,6 @@ int main(int argc, char * argv[]) {
     window->set_gui_func(gui_func);
     window->set_render_func(render);
     window->makeCurrent();
-    vertex_attribute = std::make_unique<VAO>();
-    vertex_attribute->bind();
 
     Mesh m(argv[1]);
     prepare_mesh(m);
