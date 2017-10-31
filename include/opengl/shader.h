@@ -80,15 +80,6 @@ namespace mtao { namespace opengl {
             return linkShaderProgram(prepareShader(shaders)...);
     }
 
-    template <typename... Shaders>
-        std::unique_ptr<ShaderProgram> linkShaderProgramPtr(const Shaders&... shaders) {
-            static_assert((std::is_same<Shaders, Shader>::value && ...));
-            auto program = std::make_unique<ShaderProgram>() ;
-            (program->attach(shaders), ...);
-            program->compile();
-            return program;
-        }
-
 }}
 
 #endif//SHADER_H
