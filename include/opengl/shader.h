@@ -27,7 +27,9 @@ namespace mtao { namespace opengl {
     struct ShaderProgram: public bind_enabled<ShaderProgram> {
         public:
             ShaderProgram();
+            ShaderProgram(ShaderProgram&& other);
             ~ShaderProgram();
+            ShaderProgram& operator=(ShaderProgram&& other);
             void attach(GLuint shader);
             void attach(const Shader& shader);
             bool compile();
@@ -62,21 +64,30 @@ namespace mtao { namespace opengl {
     Shader prepareShader(const std::tuple<const char*, GLenum >& t);
 
 
-    std::unique_ptr<ShaderProgram> prepareShaders(const char* vdata, const char* fdata, const char* geo = nullptr);
+    ShaderProgram prepareShaders(const char* vdata, const char* fdata, const char* geo = nullptr);
     template <typename... Shaders>
-        std::unique_ptr<ShaderProgram> linkShaderProgram(const Shaders&... shaders) {
+        ShaderProgram linkShaderProgram(const Shaders&... shaders) {
             static_assert((std::is_same<Shaders, Shader>::value && ...));
-            auto program = std::make_unique<ShaderProgram>();
-            (program->attach(shaders), ...);
-            program->compile();
+            ShaderProgram program;
+            (program.attach(shaders), ...);
+            program.compile();
             return program;
         }
     template <typename... ShaderData>
-    std::unique_ptr<ShaderProgram> prepareShaders(const std::tuple<ShaderData,GLenum>&... shaders) {
+    ShaderProgram prepareShaders(const std::tuple<ShaderData,GLenum>&... shaders) {
             static_assert((std::is_convertible<ShaderData, const char*>::value && ...));
 
             return linkShaderProgram(prepareShader(shaders)...);
     }
+
+    template <typename... Shaders>
+        std::unique_ptr<ShaderProgram> linkShaderProgramPtr(const Shaders&... shaders) {
+            static_assert((std::is_same<Shaders, Shader>::value && ...));
+            auto program = std::make_unique<ShaderProgram>() ;
+            (program->attach(shaders), ...);
+            program->compile();
+            return program;
+        }
 
 }}
 

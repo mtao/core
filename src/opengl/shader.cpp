@@ -58,8 +58,19 @@ bool Shader::compile(const GLchar** source) {
 ShaderProgram::ShaderProgram() {
     m_id = glCreateProgram();
 }
+ShaderProgram::ShaderProgram(ShaderProgram&& other): m_id(other.id()) {
+    other.m_id = GL_INVALID_VALUE;
+
+}
+ShaderProgram& ShaderProgram::operator=(ShaderProgram&& other) {
+    m_id = other.id();
+    other.m_id = GL_INVALID_VALUE;
+    return *this;
+}
 ShaderProgram::~ShaderProgram() {
-    glDeleteProgram(m_id);
+    if(id() != GL_INVALID_VALUE) {
+        glDeleteProgram(m_id);
+    }
 }
 
 void ShaderProgram::attach(GLuint shader)  {
@@ -127,7 +138,7 @@ Shader prepareShader(const std::tuple<const char*, GLenum >& t) {
 }
 
 
-std::unique_ptr<ShaderProgram> prepareShaders(const char* vdata, const char* fdata, const char* geo) {
+ShaderProgram prepareShaders(const char* vdata, const char* fdata, const char* geo) {
 
     auto vs = prepareShader(vdata,GL_VERTEX_SHADER);
     auto fs = prepareShader(fdata,GL_FRAGMENT_SHADER);

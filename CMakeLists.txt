@@ -72,7 +72,9 @@ ADD_LIBRARY(mtao_opengl
     include/opengl/renderers/mesh.h
     src/opengl/renderers/mesh.cpp
     src/opengl/renderers/renderer.cpp
-    src/opengl/shaders.cpp
+    src/opengl/shaders/phong.cpp
+    src/opengl/shaders/baryedge.cpp
+    src/opengl/shaders/simple.cpp
     )
 TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl)
 

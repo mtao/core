@@ -192,10 +192,10 @@ namespace mtao { namespace opengl { namespace renderers {
         auto phong_fragment_shader= shaders::phong_fragment_shader();
         auto vertex_color_fragment_shader = shaders::attribute_color_fragment_shader();
 
-        flat_program() = linkShaderProgram(vertex_shader,flat_fragment_shader);
-        baryedge_program() = linkShaderProgram(vertex_shader, baryedge_fragment_shader, baryedge_geometry_shader);
-        phong_program() = linkShaderProgram(vertex_shader, phong_fragment_shader);
-        vert_color_program() = linkShaderProgram(vertex_shader,vertex_color_fragment_shader);
+        flat_program() = linkShaderProgramPtr(vertex_shader,flat_fragment_shader);
+        baryedge_program() = std::make_unique<ShaderProgram>(linkShaderProgram(vertex_shader, baryedge_fragment_shader, baryedge_geometry_shader));
+        phong_program() = std::make_unique<ShaderProgram>(linkShaderProgram(vertex_shader, phong_fragment_shader));
+        vert_color_program() = std::make_unique<ShaderProgram>(linkShaderProgram(vertex_shader,vertex_color_fragment_shader));
 
         shaders_enabled() = true;
     }
