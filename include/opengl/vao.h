@@ -10,13 +10,16 @@
 namespace mtao { namespace opengl {
 
     //vertex attribute object
-    struct VAO {
+    struct VAO: public bind_enabled<VAO> {
         public:
             VAO();
             ~VAO();
-            void bind();
-            void release();
-            GLuint id();
+            using bind_enabled<VAO>::bind;
+            using bind_enabled<VAO>::release;
+            auto enableRAII() const { return make_binder(*this); }
+            GLuint id() const { return m_id; }
+            static void bind(GLuint id);
+            static void release(GLuint id);
 
         private:
             GLuint m_id;

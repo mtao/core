@@ -1,32 +1,9 @@
 #include "opengl/bo.h"
 #include <cassert>
 #include <GLFW/glfw3.h>
+#include <iostream>
 
 namespace mtao { namespace opengl {
-
-
-BO::BO(GLenum target, GLenum usage): m_target(target), m_usage(usage) {
-    glGenBuffers(1, &m_id);
-}
-
-void BO::bind() {
-        glBindBuffer(m_target, m_id);
-}
-
-
-void BO::setData(const GLvoid* data, GLsizeiptr size) {
-    glBufferData(m_target, size, data, m_usage);
-}
-
-
-
-BO::~BO() {
-    glDeleteBuffers(1,&m_id);
-}
-
-
-
-IBO::IBO(GLenum mode, GLenum usage): BO(GL_ELEMENT_ARRAY_BUFFER, usage), m_mode(mode) {}
 
 static GLsizei sizeof_glenum(GLenum type_enum) {
     switch(type_enum) {
@@ -36,15 +13,58 @@ static GLsizei sizeof_glenum(GLenum type_enum) {
             return sizeof(GLushort);
         case GL_UNSIGNED_INT:
             return sizeof(GLuint);
+        case GL_FLOAT:
+            return sizeof(GLfloat);
         default: return 0;
     }
 }
 
+BO::BO(GLenum target, GLenum usage, GLenum type): m_target(target), m_usage(usage), m_type(type) {
+    glGenBuffers(1, &m_id);
+}
+
+void BO::bind() {
+        glBindBuffer(m_target, m_id);
+}
+
+
+void BO::setData(const GLvoid* data, GLsizeiptr size) {
+    bind();
+    glBufferData(m_target, size, data, m_usage);
+}
+
+GLint BO::size() const {
+    int s;  glGetBufferParameteriv(target(), GL_BUFFER_SIZE, &s);
+    s = s/sizeof_glenum(type());
+    return s;
+}
+
+VBO::VBO(GLenum mode , GLenum usage , GLenum type ): BO(GL_ARRAY_BUFFER,usage,type), m_mode(mode) {
+}
+
+void VBO::drawArrays(GLenum mode) {
+    if(mode == GL_INVALID_ENUM) {
+        mode = m_mode;
+    }
+    bind();
+    assert(target() == GL_ARRAY_BUFFER);
+    glDrawArrays(mode,first, size());
+}
+
+
+BO::~BO() {
+    glDeleteBuffers(1,&m_id);
+}
+
+
+
+IBO::IBO(GLenum mode, GLenum usage, GLenum type): BO(GL_ELEMENT_ARRAY_BUFFER, usage,type), m_mode(mode) {}
+
+
 void IBO::drawElements() {
     bind();
     assert(target() == GL_ELEMENT_ARRAY_BUFFER);
-    int size;  glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
-    glDrawElements(m_mode, size/sizeof_glenum(m_type), m_type, indices);
+    glDrawElements(m_mode, size(), type(), indices);
 }
 }}
 

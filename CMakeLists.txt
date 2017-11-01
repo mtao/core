@@ -7,7 +7,6 @@ SET(CMAKE_ARCHIVE_OUTPUT_DIR ${PROJECT_BINARY_DIR}/lib)
 
 SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -std=c++1z)
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
-ADD_DEFINITIONS(-ggdb)
 ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 ADD_DEFINITIONS(-Wall)
 #ADD_DEFINITIONS(-Wno-deprecated-declarations)
@@ -67,6 +66,15 @@ ADD_LIBRARY(mtao_opengl
     include/opengl/vao.h
     include/opengl/util.h
     include/opengl/tex.h
+    include/opengl/shaders.h
+
+    include/opengl/renderers/renderer.h
+    include/opengl/renderers/mesh.h
+    src/opengl/renderers/mesh.cpp
+    src/opengl/renderers/renderer.cpp
+    src/opengl/shaders/phong.cpp
+    src/opengl/shaders/baryedge.cpp
+    src/opengl/shaders/simple.cpp
     )
 TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl)
 
