@@ -19,6 +19,10 @@ namespace mtao {namespace opengl {namespace shaders {
     Shader phong_fragment_shader();
     ShaderProgram phong_shader_program(int dim);
 
+    Shader vector_vertex_shader(int dim);
+    Shader vector_geometry_shader();
+    ShaderProgram vector_shader_program(bool per_vertex, int dim);
+
 
 
 }}}
