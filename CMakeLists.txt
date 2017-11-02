@@ -75,6 +75,7 @@ ADD_LIBRARY(mtao_opengl
     src/opengl/shaders/phong.cpp
     src/opengl/shaders/baryedge.cpp
     src/opengl/shaders/simple.cpp
+    src/opengl/shaders/vectors.cpp
     )
 TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl)
 

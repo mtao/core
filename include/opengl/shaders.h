@@ -21,7 +21,7 @@ namespace mtao {namespace opengl {namespace shaders {
 
     Shader vector_vertex_shader(int dim);
     Shader vector_geometry_shader();
-    ShaderProgram vector_shader_program(bool per_vertex, int dim);
+    ShaderProgram vector_shader_program(int dim, bool per_vertex);
 
 
 
