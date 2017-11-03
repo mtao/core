@@ -2,6 +2,7 @@
 #define TYPES_H
 
 #include <Eigen/Dense>
+#include <vector>
 #include "coord.h"
 namespace mtao{ 
     template <typename T, int A, int B>
@@ -10,9 +11,9 @@ namespace mtao{
     template <typename T, int A>
         using SquareMatrix = Eigen::Matrix<T,A,A>;
     template <typename T, int D>
-        using Vector = Matrix<T,A,1>;
+        using Vector = Matrix<T,D,1>;
     template <typename T, int D>
-        using RowVector = Matrix<T,1,A>;
+        using RowVector = Matrix<T,1,D>;
 
 
 

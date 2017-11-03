@@ -88,6 +88,8 @@ SET(CORE_HEADERS
     include/static_iteration.h
     include/types.h
     include/util.h
+    include/eigen_utils.h
+    include/type_utils.h
     )
 
 SET(GRID_HEADERS

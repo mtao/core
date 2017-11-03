@@ -2,6 +2,7 @@ ADD_EXECUTABLE(grid_test grid_test.cpp)
 ADD_EXECUTABLE(levelset_test levelset_test.cpp)
 ADD_EXECUTABLE(multi_loop_test multi_loop_test.cpp)
 ADD_EXECUTABLE(static_type_iteration_test static_type_iteration_test.cpp)
+ADD_EXECUTABLE(eigen_interweave_test eigen_interweave_test.cpp)
 #ADD_EXECUTABLE(static_iteration_test src/static_iteration_test.cpp)
 
 
