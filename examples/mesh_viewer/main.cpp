@@ -10,6 +10,7 @@
 #include "opengl/renderers/mesh.h"
 
 #include <glm/gtc/matrix_transform.hpp> 
+#include "geometry/circumcenter.h"
 
 using namespace mtao::opengl;
 
@@ -21,7 +22,9 @@ float rotation_angle2 = 0.5;
 bool animate = false;
 std::unique_ptr<Window> window;
 std::unique_ptr<renderers::MeshRenderer> renderer;
+std::unique_ptr<VBO> m_circumcenter_buffer;
 ImVec4 clear_color = ImColor(114, 144, 154);
+
 
 void prepare_mesh(const Mesh& m) {
     renderer = std::make_unique<renderers::MeshRenderer>(3);
@@ -30,6 +33,19 @@ void prepare_mesh(const Mesh& m) {
 
     renderers::MeshRenderer::MatrixXgf C = renderer->computeNormals(m.V,m.F).array();
     renderer->setColor(C);
+
+    {
+        auto vao = renderer->vao().enableRAII();
+        std::cout << m.V << std::endl;
+        std::cout << "Making circumcenters" << std::endl;
+        auto circumcenters = m.circumcenters();
+        std::cout << circumcenters<<std::endl;
+        m_circumcenter_buffer = std::make_unique<VBO>(GL_POINTS);
+        m_circumcenter_buffer->bind();
+        m_circumcenter_buffer->setData(circumcenters.data(),sizeof(GLfloat) * circumcenters.size());
+    }
+
+
 }
 
 void gui_func() {
@@ -76,6 +92,19 @@ void render(int width, int height) {
 
     renderer->set_mvp(mvp);
     renderer->set_mvp(mv,p);
+    glPointSize(5);
+
+    {
+        auto m_vaoraii = renderer->vao().enableRAII();
+        auto&& p = renderer->flat_program();
+        auto&& b = m_circumcenter_buffer;
+        auto active = p->useRAII();
+        p->getUniform("color").setVector(glm::vec3(1,1,1));
+
+        b->bind();
+        auto vpos_active = p->getAttrib("vPos").enableRAII();
+        b->drawArrays();
+    }
     renderer->render();
 
 
@@ -96,6 +125,20 @@ int main(int argc, char * argv[]) {
     window->makeCurrent();
 
     Mesh m(argv[1]);
+    auto&& V = m.V;
+
+    auto minPos = V.rowwise().minCoeff();
+    auto maxPos = V.rowwise().maxCoeff();
+    auto range = maxPos - minPos;
+
+    float r = range.maxCoeff();;
+    for(int i = 0; i < range.cols(); ++i) {
+        if(range(i) > 1e-5) {
+            r = std::min(r,range(i));
+        }
+    }
+
+    //V = (V.colwise() - (minPos+maxPos)/2) / r;
     prepare_mesh(m);
     window->run();
 

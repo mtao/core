@@ -49,6 +49,7 @@ class MeshRenderer: public Renderer {
         inline void set_face_style(FaceStyle style=FaceStyle::Disabled) {
             m_face_style = style;
         }
+        auto&& vb() const { return  m_vertex_buffer; }
     private:
         void loadShaders(int dim);
         void update_edge_threshold();

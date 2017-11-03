@@ -221,9 +221,9 @@ namespace mtao { namespace opengl { namespace renderers {
             int et = static_cast<int>(m_edge_type);
             ImGui::Combo("Edge Type", &et, edge_types,IM_ARRAYSIZE(edge_types));
             m_edge_type = static_cast<EdgeType>(et);
+            ImGui::Checkbox("Show Vertices", & m_draw_points);
 
-
-            if(m_face_style == FaceStyle::Phong && ImGui::TreeNode("Phong Shading Parameters")) {
+if(m_face_style == FaceStyle::Phong && ImGui::TreeNode("Phong Shading Parameters")) {
                 ImGui::ColorEdit3("ambient", glm::value_ptr(m_ambientMat));
                 ImGui::ColorEdit3("diffuse", glm::value_ptr(m_diffuseMat));
                 ImGui::ColorEdit3("specular", glm::value_ptr(m_specularMat));
@@ -252,7 +252,6 @@ namespace mtao { namespace opengl { namespace renderers {
                 update_edge_threshold();
             }
 
-            ImGui::Checkbox("Show Vertices", & m_draw_points);
             ImGui::TreePop();
         }
     }
@@ -269,6 +268,7 @@ namespace mtao { namespace opengl { namespace renderers {
 
             m_vertex_buffer->bind();
             auto vpos_active = flat_program()->getAttrib("vPos").enableRAII();
+            m_vertex_buffer->bind();
             m_vertex_buffer->drawArrays();
 
         }

@@ -12,6 +12,8 @@ class Mesh {
         MatrixXgf V;
         MatrixXui F;
 
+        MatrixXgf circumcenters() const;
+
     private:
 
 

@@ -6,6 +6,7 @@
 #include <vector>
 #include <array>
 #include <iostream>
+#include "geometry/circumcenter.h"
 
 
 
@@ -122,3 +123,8 @@ Mesh::Mesh(const std::string& filename) {
     V.colwise() -= center;
 }
 
+
+
+auto Mesh::circumcenters() const -> MatrixXgf {
+    return mtao::geometry::circumcenters(V,F);
+}
