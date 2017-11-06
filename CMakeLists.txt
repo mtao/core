@@ -49,7 +49,54 @@ PKG_SEARCH_MODULE(GLFW REQUIRED glfw3)
 
 INCLUDE_DIRECTORIES(${GLFW3_INCLUDE_DIRS})
 
+
+
+
+SET(COMMON_HEADERS
+    include/compat.h
+    include/coord.h
+    include/conversion.h
+    include/static_iteration.h
+    include/types.h
+    include/util.h
+    include/eigen_utils.h
+    include/type_utils.h
+    )
+
+SET(GRID_HEADERS
+    ${COMMON_HEADERS}
+    include/geometry/grid/grid.h
+    include/geometry/grid/grid_storage.h
+    include/geometry/grid/grid_utils.h
+    include/geometry/grid/index_map.h
+    include/geometry/grid/index_map_iterator.h
+    )
+
+SET(LEVELSET_HEADERS
+    ${GRID_HEADERS}
+    include/geometry/levelset/levelset.h
+    include/geometry/levelset/ops.h
+    include/geometry/levelset/levelset_example.h
+    include/geometry/levelset/primitives.h
+    include/geometry/levelset/transformations.h
+    include/geometry/levelset/transformer.h
+    include/geometry/levelset/discrete.h
+    include/geometry/levelset/csg.h
+    include/geometry/levelset/animation.h
+    include/geometry/levelset/particle_sampler.h
+    )
+
+
+ADD_LIBRARY(mtao_core
+    include/logging/logger.hpp
+    include/logging/timer.hpp
+    src/logging/logger.cpp
+    src/logging/timer.cpp
+    )
+
+
 ADD_LIBRARY(mtao_opengl 
+    ${COMMON_HEADERS}
     ${IMGUI_SOURCES}
     src/opengl/glad.c
     src/opengl/imgui_impl.cpp
@@ -78,44 +125,6 @@ ADD_LIBRARY(mtao_opengl
     src/opengl/shaders/vectors.cpp
     )
 TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl)
-
-
-
-SET(CORE_HEADERS
-    include/compat.h
-    include/coord.h
-    include/conversion.h
-    include/static_iteration.h
-    include/types.h
-    include/util.h
-    include/eigen_utils.h
-    include/type_utils.h
-    )
-
-SET(GRID_HEADERS
-    ${CORE_HEADERS}
-    include/geometry/grid/grid.h
-    include/geometry/grid/grid_storage.h
-    include/geometry/grid/grid_utils.h
-    include/geometry/grid/index_map.h
-    include/geometry/grid/index_map_iterator.h
-    )
-
-SET(LEVELSET_HEADERS
-    ${GRID_HEADERS}
-    include/geometry/levelset/levelset.h
-    include/geometry/levelset/ops.h
-    include/geometry/levelset/levelset_example.h
-    include/geometry/levelset/primitives.h
-    include/geometry/levelset/transformations.h
-    include/geometry/levelset/transformer.h
-    include/geometry/levelset/discrete.h
-    include/geometry/levelset/csg.h
-    include/geometry/levelset/animation.h
-    include/geometry/levelset/particle_sampler.h
-    )
-
-
 ADD_SUBDIRECTORY(tests EXCLUDE_FROM_ALL)
 ADD_SUBDIRECTORY(examples EXCLUDE_FROM_ALL)
 

@@ -10,6 +10,15 @@
 #include <memory>
 namespace mtao { namespace opengl { namespace renderers {
 
+
+    struct MeshRenderBuffers {
+        std::unique_ptr<IBO> faces;
+        std::unique_ptr<IBO> edges;
+        std::unique_ptr<VBO> vertices;
+        std::unique_ptr<BO> normals;
+        std::unique_ptr<BO> colors;
+    };
+
 class MeshRenderer: public Renderer {
     public:
         using MatrixXgf = Eigen::Matrix<GLfloat, Eigen::Dynamic,Eigen::Dynamic>;
@@ -21,6 +30,13 @@ class MeshRenderer: public Renderer {
         MeshRenderer(int dim);
 
         void render() const override;
+        void render(const MeshRenderBuffers& buffs) const;
+        void render_points(const MeshRenderBuffers& buffs) const;
+        void render_edges(const MeshRenderBuffers& buffs) const;
+        void render_faces(const MeshRenderBuffers& buffs) const;
+
+
+
         void imgui_interface() override;
         std::list<ShaderProgram*> mvp_programs() const override ;
         void setMesh(const MatrixXgf& V, const MatrixXui& F, bool normalize = false);
@@ -49,6 +65,11 @@ class MeshRenderer: public Renderer {
         inline void set_face_style(FaceStyle style=FaceStyle::Disabled) {
             m_face_style = style;
         }
+
+        inline void setBuffers(const std::shared_ptr<MeshRenderBuffers>& buf) { m_buffers = buf; }
+
+        MeshRenderBuffers* buffers() { return m_buffers.get(); }
+        const MeshRenderBuffers* buffers() const { return m_buffers.get(); }
     private:
         void loadShaders(int dim);
         void update_edge_threshold();
@@ -65,11 +86,7 @@ class MeshRenderer: public Renderer {
         static std::unique_ptr<ShaderProgram> s_baryedge_program[2];
 
 
-        std::unique_ptr<IBO> m_index_buffer;
-        std::unique_ptr<IBO> m_edge_index_buffer;
-        std::unique_ptr<VBO> m_vertex_buffer;
-        std::unique_ptr<BO> m_normal_buffer;
-        std::unique_ptr<BO> m_color_buffer;
+        std::shared_ptr<MeshRenderBuffers> m_buffers;
 
         FaceStyle m_face_style = FaceStyle::Phong;
         EdgeType m_edge_type = EdgeType::Disabled;
