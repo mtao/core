@@ -54,7 +54,6 @@ INCLUDE_DIRECTORIES(${GLFW3_INCLUDE_DIRS})
 
 SET(COMMON_HEADERS
     include/compat.h
-    include/coord.h
     include/conversion.h
     include/static_iteration.h
     include/types.h
@@ -124,7 +123,7 @@ ADD_LIBRARY(mtao_opengl
     src/opengl/shaders/simple.cpp
     src/opengl/shaders/vectors.cpp
     )
-TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl)
+TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl mtao_core)
 ADD_SUBDIRECTORY(tests EXCLUDE_FROM_ALL)
 ADD_SUBDIRECTORY(examples EXCLUDE_FROM_ALL)
 
