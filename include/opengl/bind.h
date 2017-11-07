@@ -1,3 +1,5 @@
+#ifndef OPENGL_BIND_H
+#define OPENGL_BIND_H
 #include <cstddef>
 #include <utility>
 #include <glad/glad.h>
@@ -74,3 +76,4 @@ auto make_binder(const Obj& o) { return Binder<bind_enabled<Obj>>(o); }
 }}
 
 
+#endif//OPENGL_BIND_H

@@ -8,9 +8,11 @@ namespace mtao{
         using Matrix = Eigen::Matrix<T,A,B>;
 
     template <typename T, int A> using SquareMatrix = Matrix<T,A,A>;
+    template <typename T> using MatrixX = SquareMatrix<T,Eigen::Dynamic>;
+
+
     template <typename T, int D> using Vector = Matrix<T,D,1>;
     template <typename T, int D> using RowVector = Matrix<T,1,D>;
-
     template <typename T> using VectorX = Vector<T,Eigen::Dynamic>;
     template <typename T> using RowVectorX = RowVector<T,Eigen::Dynamic>;
 
@@ -24,17 +26,17 @@ namespace mtao{
     template <typename T, int D> using RowVectors = Matrix<T,Eigen::Dynamic, D>;
 
 
-    using Mat3f = Matrix3<float> ;
-    using Mat2f = Matrix2<float> ;
-    using Vec3f = Vector3<float> ;
-    using Vec2f = Vector2<float> ;
+    using Mat3f = SquareMatrix<float,3> ;
+    using Mat2f = SquareMatrix<float,2> ;
+    using Vec3f = Vector<float,3> ;
+    using Vec2f = Vector<float,2> ;
     using MatXf = MatrixX<float> ;
     using VecXf = VectorX<float> ;
 
-    using Mat3d = Matrix3<double> ;
-    using Mat2d = Matrix2<double> ;
-    using Vec3d = Vector3<double> ;
-    using Vec2d = Vector2<double> ;
+    using Mat3d = SquareMatrix<double,3> ;
+    using Mat2d = SquareMatrix<double,2> ;
+    using Vec3d = Vector<double,3> ;
+    using Vec2d = Vector<double,2> ;
     using MatXd = MatrixX<double> ;
     using VecXd = VectorX<double> ;
 
@@ -65,7 +67,6 @@ namespace mtao{
             typedef Eigen::Matrix<int,Dim,1> Veci;
             typedef Eigen::Matrix<double,Dim,Dim> Matf;
             typedef Eigen::Matrix<float,Dim,Dim> Matd;
-            typedef mtao::coord<Dim> Coord;
         };
     template <typename T, int Dim>
         struct numerical_types {
