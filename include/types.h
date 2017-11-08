@@ -44,11 +44,18 @@ namespace mtao{
     using Vec3i = Vector3<int>;
 
     //types packaged for a given embedded dimensions
-    template <typename T, int D>
+    template <typename T, int D_>
         struct embedded_types {
-            using Vector = Vector<T,D>;
-            using SquareMatrix = SquareMatrix<T,D>;
-            using ColVectors = ColVectors<T,D>;
+            using Scalar = T;
+            constexpr static int D = D_;
+            using VectorD = Vector<T,D>;
+            using SquareMatrixD = SquareMatrix<T,D>;
+            using MatrixX = MatrixX<T>;
+            using VectorX = Vector<T,Eigen::Dynamic>;
+            template <int N> using ColVectorsD = Matrix<T,D, N>;
+            template <int N> using RowVectorsD = Matrix<T,N, D>;
+            using ColVectorsDX=ColVectorsD<Eigen::Dynamic>;
+            using RowVectorsDX=RowVectorsD<Eigen::Dynamic>;
         };
 
     template <typename T>
