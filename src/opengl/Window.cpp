@@ -3,6 +3,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <imgui.h>
+#include "logging/logger.hpp"
 
 namespace mtao {namespace opengl {
 size_t Window::s_window_count = 0;
@@ -23,11 +24,11 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 */
 
 void printGLInfo() {
-    std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
+    logging::info() << "OpenGL Version: " << glGetString(GL_VERSION);
 
-    std::cout << "OpenGL Vendor: " << glGetString(GL_VENDOR) << std::endl;;
+    logging::info() << "OpenGL Vendor: " << glGetString(GL_VENDOR);
 
-    std::cout << "OpenGL Renderer: " <<  glGetString(GL_RENDERER) << std::endl;;
+    logging::info() << "OpenGL Renderer: " <<  glGetString(GL_RENDERER);
 }
 
 Window::Window( const std::string& name, int width, int height) {

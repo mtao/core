@@ -14,23 +14,43 @@ namespace mtao {
         //WARNING! assumes default logger will always exist
         class Logger {
             public:
-                Logger(const std::string& alias="default", const std::string& filename = "log.log", Level l = Level::Warn);
+                struct Output {
+                    std::ofstream out;
+                    Level level;
+                };
+                Logger(const std::string& alias="default", Level l = Level::Warn);
                 Logger(Logger&& l) = default;
                 Logger& operator=(Logger&& l) = default;
 
                 static const std::string& log_type_string(Level l, bool color=false);
 
+                void add_file(const std::string& filename, Level l, bool continueFile=false);
 
                 std::string decorator(Level l, bool humanReadable=false) const;
                 template <typename... Args>
-                    void write(Level l, Args&&... args) {
+                    std::string process_line(Args&&... args) {
                         std::stringstream ss;
                         ( ss << ... << args ) << std::endl;
-                        write_line(l,ss.str());
-
+                        return ss.str();
+                    }
+                template <typename... Args>
+                    void write(Level l,  Args&&... args) {
+                        write_line(l,process_line(std::forward<Args>(args)...));
+                    }
+                template <typename... Args>
+                    void write_output(Output& output,Level l,  Args&&... args) {
+                        write_line(output, l,process_line(std::forward<Args>(args)...));
+                    }
+                template <typename... Args>
+                    void write_cout(Level l, Args&&... args) {
+                        write_line_cout(l,process_line(std::forward<Args>(args)...));
                     }
 
                 void write_line(Level l,const std::string& str);
+                void write_line(Output& output, Level l,const std::string& str);
+                void write_line_nodec(Output& output, Level l,const std::string& str);
+                void write_line_cout(Level l,const std::string& str);
+                void write_line_cout_nodec(Level l,const std::string& str);
 
                 size_t current_time() const;
 
@@ -55,12 +75,11 @@ namespace mtao {
                 };
 
                 auto instance(Level l) { return Instance(this, l); }
+                void set_level(Level l) { m_level = l; }
             private:
-                std::string m_filename;
                 std::string m_alias;
-                std::ofstream m_outstream;
+                std::map<std::string,Output> m_outputs;
                 Level m_level;
-                Level m_cout_level;
 
 
         };
@@ -96,7 +115,8 @@ namespace mtao {
 
 
         LoggerContext get_logger(const std::string& alias, Level l=Level::Info);
-        Logger& make_logger(const std::string& alias="default", const std::string& filename="default.log", Level l=Level::All);
+        Logger& make_logger(const std::string& alias="default", const std::string& filename="default.log", Level l=Level::All, bool continueFile=false);
+        Logger& make_logger(const std::string& alias="default", Level l = Level::All);
         extern std::map<std::string,mtao::logging::Logger> active_loggers;
         extern std::string default_log_alias;
 
@@ -106,6 +126,7 @@ namespace mtao {
         Logger::Instance info();
         Logger::Instance debug();
         Logger::Instance trace();
+        Logger::Instance log(Level l);
 
 
     }
