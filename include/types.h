@@ -48,10 +48,18 @@ namespace mtao{
         struct embedded_types {
             using Scalar = T;
             constexpr static int D = D_;
-            using VectorD = Vector<T,D>;
-            using SquareMatrixD = SquareMatrix<T,D>;
+            template <int A, int B> using Matrix = Matrix<T,A,B>;
+            template <int A> using SquareMatrix = SquareMatrix <T,A>;
+            template <int A> using Vector = Vector <T,A>;
+            using VectorD = Vector<D>;
+            using SquareMatrixD = SquareMatrix<D>;
+
             using MatrixX = MatrixX<T>;
-            using VectorX = Vector<T,Eigen::Dynamic>;
+            using VectorX = Vector<Eigen::Dynamic>;
+
+            template <int D> using ColVectors = Matrix<D, Eigen::Dynamic>;
+            template <int D> using RowVectors = Matrix<Eigen::Dynamic, D>;
+
             template <int N> using ColVectorsD = Matrix<T,D, N>;
             template <int N> using RowVectorsD = Matrix<T,N, D>;
             using ColVectorsDX=ColVectorsD<Eigen::Dynamic>;
