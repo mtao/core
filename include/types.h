@@ -60,8 +60,8 @@ namespace mtao{
             template <int D> using ColVectors = Matrix<D, Eigen::Dynamic>;
             template <int D> using RowVectors = Matrix<Eigen::Dynamic, D>;
 
-            template <int N> using ColVectorsD = Matrix<T,D, N>;
-            template <int N> using RowVectorsD = Matrix<T,N, D>;
+            template <int N> using ColVectorsD = Matrix<D,N>;
+            template <int N> using RowVectorsD = Matrix<N, D>;
             using ColVectorsDX=ColVectorsD<Eigen::Dynamic>;
             using RowVectorsDX=RowVectorsD<Eigen::Dynamic>;
         };
