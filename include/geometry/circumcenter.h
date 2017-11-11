@@ -1,10 +1,12 @@
 #ifndef CIRCUMCENTER_H
 #define CIRCUMCENTER_H
 #include <Eigen/Dense>
+#include "types.h"
 
 namespace mtao { namespace geometry {
+
     template <typename Derived>
-        auto circumcenter( const Eigen::MatrixBase<Derived> & V) {
+        auto circumcenter_spd( const Eigen::MatrixBase<Derived> & V) {
 
             //2 V.dot(C) = sum(V.colwise().squaredNorm()).transpose()
 
@@ -13,7 +15,31 @@ namespace mtao { namespace geometry {
             auto A = (2 * m.transpose() * m).eval();
             auto b = m.colwise().squaredNorm().transpose().eval();
             A.llt().solveInPlace(b);
-            return (V.col(0) + m*b).eval();
+
+            auto c = (V.col(0) + m*b).eval();
+            return c;
+        }
+    template <typename Derived>
+        auto circumcenter_spsd( const Eigen::MatrixBase<Derived> & V) {
+            mtao::MatrixX<typename Derived::Scalar> A(V.cols()+1,V.cols()+1);
+            A.setConstant(1);
+            A(V.cols(),V.cols()) = 0;
+            auto m = V.transpose() * V;;
+            A.topLeftCorner(V.cols(),V.cols()) = 2*m;
+            mtao::VectorX<typename Derived::Scalar> b(V.cols()+1);
+            b.setConstant(1);
+            b.topRows(m.cols()) = V.colwise().squaredNorm().transpose();
+
+            auto x = A.colPivHouseholderQr().solve(b).eval();
+
+
+            return (V*x.topRows(V.cols())).eval();
+
+
+            }
+    template <typename Derived>
+        auto circumcenter( const Eigen::MatrixBase<Derived> & V) {
+            return circumcenter_spd(V);
         }
 
     template <typename VertexDerived, typename SimplexDerived> 
