@@ -24,6 +24,27 @@ namespace mtao {
             constexpr static int value = internal::recursive_pow(A,B);
         };
 
+
+    namespace detail {
+        template <int... N>
+            int product(std::integer_sequence<int,N...>) {
+                return (N * ... * 1);
+            }
+
+        template <int... N>
+            int sum(std::integer_sequence<int,N...>) {
+                return (N + ... + 1);
+            }
+    }
+
+    template <int N>
+        constexpr int factorial() {
+            return detail::product(std::make_integer_sequence<int,N>());
+        }
+    constexpr int factorial(int N) {
+        return  (N>1)?(N*factorial(N-1)):1;
+    }
+
     /*
     template <typename ContainerType>
         constexpr size_t size(const ContainerType& c) {
