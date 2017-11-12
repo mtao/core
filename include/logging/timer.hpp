@@ -11,7 +11,7 @@ namespace mtao { namespace logging {
     struct timer {
         public:
             using ClockType = std::chrono::steady_clock;
-            timer(const std::string& name = "Anon", bool print_start=false,const std::string& log_alias = "default", mtao::logging::Level l = mtao::logging::Level::Info);
+            timer(const std::string& name = "Anon", bool print_start=false,const std::string& log_alias = "default", mtao::logging::Level l = mtao::logging::Level::Trace);
             //timer(const std::string& name = "Anon", const std::string& out = filename): timer(name, std::ofstream(name)) {
             //}
             ~timer();
