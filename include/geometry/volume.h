@@ -4,11 +4,13 @@
 #include "types.h"
 #include "util.h"
 #include <numeric>
+#include <cassert>
 
 namespace mtao { namespace geometry {
 
     template <typename Derived>
         auto volume_signed( const Eigen::MatrixBase<Derived> & V) {
+            assert(V.cols() == V.rows() + 1);
             auto m = (V.rightCols(V.cols()-1).colwise() - V.col(0)).eval();
             return m.determinant() / mtao::factorial(m.cols());
         }
