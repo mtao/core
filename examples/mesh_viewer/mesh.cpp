@@ -42,6 +42,8 @@ int get_slash_token(const std::string& str) {
 }
 
 
+Mesh::Mesh(const MatrixXgf& V, const MatrixXui& F): V(V), F(F) {
+}
 
 Mesh::Mesh(const std::string& filename) {
     std::vector<Vec> vecs;
