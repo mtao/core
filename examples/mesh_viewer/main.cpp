@@ -8,6 +8,7 @@
 #include "mesh.h"
 #include <algorithm>
 #include "opengl/renderers/mesh.h"
+#include "geometry/mesh/sphere.hpp"
 
 #include <glm/gtc/matrix_transform.hpp> 
 
@@ -86,17 +87,25 @@ void render(int width, int height) {
 
 int main(int argc, char * argv[]) {
 
-    if(argc <= 1) {
-        std::cout << "Need an obj input!" << std::endl;
-        return 1;
-    }
     window = std::make_unique<Window>();
     window->set_gui_func(gui_func);
     window->set_render_func(render);
     window->makeCurrent();
 
-    Mesh m(argv[1]);
-    prepare_mesh(m);
+    if(argc < 2) {
+        std::cout << "Need an obj input!" << std::endl;
+        std::cout << "Loading a sphere mesh instead" << std::endl;
+
+
+        mtao::ColVectors<GLfloat,3> V;
+        mtao::ColVectors<int,3> F;
+        std::tie(V,F) = mtao::geometry::mesh::sphere<GLfloat>(3);
+        Mesh m(V,F.cast<unsigned int>());
+        prepare_mesh(m);
+    } else {
+        Mesh m(argv[1]);
+        prepare_mesh(m);
+    }
     window->run();
 
     exit(EXIT_SUCCESS);
