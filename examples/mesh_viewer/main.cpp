@@ -27,7 +27,7 @@ ImVec4 clear_color = ImColor(114, 144, 154);
 void prepare_mesh(const Mesh& m) {
     renderer = std::make_unique<renderers::MeshRenderer>(3);
 
-    renderer->setMesh(m.V,m.F,false);
+    renderer->setMesh(m.V,m.F,true);
 
     renderers::MeshRenderer::MatrixXgf C = renderer->computeNormals(m.V,m.F).array();
     renderer->setColor(C);
