@@ -21,21 +21,21 @@ bool Shader::compilation_check() {
         glGetShaderiv(m_id, GL_INFO_LOG_LENGTH, &logSize);
         switch(m_shader_type) {
             case GL_VERTEX_SHADER: 
-                std::cout << "Vertex"; break;
+                logging::error() << "Vertex"; break;
             case GL_FRAGMENT_SHADER: 
-                std::cout << "Fragment"; break;
+                logging::error() << "Fragment"; break;
             case GL_GEOMETRY_SHADER: 
-                std::cout << "Geometry"; break;
+                logging::error() << "Geometry"; break;
             default:
-                std::cout << "Unknown"; break;
+                logging::error() << "Unknown"; break;
 
         }
-        std::cout << " shader error:" << std::endl;
+        logging::error() << " shader error:";
 
 
         std::vector<GLchar> log(logSize);
         glGetShaderInfoLog(m_id, logSize, &logSize, log.data());
-        std::cout << log.data() << std::endl;
+        logging::error() << log.data();
         return false;
     }
     return true;
@@ -58,8 +58,19 @@ bool Shader::compile(const GLchar** source) {
 ShaderProgram::ShaderProgram() {
     m_id = glCreateProgram();
 }
+ShaderProgram::ShaderProgram(ShaderProgram&& other): m_id(other.id()) {
+    other.m_id = GL_INVALID_VALUE;
+
+}
+ShaderProgram& ShaderProgram::operator=(ShaderProgram&& other) {
+    m_id = other.id();
+    other.m_id = GL_INVALID_VALUE;
+    return *this;
+}
 ShaderProgram::~ShaderProgram() {
-    glDeleteProgram(m_id);
+    if(id() != GL_INVALID_VALUE) {
+        glDeleteProgram(m_id);
+    }
 }
 
 void ShaderProgram::attach(GLuint shader)  {
@@ -93,7 +104,7 @@ bool ShaderProgram::compilation_check() {
 
         std::vector<GLchar> log(logSize);
         glGetProgramInfoLog(m_id, logSize, &logSize, log.data());
-        std::cout << log.data() << std::endl;
+        logging::error() << log.data();
         return false;
         return false;
     }
@@ -117,34 +128,27 @@ AO ShaderProgram::getAttrib(const std::string& name) const {
 }
 
 
+Shader prepareShader(const char* data, GLenum type) {
+    Shader shader(type);
+    shader.compile(&data);
+    return shader;
+}
+Shader prepareShader(const std::tuple<const char*, GLenum >& t) {
+    return prepareShader(std::get<0>(t),std::get<1>(t));
+}
 
 
-std::unique_ptr<ShaderProgram> prepareShaders(const char* vdata, const char* fdata, const char* geo) {
+ShaderProgram prepareShaders(const char* vdata, const char* fdata, const char* geo) {
 
-    Shader vertex_shader(GL_VERTEX_SHADER);
-    vertex_shader.compile(&vdata);
-    Shader fragment_shader (GL_FRAGMENT_SHADER);
-    fragment_shader.compile(&fdata);
+    auto vs = prepareShader(vdata,GL_VERTEX_SHADER);
+    auto fs = prepareShader(fdata,GL_FRAGMENT_SHADER);
 
-    std::unique_ptr<Shader> geometry_shader;
     if(geo) {
-        geometry_shader = std::make_unique<Shader>(GL_GEOMETRY_SHADER);
-        geometry_shader->compile(&geo);
+        auto gs = prepareShader(geo,GL_GEOMETRY_SHADER);
+        return linkShaderProgram(vs,fs,gs);
+    } else {
+        return linkShaderProgram(vs,fs);
     }
-
-
-    auto program = std::make_unique<ShaderProgram>();
-    program->attach(vertex_shader);
-    program->attach(fragment_shader);
-    if(geometry_shader) {
-        program->attach(*geometry_shader);
-    }
-    program->compile();
-
-
-
-
-    return program;
 
 
 }

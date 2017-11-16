@@ -5,9 +5,8 @@ SET(CMAKE_RUNTIME_OUTPUT_DIR ${PROJECT_BINARY_DIR}/bin)
 SET(CMAKE_LIBRARY_OUTPUT_DIR ${PROJECT_BINARY_DIR}/lib)
 SET(CMAKE_ARCHIVE_OUTPUT_DIR ${PROJECT_BINARY_DIR}/lib)
 
-ADD_DEFINITIONS(-std=c++1z)
+SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -std=c++1z)
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
-ADD_DEFINITIONS(-ggdb)
 ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 ADD_DEFINITIONS(-Wall)
 #ADD_DEFINITIONS(-Wno-deprecated-declarations)
@@ -50,39 +49,21 @@ PKG_SEARCH_MODULE(GLFW REQUIRED glfw3)
 
 INCLUDE_DIRECTORIES(${GLFW3_INCLUDE_DIRS})
 
-ADD_LIBRARY(mtao_opengl 
-    ${IMGUI_SOURCES}
-    src/opengl/glad.c
-    src/opengl/imgui_impl.cpp
-    src/opengl/Window.cpp
-    src/opengl/bo.cpp
-    src/opengl/shader.cpp
-    src/opengl/vao.cpp
-    src/opengl/util.cpp
-    src/opengl/tex.cpp
-    include/opengl/imgui_impl.h
-    include/opengl/Window.h
-    include/opengl/bo.h
-    include/opengl/shader.h
-    include/opengl/vao.h
-    include/opengl/util.h
-    include/opengl/tex.h
-    )
-TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl)
 
 
 
-SET(CORE_HEADERS
+SET(COMMON_HEADERS
     include/compat.h
-    include/coord.h
     include/conversion.h
     include/static_iteration.h
     include/types.h
     include/util.h
+    include/eigen_utils.h
+    include/type_utils.h
     )
 
 SET(GRID_HEADERS
-    ${CORE_HEADERS}
+    ${COMMON_HEADERS}
     include/geometry/grid/grid.h
     include/geometry/grid/grid_storage.h
     include/geometry/grid/grid_utils.h
@@ -105,6 +86,44 @@ SET(LEVELSET_HEADERS
     )
 
 
+ADD_LIBRARY(mtao_core
+    include/logging/logger.hpp
+    include/logging/timer.hpp
+    src/logging/logger.cpp
+    src/logging/timer.cpp
+    )
+
+
+ADD_LIBRARY(mtao_opengl 
+    ${COMMON_HEADERS}
+    ${IMGUI_SOURCES}
+    src/opengl/glad.c
+    src/opengl/imgui_impl.cpp
+    src/opengl/Window.cpp
+    src/opengl/bo.cpp
+    src/opengl/shader.cpp
+    src/opengl/vao.cpp
+    src/opengl/util.cpp
+    src/opengl/tex.cpp
+    include/opengl/imgui_impl.h
+    include/opengl/Window.h
+    include/opengl/bo.h
+    include/opengl/shader.h
+    include/opengl/vao.h
+    include/opengl/util.h
+    include/opengl/tex.h
+    include/opengl/shaders.h
+
+    include/opengl/renderers/renderer.h
+    include/opengl/renderers/mesh.h
+    src/opengl/renderers/mesh.cpp
+    src/opengl/renderers/renderer.cpp
+    src/opengl/shaders/phong.cpp
+    src/opengl/shaders/baryedge.cpp
+    src/opengl/shaders/simple.cpp
+    src/opengl/shaders/vectors.cpp
+    )
+TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl mtao_core)
 ADD_SUBDIRECTORY(tests EXCLUDE_FROM_ALL)
 ADD_SUBDIRECTORY(examples EXCLUDE_FROM_ALL)
 

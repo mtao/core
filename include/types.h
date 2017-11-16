@@ -2,38 +2,70 @@
 #define TYPES_H
 
 #include <Eigen/Dense>
-#include "coord.h"
+#include <vector>
 namespace mtao{ 
     template <typename T, int A, int B>
         using Matrix = Eigen::Matrix<T,A,B>;
 
-    template <typename T, int A>
-        using SquareMatrix = Eigen::Matrix<T,A,A>;
-    template <typename T, int D>
-        using Vector = Matrix<T,A,1>;
-    template <typename T, int D>
-        using RowVector = Matrix<T,1,A>;
+    template <typename T, int A> using SquareMatrix = Matrix<T,A,A>;
+    template <typename T> using MatrixX = SquareMatrix<T,Eigen::Dynamic>;
 
 
+    template <typename T, int D> using Vector = Matrix<T,D,1>;
+    template <typename T, int D> using RowVector = Matrix<T,1,D>;
+    template <typename T> using VectorX = Vector<T,Eigen::Dynamic>;
+    template <typename T> using RowVectorX = RowVector<T,Eigen::Dynamic>;
 
-    typedef Eigen::Matrix3f Mat3f;
-    typedef Eigen::Matrix2f Mat2f;
-    typedef Eigen::MatrixXf MatXf;
-    typedef Eigen::Vector3f Vec3f;
-    typedef Eigen::Vector2f Vec2f;
-    typedef Eigen::VectorXf VecXf;
+    template <typename T> using Vector2 = Vector<T,2>;
+    template <typename T> using RowVector2 = RowVector<T,2>;
 
-    typedef Eigen::Matrix3d Mat3d;
-    typedef Eigen::Matrix2d Mat2d;
-    typedef Eigen::MatrixXd MatXd;
-    typedef Eigen::Vector3d Vec3d;
-    typedef Eigen::Vector2d Vec2d;
-    typedef Eigen::VectorXd VecXd;
+    template <typename T> using Vector3 = Vector<T,3>;
+    template <typename T> using RowVector3 = RowVector<T,3>;
 
-    typedef Eigen::Vector3i Vec3i;
-    typedef Eigen::Vector2i Vec2i;
-    typedef coord<3> Coord3;
-    typedef coord<2> Coord2;
+    template <typename T, int D> using ColVectors = Matrix<T,D, Eigen::Dynamic>;
+    template <typename T, int D> using RowVectors = Matrix<T,Eigen::Dynamic, D>;
+
+
+    using Mat3f = SquareMatrix<float,3> ;
+    using Mat2f = SquareMatrix<float,2> ;
+    using Vec3f = Vector<float,3> ;
+    using Vec2f = Vector<float,2> ;
+    using MatXf = MatrixX<float> ;
+    using VecXf = VectorX<float> ;
+
+    using Mat3d = SquareMatrix<double,3> ;
+    using Mat2d = SquareMatrix<double,2> ;
+    using Vec3d = Vector<double,3> ;
+    using Vec2d = Vector<double,2> ;
+    using MatXd = MatrixX<double> ;
+    using VecXd = VectorX<double> ;
+
+    using Vec2i = Vector2<int>;
+    using Vec3i = Vector3<int>;
+
+    //types packaged for a given embedded dimensions
+    template <typename T, int D_>
+        struct embedded_types {
+            using Scalar = T;
+            constexpr static int D = D_;
+            template <int A, int B> using Matrix = Matrix<T,A,B>;
+            template <int A> using SquareMatrix = SquareMatrix <T,A>;
+            template <int A> using Vector = Vector <T,A>;
+            using VectorD = Vector<D>;
+            using SquareMatrixD = SquareMatrix<D>;
+
+            using MatrixX = MatrixX<T>;
+            using VectorX = Vector<Eigen::Dynamic>;
+
+            template <int D> using ColVectors = Matrix<D, Eigen::Dynamic>;
+            template <int D> using RowVectors = Matrix<Eigen::Dynamic, D>;
+
+            template <int N> using ColVectorsD = Matrix<D,N>;
+            template <int N> using RowVectorsD = Matrix<N, D>;
+            using ColVectorsDX=ColVectorsD<Eigen::Dynamic>;
+            using RowVectorsDX=RowVectorsD<Eigen::Dynamic>;
+        };
+
     template <typename T>
         struct scalar_types {
             typedef Eigen::Matrix<T,2,1> Vec2;
@@ -50,7 +82,6 @@ namespace mtao{
             typedef Eigen::Matrix<int,Dim,1> Veci;
             typedef Eigen::Matrix<double,Dim,Dim> Matf;
             typedef Eigen::Matrix<float,Dim,Dim> Matd;
-            typedef mtao::coord<Dim> Coord;
         };
     template <typename T, int Dim>
         struct numerical_types {
