@@ -124,6 +124,18 @@ ADD_LIBRARY(mtao_opengl
     src/opengl/shaders/vectors.cpp
     )
 TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl mtao_core)
+
+
+ADD_DEFINITIONS(-g)
+
+ADD_LIBRARY(mtao_geometry
+    src/geometry/mesh/halfedge.cpp
+    include/geometry/mesh/halfedge.hpp
+    )
+
+TARGET_LINK_LIBRARIES(mtao_geometry mtao_core)
+
+
 ADD_SUBDIRECTORY(tests EXCLUDE_FROM_ALL)
 ADD_SUBDIRECTORY(examples EXCLUDE_FROM_ALL)
 

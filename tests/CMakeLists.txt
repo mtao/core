@@ -1,3 +1,4 @@
+ADD_DEFINITIONS(-g)
 ADD_EXECUTABLE(grid_test grid_test.cpp)
 ADD_EXECUTABLE(levelset_test levelset_test.cpp)
 ADD_EXECUTABLE(multi_loop_test multi_loop_test.cpp)
@@ -8,6 +9,11 @@ ADD_EXECUTABLE(sphere_test sphere_test.cpp)
 
 ADD_EXECUTABLE(log_test log_test.cpp)
 TARGET_LINK_LIBRARIES(log_test mtao_core)
+
+
+ADD_EXECUTABLE(halfedge_test halfedge_test.cpp)
+TARGET_LINK_LIBRARIES(halfedge_test mtao_geometry)
+
 #ADD_EXECUTABLE(static_iteration_test src/static_iteration_test.cpp)
 
 
