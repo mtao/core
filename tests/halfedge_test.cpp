@@ -1,25 +1,44 @@
 #include <iostream>
 #include "geometry/mesh/sphere.hpp"
 #include "geometry/mesh/halfedge.hpp"
+#include "geometry/mesh/read_obj.hpp"
 
 
+#include "logging/logger.hpp"
+using namespace mtao::logging;
 
-int main() {
+
+int main(int argc, char * argv[]) {
 
     mtao::ColVectors<float,3> V;
     mtao::ColVectors<int,3> F;
 
     using namespace mtao::geometry::mesh;
-    std::tie(V,F) = sphere<float>(3);
+    if(argc == 1) {
+        std::tie(V,F) = sphere<float>(1);
+    } else {
+        std::tie(V,F) = read_objF(argv[1]);
+    }
 
+
+    /*
+    F.resize(3,2);
+    F(0,0) = 0;
+    F(1,0) = 1;
+    F(2,0) = 2;
+    F(0,1) = 2;
+    F(1,1) = 1;
+    F(2,1) = 3;
+    */
     HalfEdgeMesh hem(F);
 
+    debug() << "boundary size: " << hem.boundary_size();
     auto C = hem.cells();
     for(int i = 0; i < C.size(); ++i) {
         std::cout << F.col(i).transpose() << std::endl;
         std::cout << "=============" << std::endl;
                 cell_iterator(&hem,C[i])([&](auto&& e) {
-            std::cout << e.vertex() << " ";
+            std::cout << e.cell() << " ";
                         });
         std::cout << std::endl;
         std::cout << std::endl << std::endl;
@@ -27,16 +46,27 @@ int main() {
     auto D = hem.dual_cells();
 
     for(int i = 0; i < C.size(); ++i) {
+        std::cout << "dual cell: " << i << ") ";
                 dual_cell_iterator(&hem,C[i])([&](auto&& e) {
-                        std::cout << e.get_dual().vertex() << " ";
+                        std::cout << e.vertex() << " ";
                         });
         std::cout << std::endl;
     }
 
+
     std::cout << "dual cell count: " << D.size() << " / " << V.cols() << std::endl;
 
-    std::cout << hem.vertex_indices() << std::endl;
 
+    std::cout << "hem corner vertex: ";
+    dual_cell_iterator(&hem, hem.vertex(0).index())( [&](auto&& e) {
+            std::cout << "[" << e.dual_index() << " " << e.vertex() << "] ";
+            });
+    std::cout << std::endl;
+
+    boundary_iterator(&hem, hem.vertex(0).index())( [&](auto&& e) {
+            std::cout << "[" << e.dual_index() << " " << e.vertex() << "] ";
+            });
+    std::cout << std::endl;
     return 0;
 
 }

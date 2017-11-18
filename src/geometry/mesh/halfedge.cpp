@@ -29,7 +29,7 @@ HalfEdgeMesh::HalfEdgeMesh(const Cells& F) {
         size += cell_size(f);
     }
 
-    m_edges.resize(int(Index::IndexEnd),size);
+    m_edges = Edges::Constant(int(Index::IndexEnd),size,-1);
 
     std::map<Edge,int> ei_map;
 
@@ -50,6 +50,7 @@ HalfEdgeMesh::HalfEdgeMesh(const Cells& F) {
 
         int my_edge = vertex_index(i);
         int next_edge = vertex_index(next_index(i)) ;
+
 
         if(auto it = ei_map.find({next_edge, my_edge});
                 it != ei_map.end()) {
@@ -114,12 +115,24 @@ HalfEdge HalfEdgeMesh::cell(int idx) const {
 }
 
 HalfEdge HalfEdgeMesh::vertex(int idx) const {
+    int ret = -1;
+    int dual = 0;
     for(int i = 0; i < size(); ++i) {
-        if(vertex_index(i) == idx) {
-            return edge(i);
+        auto vi = vertex_index(i);
+        if(vi == idx) {
+
+            if( dual != -1) {
+                ret = i;
+                dual = dual_index(ret);
+                debug() << dual;
+                if(dual == -1) {
+                    debug() << "Edge vertex found!";
+                }
+            }
         }
     }
-    return HalfEdge(this);
+
+    return HalfEdge(this,ret);
 }
 
 HalfEdge::HalfEdge(const MeshType* cc, int idx): m_cc(cc), m_index(idx) {}
@@ -158,16 +171,25 @@ void dual_cell_iterator::increment(HalfEdge& he) {
 }
 void boundary_iterator::increment(HalfEdge& he) {
     //Test that this works!
-
-    do {
-        he.next();
-        if(he.dual_index() == -1) {
-            return;
-        }
-        he.dual();
-
-    } while(he.get_next().dual_index() != -1);
     he.next();
 
+    while(he.dual_index() != -1) {
+        he.dual().next();
+    }
+
 }
+
+
+int HalfEdgeMesh::boundary_size() const {
+    return (dual_indices().array() == -1).count();
+}
+
+
+namespace detail {
+    void invalid_edge_warning() {
+        warn() << "Edge iteration ended in an invalid edge";
+    }
+}
+
+
 }}}

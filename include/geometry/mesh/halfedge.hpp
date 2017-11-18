@@ -49,6 +49,7 @@ class HalfEdgeMesh {
         HalfEdge vertex(int i) const;
 
         int size() const { return m_edges.cols(); }
+        int boundary_size() const;
     private:
         Edges m_edges;
         
@@ -65,6 +66,7 @@ struct HalfEdgeMesh::HalfEdge {
         HalfEdge(const MeshType* cc, int idx=-1);
         int index() const { return m_index; }
         int vertex() const { return m_cc->vertex_index(index()); }
+        int cell() const { return m_cc->cell_index(index()); }
         int next_index() const;
         int dual_index() const;
         HalfEdge get_next() const;
@@ -76,6 +78,9 @@ struct HalfEdgeMesh::HalfEdge {
         const MeshType* m_cc;
         int m_index = -1;
 };
+namespace detail {
+    void invalid_edge_warning();
+}
 
 template <typename Derived>
 struct edge_iterator_base {
@@ -89,7 +94,6 @@ struct edge_iterator_base {
 
         void increment(HalfEdge& he) { return derived().increment(he); }
 
-
         HalfEdge start() const { return m_he; }
 
         template <typename Func>
@@ -99,6 +103,9 @@ struct edge_iterator_base {
                 f(it);
                 increment(it);
             } while(it.index() != -1 && it.index() != m_he.index());
+            if(it.index() == -1) {
+                detail::invalid_edge_warning();
+            }
         }
 
 
