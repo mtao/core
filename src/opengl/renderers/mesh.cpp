@@ -8,6 +8,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "opengl/shaders.h"
 #include "logging/logger.hpp"
+using namespace mtao::logging;
 
 #define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
 
@@ -31,7 +32,7 @@ namespace mtao { namespace opengl { namespace renderers {
         }
     }
 
-    
+
     auto MeshRenderer::computeNormals(const MatrixXgf& V, const MatrixXui& F) -> MatrixXgf {
         MatrixXgf N;
         if(m_dim == 2) {
@@ -69,7 +70,7 @@ namespace mtao { namespace opengl { namespace renderers {
         setMesh(V,F,N,normalize);
     }
     void MeshRenderer::setMesh(const MatrixXgf& V, const MatrixXui& F, const MatrixXgf& N, bool normalize) {
-        
+
         m_buffers = std::make_shared<MeshRenderBuffers>();
 
         auto compute_mean_edge_length = [&](const MatrixXgf& V) -> float {
@@ -151,14 +152,16 @@ namespace mtao { namespace opengl { namespace renderers {
         setEdgesFromFaces(F);
 
     }
-        void MeshRenderer::setColor(const MatrixXgf& C) {
-            if(!buffers()->colors) {
-                buffers()->colors = std::make_unique<BO>();
-            }
-            buffers()->colors->bind();
-            vert_color_program()->getAttrib("vColor").setPointer(3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*) 0);
-            buffers()->colors->setData(C.data(),sizeof(float) * C.size());
+    void MeshRenderer::setColor(const MatrixXgf& C) {
+        auto m_vaoraii = vao().enableRAII();
+        if(!buffers()->colors) {
+            buffers()->colors = std::make_unique<BO>();
         }
+        auto a = vert_color_program()->useRAII();
+        buffers()->colors->bind();
+        vert_color_program()->getAttrib("vColor").setPointer(3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*) 0);
+        buffers()->colors->setData(C.data(),sizeof(float) * C.size());
+    }
     void MeshRenderer::setEdges(const MatrixXui& E) {
 
         if(!buffers()->edges) {
@@ -243,7 +246,7 @@ namespace mtao { namespace opengl { namespace renderers {
                     if(m_face_style ==FaceStyle::Flat) {
                         ImGui::ColorEdit3("face color", glm::value_ptr(m_face_color));
                     }
-                ImGui::TreePop();
+                    ImGui::TreePop();
                 }
             }
 
@@ -283,7 +286,6 @@ namespace mtao { namespace opengl { namespace renderers {
         auto active = flat_program()->useRAII();
         flat_program()->getUniform("color").setVector(m_vertex_color);
 
-        buffs.vertices->bind();
         auto vpos_active = flat_program()->getAttrib("vPos").enableRAII();
         buffs.vertices->drawArrays();
     }
@@ -299,7 +301,6 @@ namespace mtao { namespace opengl { namespace renderers {
 
             baryedge_program()->getUniform("color").setVector(m_edge_color);
             auto vpos_active = baryedge_program()->getAttrib("vPos").enableRAII();
-            buffs.vertices->bind();
             buffs.faces->drawElements();
 
         } else if(m_edge_type == EdgeType::Mesh) {
@@ -311,7 +312,6 @@ namespace mtao { namespace opengl { namespace renderers {
             flat_program()->getUniform("color").setVector(m_edge_color);
 
             auto vpos_active = flat_program()->getAttrib("vPos").enableRAII();
-            buffs.vertices->bind();
             buffs.edges->drawElements();
         }
     }
@@ -326,11 +326,9 @@ namespace mtao { namespace opengl { namespace renderers {
             auto active = phong_program()->useRAII();
             phong_program()->getUniform("color").setVector(m_face_color);
 
-            buffs.vertices->bind();
             auto vpos_active = phong_program()->getAttrib("vPos").enableRAII();
 
             if(buffs.normals) {
-                buffs.normals->bind();
                 auto vnor_active = phong_program()->getAttrib("vNormal").enableRAII();
 
                 buffs.faces->drawElements();
@@ -345,7 +343,6 @@ namespace mtao { namespace opengl { namespace renderers {
             flat_program()->getUniform("color").setVector(m_face_color);
 
             auto vpos_active = flat_program()->getAttrib("vPos").enableRAII();
-            buffs.vertices->bind();
             buffs.faces->drawElements();
         } else if(m_face_style == FaceStyle::Color) {
             if(!buffs.colors) {
@@ -355,10 +352,8 @@ namespace mtao { namespace opengl { namespace renderers {
             auto active = vert_color_program()->useRAII();
 
             auto vcol_active = phong_program()->getAttrib("vColor").enableRAII();
-            buffs.colors->bind();
 
             auto vpos_active = vert_color_program()->getAttrib("vPos").enableRAII();
-            buffs.vertices->bind();
             buffs.faces->drawElements();
         }
     }
