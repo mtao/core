@@ -12,6 +12,10 @@ HalfEdgeMesh::HalfEdgeMesh(const std::string& str) {
 }
 
 HalfEdgeMesh::HalfEdgeMesh(const Cells& F) {
+    construct(F);
+}
+
+void HalfEdgeMesh::construct(const Cells& F) {
     using Edge = std::tuple<int,int>;
 
     auto cell_size = [](auto& f) -> int{

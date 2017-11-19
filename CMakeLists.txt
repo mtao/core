@@ -130,8 +130,10 @@ ADD_DEFINITIONS(-g)
 
 ADD_LIBRARY(mtao_geometry
     src/geometry/mesh/halfedge.cpp
+    src/geometry/mesh/halfedge_fv_map.cpp
     src/geometry/mesh/read_obj.cpp
     include/geometry/mesh/halfedge.hpp
+    include/geometry/mesh/halfedge_fv_map.hpp
     include/geometry/mesh/read_obj.hpp
     )
 

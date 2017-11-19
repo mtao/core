@@ -2,6 +2,7 @@
 #define HALFEDGE_CELLCOMPLEX_H
 #include <vector>
 #include "types.h"
+
 namespace mtao { namespace geometry { namespace mesh {
 
 struct cell_iterator;
@@ -26,6 +27,8 @@ class HalfEdgeMesh {
 
         HalfEdgeMesh(const std::string& str);
         HalfEdgeMesh(const Cells& F);
+        HalfEdgeMesh() = default;
+        void construct(const Cells& F);
 
         auto vertex_indices() { return m_edges.row(int(Index::VertexIndex)); }
         auto cell_indices() { return m_edges.row(int(Index::CellIndex)); }
