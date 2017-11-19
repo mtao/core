@@ -43,7 +43,7 @@ int main(int argc, char * argv[]) {
         std::cout << std::endl;
         std::cout << std::endl << std::endl;
     }
-    auto D = hem.vertexs();
+    auto D = hem.vertices();
 
     for(int i = 0; i < C.size(); ++i) {
         std::cout << "dual cell: " << i << ") ";
@@ -58,7 +58,7 @@ int main(int argc, char * argv[]) {
 
 
     std::cout << "hem corner vertex: ";
-    vertex_iterator(&hem, hem.vertex(0).index())( [&](auto&& e) {
+    vertex_iterator(&hem, hem.vertex_edge(0).index())( [&](auto&& e) {
             std::cout << "[" << e.dual_index() << " " << e.vertex() << "] ";
             });
     std::cout << std::endl;

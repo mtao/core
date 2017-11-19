@@ -49,7 +49,7 @@ class HalfEdgeMesh {
 
         HalfEdge edge(int i) const;
         HalfEdge cell(int i) const;
-        HalfEdge vertex(int i) const;
+        HalfEdge vertex_edge(int i) const;
 
         int size() const { return m_edges.cols(); }
         int boundary_size() const;

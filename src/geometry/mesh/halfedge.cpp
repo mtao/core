@@ -114,7 +114,7 @@ HalfEdge HalfEdgeMesh::cell(int idx) const {
     return HalfEdge(this);
 }
 
-HalfEdge HalfEdgeMesh::vertex(int idx) const {
+HalfEdge HalfEdgeMesh::vertex_edge(int idx) const {
     int ret = -1;
     int dual = 0;
     for(int i = 0; i < size(); ++i) {
@@ -199,7 +199,7 @@ bool HalfEdgeMesh::is_boundary(int index) const {
 bool HalfEdgeMesh::is_boundary_vertex(int index) const {
     bool has_boundary_edge = false;
 
-    vertex_iterator(vertex(index)).run_earlyout([this,&has_boundary_edge](const HalfEdge& e) {
+    vertex_iterator(vertex_edge(index)).run_earlyout([this,&has_boundary_edge](const HalfEdge& e) {
             if(is_boundary(e)) {
             has_boundary_edge = true;
             return false;
