@@ -38,17 +38,17 @@ int main(int argc, char * argv[]) {
         std::cout << F.col(i).transpose() << std::endl;
         std::cout << "=============" << std::endl;
                 cell_iterator(&hem,C[i])([&](auto&& e) {
-            std::cout << e.cell() << " ";
+            std::cout << e.vertex() << " ";
                         });
         std::cout << std::endl;
         std::cout << std::endl << std::endl;
     }
-    auto D = hem.dual_cells();
+    auto D = hem.vertexs();
 
     for(int i = 0; i < C.size(); ++i) {
         std::cout << "dual cell: " << i << ") ";
-                dual_cell_iterator(&hem,C[i])([&](auto&& e) {
-                        std::cout << e.vertex() << " ";
+                vertex_iterator(&hem,C[i])([&](auto&& e) {
+                        std::cout << e.cell() << " ";
                         });
         std::cout << std::endl;
     }
@@ -58,15 +58,21 @@ int main(int argc, char * argv[]) {
 
 
     std::cout << "hem corner vertex: ";
-    dual_cell_iterator(&hem, hem.vertex(0).index())( [&](auto&& e) {
+    vertex_iterator(&hem, hem.vertex(0).index())( [&](auto&& e) {
             std::cout << "[" << e.dual_index() << " " << e.vertex() << "] ";
             });
     std::cout << std::endl;
 
-    boundary_iterator(&hem, hem.vertex(0).index())( [&](auto&& e) {
+    for(int i = 0; i < hem.size(); ++i) {
+    if(hem.is_boundary(i)) {
+    boundary_iterator(hem.edge(i))( [&](auto&& e) {
             std::cout << "[" << e.dual_index() << " " << e.vertex() << "] ";
             });
     std::cout << std::endl;
+    } else {
+        std::cout << "Boundary iterator on non-boundary edge" << std::endl;
+    }
+    }
     return 0;
 
 }

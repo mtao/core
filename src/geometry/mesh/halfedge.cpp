@@ -72,7 +72,7 @@ std::vector<int> HalfEdgeMesh::cells() const {
     return ret;
 }
 
-std::vector<int> HalfEdgeMesh::dual_cells() const {
+std::vector<int> HalfEdgeMesh::vertices() const {
     //TODO: make sure every vertex gets expressed!
     std::map<int,int> cell_edge;
     for(int i = 0; i < size(); ++i) {
@@ -165,7 +165,7 @@ HalfEdge HalfEdge::get_dual() const {
 void cell_iterator::increment(HalfEdge& he) {
     he.next();
 }
-void dual_cell_iterator::increment(HalfEdge& he) {
+void vertex_iterator::increment(HalfEdge& he) {
     he.next().dual();
 //    he.dual().next();
 }
@@ -192,4 +192,34 @@ namespace detail {
 }
 
 
+bool HalfEdgeMesh::is_boundary(int index) const {
+    return dual_index(index) == -1;
+}
+
+bool HalfEdgeMesh::is_boundary_vertex(int index) const {
+    bool has_boundary_edge = false;
+
+    vertex_iterator(vertex(index)).run_earlyout([this,&has_boundary_edge](const HalfEdge& e) {
+            if(is_boundary(e)) {
+            has_boundary_edge = true;
+            return false;
+            }
+            return true;
+            });
+    return !has_boundary_edge;
+
+}
+bool HalfEdgeMesh::is_boundary_cell(int index) const {
+    bool has_boundary_edge = false;
+
+    cell_iterator(cell(index)).run_earlyout([this,&has_boundary_edge](const HalfEdge& e) {
+            if(is_boundary(e)) {
+            has_boundary_edge = true;
+            return false;
+            }
+            return true;
+            });
+    return !has_boundary_edge;
+
+}
 }}}

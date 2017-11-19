@@ -4,6 +4,9 @@
 #include "types.h"
 namespace mtao { namespace geometry { namespace mesh {
 
+struct cell_iterator;
+struct vertex_iterator;
+struct boundary_iterator;
 
 class HalfEdgeMesh {
     public:
@@ -40,7 +43,7 @@ class HalfEdgeMesh {
         const Edges& edges() const { return m_edges; }
 
         std::vector<int> cells() const;
-        std::vector<int> dual_cells() const;
+        std::vector<int> vertices() const;
         std::vector<int> boundary() const;
 
 
@@ -50,6 +53,11 @@ class HalfEdgeMesh {
 
         int size() const { return m_edges.cols(); }
         int boundary_size() const;
+
+        bool is_boundary(int index) const;
+        bool is_boundary_vertex(int index) const;
+        bool is_boundary_cell(int index) const;
+
     private:
         Edges m_edges;
         
@@ -74,6 +82,7 @@ struct HalfEdgeMesh::HalfEdge {
         HalfEdge& next();
         HalfEdge& dual();
 
+        operator int() const { return m_index; }
     private:
         const MeshType* m_cc;
         int m_index = -1;
@@ -89,6 +98,7 @@ struct edge_iterator_base {
         using HalfEdge = HalfEdgeMesh::HalfEdge;
         edge_iterator_base(const HalfEdge& he): m_he(he) {}
         edge_iterator_base(const MeshType* cc, int index): m_he(cc,index) {}
+        edge_iterator_base(const MeshType& cc, int index): m_he(&cc,index) {}
         Derived& derived() { return *static_cast<Derived*>(this); }
         const Derived& derived() const { return *static_cast<const Derived*>(this); }
 
@@ -96,11 +106,23 @@ struct edge_iterator_base {
 
         HalfEdge start() const { return m_he; }
 
-        template <typename Func>
-        void operator()(Func&& f) {
+        void operator()(const std::function<void(const HalfEdge&)>& f) {
             auto it = start();
             do{
                 f(it);
+                increment(it);
+            } while(it.index() != -1 && it.index() != m_he.index());
+            if(it.index() == -1) {
+                detail::invalid_edge_warning();
+            }
+        }
+
+        void run_earlyout(const std::function<bool(const HalfEdge&)>& f) {
+            auto it = start();
+            do{
+                if(!f(it)) {
+                    return;
+                }
                 increment(it);
             } while(it.index() != -1 && it.index() != m_he.index());
             if(it.index() == -1) {
@@ -119,8 +141,8 @@ struct cell_iterator: public edge_iterator_base<cell_iterator> {
     using Base::Base;
     void increment(HalfEdge& he);
 };
-struct dual_cell_iterator: public edge_iterator_base<dual_cell_iterator> {
-    using Base = edge_iterator_base<dual_cell_iterator>;
+struct vertex_iterator: public edge_iterator_base<vertex_iterator> {
+    using Base = edge_iterator_base<vertex_iterator>;
     using Base::Base;
     void increment(HalfEdge& he);
 };
