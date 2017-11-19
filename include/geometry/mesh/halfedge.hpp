@@ -48,11 +48,16 @@ class HalfEdgeMesh {
 
 
         HalfEdge edge(int i) const;
-        HalfEdge cell(int i) const;
+        HalfEdge cell_edge(int i) const;
         HalfEdge vertex_edge(int i) const;
+
+        std::vector<int> cell(int i) const;
+        std::vector<int> dual_cell(int i) const;
 
         int size() const { return m_edges.cols(); }
         int boundary_size() const;
+        int num_cells() const;
+        int num_vertices() const;
 
         bool is_boundary(int index) const;
         bool is_boundary_vertex(int index) const;

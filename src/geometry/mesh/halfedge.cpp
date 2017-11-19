@@ -1,6 +1,7 @@
 #include "geometry/mesh/halfedge.hpp"
 #include <map>
 #include <tuple>
+#include <set>
 #include "logging/logger.hpp"
 using namespace mtao::logging;
 
@@ -105,7 +106,7 @@ HalfEdge HalfEdgeMesh::edge(int i) const {
     return HalfEdge(this,i);
 }
 
-HalfEdge HalfEdgeMesh::cell(int idx) const {
+HalfEdge HalfEdgeMesh::cell_edge(int idx) const {
     for(int i = 0; i < size(); ++i) {
         if(cell_index(i) == idx) {
             return edge(i);
@@ -212,7 +213,7 @@ bool HalfEdgeMesh::is_boundary_vertex(int index) const {
 bool HalfEdgeMesh::is_boundary_cell(int index) const {
     bool has_boundary_edge = false;
 
-    cell_iterator(cell(index)).run_earlyout([this,&has_boundary_edge](const HalfEdge& e) {
+    cell_iterator(cell_edge(index)).run_earlyout([this,&has_boundary_edge](const HalfEdge& e) {
             if(is_boundary(e)) {
             has_boundary_edge = true;
             return false;
@@ -222,4 +223,40 @@ bool HalfEdgeMesh::is_boundary_cell(int index) const {
     return !has_boundary_edge;
 
 }
+
+
+int HalfEdgeMesh::num_cells() const {
+    std::set<int> cells;
+    auto e = cell_indices();
+    for(int i = 0; i < size(); ++i) {
+        cells.insert(e(i));
+    }
+    return cells.size();
+}
+int HalfEdgeMesh::num_vertices() const {
+    std::set<int> vertexs;
+    auto e = vertex_indices();
+    for(int i = 0; i < size(); ++i) {
+        vertexs.insert(e(i));
+    }
+    return vertexs.size();
+}
+
+
+std::vector<int> HalfEdgeMesh::cell(int i) const {
+    std::vector<int> ret;
+    cell_iterator(cell_edge(i))([&ret](const HalfEdge& e) {
+            ret.push_back(e.vertex());
+            });
+    return ret;
+}
+std::vector<int> HalfEdgeMesh::dual_cell(int i) const {
+    std::vector<int> ret;
+
+    vertex_iterator(vertex_edge(i))([&ret](const HalfEdge& e) {
+            ret.push_back(e.cell());
+            });
+    return ret;
+}
+
 }}}
