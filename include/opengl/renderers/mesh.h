@@ -32,8 +32,8 @@ class MeshRenderer: public Renderer {
         void render() const override;
         void render(const MeshRenderBuffers& buffs) const;
         void render_points(const MeshRenderBuffers& buffs) const;
-        void render_edges(const MeshRenderBuffers& buffs) const;
-        void render_faces(const MeshRenderBuffers& buffs) const;
+        void render_edges(const MeshRenderBuffers& buffs, EdgeType style = EdgeType::Disabled) const;
+        void render_faces(const MeshRenderBuffers& buffs, FaceStyle style = FaceStyle::Disabled) const;
 
 
 

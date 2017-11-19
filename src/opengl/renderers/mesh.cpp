@@ -262,6 +262,7 @@ namespace mtao { namespace opengl { namespace renderers {
 
     void MeshRenderer::render() const {
         if(m_buffers) {
+            auto vao_a = vao().enableRAII();
             render(*m_buffers);
         }
     }
@@ -274,25 +275,23 @@ namespace mtao { namespace opengl { namespace renderers {
             render_points(buffs);
         }
         if(m_edge_type != EdgeType::Disabled) {
-            render_edges(buffs);
+            render_edges(buffs, m_edge_type);
         }
         if(m_face_style != FaceStyle::Disabled) {
-            render_faces(buffs);
+            render_faces(buffs, m_face_style);
         }
     }
 
     void MeshRenderer::render_points(const MeshRenderBuffers& buffs) const {
-        auto vao_a = vao().enableRAII();
         auto active = flat_program()->useRAII();
         flat_program()->getUniform("color").setVector(m_vertex_color);
 
         auto vpos_active = flat_program()->getAttrib("vPos").enableRAII();
         buffs.vertices->drawArrays();
     }
-    void MeshRenderer::render_edges(const MeshRenderBuffers& buffs) const {
-        auto vao_a = vao().enableRAII();
+    void MeshRenderer::render_edges(const MeshRenderBuffers& buffs, EdgeType style) const {
 
-        if(m_edge_type == EdgeType::BaryEdge) {
+        if(style == EdgeType::BaryEdge) {
             if(!buffs.edges) {
                 mtao::logging::warn() << "Face mesh not set, can't render edges with barycentric";
                 return;
@@ -303,7 +302,7 @@ namespace mtao { namespace opengl { namespace renderers {
             auto vpos_active = baryedge_program()->getAttrib("vPos").enableRAII();
             buffs.faces->drawElements();
 
-        } else if(m_edge_type == EdgeType::Mesh) {
+        } else if(style == EdgeType::Mesh) {
             if(!buffs.edges) {
                 mtao::logging::warn() << "Edge mesh not set, can't render edges" ;
                 return;
@@ -315,14 +314,13 @@ namespace mtao { namespace opengl { namespace renderers {
             buffs.edges->drawElements();
         }
     }
-    void MeshRenderer::render_faces(const MeshRenderBuffers& buffs) const {
-        auto vao_a = vao().enableRAII();
+    void MeshRenderer::render_faces(const MeshRenderBuffers& buffs, FaceStyle style) const {
         if(!buffs.faces) {
             mtao::logging::warn() << "Face mesh not set, can't render faces" ;
             return;
         }
 
-        if(m_face_style == FaceStyle::Phong) {
+        if(style == FaceStyle::Phong) {
             auto active = phong_program()->useRAII();
             phong_program()->getUniform("color").setVector(m_face_color);
 
@@ -338,13 +336,13 @@ namespace mtao { namespace opengl { namespace renderers {
             }
 
 
-        } else if(m_face_style == FaceStyle::Flat){
+        } else if(style == FaceStyle::Flat){
             auto active = flat_program()->useRAII();
             flat_program()->getUniform("color").setVector(m_face_color);
 
             auto vpos_active = flat_program()->getAttrib("vPos").enableRAII();
             buffs.faces->drawElements();
-        } else if(m_face_style == FaceStyle::Color) {
+        } else if(style == FaceStyle::Color) {
             if(!buffs.colors) {
                 mtao::logging::warn() << "vertex colors not set, can't render faces" ;
                 return;
