@@ -93,9 +93,11 @@ Mesh::Mesh(const std::string& filename) {
     using Vec2f = Eigen::Matrix<GLfloat,2,1>;
     using Mat2f = Eigen::Matrix<GLfloat,2,2>;
 
+
     for(int i = 0; i < V.cols(); ++i) {
         V.col(i) = Eigen::Map<Vec2f>(&vecs[i].front());
     }
+
 
     for(int i = 0; i < F.cols(); ++i) {
         F.col(i) = Eigen::Map<Eigen::Array<GLuint,3,1>>(&tris[i].front()) - 1; //OBJ uses 1 indexing!
@@ -103,5 +105,10 @@ Mesh::Mesh(const std::string& filename) {
 
 
     V.colwise() -= (V.rowwise().sum() / V.cols()).eval();
+    Eigen::AlignedBox<float,2> bb;
+    for(int i = 0; i < V.cols(); ++i) {
+        bb.extend(V.col(i));
+    }
+    std::cout << bb.min().transpose() << " || " << bb.max().transpose() << std::endl;
 }
 

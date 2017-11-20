@@ -129,7 +129,6 @@ HalfEdge HalfEdgeMesh::vertex_edge(int idx) const {
             if( dual != -1) {
                 ret = i;
                 dual = dual_index(ret);
-                debug() << dual;
                 if(dual == -1) {
                     debug() << "Edge vertex found!";
                 }
@@ -176,6 +175,9 @@ void vertex_iterator::increment(HalfEdge& he) {
 }
 void boundary_iterator::increment(HalfEdge& he) {
     //Test that this works!
+    if(he.dual() != -1) {
+        return;
+    }
     he.next();
 
     while(he.dual_index() != -1) {
@@ -257,7 +259,10 @@ std::vector<int> HalfEdgeMesh::cell(int i) const {
 std::vector<int> HalfEdgeMesh::dual_cell(int i) const {
     std::vector<int> ret;
 
-    vertex_iterator(vertex_edge(i))([&ret](const HalfEdge& e) {
+    auto ve = vertex_edge(i);
+    vertex_iterator iter(ve);
+    //if(ve.dual_index() == -1) { return ret; }
+    iter([&ret](const HalfEdge& e) {
             ret.push_back(e.cell());
             });
     return ret;

@@ -26,12 +26,13 @@ class MeshRenderer: public Renderer {
 
         enum class FaceStyle: int { Disabled = 0, Flat, Color, Phong };
         enum class EdgeType: int { Disabled= 0, BaryEdge, Mesh};
+        enum class VertexType: int { Disabled= 0, Flat, Color};
 
         MeshRenderer(int dim);
 
         void render() const override;
         void render(const MeshRenderBuffers& buffs) const;
-        void render_points(const MeshRenderBuffers& buffs) const;
+        void render_points(const MeshRenderBuffers& buffs, VertexType style = VertexType::Disabled) const;
         void render_edges(const MeshRenderBuffers& buffs, EdgeType style = EdgeType::Disabled) const;
         void render_faces(const MeshRenderBuffers& buffs, FaceStyle style = FaceStyle::Disabled) const;
 
@@ -90,9 +91,9 @@ class MeshRenderer: public Renderer {
 
         FaceStyle m_face_style = FaceStyle::Phong;
         EdgeType m_edge_type = EdgeType::Disabled;
+        VertexType m_vertex_type = VertexType::Flat;
 
         int m_dim=2;
-        bool m_draw_points = false;
 
 
         glm::vec3 m_face_color = glm::vec3(1,0,0);

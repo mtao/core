@@ -225,6 +225,15 @@ namespace mtao { namespace opengl { namespace renderers {
             ImGui::Combo("Edge Type", &et, edge_types,IM_ARRAYSIZE(edge_types));
             m_edge_type = static_cast<EdgeType>(et);
 
+            static const char* vertex_names[] = {
+                "Disabled",
+                "Flat",
+                "Color",
+            };
+            int vs = static_cast<int>(m_vertex_type);
+            ImGui::Combo("Vertex Type", &vs, vertex_names,IM_ARRAYSIZE(vertex_names));
+            m_vertex_type = static_cast<VertexType>(vs);
+
 
             if(m_face_style == FaceStyle::Phong && ImGui::TreeNode("Phong Shading Parameters")) {
                 ImGui::ColorEdit3("ambient", glm::value_ptr(m_ambientMat));
@@ -235,9 +244,9 @@ namespace mtao { namespace opengl { namespace renderers {
                 update_phong_shading();
                 ImGui::TreePop();
             }
-            if(m_face_style == FaceStyle::Flat || m_draw_points || m_edge_type != EdgeType::Disabled) {
+            if(m_face_style == FaceStyle::Flat || m_vertex_type == VertexType::Flat || m_edge_type != EdgeType::Disabled) {
                 if(ImGui::TreeNode("Flat Shading Parameters")) {
-                    if(m_draw_points) {
+                    if(m_vertex_type == VertexType::Flat) {
                         ImGui::ColorEdit3("vertex color", glm::value_ptr(m_vertex_color));
                     }
                     if(m_edge_type != EdgeType::Disabled) {
@@ -255,7 +264,6 @@ namespace mtao { namespace opengl { namespace renderers {
                 update_edge_threshold();
             }
 
-            ImGui::Checkbox("Show Vertices", & m_draw_points);
             ImGui::TreePop();
         }
     }
@@ -271,8 +279,8 @@ namespace mtao { namespace opengl { namespace renderers {
         if(!buffs.vertices) {
             return;
         }
-        if(m_draw_points) {
-            render_points(buffs);
+        if(m_vertex_type != VertexType::Disabled) {
+            render_points(buffs,m_vertex_type);
         }
         if(m_edge_type != EdgeType::Disabled) {
             render_edges(buffs, m_edge_type);
@@ -282,12 +290,27 @@ namespace mtao { namespace opengl { namespace renderers {
         }
     }
 
-    void MeshRenderer::render_points(const MeshRenderBuffers& buffs) const {
-        auto active = flat_program()->useRAII();
-        flat_program()->getUniform("color").setVector(m_vertex_color);
+    void MeshRenderer::render_points(const MeshRenderBuffers& buffs, VertexType style) const {
+        if(style == VertexType::Flat) {
+            auto active = flat_program()->useRAII();
+            flat_program()->getUniform("color").setVector(m_vertex_color);
 
-        auto vpos_active = flat_program()->getAttrib("vPos").enableRAII();
-        buffs.vertices->drawArrays();
+            auto vpos_active = flat_program()->getAttrib("vPos").enableRAII();
+            buffs.vertices->drawArrays();
+        } else if(style == VertexType::Color) {
+            if(!buffs.colors) {
+                mtao::logging::warn() << "vertex colors not set, can't render vertices" ;
+                return;
+            }
+            auto active = vert_color_program()->useRAII();
+
+            auto vcol_active = phong_program()->getAttrib("vColor").enableRAII();
+
+            auto vpos_active = vert_color_program()->getAttrib("vPos").enableRAII();
+            buffs.vertices->drawArrays();
+        }
+
+
     }
     void MeshRenderer::render_edges(const MeshRenderBuffers& buffs, EdgeType style) const {
 

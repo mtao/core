@@ -1,6 +1,7 @@
 #include <iostream>
 #include "geometry/mesh/sphere.hpp"
 #include "geometry/mesh/halfedge.hpp"
+#include "geometry/mesh/halfedge_fv_map.hpp"
 #include "geometry/mesh/read_obj.hpp"
 
 
@@ -58,10 +59,13 @@ int main(int argc, char * argv[]) {
 
 
     std::cout << "hem corner vertex: ";
-    vertex_iterator(&hem, hem.vertex_edge(0).index())( [&](auto&& e) {
+    vertex_iterator(&hem, hem.vertex_edge(21).index())( [&](auto&& e) {
             std::cout << "[" << e.dual_index() << " " << e.vertex() << "] ";
             });
     std::cout << std::endl;
+
+    auto fv = fv_to_halfedge(hem);
+    return 0;
 
     for(int i = 0; i < hem.size(); ++i) {
     if(hem.is_boundary(i)) {

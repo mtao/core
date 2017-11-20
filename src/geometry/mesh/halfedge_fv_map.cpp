@@ -1,12 +1,12 @@
-#include "halfedge_fv_map.hpp"
+#include "geometry/mesh/halfedge_fv_map.hpp"
 
 namespace mtao { namespace geometry { namespace mesh {
 
-    std::map<std::tuple<int,int>,int> fv_to_halfedge(const HalfEdgeMesh& hem) const {
+    std::map<std::tuple<int,int>,int> fv_to_halfedge(const HalfEdgeMesh& hem) {
         std::map<std::tuple<int,int>,int> ret;
 
         for(int i = 0; i < hem.size(); ++i) {
-            ret[{cell_index(i),vertex_index{i}}] = i;
+            ret[{hem.cell_index(i),hem.vertex_index(i)}] = i;
         }
         return ret;
     }
@@ -14,7 +14,7 @@ namespace mtao { namespace geometry { namespace mesh {
 
         auto map = fv_to_halfedge(hem);
         mtao::ColVectors<int,3> HM(3,F.cols());
-        for(int i = 0 < F.cols(); ++i) {
+        for(int i = 0; i  < F.cols(); ++i) {
             for(int j = 0; j < F.rows(); ++j) {
                 HM(j,i) = map[{i,F(j,i)}];
             }

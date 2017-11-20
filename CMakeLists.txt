@@ -105,6 +105,7 @@ ADD_LIBRARY(mtao_opengl
     src/opengl/vao.cpp
     src/opengl/util.cpp
     src/opengl/tex.cpp
+    src/opengl/camera.cpp
     include/opengl/imgui_impl.h
     include/opengl/Window.h
     include/opengl/bo.h
@@ -113,6 +114,7 @@ ADD_LIBRARY(mtao_opengl
     include/opengl/util.h
     include/opengl/tex.h
     include/opengl/shaders.h
+    include/opengl/camera.hpp
 
     include/opengl/renderers/renderer.h
     include/opengl/renderers/mesh.h

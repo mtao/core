@@ -11,13 +11,14 @@
 #include <glm/gtc/matrix_transform.hpp> 
 #include <glm/gtc/type_ptr.hpp> 
 #include "opengl/renderers/mesh.h"
+#include "opengl/camera.hpp"
 
 using namespace mtao::opengl;
 
 
 
 float look_distance = 0.4;
-glm::mat4 m,v,mv,p,mvp, mvp_it;
+glm::mat4 mvp_it;
 float rotation_angle;
 glm::vec3 edge_color;
 
@@ -28,21 +29,19 @@ std::unique_ptr<ShaderProgram> edge_program;
 std::unique_ptr<Window> window;
 
 
+Camera cam;
 
 void set_mvp(int w, int h) {
+    cam.set_shape(w,h);
+    auto&& m = cam.m();
     m = glm::mat4();
     m = glm::rotate(m,(float) rotation_angle,glm::vec3(0,0,1));
-    //m = glm::rotate(m,(float) glfwGetTime() / 5.0f,glm::vec3(0,1,0));
-    float ratio = w / (float) h;
-    //p = glm::perspective(45.f,ratio,.1f,10.0f);
-    p = glm::ortho(-ratio*look_distance,ratio*look_distance,-look_distance,look_distance,1.f,-1.f);
 
-    /*
-    v = glm::lookAt(glm::vec3(0,0,look_distance), glm::vec3(0,0,0), glm::vec3(0,1,0));
-    */
-    mv = v*m;
-    mvp = p * mv;
-    mvp_it = glm::transpose(glm::inverse(mvp));
+    //cam.v() = glm::lookAt(glm::vec3(1,0,0), glm::vec3(0,0,0), glm::vec3(0,1,0));
+    cam.ortho(look_distance);
+
+    mvp_it = glm::transpose(glm::inverse(cam.mvp()));
+
 }
 
 
@@ -52,7 +51,7 @@ void set_mvp(int w, int h) {
 
 void prepare_mesh(const Mesh& m) {
     renderer = std::make_unique<renderers::MeshRenderer>(2);
-    renderer->setMesh(m.V,m.F,true);
+    renderer->setMesh(m.V,m.F,false);
 }
 
 
@@ -93,9 +92,12 @@ void render(int width, int height) {
     set_mvp(width,height);
 
 
-    renderer->set_mvp(mvp);
-    renderer->set_mvp(mv,p);
+    renderer->set_mvp(cam.mvp());
+    renderer->set_mvp(cam.mv(),cam.p());
     renderer->render();
+    auto&& io = ImGui::GetIO();
+    auto p = cam.mouse_pos(io.MousePos);
+    mtao::logging::trace() << "Mouse coordinate: " << p.x << "," << p.y;
 
 
 }
