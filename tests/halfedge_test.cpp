@@ -43,7 +43,7 @@ int main(int argc, char * argv[]) {
         std::cout << std::endl;
         std::cout << std::endl << std::endl;
     }
-    auto D = hem.vertexs();
+    auto D = hem.vertices();
 
     for(int i = 0; i < C.size(); ++i) {
         std::cout << "dual cell: " << i << ") ";
