@@ -125,12 +125,11 @@ HalfEdge HalfEdgeMesh::vertex_edge(int idx) const {
     for(int i = 0; i < size(); ++i) {
         auto vi = vertex_index(i);
         if(vi == idx) {
-
             if( dual != -1) {
                 ret = i;
                 dual = dual_index(ret);
                 if(dual == -1) {
-                    debug() << "Edge vertex found!";
+                    trace() << "Finding edge for vertex " <<  idx<< " and found a boundary"<<ret<<"!";
                 }
             }
         }
