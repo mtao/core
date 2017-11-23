@@ -6,6 +6,7 @@ ADD_EXECUTABLE(static_type_iteration_test static_type_iteration_test.cpp)
 ADD_EXECUTABLE(eigen_interweave_test eigen_interweave_test.cpp)
 ADD_EXECUTABLE(volume_test volume_test.cpp)
 ADD_EXECUTABLE(sphere_test sphere_test.cpp)
+ADD_EXECUTABLE(area_normals_test area_normals_test.cpp)
 
 ADD_EXECUTABLE(log_test log_test.cpp)
 TARGET_LINK_LIBRARIES(log_test mtao_core)
