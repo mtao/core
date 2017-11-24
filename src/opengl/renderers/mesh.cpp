@@ -30,6 +30,7 @@ namespace mtao { namespace opengl { namespace renderers {
         } else {
             throw std::invalid_argument("Meshes have to be dim 2 or 3");
         }
+        m_buffers = std::make_shared<MeshRenderBuffers>();
     }
 
 
@@ -70,8 +71,13 @@ namespace mtao { namespace opengl { namespace renderers {
         setMesh(V,F,N,normalize);
     }
     void MeshRenderer::setMesh(const MatrixXgf& V, const MatrixXui& F, const MatrixXgf& N, bool normalize) {
-
-        m_buffers = std::make_shared<MeshRenderBuffers>();
+        setVertices(V,normalize);
+        setFaces(F);
+        setMeanEdgeLength(V,F,normalize);
+        setNormals(N);
+    }
+    void MeshRenderer::setMeanEdgeLength(const MatrixXgf& V, const MatrixXui& F, bool normalize) {
+        float r = 1;
 
         auto compute_mean_edge_length = [&](const MatrixXgf& V) -> float {
             float ret = 0;
@@ -82,15 +88,23 @@ namespace mtao { namespace opengl { namespace renderers {
                     ret += (V.col(a) - V.col(b)).norm();
                 }
             }
-            ret /= F.size();
+
+            ret /= F.size() * r;
 
             return ret;
         };
-
         float mean_edge_length = 0;//technically we want the mean dual edge length
+        mean_edge_length = compute_mean_edge_length(V);
+        {auto p = baryedge_program()->useRAII();
+            baryedge_program()->getUniform("mean_edge_length").set(mean_edge_length);
+        }
+    }
+    void MeshRenderer::setVertices(const MatrixXgf& V, bool normalize) {
+
+
+
 
         buffers()->vertices = std::make_unique<VBO>(GL_POINTS);
-        buffers()->faces = std::make_unique<IBO>(GL_TRIANGLES);
         buffers()->vertices->bind();
         if(normalize) {
             auto minPos = V.rowwise().minCoeff();
@@ -106,28 +120,11 @@ namespace mtao { namespace opengl { namespace renderers {
 
             MatrixXgf V2 = (V.colwise() - (minPos+maxPos)/2) / r;
             buffers()->vertices->setData(V2.data(),sizeof(float) * V2.size());
-            mean_edge_length = compute_mean_edge_length(V2);
         } else {
             buffers()->vertices->setData(V.data(),sizeof(float) * V.size());
-            mean_edge_length = compute_mean_edge_length(V);
         }
-        buffers()->faces->bind();
-        buffers()->faces->setData(F.data(),sizeof(int) * F.size());
-
-        if(m_dim == 3) {
-
-            if(!buffers()->normals) {
-                buffers()->normals = std::make_unique<BO>();
-            }
-            buffers()->normals->bind();
-            buffers()->normals->setData(N.data(),sizeof(float) * N.size());
-        }
-
-
-
-        auto m_vaoraii = vao().enableRAII();
-
         std::list<ShaderProgram*> shaders({flat_program().get(), baryedge_program().get()});
+        auto m_vaoraii = vao().enableRAII();
         for(auto&& p: shaders) {
 
             auto active = p->useRAII();
@@ -139,6 +136,29 @@ namespace mtao { namespace opengl { namespace renderers {
                program->getUniform("range").set3f(range.x(),range.y(),range.z());
                */
         }
+    }
+    void MeshRenderer::setFaces(const MatrixXui& F) {
+        if(!buffers()->faces) {
+            buffers()->faces = std::make_unique<IBO>(GL_TRIANGLES);
+        }
+        buffers()->faces->bind();
+        buffers()->faces->setData(F.data(),sizeof(int) * F.size());
+        setEdgesFromFaces(F);
+    }
+
+    void MeshRenderer::setNormals(const MatrixXgf& N) {
+        if(m_dim == 3) {
+
+            if(!buffers()->normals) {
+                buffers()->normals = std::make_unique<BO>();
+            }
+            buffers()->normals->bind();
+            buffers()->normals->setData(N.data(),sizeof(float) * N.size());
+
+
+
+        auto m_vaoraii = vao().enableRAII();
+
         if(m_dim == 3) {
             auto p = phong_program()->useRAII();
             buffers()->normals->bind();
@@ -146,10 +166,7 @@ namespace mtao { namespace opengl { namespace renderers {
         }
 
 
-        {auto p = baryedge_program()->useRAII();
-            baryedge_program()->getUniform("mean_edge_length").set(mean_edge_length);
         }
-        setEdgesFromFaces(F);
 
     }
     void MeshRenderer::setColor(const MatrixXgf& C) {
@@ -157,10 +174,12 @@ namespace mtao { namespace opengl { namespace renderers {
         if(!buffers()->colors) {
             buffers()->colors = std::make_unique<BO>();
         }
+
+
         auto a = vert_color_program()->useRAII();
         buffers()->colors->bind();
-        vert_color_program()->getAttrib("vColor").setPointer(3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*) 0);
         buffers()->colors->setData(C.data(),sizeof(float) * C.size());
+        vert_color_program()->getAttrib("vColor").setPointer(3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*) 0);
     }
     void MeshRenderer::setEdges(const MatrixXui& E) {
 

@@ -8,6 +8,11 @@ ADD_EXECUTABLE(volume_test volume_test.cpp)
 ADD_EXECUTABLE(sphere_test sphere_test.cpp)
 ADD_EXECUTABLE(area_normals_test area_normals_test.cpp)
 
+ADD_EXECUTABLE(colvector_loop_test colvector_loop_test.cpp)
+
+ADD_EXECUTABLE(bounding_box_test bounding_box_test.cpp)
+TARGET_LINK_LIBRARIES(bounding_box_test mtao_core)
+
 ADD_EXECUTABLE(log_test log_test.cpp)
 TARGET_LINK_LIBRARIES(log_test mtao_core)
 

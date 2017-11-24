@@ -42,9 +42,13 @@ class MeshRenderer: public Renderer {
         std::list<ShaderProgram*> mvp_programs() const override ;
         void setMesh(const MatrixXgf& V, const MatrixXui& F, bool normalize = false);
         void setMesh(const MatrixXgf& V, const MatrixXui& F, const MatrixXgf& N, bool normalize=false);
+        void setVertices(const MatrixXgf& V, bool normalize = false);
+        void setFaces(const MatrixXui& F);
         void setColor(const MatrixXgf& C);
         void setEdges(const MatrixXui& E);
-        void setEdgesFromFaces(const MatrixXui& E);
+        void setNormals(const MatrixXgf& N);
+        void setEdgesFromFaces(const MatrixXui& F);
+    void setMeanEdgeLength(const MatrixXgf& V, const MatrixXui& F, bool normalize=false);
 
         //Area weighted normal
         MatrixXgf computeNormals(const MatrixXgf& V, const MatrixXui& F);
