@@ -1,5 +1,8 @@
 #ifndef UTIL_H
 #define UTIL_H
+#define MTAO_ACCESSOR(T,NAME,MEMBER) \
+    T& NAME() { return MEMBER; } \
+    const T& NAME() const { return MEMBER; }
 namespace mtao {
     template <typename T>
         T clamp(const T& value, const T& a, const T& b) {
