@@ -110,7 +110,7 @@ struct edge_iterator_base {
         Derived& derived() { return *static_cast<Derived*>(this); }
         const Derived& derived() const { return *static_cast<const Derived*>(this); }
 
-        void increment(HalfEdge& he) { return derived().increment(he); }
+        static void increment(HalfEdge& he) { return Derived::increment(he); }
 
         HalfEdge start() const { return m_he; }
 
@@ -147,17 +147,17 @@ struct edge_iterator_base {
 struct cell_iterator: public edge_iterator_base<cell_iterator> {
     using Base = edge_iterator_base<cell_iterator>;
     using Base::Base;
-    void increment(HalfEdge& he);
+    static void increment(HalfEdge& he);
 };
 struct vertex_iterator: public edge_iterator_base<vertex_iterator> {
     using Base = edge_iterator_base<vertex_iterator>;
     using Base::Base;
-    void increment(HalfEdge& he);
+    static void increment(HalfEdge& he);
 };
 struct boundary_iterator: public edge_iterator_base<boundary_iterator> {
     using Base = edge_iterator_base<boundary_iterator>;
     using Base::Base;
-    void increment(HalfEdge& he);
+    static void increment(HalfEdge& he);
 };
 
 }}}
