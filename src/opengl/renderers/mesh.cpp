@@ -8,6 +8,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "opengl/shaders.h"
 #include "logging/logger.hpp"
+#include "geometry/bounding_box.hpp"
 using namespace mtao::logging;
 
 #define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
@@ -20,6 +21,8 @@ namespace mtao { namespace opengl { namespace renderers {
     std::unique_ptr<ShaderProgram> MeshRenderer::s_phong_program[2];
     std::unique_ptr<ShaderProgram> MeshRenderer::s_baryedge_program[2];
     std::unique_ptr<ShaderProgram> MeshRenderer::s_vert_color_program[2];
+    std::unique_ptr<ShaderProgram> MeshRenderer::s_vector_field_program[2];
+
     MeshRenderer::MeshRenderer(int dim): m_dim(dim) {
         if(dim == 2 || dim == 3) {
             if(!shaders_enabled()) {
@@ -33,6 +36,19 @@ namespace mtao { namespace opengl { namespace renderers {
         m_buffers = std::make_shared<MeshRenderBuffers>();
     }
 
+    void MeshRenderer::update_vertex_scale(const MatrixXgf& V) {
+        auto minPos = V.rowwise().minCoeff();
+        auto maxPos = V.rowwise().maxCoeff();
+        auto range = maxPos - minPos;
+
+        float r = range.maxCoeff();;
+        for(int i = 0; i < range.cols(); ++i) {
+            if(range(i) > 1e-5) {
+                r = std::min(r,range(i));
+            }
+        }
+
+    }
 
     auto MeshRenderer::computeNormals(const MatrixXgf& V, const MatrixXui& F) -> MatrixXgf {
         MatrixXgf N;
@@ -99,6 +115,18 @@ namespace mtao { namespace opengl { namespace renderers {
             baryedge_program()->getUniform("mean_edge_length").set(mean_edge_length);
         }
     }
+    void MeshRenderer::setVField(const MatrixXgf& V) {
+        if(!buffers()->vectors) {
+            buffers()->vectors = std::make_unique<BO>();
+        }
+        buffers()->vectors->bind();
+        buffers()->vectors->setData(V.data(),sizeof(float) * V.size());
+        auto vaoraii = vao().enableRAII();
+
+
+        buffers()->vectors->bind();
+        vector_field_program()->getAttrib("vVec").setPointer(m_dim, GL_FLOAT, GL_FALSE, sizeof(float) * m_dim, (void*) 0);
+    }
     void MeshRenderer::setVertices(const MatrixXgf& V, bool normalize) {
 
 
@@ -107,22 +135,15 @@ namespace mtao { namespace opengl { namespace renderers {
         buffers()->vertices = std::make_unique<VBO>(GL_POINTS);
         buffers()->vertices->bind();
         if(normalize) {
-            auto minPos = V.rowwise().minCoeff();
-            auto maxPos = V.rowwise().maxCoeff();
-            auto range = maxPos - minPos;
-
-            float r = range.maxCoeff();;
-            for(int i = 0; i < range.cols(); ++i) {
-                if(range(i) > 1e-5) {
-                    r = std::min(r,range(i));
-                }
-            }
-
-            MatrixXgf V2 = (V.colwise() - (minPos+maxPos)/2) / r;
-            buffers()->vertices->setData(V2.data(),sizeof(float) * V2.size());
+            update_vertex_scale(V);
         } else {
-            buffers()->vertices->setData(V.data(),sizeof(float) * V.size());
+            m_vertex_scale = 1;
         }
+        auto m = V.rowwise().minCoeff();
+        auto M = V.rowwise().maxCoeff();
+        auto c = (m + M)/2.0;
+        MatrixXgf V2 = (V.colwise() - c) / m_vertex_scale;
+        buffers()->vertices->setData(V2.data(),sizeof(float) * V2.size());
         std::list<ShaderProgram*> shaders({flat_program().get(), baryedge_program().get()});
         auto m_vaoraii = vao().enableRAII();
         for(auto&& p: shaders) {
@@ -218,6 +239,7 @@ namespace mtao { namespace opengl { namespace renderers {
         baryedge_program() = std::make_unique<ShaderProgram>(linkShaderProgram(vertex_shader, baryedge_fragment_shader, baryedge_geometry_shader));
         phong_program() = std::make_unique<ShaderProgram>(linkShaderProgram(vertex_shader, phong_fragment_shader));
         vert_color_program() = std::make_unique<ShaderProgram>(linkShaderProgram(vertex_shader,vertex_color_fragment_shader));
+        vector_field_program() = std::make_unique<ShaderProgram>(shaders::vector_shader_program(dim, true));
 
         shaders_enabled() = true;
     }
@@ -253,6 +275,8 @@ namespace mtao { namespace opengl { namespace renderers {
             ImGui::Combo("Vertex Type", &vs, vertex_names,IM_ARRAYSIZE(vertex_names));
             m_vertex_type = static_cast<VertexType>(vs);
 
+            ImGui::Checkbox("Show vfield: ", &m_show_vector_field);
+
 
             if(m_face_style == FaceStyle::Phong && ImGui::TreeNode("Phong Shading Parameters")) {
                 ImGui::ColorEdit3("ambient", glm::value_ptr(m_ambientMat));
@@ -282,6 +306,13 @@ namespace mtao { namespace opengl { namespace renderers {
                 ImGui::SliderFloat("edge_threshold", &m_edge_threshold, 0.0f, 0.01f,"%.5f");
                 update_edge_threshold();
             }
+            if(m_show_vector_field) {
+                ImGui::SliderFloat("Vector Scaling", &m_vector_scale,1e-3,1e1);
+                ImGui::ColorEdit3("vector tip color", glm::value_ptr(m_vector_tip_color));
+                ImGui::ColorEdit3("vector base color", glm::value_ptr(m_vector_base_color));
+                ImGui::SliderFloat("Vector Color Scaling", &m_vector_color_scale,1e-3,1e1);
+
+            }
 
             ImGui::TreePop();
         }
@@ -307,7 +338,26 @@ namespace mtao { namespace opengl { namespace renderers {
         if(m_face_style != FaceStyle::Disabled) {
             render_faces(buffs, m_face_style);
         }
+        if(m_show_vector_field) {
+            render_vfield(buffs);
+        }
     }
+        void MeshRenderer::render_vfield(const MeshRenderBuffers& buffs) const {
+            auto vao_a = vao().enableRAII();
+            if(buffs.vectors) {
+                glLineWidth(2);
+                auto active = vector_field_program()->useRAII();
+                vector_field_program()->getUniform("tip_color").setVector(m_vector_tip_color);
+                vector_field_program()->getUniform("base_color").setVector(m_vector_base_color);
+                vector_field_program()->getUniform("vector_scale").set(m_vector_scale);
+                auto vpos_active = vector_field_program()->getAttrib("vPos").enableRAII();
+                auto vvel_active = vector_field_program()->getAttrib("vVec").enableRAII();
+                buffs.vertices->drawArrays();
+
+            } else {
+                mtao::logging::warn() << "vertex velocities not set, can't render vfield" ;
+            }
+        }
 
     void MeshRenderer::render_points(const MeshRenderBuffers& buffs, VertexType style) const {
         if(style == VertexType::Flat) {
@@ -416,7 +466,7 @@ namespace mtao { namespace opengl { namespace renderers {
     }
 
     std::list<ShaderProgram*> MeshRenderer::mvp_programs() const {
-        std::list<ShaderProgram*> ret({flat_program().get(), baryedge_program().get(), phong_program().get(), vert_color_program().get()});
+        std::list<ShaderProgram*> ret({flat_program().get(), baryedge_program().get(), phong_program().get(), vert_color_program().get(), vector_field_program().get()});
         ret.splice(ret.end(),Renderer::mvp_programs());
         return ret;
     }

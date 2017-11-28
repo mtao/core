@@ -15,6 +15,7 @@ namespace mtao { namespace opengl { namespace renderers {
         std::unique_ptr<IBO> faces;
         std::unique_ptr<IBO> edges;
         std::unique_ptr<VBO> vertices;
+        std::unique_ptr<BO> vectors;
         std::unique_ptr<BO> normals;
         std::unique_ptr<BO> colors;
     };
@@ -35,6 +36,7 @@ class MeshRenderer: public Renderer {
         void render_points(const MeshRenderBuffers& buffs, VertexType style = VertexType::Disabled) const;
         void render_edges(const MeshRenderBuffers& buffs, EdgeType style = EdgeType::Disabled) const;
         void render_faces(const MeshRenderBuffers& buffs, FaceStyle style = FaceStyle::Disabled) const;
+        void render_vfield(const MeshRenderBuffers& buffs) const;
 
 
 
@@ -43,12 +45,13 @@ class MeshRenderer: public Renderer {
         void setMesh(const MatrixXgf& V, const MatrixXui& F, bool normalize = false);
         void setMesh(const MatrixXgf& V, const MatrixXui& F, const MatrixXgf& N, bool normalize=false);
         void setVertices(const MatrixXgf& V, bool normalize = false);
+        void setVField(const MatrixXgf& V);
         void setFaces(const MatrixXui& F);
         void setColor(const MatrixXgf& C);
         void setEdges(const MatrixXui& E);
         void setNormals(const MatrixXgf& N);
         void setEdgesFromFaces(const MatrixXui& F);
-    void setMeanEdgeLength(const MatrixXgf& V, const MatrixXui& F, bool normalize=false);
+        void setMeanEdgeLength(const MatrixXgf& V, const MatrixXui& F, bool normalize=false);
 
         //Area weighted normal
         MatrixXgf computeNormals(const MatrixXgf& V, const MatrixXui& F);
@@ -64,11 +67,22 @@ class MeshRenderer: public Renderer {
         inline const std::unique_ptr<ShaderProgram>&  phong_program() const {return s_phong_program[m_dim-2];}
         inline std::unique_ptr<ShaderProgram>&  baryedge_program() {return s_baryedge_program[m_dim-2];}
         inline const std::unique_ptr<ShaderProgram>&  baryedge_program() const {return s_baryedge_program[m_dim-2];}
+        inline std::unique_ptr<ShaderProgram>&  vector_field_program() {return s_vector_field_program[m_dim-2];}
+        inline const std::unique_ptr<ShaderProgram>&  vector_field_program() const {return s_vector_field_program[m_dim-2];}
 
 
 
         inline void set_face_style(FaceStyle style=FaceStyle::Disabled) {
             m_face_style = style;
+        }
+        inline void set_edge_style(EdgeType style=EdgeType::Disabled) {
+            m_edge_type = style;
+        }
+        inline void set_vertex_type(VertexType style=VertexType::Disabled) {
+            m_vertex_type = style;
+        }
+        inline void show_vector_field(bool yes=  true) {
+            m_show_vector_field = yes;
         }
 
         inline void setBuffers(const std::shared_ptr<MeshRenderBuffers>& buf) { m_buffers = buf; }
@@ -79,6 +93,7 @@ class MeshRenderer: public Renderer {
         void loadShaders(int dim);
         void update_edge_threshold();
         void update_phong_shading();
+        void update_vertex_scale(const MatrixXgf& V);
 
         static bool s_shaders_enabled[2];
 
@@ -90,27 +105,37 @@ class MeshRenderer: public Renderer {
 
         static std::unique_ptr<ShaderProgram> s_baryedge_program[2];
 
+        static std::unique_ptr<ShaderProgram> s_vector_field_program[2];
+
 
         std::shared_ptr<MeshRenderBuffers> m_buffers;
 
         FaceStyle m_face_style = FaceStyle::Phong;
         EdgeType m_edge_type = EdgeType::Disabled;
         VertexType m_vertex_type = VertexType::Flat;
+        bool m_show_vector_field = false;
 
         int m_dim=2;
 
+        float m_vertex_scale = 1.0;
 
         glm::vec3 m_face_color = glm::vec3(1,0,0);
         glm::vec3 m_edge_color = glm::vec3(0,1,0);
         glm::vec3 m_vertex_color = glm::vec3(0,0,1);
         float m_edge_threshold = 0.001;
 
+        //phong shading program
         glm::vec3 m_light_pos = glm::vec3(0,10,0);
         glm::vec4 m_ambientMat = glm::vec4(.1f,.1f,.1f,1.f);
         glm::vec4 m_diffuseMat = glm::vec4(.7f,.7f,.7f,1.f);
         glm::vec4 m_specularMat = glm::vec4(.99f,.99f,.99f,1.f);
         float m_specularExpMat = 20.0f;
 
+        //Vector field program
+        float m_vector_scale = 0.1;
+        float m_vector_color_scale = 0.1;
+        glm::vec3 m_vector_tip_color = glm::vec3(1,0,0);
+        glm::vec3 m_vector_base_color = glm::vec3(0,0,0);
 
 
 };
