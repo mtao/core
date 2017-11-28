@@ -89,8 +89,10 @@ SET(LEVELSET_HEADERS
 ADD_LIBRARY(mtao_core
     include/logging/logger.hpp
     include/logging/timer.hpp
+    include/cmdline_parser.hpp
     src/logging/logger.cpp
     src/logging/timer.cpp
+    src/cmdline_parser.cpp
     )
 
 

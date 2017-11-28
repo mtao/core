@@ -22,6 +22,8 @@ TARGET_LINK_LIBRARIES(halfedge_test mtao_geometry)
 
 #ADD_EXECUTABLE(static_iteration_test src/static_iteration_test.cpp)
 
+ADD_EXECUTABLE(cltest cltest.cpp)
+TARGET_LINK_LIBRARIES(cltest mtao_core)
 
 
 #ADD_EXECUTABLE(particle_sampling_test src/particle_sampling_test.cpp ${CORE_INCLUDE}/grid.h ${CORE_INCLUDE}/grid_utils.h
