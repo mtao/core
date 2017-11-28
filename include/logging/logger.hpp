@@ -75,6 +75,7 @@ namespace mtao {
                         if(logger) {
                             logger->write(level,v);
                         }
+                        return *this;
                     }
                 template <typename... Args>
                     void write(Args&&... args) {
