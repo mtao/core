@@ -7,7 +7,6 @@
 #include <sstream>
 #include "type_utils.h"
 #include "logging/logger.hpp"
-#include <cassert>//Provides NDEBUG
 
 using namespace mtao::logging;
 
@@ -60,7 +59,7 @@ namespace mtao {
                 m_args.push_back(tok);
             }
         }
-#ifndef DEBUG
+#ifndef NDEBUG
         clp_internal::clp_inline_test(*this);
 #endif
     }
