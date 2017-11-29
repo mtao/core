@@ -132,18 +132,21 @@ namespace mtao { namespace opengl { namespace renderers {
 
 
 
-        buffers()->vertices = std::make_unique<VBO>(GL_POINTS);
-        buffers()->vertices->bind();
+        if(!buffers()->vertices) {
+            buffers()->vertices = std::make_unique<VBO>(GL_POINTS);
+            buffers()->vertices->bind();
+        }
         if(normalize) {
             update_vertex_scale(V);
+            auto m = V.rowwise().minCoeff();
+            auto M = V.rowwise().maxCoeff();
+            auto c = (m + M)/2.0;
+            MatrixXgf V2 = (V.colwise() - c) / m_vertex_scale;
+            buffers()->vertices->setData(V2.data(),sizeof(float) * V2.size());
         } else {
             m_vertex_scale = 1;
+            buffers()->vertices->setData(V.data(),sizeof(float) * V.size());
         }
-        auto m = V.rowwise().minCoeff();
-        auto M = V.rowwise().maxCoeff();
-        auto c = (m + M)/2.0;
-        MatrixXgf V2 = (V.colwise() - c) / m_vertex_scale;
-        buffers()->vertices->setData(V2.data(),sizeof(float) * V2.size());
         std::list<ShaderProgram*> shaders({flat_program().get(), baryedge_program().get()});
         auto m_vaoraii = vao().enableRAII();
         for(auto&& p: shaders) {
@@ -307,7 +310,7 @@ namespace mtao { namespace opengl { namespace renderers {
                 update_edge_threshold();
             }
             if(m_show_vector_field) {
-                ImGui::SliderFloat("Vector Scaling", &m_vector_scale,1e-3,1e1);
+                ImGui::SliderFloat("Vector Scaling", &m_vector_scale,1e-5,1e0);
                 ImGui::ColorEdit3("vector tip color", glm::value_ptr(m_vector_tip_color));
                 ImGui::ColorEdit3("vector base color", glm::value_ptr(m_vector_base_color));
                 ImGui::SliderFloat("Vector Color Scaling", &m_vector_color_scale,1e-3,1e1);

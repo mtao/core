@@ -54,8 +54,8 @@ namespace mtao{
             using VectorD = Vector<D>;
             using SquareMatrixD = SquareMatrix<D>;
 
-            using MatrixX = MatrixX<T>;
-            using VectorX = Vector<Eigen::Dynamic>;
+            using MatrixX = mtao::MatrixX<T>;
+            using VectorX = mtao::VectorX<T>;
 
             template <int D> using ColVectors = Matrix<D, Eigen::Dynamic>;
             template <int D> using RowVectors = Matrix<Eigen::Dynamic, D>;
