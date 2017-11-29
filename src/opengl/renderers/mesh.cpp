@@ -363,6 +363,7 @@ namespace mtao { namespace opengl { namespace renderers {
         }
 
     void MeshRenderer::render_points(const MeshRenderBuffers& buffs, VertexType style) const {
+        glPointSize(5);
         if(style == VertexType::Flat) {
             auto active = flat_program()->useRAII();
             flat_program()->getUniform("color").setVector(m_vertex_color);
@@ -473,4 +474,10 @@ namespace mtao { namespace opengl { namespace renderers {
         ret.splice(ret.end(),Renderer::mvp_programs());
         return ret;
     }
+        void MeshRenderer::unset_all() {
+            set_face_style(FaceStyle::Disabled);
+            set_edge_style(EdgeType::Disabled);
+            set_vertex_type(VertexType::Disabled);
+            show_vector_field(false);
+        }
 }}}

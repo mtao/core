@@ -85,6 +85,8 @@ class MeshRenderer: public Renderer {
             m_show_vector_field = yes;
         }
 
+        void unset_all();
+
         inline void setBuffers(const std::shared_ptr<MeshRenderBuffers>& buf) { m_buffers = buf; }
 
         MeshRenderBuffers* buffers() { return m_buffers.get(); }
