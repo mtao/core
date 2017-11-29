@@ -7,6 +7,7 @@
 
 namespace mtao {namespace opengl {
 size_t Window::s_window_count = 0;
+std::map<GLFWwindow*,HotkeyManager> Window::s_hotkeys;
 
 static void error_callback(int error, const char* description)
 {
@@ -47,6 +48,7 @@ Window::Window( const std::string& name, int width, int height) {
         glfwTerminate();
         throw std::runtime_error("GLFW window creation failed!");
     }
+    s_hotkeys[window];
     m_gui.setWindow(window);
     makeCurrent();
     gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
@@ -55,7 +57,7 @@ Window::Window( const std::string& name, int width, int height) {
 
     glfwSetMouseButtonCallback(window, ImGuiImpl::mouseButtonCallback);
     glfwSetScrollCallback(window, ImGuiImpl::scrollCallback);
-    glfwSetKeyCallback(window,    ImGuiImpl::keyCallback);
+    glfwSetKeyCallback(window,    Window::keyCallback);
     glfwSetCharCallback(window,   ImGuiImpl::charCallback);
 
 
@@ -113,6 +115,16 @@ void Window::setErrorCallback(GLFWerrorfun  f) {
 }
 void Window::makeCurrent() {
     glfwMakeContextCurrent(window);
+}
+HotkeyManager& Window::hotkeys() {
+    return s_hotkeys.at(window);
+}
+const HotkeyManager& Window::hotkeys() const {
+    return s_hotkeys.at(window);
+}
+void Window::keyCallback(GLFWwindow* w,int key, int scancode, int action, int mods) {
+    s_hotkeys.at(w).press(key,mods,action);
+    ImGuiImpl::keyCallback(w,key,scancode,action,mods);
 }
 
 

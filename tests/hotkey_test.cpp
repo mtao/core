@@ -26,7 +26,7 @@ int main() {
             std::cout << "Shift Space pressed " << ++shift_count << " times!" << std::endl;
             }, "Tracks shift spaces press", GLFW_KEY_SPACE, GLFW_MOD_SHIFT);
 
-    std::cout << hotkeys.hotkey_overview() << std::endl;
+    std::cout << hotkeys.info() << std::endl;
     hotkeys.press(GLFW_KEY_SPACE);
     hotkeys.press(GLFW_KEY_SPACE);
     hotkeys.press(GLFW_KEY_SPACE);

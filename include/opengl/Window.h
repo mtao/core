@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <functional>
 #include "imgui_impl.h"
+#include "hotkey_manager.hpp"
 
 namespace mtao { namespace opengl {
 
@@ -26,12 +27,17 @@ class Window {
         GLFWwindow* glfwWindow() {return window; }
 
         operator bool() const { return window; }
+        ImGuiImpl& gui() { return m_gui; }
+        const ImGuiImpl& gui() const { return m_gui; }
+        static void keyCallback(GLFWwindow*,int key, int scancode, int action, int mods);
+        HotkeyManager& hotkeys();
+        const HotkeyManager& hotkeys() const;
     private:
         GLFWwindow* window;
         std::function<void()> m_gui_func;
         std::function<void(int,int)> m_render_func;
         ImGuiImpl m_gui;
-
+        static std::map<GLFWwindow*,HotkeyManager> s_hotkeys;
 
         static size_t s_window_count;
 };

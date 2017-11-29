@@ -35,7 +35,7 @@ namespace mtao {
             void add(const std::function<void(void)>& f, const std::string& d, int key, int modifiers=0, int action=GLFW_PRESS);
             void press(int key, int modifiers=0, int action=GLFW_PRESS) const;
 
-            std::string hotkey_overview() const;
+            std::string info() const;
 
         private:
             std::map<int,std::set<Entry>> m_key_map;

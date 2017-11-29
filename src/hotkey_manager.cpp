@@ -1,11 +1,14 @@
 #include "hotkey_manager.hpp"
 #include <bitset>
+#include "logging/logger.hpp"
+using namespace mtao::logging;
 namespace mtao {
     HotkeyManager::Entry::Entry(const std::function<void(void)>& f, const std::string& d,int k, int m, int a)
         : key(k), modifiers(m), action(a), func(f), description(d) {}
 
     std::optional<int> HotkeyManager::Entry::active(int k, int m, int a) const {
         //m & modifiers is == modifiers only if m has at least the modifier bits active
+
         if(k == key && a == action && ((modifiers & m)==modifiers) ) {
             std::bitset<8*sizeof(int)> b(modifiers);
             return b.count();
@@ -126,7 +129,7 @@ namespace mtao {
         km.emplace(f,d,key,modifiers,action);
     }
 
-    std::string HotkeyManager::hotkey_overview() const {
+    std::string HotkeyManager::info() const {
         std::stringstream ss;
         for(auto&& pairs: m_key_map) {
             for(auto&& e: pairs.second) {
