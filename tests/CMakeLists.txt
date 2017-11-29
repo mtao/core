@@ -11,6 +11,8 @@ TARGET_LINK_LIBRARIES(log_test mtao_core)
 ADD_EXECUTABLE(cltest cltest.cpp)
 TARGET_LINK_LIBRARIES(cltest mtao_core)
 
+ADD_EXECUTABLE(hotkey_test hotkey_test.cpp)
+TARGET_LINK_LIBRARIES(hotkey_test mtao_core)
 
 #ADD_EXECUTABLE(particle_sampling_test src/particle_sampling_test.cpp ${CORE_INCLUDE}/grid.h ${CORE_INCLUDE}/grid_utils.h
 #    ${CORE_INCLUDE}/arguments.h ${CORE_INCLUDE}/particle_sampler.h)

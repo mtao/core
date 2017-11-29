@@ -90,9 +90,11 @@ ADD_LIBRARY(mtao_core
     include/logging/logger.hpp
     include/logging/timer.hpp
     include/cmdline_parser.hpp
+    include/hotkey_manager.hpp
     src/logging/logger.cpp
     src/logging/timer.cpp
     src/cmdline_parser.cpp
+    src/hotkey_manager.cpp
     )
 
 
