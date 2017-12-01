@@ -214,8 +214,7 @@ namespace mtao { namespace opengl { namespace renderers {
         buffers()->edges->setData(E.data(),sizeof(GLuint) * E.size());
     }
     void MeshRenderer::setEdgesFromFaces(const MatrixXui& F) {
-        Eigen::Matrix<GLuint,Eigen::Dynamic,Eigen::Dynamic> E;
-        E.resize(2,3*F.cols());
+        MatrixXui  E(2,3*F.cols());
 
         E.leftCols(F.cols()) = F.topRows(2);
         E.block(0,F.cols(),1,F.cols()) = F.row(0);
