@@ -4,8 +4,13 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 namespace mtao { namespace eigen {
+    template <typename T>
     class AxialSubspace {
+        using Triplet = Eigen::Triplet<T>;
         std::vector<Triplet> reduced_triplets;
+        using PermutationType = Eigen::PermutationMatrix<Eigen::Dynamic,Eigen::Dynamic>;
+        using SparseMatrix =Eigen::SparseMatrix<T>;
+        using VecX = mtao::VectorX<T>;
         PermutationType permuter;//full -> reduced
         PermutationType invpermuter;
         VecX filter;

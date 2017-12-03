@@ -6,6 +6,9 @@
 #include <numeric>
 #include <cassert>
 
+#include "logging/logger.hpp"
+#include "logging/timer.hpp"
+using namespace mtao::logging;
 namespace mtao { namespace geometry {
 
     template <typename Derived>
@@ -50,5 +53,37 @@ namespace mtao { namespace geometry {
             }
             return C;
         }
+
+    template <int D, int S>
+        struct dim_specific {
+        };
+    template <int S>
+        struct dim_specific<2, S> {
+            template <typename Derived>
+                static auto convex_volume( const Eigen::MatrixBase<Derived> & V) -> typename Derived::Scalar {
+                    using Scalar = typename Derived::Scalar;
+                    mtao::Matrix<Scalar, Derived::RowsAtCompileTime, S+1> M(V.rows(),S+1);
+
+                    if constexpr(S == 0) {
+                        return 1;
+                    } else {
+                        if(V.cols() < S+1) {
+                            return 0;
+                        } else {
+                            Scalar r = 0;
+                            M.col(0) = V.col(0);
+
+
+                            for(int j = 1; j < V.cols()-S+1; ++j) {
+                                for(int k = 0; k < S; ++k) {
+                                    M.col(k+1) = V.col(j+k);
+                                }
+                                r += mtao::geometry::volume_unsigned(M);
+                            }
+                            return r;
+                        }
+                    }
+                }
+        };
 }}
 #endif//VOLUME_H
