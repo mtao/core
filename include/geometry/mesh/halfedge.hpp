@@ -91,6 +91,7 @@ struct HalfEdgeMesh::HalfEdge {
         HalfEdge& dual();
 
         operator int() const { return m_index; }
+        operator bool() const { return m_index != -1; }
     private:
         const MeshType* m_cc;
         int m_index = -1;

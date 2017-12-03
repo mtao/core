@@ -134,7 +134,6 @@ HalfEdge HalfEdgeMesh::vertex_edge(int idx) const {
             }
         }
     }
-
     return HalfEdge(this,ret);
 }
 
