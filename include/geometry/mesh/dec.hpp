@@ -3,7 +3,6 @@
 #include <Eigen/Sparse>
 #include <eigen_utils.h>
 #include <boost/hana.hpp>
-#include <iostream>
 
 //Use DECMesh by inheriting it and manually implementing boundary / cell volumes / dual cell volumes / the cell counts per type
 //
@@ -138,13 +137,11 @@ class CachedDECMesh: public DECMesh<CachedDECMesh<T, EmbeddedDim,Dim_>, T, Embed
                 using namespace boost;
                 boost::hana::for_each(hana::make_range(hana::int_c<0>,hana::int_c<Dim+1>), [&](auto t) {
                         constexpr static int D = decltype(t)::value;
-                        std::cout << "volumes << " << D << std::endl;
                         m_volume[D] = d.template volume<D>();
                         m_dual_volume[D] = d.template dual_volume<D>();
                         });
                 boost::hana::for_each(hana::make_range(hana::int_c<1>,hana::int_c<Dim+1>), [&](auto t) {
                         constexpr static int D = decltype(t)::value;
-                        std::cout << "Bounary << " << D << std::endl;
                         m_boundary[D-1] = d.template boundary<D>();
 
                         });
