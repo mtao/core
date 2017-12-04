@@ -5,6 +5,13 @@
 #include <boost/hana.hpp>
 #include <iostream>
 
+//Use DECMesh by inheriting it and manually implementing boundary / cell volumes / dual cell volumes / the cell counts per type
+//
+//CachedDECMesh caches the boundary computatoins / cell volume information for when it's expensive to compute these things
+//
+//DECMeshCore implements DEC h(hodge dual) d(exterior derivative) cod(codifferential operator as well as
+//  the various laplacians (d cod / cod d / Laplace deRham (cod d + d cod) / weak laplacian (down) d cod h / weak laplacian (up) h cod d )
+//  Note: standard cotan laplacian is weak_laplacian_up<0>()
 
 namespace mtao { namespace geometry { namespace mesh {
 template <typename Derived, typename T, int EmbeddedDim, int Dim_>
