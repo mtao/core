@@ -37,6 +37,10 @@ class MeshRenderer: public Renderer {
         void render_edges(const MeshRenderBuffers& buffs, EdgeType style = EdgeType::Disabled) const;
         void render_faces(const MeshRenderBuffers& buffs, FaceStyle style = FaceStyle::Disabled) const;
         void render_vfield(const MeshRenderBuffers& buffs) const;
+        void render_points() const;
+        void render_edges() const;
+        void render_faces() const;
+        void render_vfield() const;
 
 
 

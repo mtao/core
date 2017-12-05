@@ -326,6 +326,38 @@ namespace mtao { namespace opengl { namespace renderers {
             render(*m_buffers);
         }
     }
+    void MeshRenderer::render_points() const {
+        if(m_buffers) {
+            auto vao_a = vao().enableRAII();
+            if(m_vertex_type != VertexType::Disabled) {
+                render_points(*m_buffers,m_vertex_type);
+            }
+        }
+    }
+    void MeshRenderer::render_edges() const {
+        if(m_buffers) {
+            auto vao_a = vao().enableRAII();
+            if(m_edge_type != EdgeType::Disabled) {
+                render_edges(*m_buffers, m_edge_type);
+            }
+        }
+    }
+    void MeshRenderer::render_faces() const {
+        if(m_buffers) {
+            auto vao_a = vao().enableRAII();
+            if(m_face_style != FaceStyle::Disabled) {
+                render_faces(*m_buffers, m_face_style);
+            }
+        }
+    }
+    void MeshRenderer::render_vfield() const {
+        if(m_buffers) {
+            auto vao_a = vao().enableRAII();
+            if(m_show_vector_field) {
+                render_vfield(*m_buffers);
+            }
+        }
+    }
     void MeshRenderer::render(const MeshRenderBuffers& buffs) const {
 
         if(!buffs.vertices) {
