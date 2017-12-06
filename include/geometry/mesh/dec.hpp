@@ -264,7 +264,7 @@ auto DECMeshCore<Derived,T,EmbeddedDim,Dim>::exact_up(const VecX& o) const -> Ve
 
     VecX rhs = d<D>(o);
 
-    Eigen::ConjugateGradient<SparseMatrix> solver(L);
+    Eigen::ConjugateGradient<SparseMatrix, Eigen::Upper|Eigen::Lower> solver(L);
     VecX p = solver.solveWithGuess(rhs,VecX::Zero(rhs.rows()));
     p = hi<D+1>(p);
     return p;
@@ -282,7 +282,7 @@ auto DECMeshCore<Derived,T,EmbeddedDim,Dim>::coexact_down(const VecX& o) const -
     auto L = weak_laplacian_up<D-1>();
     VecX rhs = d<D-1>().transpose() * h<D>(o);
 
-    Eigen::ConjugateGradient<SparseMatrix> solver(L);
+    Eigen::ConjugateGradient<SparseMatrix, Eigen::Upper|Eigen::Lower> solver(L);
     VecX p = solver.solveWithGuess(rhs,VecX::Zero(rhs.rows()));
     return p;
 }

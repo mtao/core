@@ -395,6 +395,10 @@ namespace mtao { namespace opengl { namespace renderers {
 
     void MeshRenderer::render_points(const MeshRenderBuffers& buffs, VertexType style) const {
         glPointSize(5);
+        if(!buffs.vertices) {
+            mtao::logging::warn() << "vertex positions not set, can't render points" ;
+            return;
+        }
         if(style == VertexType::Flat) {
             auto active = flat_program()->useRAII();
             flat_program()->getUniform("color").setVector(m_vertex_color);
