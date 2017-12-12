@@ -3,6 +3,10 @@
 #define MTAO_ACCESSOR(T,NAME,MEMBER) \
     T& NAME() { return MEMBER; } \
     const T& NAME() const { return MEMBER; }
+
+#define MTAO_GETSET_ACCESSOR(T,NAME,MEMBER) \
+    T& get_##NAME() const { return MEMBER; } \
+    void set_##NAME(const T& v) { MEMBER = v; }
 namespace mtao {
     template <typename T>
         T clamp(const T& value, const T& a, const T& b) {
