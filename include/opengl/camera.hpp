@@ -1,22 +1,19 @@
 #pragma once
 
+#include "../util.h"
 #include <glm/glm.hpp> 
 #include <vector>
 #include "imgui.h"
-
-#define ACCESSOR(T,NAME,MEMBER) \
-    T& NAME() { return MEMBER; } \
-    const T& NAME() const { return MEMBER; }
 
 namespace mtao { namespace opengl {
 class Camera {
     public:
 
-        ACCESSOR(glm::mat4,m,m_model)
-        ACCESSOR(glm::mat4,v,m_view)
-        ACCESSOR(glm::mat4,p,m_perspective)
-        ACCESSOR(float,zNear,m_zRange[0]);
-        ACCESSOR(float,zFar,m_zRange[1]);
+        MTAO_ACCESSORS(glm::mat4,m,m_model)
+        MTAO_ACCESSORS(glm::mat4,v,m_view)
+        MTAO_ACCESSORS(glm::mat4,p,m_perspective)
+        MTAO_ACCESSORS(float,zNear,m_zRange[0]);
+        MTAO_ACCESSORS(float,zFar,m_zRange[1]);
 
         glm::mat4 mv() const;
         glm::mat4 mvp() const;
@@ -39,6 +36,9 @@ class Camera {
         glm::mat4 m_model,m_view,m_perspective;
         glm::ivec2 m_shape;
         glm::vec2 m_zRange = glm::vec2(-1.0f,1.0f);
+};
+
+class Camera2D: public Camera {
 };
 }}
 #undef ACCESSOR
