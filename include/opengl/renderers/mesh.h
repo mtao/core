@@ -6,7 +6,10 @@
 #include "opengl/shader.h"
 #include "opengl/vao.h"
 #include "opengl/bo.h"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wint-in-bool-context"
 #include <Eigen/Dense>
+#pragma GCC diagnostic pop
 #include <memory>
 namespace mtao { namespace opengl { namespace renderers {
 
@@ -75,6 +78,15 @@ class MeshRenderer: public Renderer {
         inline const std::unique_ptr<ShaderProgram>&  vector_field_program() const {return s_vector_field_program[m_dim-2];}
 
 
+        inline FaceStyle get_face_style() {
+            return m_face_style;
+        }
+        inline EdgeType get_edge_style() {
+            return m_edge_type;
+        }
+        inline VertexType get_vertex_style() {
+            return m_vertex_type;
+        }
 
         inline void set_face_style(FaceStyle style=FaceStyle::Disabled) {
             m_face_style = style;

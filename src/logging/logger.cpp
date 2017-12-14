@@ -6,6 +6,31 @@
 namespace mtao { namespace logging {
     std::map<std::string,Logger> active_loggers;
     Logger* default_logger = &make_logger("default","default.log",Level::All,true);//Making this continue because multiple files might log to it over time 
+
+    const std::string level_strings[int(Level::All)+1] = {
+        std::string("Off"),
+        std::string("Fatal"),
+        std::string("Error"),
+        std::string("Warn"),
+        std::string("Info"),
+        std::string("Debug"),
+        std::string("Trace"),
+        std::string("All")
+    };
+    Level level_from_string(const std::string& str) {
+        static auto make_map = []() {
+            std::map<std::string,Level> mymap;
+            for(int i = 0; i < static_cast<int>(Level::All)+1; ++i) {
+
+                mymap[level_strings[i]] = static_cast<Level>(i);
+            }
+            return mymap;
+        };
+        static const std::map<std::string,Level> strmap = make_map();
+        return strmap.at(str);
+
+    }
+
     Logger::Logger(const std::string& alias, Level l): m_alias(alias), m_level(l) {
         write(Level::Info, "Beginning Log ", alias);
     }
@@ -109,16 +134,6 @@ namespace mtao { namespace logging {
         return now.time_since_epoch().count();
     }
     const std::string& Logger::log_type_string(Level l, bool color) {
-        const static std::string strs[int(Level::All)+1] = {
-            std::string("Off"),
-            std::string("Fatal"),
-            std::string("Error"),
-            std::string("Warn"),
-            std::string("Info"),
-            std::string("Debug"),
-            std::string("Trace"),
-            std::string("All")
-        };
         const static std::string col_strs[int(Level::All)+1] = {
             std::string("\033[30mOff\033[0m"),
             std::string("\033[31;1;7mFatal\033[0m"),
@@ -132,7 +147,7 @@ namespace mtao { namespace logging {
         if(color) {
             return col_strs[int(l)];
         } else {
-            return strs[int(l)];
+            return level_strings[int(l)];
         }
     }
 

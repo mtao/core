@@ -10,6 +10,8 @@ namespace mtao {
 
         enum class Level: char { Off=0, Fatal=1, Error=2, Warn=3, Info=4, Debug=5, Trace=6, All=7 };
 
+        extern const std::string level_strings[int(Level::All)+1];
+        Level level_from_string(const std::string& str);
 
         //WARNING! assumes default logger will always exist
         class Logger {
