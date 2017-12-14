@@ -3,7 +3,7 @@
 
 #include <glm/glm.hpp>
 #include <list>
-#include "opengl/shader.h"
+#include "mtao/opengl/shader.h"
 
 namespace mtao { namespace opengl { namespace renderers {
 

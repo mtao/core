@@ -1,7 +1,7 @@
 #ifndef HALFEDGE_CELLCOMPLEX_H
 #define HALFEDGE_CELLCOMPLEX_H
 #include <vector>
-#include "types.h"
+#include "mtao/types.h"
 
 namespace mtao { namespace geometry { namespace mesh {
 

@@ -1,11 +1,12 @@
 #include <iostream>
-#include "types.h"
-#include "type_utils.h"
-#include "eigen_utils.h"
+#include "mtao/types.h"
+#include "mtao/type_utils.h"
+#include "mtao/eigen_utils.h"
 int main() {
     using VecXf = mtao::Vector<float,Eigen::Dynamic>;
     using MatXf = mtao::SquareMatrix<float,Eigen::Dynamic>;
     using namespace mtao;
+    using namespace mtao::eigen;
 
     int N=10;
     VecXf A = VecXf::LinSpaced(N,1,N);

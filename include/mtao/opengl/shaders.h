@@ -1,7 +1,7 @@
 #ifndef SHADERS_H
 #define SHADERS_H
 #include <string>
-#include "opengl/shader.h"
+#include "mtao/opengl/shader.h"
 
 namespace mtao {namespace opengl {namespace shaders {
 

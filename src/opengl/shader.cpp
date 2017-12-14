@@ -1,4 +1,4 @@
-#include "opengl/shader.h"
+#include "mtao/opengl/shader.h"
 #include <vector>
 #include <iostream>
 

@@ -1,4 +1,4 @@
-#include "opengl/bo.h"
+#include "mtao/opengl/bo.h"
 #include <cassert>
 #include <GLFW/glfw3.h>
 #include <iostream>

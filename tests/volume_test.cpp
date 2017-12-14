@@ -1,6 +1,6 @@
 #include <iostream>
-#include "geometry/volume.h"
-#include "types.h"
+#include "mtao/geometry/volume.h"
+#include "mtao/types.h"
 
 
 

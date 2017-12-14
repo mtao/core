@@ -2,7 +2,7 @@
 #define TEXTURE_H
 #include <glad/glad.h>
 #include <vector>
-#include "opengl/util.h"
+#include "mtao/opengl/util.h"
 namespace mtao { namespace opengl {
 struct Texture: public bind_enabled<Texture> {
     public:

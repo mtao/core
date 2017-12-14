@@ -1,5 +1,5 @@
 #include <iostream>
-#include "grid/grid.h"
+#include "mtao/grid/grid.h"
 
 
 template <typename T>

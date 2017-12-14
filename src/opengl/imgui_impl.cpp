@@ -9,7 +9,7 @@
 #endif
 
 #include <imgui.h>
-#include "opengl/imgui_impl.h"
+#include "mtao/opengl/imgui_impl.h"
 
 namespace mtao { namespace opengl {
     bool         ImGuiImpl::s_MousePressed[3] = { false, false, false };

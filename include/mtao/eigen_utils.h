@@ -2,8 +2,8 @@
 #define EIGEN_UTILS_H
 
 
-#include "eigen/interweave.h"
-#include "eigen/axial_subspace.h"
+#include "mtao/eigen/interweave.h"
+#include "mtao/eigen/axial_subspace.h"
 
 namespace mtao {
     namespace eigen {

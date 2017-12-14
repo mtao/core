@@ -1,6 +1,6 @@
 #include <iostream>
 #include <iterator>
-#include "static_iteration.h"
+#include "mtao/static_iteration.h"
 #include <array>
 
 

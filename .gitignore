@@ -31,6 +31,9 @@
 *~
 *.*.sw?
 
+#Backup files
+*.bak
+
 #build
 build
 build-debug

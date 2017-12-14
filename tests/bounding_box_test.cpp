@@ -1,5 +1,5 @@
-#include "geometry/bounding_box.hpp"
-#include "logging/timer.hpp"
+#include "mtao/geometry/bounding_box.hpp"
+#include "mtao/logging/timer.hpp"
 #include <iostream>
 
 

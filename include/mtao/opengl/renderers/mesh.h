@@ -2,10 +2,10 @@
 #define MESH_RENDERER_H
 
 
-#include "renderer.h"
-#include "opengl/shader.h"
-#include "opengl/vao.h"
-#include "opengl/bo.h"
+#include "mtao/opengl/renderers/renderer.h"
+#include "mtao/opengl/shader.h"
+#include "mtao/opengl/vao.h"
+#include "mtao/opengl/bo.h"
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wint-in-bool-context"
 #include <Eigen/Dense>

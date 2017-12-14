@@ -1,6 +1,6 @@
-#include "hotkey_manager.hpp"
+#include "mtao/hotkey_manager.hpp"
 #include <bitset>
-#include "logging/logger.hpp"
+#include "mtao/logging/logger.hpp"
 using namespace mtao::logging;
 namespace mtao {
     HotkeyManager::Entry::Entry(const std::function<void(void)>& f, const std::string& d,int k, int m, int a)

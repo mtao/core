@@ -1,7 +1,7 @@
-#include "opengl/util.h"
+#include "mtao/opengl/util.h"
 #include <iostream>
 #include <glad/glad.h>
-#include "logging/logger.hpp"
+#include "mtao/logging/logger.hpp"
 
 namespace mtao { namespace opengl {
 void process_error(const std::string& str, GLenum err, logging::Level l) {

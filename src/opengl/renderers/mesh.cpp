@@ -1,14 +1,14 @@
-#include "opengl/renderers/mesh.h"
+#include "mtao/opengl/renderers/mesh.h"
 #include <exception>
 #include <stdexcept>
 #include <sstream>
 #include <list>
 #include <glad/glad.h>
-#include "imgui.h"
+#include <imgui.h>
 #include <glm/gtc/type_ptr.hpp>
-#include "opengl/shaders.h"
-#include "logging/logger.hpp"
-#include "geometry/bounding_box.hpp"
+#include "mtao/opengl/shaders.h"
+#include "mtao/logging/logger.hpp"
+#include "mtao/geometry/bounding_box.hpp"
 using namespace mtao::logging;
 
 #define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))

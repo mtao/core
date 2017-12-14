@@ -4,7 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <functional>
 #include "imgui_impl.h"
-#include "hotkey_manager.hpp"
+#include "mtao/hotkey_manager.hpp"
 
 namespace mtao { namespace opengl {
 
