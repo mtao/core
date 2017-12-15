@@ -1,14 +1,14 @@
-#include "opengl/Window.h"
+#include "mtao/opengl/Window.h"
 #include <iostream>
 #include "imgui.h"
-#include "opengl/shader.h"
-#include "opengl/vao.h"
-#include "opengl/bo.h"
+#include "mtao/opengl/shader.h"
+#include "mtao/opengl/vao.h"
+#include "mtao/opengl/bo.h"
 #include <memory>
 #include "mesh.h"
 #include <algorithm>
-#include "opengl/renderers/mesh.h"
-#include "geometry/mesh/sphere.hpp"
+#include "mtao/opengl/renderers/mesh.h"
+#include "mtao/geometry/mesh/sphere.hpp"
 
 #include <glm/gtc/matrix_transform.hpp> 
 
@@ -20,7 +20,7 @@ float look_distance = 0.4;
 float rotation_angle = 1.0;
 float rotation_angle2 = 0.5;
 bool animate = false;
-bool save_frame;
+bool save_frame = false;
 std::unique_ptr<Window> window;
 std::unique_ptr<renderers::MeshRenderer> renderer;
 ImVec4 clear_color = ImColor(114, 144, 154);
@@ -81,7 +81,7 @@ void render(int width, int height) {
     renderer->set_mvp(mv,p);
     renderer->render();
     if(save_frame) {
-    Renderer::save_frame("frame.png", width,height);
+        renderers::Renderer::save_frame("frame.png", width,height);
     save_frame = false;
     }
 

@@ -1,6 +1,7 @@
 #include "mtao/opengl/renderers/renderer.h"
 #include <vector>
 #include <png++/png.hpp>
+#include <mtao/logging/logger.hpp>
 
 namespace mtao { namespace opengl { namespace renderers {
 
@@ -36,15 +37,17 @@ namespace mtao { namespace opengl { namespace renderers {
 
     void Renderer::save_frame(const std::string& filename, int w, int h) {
         std::vector<unsigned char> data(4*w*h);
-        glReadBuffer(GL_BACK);
+        mtao::logging::info() << "Saving frame to disk(" << filename << "): " << w << "x" << h;
+        //glReadBuffer(GL_FRONT);
         glReadPixels(0,0,w,h,GL_RGBA,GL_UNSIGNED_BYTE, data.data());
         png::image<png::rgba_pixel> image(w,h);
 
+        std::cout << "Writing to image" << std::endl;
         for (png::uint_32 y = 0; y < image.get_height(); ++y)
         {
             for (png::uint_32 x = 0; x < image.get_width(); ++x)
             {
-                size_t o = 4*(x*w+h);
+                size_t o = 4*((h-1-y) * w+x);
                 image[y][x] = png::rgba_pixel(
                         data[o+0],
                         data[o+1],
