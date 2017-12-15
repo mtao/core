@@ -1,7 +1,7 @@
 #pragma once
 #include <Eigen/Geometry>
-#include "types.h"
-#include "colvector_loop.hpp"
+#include "mtao/types.h"
+#include "mtao/colvector_loop.hpp"
 
 
 namespace mtao { namespace geometry {

@@ -1,7 +1,7 @@
 #ifndef READ_OBJ_H
 #define READ_OBJ_H
 
-#include "types.h"
+#include "mtao/types.h"
 #include <tuple>
 
 namespace mtao { namespace geometry { namespace mesh {

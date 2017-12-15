@@ -1,8 +1,8 @@
 #include <array>
-#include "geometry/mesh/read_obj.hpp"
+#include "mtao/geometry/mesh/read_obj.hpp"
 #include <fstream>
 #include <iterator>
-#include "logging/logger.hpp"
+#include "mtao/logging/logger.hpp"
 
 using namespace mtao::logging;
 

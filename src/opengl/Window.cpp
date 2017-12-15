@@ -1,9 +1,9 @@
-#include "opengl/Window.h"
+#include "mtao/opengl/Window.h"
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <imgui.h>
-#include "logging/logger.hpp"
+#include "mtao/logging/logger.hpp"
 
 namespace mtao {namespace opengl {
 size_t Window::s_window_count = 0;

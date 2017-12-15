@@ -1,11 +1,11 @@
 #include <iostream>
-#include "geometry/mesh/sphere.hpp"
-#include "geometry/mesh/halfedge.hpp"
-#include "geometry/mesh/halfedge_fv_map.hpp"
-#include "geometry/mesh/read_obj.hpp"
+#include "mtao/geometry/mesh/sphere.hpp"
+#include "mtao/geometry/mesh/halfedge.hpp"
+#include "mtao/geometry/mesh/halfedge_fv_map.hpp"
+#include "mtao/geometry/mesh/read_obj.hpp"
 
 
-#include "logging/logger.hpp"
+#include "mtao/logging/logger.hpp"
 using namespace mtao::logging;
 
 

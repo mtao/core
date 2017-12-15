@@ -1,7 +1,7 @@
-#include "opengl/camera.hpp"
+#include "mtao/opengl/camera.hpp"
 #include <limits>
 #include <glm/gtc/matrix_transform.hpp> 
-#include <logging/logger.hpp>
+#include <mtao/logging/logger.hpp>
 
 
 namespace mtao { namespace opengl {

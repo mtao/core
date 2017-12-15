@@ -53,44 +53,44 @@ INCLUDE_DIRECTORIES(${GLFW3_INCLUDE_DIRS})
 
 
 SET(COMMON_HEADERS
-    include/compat.h
-    include/conversion.h
-    include/static_iteration.h
-    include/types.h
-    include/util.h
-    include/eigen_utils.h
-    include/type_utils.h
+    include/mtao/compat.h
+    include/mtao/conversion.h
+    include/mtao/static_iteration.h
+    include/mtao/types.h
+    include/mtao/util.h
+    include/mtao/eigen_utils.h
+    include/mtao/type_utils.h
     )
 
 SET(GRID_HEADERS
     ${COMMON_HEADERS}
-    include/geometry/grid/grid.h
-    include/geometry/grid/grid_storage.h
-    include/geometry/grid/grid_utils.h
-    include/geometry/grid/index_map.h
-    include/geometry/grid/index_map_iterator.h
+    include/mtao/geometry/grid/grid.h
+    include/mtao/geometry/grid/grid_storage.h
+    include/mtao/geometry/grid/grid_utils.h
+    include/mtao/geometry/grid/index_map.h
+    include/mtao/geometry/grid/index_map_iterator.h
     )
 
 SET(LEVELSET_HEADERS
     ${GRID_HEADERS}
-    include/geometry/levelset/levelset.h
-    include/geometry/levelset/ops.h
-    include/geometry/levelset/levelset_example.h
-    include/geometry/levelset/primitives.h
-    include/geometry/levelset/transformations.h
-    include/geometry/levelset/transformer.h
-    include/geometry/levelset/discrete.h
-    include/geometry/levelset/csg.h
-    include/geometry/levelset/animation.h
-    include/geometry/levelset/particle_sampler.h
+    include/mtao/geometry/levelset/levelset.h
+    include/mtao/geometry/levelset/ops.h
+    include/mtao/geometry/levelset/levelset_example.h
+    include/mtao/geometry/levelset/primitives.h
+    include/mtao/geometry/levelset/transformations.h
+    include/mtao/geometry/levelset/transformer.h
+    include/mtao/geometry/levelset/discrete.h
+    include/mtao/geometry/levelset/csg.h
+    include/mtao/geometry/levelset/animation.h
+    include/mtao/geometry/levelset/particle_sampler.h
     )
 
 
 ADD_LIBRARY(mtao_core
-    include/logging/logger.hpp
-    include/logging/timer.hpp
-    include/cmdline_parser.hpp
-    include/hotkey_manager.hpp
+    include/mtao/logging/logger.hpp
+    include/mtao/logging/timer.hpp
+    include/mtao/cmdline_parser.hpp
+    include/mtao/hotkey_manager.hpp
     src/logging/logger.cpp
     src/logging/timer.cpp
     src/cmdline_parser.cpp
@@ -110,18 +110,18 @@ ADD_LIBRARY(mtao_opengl
     src/opengl/util.cpp
     src/opengl/tex.cpp
     src/opengl/camera.cpp
-    include/opengl/imgui_impl.h
-    include/opengl/Window.h
-    include/opengl/bo.h
-    include/opengl/shader.h
-    include/opengl/vao.h
-    include/opengl/util.h
-    include/opengl/tex.h
-    include/opengl/shaders.h
-    include/opengl/camera.hpp
+    include/mtao/opengl/imgui_impl.h
+    include/mtao/opengl/Window.h
+    include/mtao/opengl/bo.h
+    include/mtao/opengl/shader.h
+    include/mtao/opengl/vao.h
+    include/mtao/opengl/util.h
+    include/mtao/opengl/tex.h
+    include/mtao/opengl/shaders.h
+    include/mtao/opengl/camera.hpp
 
-    include/opengl/renderers/renderer.h
-    include/opengl/renderers/mesh.h
+    include/mtao/opengl/renderers/renderer.h
+    include/mtao/opengl/renderers/mesh.h
     src/opengl/renderers/mesh.cpp
     src/opengl/renderers/renderer.cpp
     src/opengl/shaders/phong.cpp
@@ -138,9 +138,9 @@ ADD_LIBRARY(mtao_geometry
     src/geometry/mesh/halfedge.cpp
     src/geometry/mesh/halfedge_fv_map.cpp
     src/geometry/mesh/read_obj.cpp
-    include/geometry/mesh/halfedge.hpp
-    include/geometry/mesh/halfedge_fv_map.hpp
-    include/geometry/mesh/read_obj.hpp
+    include/mtao/geometry/mesh/halfedge.hpp
+    include/mtao/geometry/mesh/halfedge_fv_map.hpp
+    include/mtao/geometry/mesh/read_obj.hpp
     )
 
 TARGET_LINK_LIBRARIES(mtao_geometry mtao_core)

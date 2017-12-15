@@ -1,7 +1,10 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wint-in-bool-context"
 #include <Eigen/Dense>
+#pragma GCC diagnostic pop
 #include <vector>
 namespace mtao{ 
     template <typename T, int A, int B>

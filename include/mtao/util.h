@@ -1,8 +1,24 @@
-#ifndef UTIL_H
-#define UTIL_H
+#pragma once
+#include <type_traits>
+#include <utility>
 #define MTAO_ACCESSOR(T,NAME,MEMBER) \
-    T& NAME() { return MEMBER; } \
-    const T& NAME() const { return MEMBER; }
+    inline T NAME() { return MEMBER; } \
+
+#define MTAO_ACCESSOR_CONST(T,NAME,MEMBER) \
+    inline T NAME() const { return MEMBER; } \
+
+#define MTAO_ACCESSORS(T,NAME,MEMBER) \
+    MTAO_ACCESSOR(T&,NAME,MEMBER)\
+    MTAO_ACCESSOR_CONST(const T&,NAME,MEMBER)
+
+
+#define MTAO_ACCESSOR_PROTOTYPES(T,NAME) \
+    T& NAME(); \
+    const T& NAME() const;
+
+#define MTAO_ACCESSOR_IMPL(T,CLASS,NAME,MEMBER) \
+    auto CLASS::NAME() -> T& { return MEMBER; } \
+    auto CLASS::NAME() const -> const T& { return MEMBER; }
 
 #define MTAO_GETSET_ACCESSOR(T,NAME,MEMBER) \
     T& get_##NAME() const { return MEMBER; } \
@@ -59,4 +75,3 @@ namespace mtao {
         }
         */
 }
-#endif//UTIL_H

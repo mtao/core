@@ -3,9 +3,9 @@
 #include <glad/glad.h>
 #include <string>
 #include <memory>
-#include "opengl/util.h"
-#include "opengl/vao.h"
-#include "type_utils.h"
+#include "mtao/opengl/util.h"
+#include "mtao/opengl/vao.h"
+#include "mtao/type_utils.h"
 
 
 namespace mtao { namespace opengl {

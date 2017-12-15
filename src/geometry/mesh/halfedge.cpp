@@ -1,8 +1,8 @@
-#include "geometry/mesh/halfedge.hpp"
+#include "mtao/geometry/mesh/halfedge.hpp"
 #include <map>
 #include <tuple>
 #include <set>
-#include "logging/logger.hpp"
+#include "mtao/logging/logger.hpp"
 using namespace mtao::logging;
 
 namespace mtao { namespace geometry { namespace mesh {

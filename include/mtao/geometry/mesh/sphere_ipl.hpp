@@ -1,7 +1,7 @@
 #ifndef _SPHERE_MESH_GEN_IMPL_H_
 #define _SPHERE_MESH_GEN_IMPL_H_
 
-#include "types.h"
+#include "mtao/types.h"
 #include <tuple>
 #include <array>
 #include <map>
@@ -126,7 +126,7 @@ namespace mtao { namespace geometry { namespace mesh {
         template <typename T>
             mtao::ColVectors<T,3> SphereMeshFactory<T>::V() const {
             mtao::ColVectors<T,3> v(3,m_vertices.size());
-                for(int i = 0; i < m_vertices.size(); ++i) {
+                for(size_t i = 0; i < m_vertices.size(); ++i) {
                     v.col(i) = m_vertices[i];
                 }
                 return v;
@@ -135,7 +135,7 @@ namespace mtao { namespace geometry { namespace mesh {
         template <typename T>
             mtao::ColVectors<int,3> SphereMeshFactory<T>::F() const {
                 mtao::ColVectors<int,3> f(3,m_faces.size());
-                for(int i = 0; i < m_faces.size(); ++i) {
+                for(size_t i = 0; i < m_faces.size(); ++i) {
                     f.col(i) = Eigen::Map<const mtao::Vector<unsigned int,3>>(m_faces[i].data()).cast<int>();
                 }
                 return f;

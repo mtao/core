@@ -1,7 +1,7 @@
 #include <iostream>
 #include <stdlib.h>
-#include "logging/timer.hpp"
-#include "logging/logger.hpp"
+#include "mtao/logging/timer.hpp"
+#include "mtao/logging/logger.hpp"
 
 
 int main() {

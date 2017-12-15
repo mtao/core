@@ -1,13 +1,13 @@
 #ifndef VOLUME_H
 #define VOLUME_H
 #include <Eigen/Dense>
-#include "types.h"
-#include "util.h"
+#include "mtao/types.h"
+#include "mtao/util.h"
 #include <numeric>
 #include <cassert>
 
-#include "logging/logger.hpp"
-#include "logging/timer.hpp"
+#include "mtao/logging/logger.hpp"
+#include "mtao/logging/timer.hpp"
 using namespace mtao::logging;
 namespace mtao { namespace geometry {
 
