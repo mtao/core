@@ -1,7 +1,7 @@
 #pragma once
-#include "types.h"
+#include <mtao/types.h>
+#include <mtao/eigen_utils.h>
 #include <Eigen/Sparse>
-#include <eigen_utils.h>
 #include <boost/hana.hpp>
 
 //Use DECMesh by inheriting it and manually implementing boundary / cell volumes / dual cell volumes / the cell counts per type
