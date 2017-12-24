@@ -1,7 +1,7 @@
 #ifndef CIRCUMCENTER_H
 #define CIRCUMCENTER_H
 #include <Eigen/Dense>
-#include "mtao/types.h"
+#include <mtao/types.h>
 
 namespace mtao { namespace geometry {
 

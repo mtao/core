@@ -104,6 +104,7 @@ ADD_LIBRARY(mtao_opengl
     src/opengl/glad.c
     src/opengl/imgui_impl.cpp
     src/opengl/Window.cpp
+    src/opengl/Monitor.cpp
     src/opengl/bo.cpp
     src/opengl/shader.cpp
     src/opengl/vao.cpp
@@ -112,6 +113,7 @@ ADD_LIBRARY(mtao_opengl
     src/opengl/camera.cpp
     include/mtao/opengl/imgui_impl.h
     include/mtao/opengl/Window.h
+    include/mtao/opengl/Monitor.h
     include/mtao/opengl/bo.h
     include/mtao/opengl/shader.h
     include/mtao/opengl/vao.h
@@ -129,7 +131,7 @@ ADD_LIBRARY(mtao_opengl
     src/opengl/shaders/simple.cpp
     src/opengl/shaders/vectors.cpp
     )
-TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl mtao_core)
+TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl mtao_core png)
 
 
 ADD_DEFINITIONS(-g)

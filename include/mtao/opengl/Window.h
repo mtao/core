@@ -5,6 +5,7 @@
 #include <functional>
 #include "imgui_impl.h"
 #include "mtao/hotkey_manager.hpp"
+#include <array>
 
 namespace mtao { namespace opengl {
 
@@ -21,6 +22,13 @@ class Window {
         void setScrollCallback(GLFWscrollfun f);
         void setErrorCallback(GLFWerrorfun f);
         void makeCurrent();
+        std::array<int,2> getSize() const;
+        void setSize(int w, int h);
+        void resize(int w, int h) { setSize(w,h); }
+
+
+        void save_frame(const std::string& filename);
+        void record(const std::function<bool(int)>& f, const std::string& prefix);
 
         void set_render_func(const std::function<void(int,int)>& f) {m_render_func = f;}
         void set_gui_func(const std::function<void()>& f) {m_gui_func = f;}

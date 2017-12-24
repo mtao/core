@@ -3,7 +3,9 @@
 #include <sstream>
 #include <stdexcept>
 #include <imgui.h>
-#include "mtao/logging/logger.hpp"
+#include <vector>
+#include <png++/png.hpp>
+#include <mtao/logging/logger.hpp>
 
 namespace mtao {namespace opengl {
 size_t Window::s_window_count = 0;
@@ -127,5 +129,53 @@ void Window::keyCallback(GLFWwindow* w,int key, int scancode, int action, int mo
     ImGuiImpl::keyCallback(w,key,scancode,action,mods);
 }
 
+
+void Window::setSize(int w, int h) {
+    glfwSetWindowSize(window,w,h);
+}
+
+std::array<int,2> Window::getSize() const {
+    std::array<int,2> size;
+    glfwGetWindowSize(window,&size[0],&size[1]);
+    return size;
+}
+
+void Window::save_frame(const std::string& filename) {
+
+    auto [w,h] = getSize();
+    std::vector<unsigned char> data(4*w*h);
+    mtao::logging::info() << "Saving frame to disk(" << filename << "): " << w << "x" << h;
+    //glReadBuffer(GL_FRONT);
+    glReadPixels(0,0,w,h,GL_RGBA,GL_UNSIGNED_BYTE, data.data());
+    png::image<png::rgba_pixel> image(w,h);
+
+    std::cout << "Writing to image" << std::endl;
+    for (png::uint_32 y = 0; y < image.get_height(); ++y)
+    {
+        for (png::uint_32 x = 0; x < image.get_width(); ++x)
+        {
+            size_t o = 4*((h-1-y) * w+x);
+            image[y][x] = png::rgba_pixel(
+                    data[o+0],
+                    data[o+1],
+                    data[o+2],
+                    data[o+3]
+                    );
+        }
+    }
+
+    image.write(filename);
+}
+void Window::record(const std::function<bool(int)>& f, const std::string& prefix) {
+
+    int idx = 0;
+    while(f(idx++)) {
+        draw();
+
+        std::stringstream ss;
+        ss << prefix << idx << ".png";
+        save_frame(ss.str());
+    }
+}
 
 }}
