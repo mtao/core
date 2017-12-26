@@ -81,7 +81,7 @@ void render(int width, int height) {
     renderer->set_mvp(mv,p);
     renderer->render();
     if(save_frame) {
-        renderers::Renderer::save_frame("frame.png", width,height);
+        window->save_frame("frame.png");
     save_frame = false;
     }
 
@@ -112,6 +112,11 @@ int main(int argc, char * argv[]) {
         Mesh m(argv[1]);
         prepare_mesh(m);
     }
+
+    animate = true;
+    window->record([&](int frame) -> bool {
+            return frame < 20;
+            }, "frame");
     window->run();
 
     exit(EXIT_SUCCESS);
