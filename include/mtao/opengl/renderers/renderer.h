@@ -19,7 +19,6 @@ class Renderer {
         VAO& vao() { return *m_vertex_attributes; }
         const VAO& vao() const { return *m_vertex_attributes; }
 
-        static void save_frame(const std::string& filename, int w, int h) ;
 
 
     private:
