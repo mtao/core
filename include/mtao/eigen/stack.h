@@ -1,5 +1,5 @@
-#ifndef EIGEN_INTERWEAVE_H
-#define EIGEN_INTERWEAVE_H
+#pragma once
+
 #include <Eigen/Dense>
 #include <tuple>
 #include <utility>
@@ -7,9 +7,8 @@
 
 
 namespace mtao { namespace eigen {
-
     template <bool Rows, typename... Args, int... N>
-        auto _interweave(std::integer_sequence<int,N...>, const Args&... args) {
+        auto _stack(std::integer_sequence<int,N...>, const Args&... args) {
             using namespace Eigen;
             constexpr static int S = sizeof...(Args);
             using Scalar = typename std::tuple_element<0,std::tuple<Args...>>::type::Scalar;
@@ -21,18 +20,22 @@ namespace mtao { namespace eigen {
 
             constexpr static int myCompRows = (minCompileRows==Dynamic)?Dynamic:(Rows?S:1)*maxCompileRows;
             constexpr static int myCompCols = (minCompileCols==Dynamic)?Dynamic:(Rows?1:S)*maxCompileCols;
-
-
-
             int rows;
             int cols;
+            std::vector<int> offset(1,0);
+            auto push_sum = [&](int size) {
+                offset.push_back(offset.back() + size);
+            };
             if constexpr(Rows) {
                 rows = (args.rows() + ... + 0);
                 cols = std::max( {args.cols()...}) ;
+                (push_sum(args.rows()),...);
             } else {
                 rows = std::max( {args.rows()...}) ;
                 cols = (args.cols() + ... + 0);
+                (push_sum(args.cols()),...);
             }
+
 
             using Matf = Matrix<Scalar,myCompRows,myCompCols>;
             Matf A = Matf::Constant(rows,cols,0);
@@ -40,21 +43,21 @@ namespace mtao { namespace eigen {
             using MyStride = Stride<Dynamic,Dynamic>;
 
             if constexpr(Rows) {
-                (Map<MatXf, 0,MyStride>(A.data() + N, args.rows(),args.cols(), MyStride(S*args.rows(),S)).operator=(args),...);
+                (A.block(offset[N],0,args.rows(),args.cols()).operator=(args),...);
             } else {
-                (Map<MatXf, 0,MyStride>(A.data() + N * rows, args.rows(),args.cols(), MyStride(S,1)).operator=(args),...);
+                (A.block(0,offset[N],args.rows(),args.cols()).operator=(args),...);
             }
 
             return A;
         }
+
     template <typename... Args>
-        auto interweaveRows(const Args&... args) {
-            return _interweave<true>(std::make_integer_sequence<int,sizeof...(Args)>(), std::forward<const Args&>(args)...);
+        auto vstack(const Args&... args) {
+            return _stack<true>(std::make_integer_sequence<int,sizeof...(Args)>(), std::forward<const Args&>(args)...);
         }
     template <typename... Args>
-        auto interweaveCols(const Args&... args) {
-            return _interweave<false>(std::make_integer_sequence<int,sizeof...(Args)>(), std::forward<const Args&>(args)...);
+        auto hstack(const Args&... args) {
+            return _stack<false>(std::make_integer_sequence<int,sizeof...(Args)>(), std::forward<const Args&>(args)...);
         }
 
 }}
-#endif//EIGEN_INTERWEAVE_H

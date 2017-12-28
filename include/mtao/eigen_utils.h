@@ -3,6 +3,7 @@
 
 
 #include "mtao/eigen/interweave.h"
+#include "mtao/eigen/stack.h"
 #include "mtao/eigen/axial_subspace.h"
 
 namespace mtao {
