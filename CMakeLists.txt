@@ -59,6 +59,9 @@ SET(COMMON_HEADERS
     include/mtao/types.h
     include/mtao/util.h
     include/mtao/eigen_utils.h
+    include/mtao/eigen/interweave.h
+    include/mtao/eigen/stack.h
+    include/mtao/eigen/axial_subspace.h
     include/mtao/type_utils.h
     )
 
