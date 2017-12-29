@@ -111,18 +111,20 @@ class DECMesh: public DECMeshCore<DECMesh<Derived, T, EmbeddedDim, Dim_>, T, Emb
 
         template <int D>
         SparseMatrix boundary() const { return derived().template boundary<D>(); }
+        /*
         template <int C>
         auto volume(int i) const { return derived().template volume<C>(i); }
         template <int C>
         auto dual_volume(int i) const { return derived().template dual_volume<C>(i); }
+        */
         template <int C>
         int cell_count() const { return derived().template cell_count<C>(); }
         template <int C>
         int dual_cell_count() const { return derived().template dual_cell_count<C>(); }
         template <int D>
-        VecX volume() const;
+        VecX volume() const { return derived().template volume<D>(); }
         template <int D>
-        VecX dual_volume() const;
+        VecX dual_volume() const { return derived().template dual_volume<D>(); }
 };
 template <typename T, int EmbeddedDim, int Dim_>
 class CachedDECMesh: public DECMesh<CachedDECMesh<T, EmbeddedDim,Dim_>, T, EmbeddedDim, Dim_> {
@@ -169,6 +171,7 @@ class CachedDECMesh: public DECMesh<CachedDECMesh<T, EmbeddedDim,Dim_>, T, Embed
 
 };
 
+/*
 template <typename Derived, typename T, int EmbeddedDim, int Dim>
 template <int D>
 auto DECMesh<Derived,T,EmbeddedDim,Dim>::volume() const -> VecX {
@@ -189,6 +192,7 @@ auto DECMesh<Derived,T,EmbeddedDim,Dim>::dual_volume() const -> VecX {
     }
     return v;
 }
+*/
 
 
 
