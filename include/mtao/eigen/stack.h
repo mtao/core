@@ -10,7 +10,6 @@ namespace mtao { namespace eigen {
     template <bool Rows, typename... Args, int... N>
         auto _stack(std::integer_sequence<int,N...>, const Args&... args) {
             using namespace Eigen;
-            constexpr static int S = sizeof...(Args);
             using Scalar = typename std::tuple_element<0,std::tuple<Args...>>::type::Scalar;
 
             constexpr static int minCompileRows = std::min<int>({Args::RowsAtCompileTime...});
@@ -18,8 +17,13 @@ namespace mtao { namespace eigen {
             constexpr static int minCompileCols = std::min<int>({Args::ColsAtCompileTime...});
             constexpr static int maxCompileCols = std::max<int>({Args::ColsAtCompileTime...});
 
-            constexpr static int myCompRows = (minCompileRows==Dynamic)?Dynamic:(Rows?S:1)*maxCompileRows;
-            constexpr static int myCompCols = (minCompileCols==Dynamic)?Dynamic:(Rows?1:S)*maxCompileCols;
+            constexpr static int sumCompileRows = (Args::RowsAtCompileTime + ... + 0);
+            constexpr static int sumCompileCols = (Args::ColsAtCompileTime + ... + 0);
+
+            //constexpr static int myCompRows = (minCompileRows==Dynamic)?Dynamic:(Rows?S:1)*maxCompileRows;
+            //constexpr static int myCompCols = (minCompileCols==Dynamic)?Dynamic:(Rows?1:S)*maxCompileCols;
+            constexpr static int myCompRows = (minCompileRows==Dynamic)?Dynamic:(Rows?sumCompileRows:maxCompileRows);
+            constexpr static int myCompCols = (minCompileCols==Dynamic)?Dynamic:(Rows?maxCompileCols:sumCompileCols);
             int rows;
             int cols;
             std::vector<int> offset(1,0);
@@ -40,7 +44,6 @@ namespace mtao { namespace eigen {
             using Matf = Matrix<Scalar,myCompRows,myCompCols>;
             Matf A = Matf::Constant(rows,cols,0);
 
-            using MyStride = Stride<Dynamic,Dynamic>;
 
             if constexpr(Rows) {
                 (A.block(offset[N],0,args.rows(),args.cols()).operator=(args),...);
