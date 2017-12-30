@@ -15,7 +15,7 @@ struct BO {
         BO& operator=(BO&& other) = default;
 
 
-        void bind();
+        void bind() const;
         void setData(const GLvoid* data, GLsizeiptr size);
         GLenum target() const { return m_target; }
         GLenum usage() const { return m_usage; }
@@ -31,7 +31,8 @@ struct BO {
 struct VBO: public BO {
     public:
         VBO(GLenum mode = GL_POINTS, GLenum usage = GL_STATIC_DRAW, GLenum type = GL_FLOAT);
-        void drawArrays(GLenum mode =GL_INVALID_ENUM );
+        void drawArrays(GLint count, GLenum mode =GL_INVALID_ENUM);
+        void drawArraysStride(GLint stride, GLenum mode =GL_INVALID_ENUM);
     private:
         GLenum m_mode;
         GLint first = 0;
