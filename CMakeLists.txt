@@ -148,6 +148,8 @@ ADD_LIBRARY(mtao_geometry
     include/mtao/geometry/mesh/halfedge_fv_map.hpp
     include/mtao/geometry/mesh/read_obj.hpp
     #include/mtao/geometry/mesh/read_plc.hpp
+    include/mtao/geometry/mesh/boundary_matrix.h
+    include/mtao/geometry/mesh/boundary_facets.h
     )
 
 TARGET_LINK_LIBRARIES(mtao_geometry mtao_core)
