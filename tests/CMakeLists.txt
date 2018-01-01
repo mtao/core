@@ -9,6 +9,7 @@ ADD_EXECUTABLE(volume_test volume_test.cpp)
 ADD_EXECUTABLE(boundary_test boundary_test.cpp)
 ADD_EXECUTABLE(sphere_test sphere_test.cpp)
 ADD_EXECUTABLE(area_normals_test area_normals_test.cpp)
+ADD_EXECUTABLE(type_size_test type_size_test.cpp)
 
 ADD_EXECUTABLE(colvector_loop_test colvector_loop_test.cpp)
 

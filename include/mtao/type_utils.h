@@ -1,6 +1,8 @@
 #ifndef TYPE_UTILS_H
 #define TYPE_UTILS_H
 #include <cxxabi.h>
+#include <type_traits>
+#include <string>
 
 namespace mtao { namespace types {
 
@@ -29,6 +31,16 @@ std::string getTypeName() {
 template <typename T>
 std::string getTypeName(const T& t) {
     return getTypeName<T>();
+}
+
+template <typename T>
+size_t container_size(const T& container) {
+    return container.size();
+}
+
+template <typename T, int N>
+constexpr size_t container_size(const T (&V)[N]) {
+    return N;
 }
 }}
 #endif//TYPE_UTILS_H
