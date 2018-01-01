@@ -16,8 +16,11 @@ namespace mtao {
             const std::vector<std::string>& args() const {return m_args;}
             const std::string& args(size_t idx) const {return m_args[idx];}
 
+            struct AntiBool {
+                std::string target_name;
+            };
 
-            using Option = std::variant<bool,int,double,std::string>;
+            using Option = std::variant<bool,int,double,std::string,AntiBool>;
 
             /*
             class Option {
@@ -51,6 +54,7 @@ namespace mtao {
             template <typename T>
                 const T& optT(const std::string& optname) const;
 
+            //add_option explicitly doesnt overwrite oexisting options
             void add_option(const std::string& optname, const Option& default_value = false);
             const std::map<std::string,Option>& opts() const {return m_opts;} 
             const Option& opt(const std::string&) const;
