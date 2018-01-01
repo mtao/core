@@ -73,6 +73,7 @@ namespace mtao {
                         v = true;
                     } else if constexpr(std::is_same_v<T,AntiBool>) {
         if(auto argit = m_opts.find(v.target_name); argit != m_opts.end()) {
+        assert(std::holds_alternative<bool>(argit->second));
             argit->second = false;
         }
                     } else {
@@ -148,7 +149,9 @@ namespace mtao {
                 if constexpr (std::is_same_v<T,bool>) {
                 return v?"true":"false";
                 } else if constexpr(std::is_same_v<T,AntiBool>) {
-                bool val = std::get<bool>(opt(v.target_name));
+                auto bopt = opt(v.target_name);
+                assert(std::holds_alternative<bool>(bopt));
+                bool val = std::get<bool>(bopt);
                 return v.target_name + ((val)?"=true":"=false");
                 } else {
                 std::stringstream ss;
