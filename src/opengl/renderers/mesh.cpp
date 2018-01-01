@@ -98,9 +98,9 @@ namespace mtao { namespace opengl { namespace renderers {
         auto compute_mean_edge_length = [&](const MatrixXgf& V) -> float {
             float ret = 0;
             for(int i = 0; i < F.cols(); ++i) {
-                for(int j = 0; j < 3; ++j) {
+                for(int j = 0; j < F.rows(); ++j) {
                     int a = F(j,i);
-                    int b = (F(j,i)+1)%3;
+                    int b = (F(j,i)+1)%F.rows();
                     ret += (V.col(a) - V.col(b)).norm();
                 }
             }
