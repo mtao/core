@@ -59,7 +59,7 @@ namespace mtao {
                 m_args.push_back(tok);
             }
         }
-#ifdef NDEBUG
+#ifndef NDEBUG
         clp_internal::clp_inline_test(*this);
 #endif
     }
