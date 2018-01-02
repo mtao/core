@@ -62,4 +62,8 @@ namespace mtao { namespace opengl {
             return p;
         }
 
+        glm::vec2 Camera::mouse_pos() const {
+            auto&& io = ImGui::GetIO();
+            return mouse_pos(io.MousePos);
+        }
 }}

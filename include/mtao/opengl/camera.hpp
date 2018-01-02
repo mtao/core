@@ -32,6 +32,7 @@ class Camera {
         glm::vec2 mouse_pos(const glm::vec2& p) const;
         glm::vec2 mouse_pos(float x, float y) const;
         glm::vec2 mouse_pos(const ImVec2& mp) const;
+        glm::vec2 mouse_pos() const;
     private:
         glm::mat4 m_model,m_view,m_perspective;
         glm::ivec2 m_shape;
