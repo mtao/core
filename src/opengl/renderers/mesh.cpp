@@ -26,7 +26,7 @@ namespace mtao { namespace opengl { namespace renderers {
     MeshRenderer::MeshRenderer(int dim): m_dim(dim) {
         if(dim == 2 || dim == 3) {
             if(!shaders_enabled()) {
-                loadShaders(dim);
+                loadShaders(m_dim);
             }
             update_edge_threshold();
             update_phong_shading();
@@ -98,9 +98,9 @@ namespace mtao { namespace opengl { namespace renderers {
         auto compute_mean_edge_length = [&](const MatrixXgf& V) -> float {
             float ret = 0;
             for(int i = 0; i < F.cols(); ++i) {
-                for(int j = 0; j < 3; ++j) {
+                for(int j = 0; j < F.rows(); ++j) {
                     int a = F(j,i);
-                    int b = (F(j,i)+1)%3;
+                    int b = (F(j,i)+1)%F.rows();
                     ret += (V.col(a) - V.col(b)).norm();
                 }
             }
@@ -230,7 +230,7 @@ namespace mtao { namespace opengl { namespace renderers {
 
 
 
-        auto vertex_shader = shaders::simple_vertex_shader(dim);
+        auto vertex_shader = shaders::simple_vertex_shader(m_dim);
         auto flat_fragment_shader = shaders::single_color_fragment_shader();
         auto baryedge_fragment_shader = shaders::barycentric_edge_fragment_shader();
         auto baryedge_geometry_shader = shaders::barycentric_edge_geometry_shader();
@@ -386,7 +386,7 @@ namespace mtao { namespace opengl { namespace renderers {
                 vector_field_program()->getUniform("vector_scale").set(m_vector_scale);
                 auto vpos_active = vector_field_program()->getAttrib("vPos").enableRAII();
                 auto vvel_active = vector_field_program()->getAttrib("vVec").enableRAII();
-                buffs.vertices->drawArrays();
+                buffs.vertices->drawArraysStride(m_dim);
 
             } else {
                 mtao::logging::warn() << "vertex velocities not set, can't render vfield" ;
@@ -404,7 +404,7 @@ namespace mtao { namespace opengl { namespace renderers {
             flat_program()->getUniform("color").setVector(m_vertex_color);
 
             auto vpos_active = flat_program()->getAttrib("vPos").enableRAII();
-            buffs.vertices->drawArrays();
+            buffs.vertices->drawArraysStride(m_dim);
         } else if(style == VertexType::Color) {
             if(!buffs.colors) {
                 mtao::logging::warn() << "vertex colors not set, can't render vertices" ;
@@ -415,7 +415,7 @@ namespace mtao { namespace opengl { namespace renderers {
             auto vcol_active = phong_program()->getAttrib("vColor").enableRAII();
 
             auto vpos_active = vert_color_program()->getAttrib("vPos").enableRAII();
-            buffs.vertices->drawArrays();
+            buffs.vertices->drawArraysStride(m_dim);
         }
 
 

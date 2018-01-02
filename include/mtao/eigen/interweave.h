@@ -37,7 +37,6 @@ namespace mtao { namespace eigen {
             using Matf = Matrix<Scalar,myCompRows,myCompCols>;
             Matf A = Matf::Constant(rows,cols,0);
 
-            using MatXf = Matrix<Scalar,Dynamic,Dynamic>;
             using MyStride = Stride<Dynamic,Dynamic>;
 
             if constexpr(Rows) {

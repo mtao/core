@@ -71,7 +71,7 @@ Mesh::Mesh(const std::string& filename) {
             if(front[0] == 'f') {
                 GLuint first = get_slash_token<0>(tokens[1]);
                 GLuint left = get_slash_token<0>(tokens[2]);
-                for(int i = 3; i < tokens.size(); ++i) {
+                for(size_t i = 3; i < tokens.size(); ++i) {
                     GLuint right = get_slash_token<0>(tokens[i]);
                     tris.emplace_back(Tri{{first,left,right}});
                     left = right;

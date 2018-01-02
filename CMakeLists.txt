@@ -59,6 +59,9 @@ SET(COMMON_HEADERS
     include/mtao/types.h
     include/mtao/util.h
     include/mtao/eigen_utils.h
+    include/mtao/eigen/interweave.h
+    include/mtao/eigen/stack.h
+    include/mtao/eigen/axial_subspace.h
     include/mtao/type_utils.h
     )
 
@@ -140,9 +143,13 @@ ADD_LIBRARY(mtao_geometry
     src/geometry/mesh/halfedge.cpp
     src/geometry/mesh/halfedge_fv_map.cpp
     src/geometry/mesh/read_obj.cpp
+    #src/geometry/mesh/read_plc.cpp
     include/mtao/geometry/mesh/halfedge.hpp
     include/mtao/geometry/mesh/halfedge_fv_map.hpp
     include/mtao/geometry/mesh/read_obj.hpp
+    #include/mtao/geometry/mesh/read_plc.hpp
+    include/mtao/geometry/mesh/boundary_matrix.h
+    include/mtao/geometry/mesh/boundary_facets.h
     )
 
 TARGET_LINK_LIBRARIES(mtao_geometry mtao_core)

@@ -1,17 +1,17 @@
-#include "opengl/Window.h"
+#include "mtao/opengl/Window.h"
 #include <iostream>
 #include "imgui.h"
-#include "opengl/shader.h"
-#include "opengl/vao.h"
-#include "opengl/bo.h"
+#include "mtao/opengl/shader.h"
+#include "mtao/opengl/vao.h"
+#include "mtao/opengl/bo.h"
 #include <memory>
 #include "mesh.h"
 #include <algorithm>
 
 #include <glm/gtc/matrix_transform.hpp> 
 #include <glm/gtc/type_ptr.hpp> 
-#include "opengl/renderers/mesh.h"
-#include "opengl/camera.hpp"
+#include "mtao/opengl/renderers/mesh.h"
+#include "mtao/opengl/camera.hpp"
 
 using namespace mtao::opengl;
 
@@ -29,7 +29,7 @@ std::unique_ptr<ShaderProgram> edge_program;
 std::unique_ptr<Window> window;
 
 
-Camera cam;
+Camera2D cam;
 
 void set_mvp(int w, int h) {
     cam.set_shape(w,h);
@@ -38,9 +38,11 @@ void set_mvp(int w, int h) {
     m = glm::rotate(m,(float) rotation_angle,glm::vec3(0,0,1));
 
     //cam.v() = glm::lookAt(glm::vec3(1,0,0), glm::vec3(0,0,0), glm::vec3(0,1,0));
-    cam.ortho(look_distance);
+    cam.pan();
+    cam.set_scale(look_distance);
+    cam.update();
 
-    mvp_it = glm::transpose(glm::inverse(cam.mvp()));
+    mvp_it = cam.mvp_inv_trans();
 
 }
 
@@ -77,6 +79,9 @@ void gui_func() {
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
     }
+    if(ImGui::Button("Reset  Translation?")) {
+        cam.reset();
+    }
 
 }
 
@@ -97,7 +102,7 @@ void render(int width, int height) {
     renderer->render();
     auto&& io = ImGui::GetIO();
     auto p = cam.mouse_pos(io.MousePos);
-    mtao::logging::trace() << "Mouse coordinate: " << p.x << "," << p.y;
+    //mtao::logging::trace() << "Mouse coordinate: " << p.x << "," << p.y;
 
 
 }

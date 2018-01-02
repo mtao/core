@@ -9,19 +9,24 @@ namespace mtao { namespace opengl {
 class Camera {
     public:
 
-        MTAO_ACCESSORS(glm::mat4,m,m_model)
+        virtual glm::mat4 m() const {return m_model; }
+        glm::mat4& m() { return m_model; }
+
+        //MTAO_ACCESSORS(glm::mat4,m,m_model)
         MTAO_ACCESSORS(glm::mat4,v,m_view)
         MTAO_ACCESSORS(glm::mat4,p,m_perspective)
         MTAO_ACCESSORS(float,zNear,m_zRange[0]);
         MTAO_ACCESSORS(float,zFar,m_zRange[1]);
+        MTAO_ACCESSOR_CONST(glm::ivec2,shape,m_shape);
 
         glm::mat4 mv() const;
         glm::mat4 mvp() const;
+        glm::mat4 mvp_inv_trans() const;
 
         void set_shape(int w, int h);
         float aspect() const;
 
-        void ortho(float distance=1.0f);
+        void ortho(float scale=1.0f);
 
         void perspective(float fovy=45.0);
 
@@ -40,6 +45,22 @@ class Camera {
 };
 
 class Camera2D: public Camera {
+    public:
+
+        float& scale() { return m_scale; }
+        float scale() const { return m_scale; }
+        void set_scale(float scale);
+        void update();
+        void pan();
+        void enableDrag() { m_dragMode = true;}
+        void disableDrag() { m_dragMode = false; }
+        void reset(); 
+        glm::mat4 m() const;
+
+    private:
+        float m_scale = 1.0;
+        bool m_dragMode = false;
+        glm::vec2 m_translation;
 };
 }}
 #undef ACCESSOR

@@ -1,12 +1,12 @@
 #pragma once
-#include "types.h"
+#include "mtao/types.h"
 namespace mtao { namespace geometry {
     template <typename T, int D, int C>
-    auto barycentric_weights(const ColVectors<T,D>& P, const mtao::Vector<int,C>& indices, const mtao::Vector<T,D>& p) const -> mtao::VectorX<T,C> {
+    auto barycentric(const ColVectors<T,D>& P, const mtao::Vector<int,C>& indices, const mtao::Vector<T,D>& p) -> mtao::Vector<T,C> {
 
         int cell_size = indices.rows();
         mtao::Vector<T,C> weights(cell_size);
-        //Scalar weight_sum = 0;
+        //T weight_sum = 0;
         constexpr static T epsilon = 1e-3;
         using Vec = mtao::Vector<T,D>;
 
@@ -34,8 +34,8 @@ namespace mtao { namespace geometry {
                 return mtao::Vector<T,C>::Unit(cell_size,i);
             } else if(boundary_dist(q,qn) <= err) {//sits on an edge
                 weights.setZero();
-                Scalar dn = (p-qn).norm();
-                Scalar d = (p-q).norm();
+                T dn = (p-qn).norm();
+                T d = (p-q).norm();
                 weights(i) = dn/(d+dn);
                 weights(ip1) = d/(d+dn);
                 return weights;

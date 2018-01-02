@@ -66,23 +66,30 @@ namespace mtao {
 
     void CommandLineParser::parse_arg(std::vector<std::string>::const_iterator& it, int prefix) {
         const std::string optname = dealias(it->substr(prefix));
-        ++it;
         if(auto argit = m_opts.find(optname); argit != m_opts.end()) {
-            const std::string& value = *it;
             std::visit([&](auto& v) {
                     using T = std::decay_t<decltype(v)>;
-                    try {
                     if constexpr(std::is_same_v<T,bool>) {
-                    v = true;
-                    } else if constexpr(std::is_same_v<T,int>) {
-                    v = std::stoi(value);
-                    } else if constexpr(std::is_same_v<T,double>) {
-                    v = std::stod(value);
-                    } else if constexpr(std::is_same_v<T,std::string>) {
-                    v = value;
-                    }
-                    } catch (const std::invalid_argument& e) {
-                    error() << "Invalid argument: " << argit->first << "("<< opt_type(argit->first) <<"): [" << value <<"]";
+                        v = true;
+                    } else if constexpr(std::is_same_v<T,AntiBool>) {
+        if(auto argit = m_opts.find(v.target_name); argit != m_opts.end()) {
+        assert(std::holds_alternative<bool>(argit->second));
+            argit->second = false;
+        }
+                    } else {
+                        ++it;
+                        const std::string& value = *it;
+                        try {
+                            if constexpr(std::is_same_v<T,int>) {
+                                v = std::stoi(value);
+                            } else if constexpr(std::is_same_v<T,double>) {
+                                v = std::stod(value);
+                            } else if constexpr(std::is_same_v<T,std::string>) {
+                                v = value;
+                            }
+                        } catch (const std::invalid_argument& e) {
+                            error() << "Invalid argument: " << argit->first << "("<< opt_type(argit->first) <<"): [" << value <<"]";
+                        }
                     }
                     },argit->second);
         } else {
@@ -103,8 +110,14 @@ namespace mtao {
     }
 
     void CommandLineParser::add_option(const std::string& optname, const Option& opt) {
+        debug() << "Adding option: " << optname;
         if(auto it = m_opts.find(optname); it == m_opts.end()) {
             m_opts[optname] = opt;
+            std::visit([&](auto&& v) {
+                    using T = std::decay_t<decltype(v)>;
+                    if constexpr (std::is_same_v<T,bool>) {
+                add_option(std::string("no-")+optname,AntiBool{optname});
+                }},opt);
         }
     }
     void CommandLineParser::add_alias(const std::string& name_raw, const std::string& alias) {
@@ -131,10 +144,15 @@ namespace mtao {
         }
     }
     std::string CommandLineParser::opt_str(const std::string& optname) const {
-        return std::visit([](auto&& v) -> std::string {
+        return std::visit([&](auto&& v) -> std::string {
                 using T = std::decay_t<decltype(v)>;
                 if constexpr (std::is_same_v<T,bool>) {
                 return v?"true":"false";
+                } else if constexpr(std::is_same_v<T,AntiBool>) {
+                auto bopt = opt(v.target_name);
+                assert(std::holds_alternative<bool>(bopt));
+                bool val = std::get<bool>(bopt);
+                return v.target_name + ((val)?"=true":"=false");
                 } else {
                 std::stringstream ss;
                 ss << v;

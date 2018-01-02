@@ -1,6 +1,6 @@
 #ifndef MESH_H
 #define MESH_H
-#include <Eigen/Dense>
+#include <mtao/types.h>
 #include <glad/glad.h>
 
 
