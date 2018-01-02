@@ -1,5 +1,5 @@
 #pragma once
-#include "types.h"
+#include "mtao/types.h"
 namespace mtao { namespace geometry {
     template <typename T, int D, int C>
     auto barycentric_weights(const ColVectors<T,D>& P, const mtao::Vector<int,C>& indices, const mtao::Vector<T,D>& p) const -> mtao::VectorX<T,C> {
