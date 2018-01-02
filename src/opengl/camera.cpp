@@ -85,7 +85,6 @@ namespace mtao { namespace opengl {
                 ImVec2 id = io.MouseDelta;
                 m_translation.x +=  aspect() * 2*(id.x/float(shape().x)) * scale();
                 m_translation.y += -2*(id.y/float(shape().y)) * scale();
-                auto&& v = this->v();
 
             }
         }
