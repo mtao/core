@@ -11,6 +11,7 @@ ADD_EXECUTABLE(sphere_test sphere_test.cpp)
 ADD_EXECUTABLE(area_normals_test area_normals_test.cpp)
 ADD_EXECUTABLE(type_size_test type_size_test.cpp)
 ADD_EXECUTABLE(enumerate_test enumerate_test.cpp)
+ADD_EXECUTABLE(element_filter_test element_filter_test.cpp)
 
 ADD_EXECUTABLE(colvector_loop_test colvector_loop_test.cpp)
 
