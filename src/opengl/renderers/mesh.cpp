@@ -309,7 +309,7 @@ namespace mtao { namespace opengl { namespace renderers {
                 update_edge_threshold();
             }
             if(m_show_vector_field) {
-                ImGui::SliderFloat("Vector Scaling", &m_vector_scale,1e-5,1e0);
+                ImGui::SliderFloat("Vector Scaling", &m_vector_scale,1e-5,1e0,"%.5f");
                 ImGui::ColorEdit3("vector tip color", glm::value_ptr(m_vector_tip_color));
                 ImGui::ColorEdit3("vector base color", glm::value_ptr(m_vector_base_color));
                 ImGui::SliderFloat("Vector Color Scaling", &m_vector_color_scale,1e-3,1e1);
