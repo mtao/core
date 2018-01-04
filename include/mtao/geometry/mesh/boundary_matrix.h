@@ -14,18 +14,18 @@ namespace mtao { namespace geometry { namespace mesh {
             using Index = typename CellType::Scalar;
 
             using FacetArray = typename std::array<Index,FacetSize>;
-            using CellArray = typename std::array<Index,CellSize>;
+            //using CellArray = typename std::array<Index,CellSize>;
 
             using FacetVector = typename mtao::Vector<Index,FacetSize>;
-            using CellVector = typename mtao::Vector<Index,CellSize>;
+            //using CellVector = typename mtao::Vector<Index,CellSize>;
 
             std::map<std::array<Index,FacetSize>,std::tuple<int,T>> facet_map;
 
             auto swap_and_sign = [](auto&& f) {
                 T sign = 1;
-                for(int i = 0; i < f.size(); ++i) {
+                for(unsigned int i = 0; i < f.size(); ++i) {
                     auto&& vi = f[i];
-                    for(int j = i+1; j < f.size(); ++j) {
+                    for(unsigned int j = i+1; j < f.size(); ++j) {
                         auto&& vj = f[j];
                         if(vj < vi) {
                             sign *= -1;
