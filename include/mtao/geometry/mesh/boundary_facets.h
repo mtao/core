@@ -14,7 +14,7 @@ auto boundary_facets(const Eigen::MatrixBase<CellType>& C) {
 
 
     constexpr static int CellSize = CellType::RowsAtCompileTime;
-    constexpr static int FacetSize = CellSize - 1;
+    constexpr static int FacetSize = (CellSize<1)?CellSize:(CellSize - 1);
     using FacetType = mtao::ColVectors<typename CellType::Scalar,FacetSize>;
 
     using Index = typename CellType::Scalar;

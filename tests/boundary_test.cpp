@@ -30,6 +30,7 @@ int main() {
             std::copy(elems.begin(),elems.end(),std::ostream_iterator<int>(std::cout, ", "));
             std::cout << std::endl;
         }
+        std::cout << mtao::geometry::mesh::boundary_elements(E,P) << std::endl;
     }
     std::cout << "=====" << std::endl;
     {std::cout << "Triangles" << std::endl;
@@ -61,6 +62,7 @@ int main() {
             std::copy(elems.begin(),elems.end(),std::ostream_iterator<int>(std::cout, ", "));
             std::cout << std::endl;
         }
+        std::cout << mtao::geometry::mesh::boundary_elements(T,E) << std::endl;
     }
     std::cout << "=====" << std::endl;
     {std::cout << "Tetrahedra" << std::endl;
@@ -92,5 +94,8 @@ int main() {
             std::copy(elems.begin(),elems.end(),std::ostream_iterator<int>(std::cout, ", "));
             std::cout << std::endl;
         }
+        std::cout << mtao::geometry::mesh::boundary_elements(T,F) << std::endl;
+        std::cout << "=====" << std::endl;
+        std::cout << mtao::geometry::mesh::boundary_elements_sized<4>(Eigen::MatrixXi(T),Eigen::MatrixXi(F)) << std::endl;
     }
 }
