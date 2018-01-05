@@ -39,10 +39,12 @@ namespace mtao { namespace geometry { namespace mesh {
 
 
     template <int CellSize, typename CellType, typename FacetType>
-        CellType boundary_elements_sized(const Eigen::MatrixBase<CellType>& C, const Eigen::MatrixBase<FacetType>& F) {
+        auto boundary_elements_sized(const Eigen::MatrixBase<CellType>& C, const Eigen::MatrixBase<FacetType>& F) {
+
 
             constexpr static int FacetSize = CellSize - 1;
 
+            static_assert((FacetSize == FacetType::RowsAtCompileTime) || (FacetType::RowsAtCompileTime == Eigen::Dynamic));
             static_assert(CellSize == FacetSize+1);
 
             using Index = typename CellType::Scalar;
@@ -53,9 +55,10 @@ namespace mtao { namespace geometry { namespace mesh {
 
             CellIndexer<FacetSize> fi(F);
 
+            using RetType = Eigen::Matrix<Index, CellType::RowsAtCompileTime, CellType::ColsAtCompileTime>;
 
 
-            CellType R = CellType::Constant(C.rows(),C.cols(),-1);
+            RetType R = CellType::Constant(C.rows(),C.cols(),-1);
 
             FacetArray f;
             Eigen::Map<FacetVector> fm(f.data());
