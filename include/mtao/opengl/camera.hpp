@@ -62,5 +62,36 @@ class Camera2D: public Camera {
         bool m_dragMode = false;
         glm::vec2 m_translation;
 };
+class Camera3D: public Camera {
+    public:
+
+        glm::vec3& camera_pos() { return m_camera_pos; }
+        glm::vec3& target_pos() { return m_target_pos; }
+        glm::vec3& camera_up() { return m_camera_up; }
+        const glm::vec3& camera_pos() const { return m_camera_pos; }
+        const glm::vec3& target_pos() const { return m_target_pos; }
+        const glm::vec3& camera_up() const { return m_camera_up; }
+        void set_distance(float distance);
+        
+        void update();
+        void pan();
+        void enableDrag() { m_dragMode = true;}
+        void disableDrag() { m_dragMode = false; }
+        void enableAngularDrag() { m_angularDragMode = true;}
+        void disableAngularDrag() { m_angularDragMode = false; }
+        void reset(); 
+        glm::mat4 m() const;
+
+    private:
+        float m_scale = 1.0;
+        glm::vec3 m_camera_pos = glm::vec3(0,0,5);
+        glm::vec3 m_target_pos = glm::vec3(0,0,0);
+        glm::vec3 m_camera_up = glm::vec3(0,1,0);
+        bool m_dragMode = false;
+        bool m_angularDragMode = false;
+        float m_fov_y = 45.0;
+        glm::vec3 m_translation;
+        glm::vec3 m_rotation;
+};
 }}
 #undef ACCESSOR

@@ -66,37 +66,108 @@ namespace mtao { namespace opengl {
         return p;
     }
 
-        void Camera2D::set_scale(float scale) {
-            m_scale = scale;
-            update();
-        }
-        void Camera2D::update() {
-            ortho(m_scale);
-        }
+    glm::vec2 Camera::mouse_pos() const {
+        auto&& io = ImGui::GetIO();
+        return mouse_pos(io.MousePos);
+    }
 
-        void Camera2D::pan() {
+    void Camera2D::set_scale(float scale) {
+        m_scale = scale;
+        update();
+    }
+    void Camera2D::update() {
+        ortho(m_scale);
+    }
+
+    void Camera2D::pan() {
+        auto&& io = ImGui::GetIO();
+        if(io.KeyShift) {
             if(ImGui::IsMouseClicked(0)) {
                 enableDrag();
-            } else if(ImGui::IsMouseReleased(0)) {
-                disableDrag();
             }
-            if(m_dragMode) {
-                auto&& io = ImGui::GetIO();
-                ImVec2 id = io.MouseDelta;
-                m_translation.x +=  aspect() * 2*(id.x/float(shape().x)) * scale();
-                m_translation.y += -2*(id.y/float(shape().y)) * scale();
+        } 
+        if(ImGui::IsMouseReleased(0)) {
+            disableDrag();
+        }
+        if(!m_dragMode) {
+            return;
+        }
+        ImVec2 id = io.MouseDelta;
+        glm::vec2 dx(
+                aspect() * 2*(id.x/float(shape().x)) * scale(),
+                -2*(id.y/float(shape().y)) * scale());
+        if(m_dragMode) {
+            m_translation += dx;
 
+        }
+    }
+    void Camera2D::reset() {
+        m_translation = glm::vec2();
+    }
+    glm::mat4 Camera2D::m() const {
+        return glm::translate(Camera::m(),glm::vec3(m_translation,0));
+    }
+
+
+    void Camera3D::reset() {
+        m_translation = glm::vec3();
+        m_rotation = glm::vec3();
+    }
+    glm::mat4 Camera3D::m() const {
+        //auto r = glm::rotate(Camera::m(), m_rotation);
+        auto r = glm::rotate(Camera::m(), m_rotation.x, glm::vec3(1.f,0.f,0.f));
+        r = glm::rotate(r,                m_rotation.y, glm::vec3(0.f,1.f,0.f));
+        r = glm::rotate(r,                m_rotation.z, glm::vec3(0.f,0.f,1.f));
+        return glm::translate(r,m_translation);
+    }
+
+    void Camera3D::set_distance(float distance) {
+        glm::vec3 d = glm::normalize(camera_pos() - target_pos());
+        camera_pos() = target_pos() + distance * d;
+        update();
+    }
+    void Camera3D::update() {
+        v() = glm::lookAt(m_camera_pos,m_target_pos,m_camera_up);
+        perspective(m_fov_y);
+    }
+
+    void Camera3D::pan() {
+        auto&& io = ImGui::GetIO();
+        if(io.KeyShift) {
+            if(ImGui::IsMouseClicked(0)) {
+                enableDrag();
+            } 
+            if(ImGui::IsMouseClicked(1)) {
+                enableAngularDrag();
             }
+        } 
+        if(ImGui::IsMouseReleased(0)) {
+            disableDrag();
         }
-        void Camera2D::reset() {
-            m_translation = glm::vec2();
+        if(ImGui::IsMouseReleased(1)) {
+            disableAngularDrag();
         }
-        glm::mat4 Camera2D::m() const {
-            return glm::translate(Camera::m(),glm::vec3(m_translation,0));
+        if(!(m_dragMode || m_angularDragMode)) {
+            return;
+        }
+        ImVec2 id = io.MouseDelta;
+        glm::vec2 dx(
+                aspect() * 2*(id.x/float(shape().x)),
+                -2*(id.y/float(shape().y)));
+        if(m_dragMode) {
+            m_translation.x += dx.x;
+            m_translation.y += dx.y;
+
+        }
+        if (m_angularDragMode) {
+
+            m_rotation.y += dx.x;
+            m_rotation.x -= dx.y;
         }
 
-        glm::vec2 Camera::mouse_pos() const {
-            auto&& io = ImGui::GetIO();
-            return mouse_pos(io.MousePos);
-        }
+    }
+
+
+
 }}
+

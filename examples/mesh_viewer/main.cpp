@@ -9,10 +9,12 @@
 #include <algorithm>
 #include "mtao/opengl/renderers/mesh.h"
 #include "mtao/geometry/mesh/sphere.hpp"
+#include "mtao/opengl/camera.hpp"
 
 #include <glm/gtc/matrix_transform.hpp> 
 
 using namespace mtao::opengl;
+Camera3D cam;
 
 
 
@@ -33,10 +35,23 @@ void prepare_mesh(const Mesh& m) {
     renderers::MeshRenderer::MatrixXgf C = renderer->computeNormals(m.V,m.F).array();
     renderer->setColor(C);
 }
+void set_mvp(int w, int h) {
+    cam.set_shape(w,h);
+    auto&& m = cam.m();
+    m = glm::mat4();
+    m = glm::rotate(m,(float) rotation_angle,glm::vec3(0,0,1));
+
+    //cam.v() = glm::lookAt(glm::vec3(1,0,0), glm::vec3(0,0,0), glm::vec3(0,1,0));
+    cam.pan();
+    cam.set_distance(look_distance);
+    cam.update();
+
+
+}
 
 void gui_func() {
     {
-        float look_min=1.0f, look_max=5.0f;
+        float look_min=1.0f, look_max=20.0f;
         ImGui::Text("Hello, world!");
         ImGui::SliderFloat("look_distance", &look_distance, look_min,look_max,"%.3f");
         ImGui::ColorEdit3("clear color", (float*)&clear_color);
@@ -51,6 +66,9 @@ void gui_func() {
 
         renderer->imgui_interface();
     }
+    if(ImGui::Button("Reset  Translation?")) {
+        cam.reset();
+    }
 
 }
 
@@ -64,21 +82,11 @@ void render(int width, int height) {
 
     glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
 
-    glm::mat4 m,v,mv,p,mvp;
-    float rot_ang = animate?((float) glfwGetTime() / 5.0f):rotation_angle;
-    float rot_ang2 = animate?((float) glfwGetTime() / 10.0f):rotation_angle2;
-    m = glm::rotate(m,rot_ang,glm::vec3(0,1,0));
-    m = glm::rotate(m,rot_ang2,glm::vec3(0,0,1));
-    p = glm::perspective(45.f,ratio,.1f,10.0f);
-    //p = glm::ortho(-ratio,ratio,-1.f,1.f,1.f,-1.f);
-
-    v = glm::lookAt(glm::vec3(0,0,look_distance), glm::vec3(0,0,0), glm::vec3(0,1,0));
-    mv = v*m;
-    mvp = p * mv;
+    set_mvp(width,height);
 
 
-    renderer->set_mvp(mvp);
-    renderer->set_mvp(mv,p);
+    renderer->set_mvp(cam.mvp());
+    renderer->set_mvp(cam.mv(),cam.p());
     renderer->render();
     if(save_frame) {
         window->save_frame("frame.png");
