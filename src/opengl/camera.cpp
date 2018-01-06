@@ -20,7 +20,11 @@ namespace mtao { namespace opengl {
         m_shape = glm::ivec2(w,h);
     }
     float Camera::aspect() const {
+        if(m_shape[1] != 0) {
         return m_shape[0] / float(m_shape[1]);
+        } else {
+            return 1;
+        }
     }
     void Camera::ortho(float scale) {
         float a = aspect();
