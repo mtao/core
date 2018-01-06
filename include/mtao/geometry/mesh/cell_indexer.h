@@ -29,8 +29,10 @@ namespace mtao { namespace geometry { namespace mesh {
                 }
                 IndexType operator()(std::array<IndexType,D> f) const {
                     std::sort(f.begin(),f.end());
+
                     return m_map.at(f);
                 }
+                const auto& map() const { return m_map; }
 
             private:
                 std::map<std::array<IndexType,D>,IndexType> m_map;
