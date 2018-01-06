@@ -11,6 +11,7 @@ class Camera {
 
         virtual glm::mat4 m() const {return m_model; }
         glm::mat4& m() { return m_model; }
+        void set_m(const glm::mat4& a) { m_model = a; }
 
         //MTAO_ACCESSORS(glm::mat4,m,m_model)
         MTAO_ACCESSORS(glm::mat4,v,m_view)
