@@ -109,6 +109,5 @@ Mesh::Mesh(const std::string& filename) {
     for(int i = 0; i < V.cols(); ++i) {
         bb.extend(V.col(i));
     }
-    std::cout << bb.min().transpose() << " || " << bb.max().transpose() << std::endl;
 }
 

@@ -9,6 +9,7 @@
 #include <algorithm>
 #include "mtao/opengl/renderers/mesh.h"
 #include "mtao/geometry/mesh/sphere.hpp"
+#include "mtao/geometry/bounding_box.hpp"
 #include "mtao/opengl/camera.hpp"
 
 #include <glm/gtc/matrix_transform.hpp> 
@@ -30,7 +31,15 @@ ImVec4 clear_color = ImColor(114, 144, 154);
 void prepare_mesh(const Mesh& m) {
     renderer = std::make_unique<renderers::MeshRenderer>(3);
 
-    renderer->setMesh(m.V,m.F,true);
+
+    mtao::ColVectors<float,3> V = m.V;
+    auto bb = mtao::geometry::bounding_box(V);
+
+    float scale = bb.sizes().maxCoeff();
+
+    V /= scale;
+
+    renderer->setMesh(V,m.F,true);
 
     renderers::MeshRenderer::MatrixXgf C = renderer->computeNormals(m.V,m.F).array();
     renderer->setColor(C);
@@ -45,6 +54,8 @@ void set_mvp(int w, int h) {
     cam.pan();
     cam.set_distance(look_distance);
     cam.update();
+
+
 
 
 }

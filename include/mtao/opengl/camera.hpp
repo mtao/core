@@ -42,12 +42,13 @@ class Camera {
     private:
         glm::mat4 m_model,m_view,m_perspective;
         glm::ivec2 m_shape;
-        glm::vec2 m_zRange = glm::vec2(-1.0f,1.0f);
+        glm::vec2 m_zRange = glm::vec2(0.1,10.0f);
 };
 
 class Camera2D: public Camera {
     public:
 
+        Camera2D();
         float& scale() { return m_scale; }
         float scale() const { return m_scale; }
         void set_scale(float scale);
@@ -84,7 +85,6 @@ class Camera3D: public Camera {
         glm::mat4 m() const;
 
     private:
-        float m_scale = 1.0;
         glm::vec3 m_camera_pos = glm::vec3(0,0,5);
         glm::vec3 m_target_pos = glm::vec3(0,0,0);
         glm::vec3 m_camera_up = glm::vec3(0,1,0);

@@ -69,6 +69,10 @@ namespace mtao { namespace opengl {
 
         return p;
     }
+    Camera2D::Camera2D() {
+        zNear() = -1;
+        zFar() = 1;
+    }
 
     glm::vec2 Camera::mouse_pos() const {
         auto&& io = ImGui::GetIO();
@@ -165,7 +169,7 @@ namespace mtao { namespace opengl {
         }
         if (m_angularDragMode) {
 
-            m_rotation.y += dx.x;
+            m_rotation.y -= dx.x;
             m_rotation.x -= dx.y;
         }
 
