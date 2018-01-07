@@ -48,4 +48,24 @@ bool checkOpenGLErrors(const  std::string& str, bool only_last, logging::Level l
 bool checkOpenGLError( const std::string& str ) {
     return checkOpenGLErrors(str,true);
 }
+
+glEnable_scoped::glEnable_scoped(GLenum e): m_enum(e), m_initial_enabled(glIsEnabled(e)) {
+    glEnable(e);
+}
+
+glEnable_scoped::~glEnable_scoped() {
+    if(!m_initial_enabled) {
+        glDisable(m_enum);
+    }
+}
+
+glDisable_scoped::glDisable_scoped(GLenum e): m_enum(e), m_initial_enabled(glIsEnabled(e)) {
+    glDisable(e);
+}
+
+glDisable_scoped::~glDisable_scoped() {
+    if(m_initial_enabled) {
+        glEnable(m_enum);
+    }
+}
 }}
