@@ -70,6 +70,15 @@ class DECMeshCore {
         template <int D>
         SparseMatrix weak_laplacian_up() const;
 
+        template <int D>
+        VecX weak_poisson_down(const VecX& o) const;
+        template <int D>
+        VecX weak_poisson_up(const VecX& o) const;
+        template <int D>
+        VecX weak_poisson_down_rhs(const VecX& o) const;
+        template <int D>
+        VecX weak_poisson_up_rhs(const VecX& o) const;
+
         //Find the ___ part according to HH decomposition
         //i.e o = da + hdhb + g
 
@@ -253,6 +262,30 @@ auto DECMeshCore<Derived,T,EmbeddedDim,Dim>:: weak_laplacian_up() const -> Spars
     return a.transpose() * h<D+1>().asDiagonal() * a;
 }
 
+template <typename Derived, typename T, int EmbeddedDim, int Dim> template <int D>
+auto DECMeshCore<Derived,T,EmbeddedDim,Dim>::weak_poisson_down_rhs(const VecX& o) const -> VecX {
+    return d<D>(o);
+}
+template <typename Derived, typename T, int EmbeddedDim, int Dim> template <int D>
+auto DECMeshCore<Derived,T,EmbeddedDim,Dim>::weak_poisson_up_rhs(const VecX& o) const -> VecX {
+    return d<D-1>().transpose() * h<D>(o);
+
+}
+template <typename Derived, typename T, int EmbeddedDim, int Dim> template <int D>
+auto DECMeshCore<Derived,T,EmbeddedDim,Dim>::weak_poisson_down(const VecX& rhs) const -> VecX {
+    auto L = weak_laplacian_down<D>();
+    Eigen::ConjugateGradient<SparseMatrix, Eigen::Upper|Eigen::Lower> solver(L);
+    VecX p = solver.solveWithGuess(rhs,VecX::Zero(rhs.rows()));
+    p = hi<D>(p);
+    return p;
+}
+template <typename Derived, typename T, int EmbeddedDim, int Dim> template <int D>
+auto DECMeshCore<Derived,T,EmbeddedDim,Dim>::weak_poisson_up(const VecX& rhs) const -> VecX {
+    auto L = weak_laplacian_up<D>();
+    Eigen::ConjugateGradient<SparseMatrix, Eigen::Upper|Eigen::Lower> solver(L);
+    VecX p = solver.solveWithGuess(rhs,VecX::Zero(rhs.rows()));
+    return p;
+}
 
 //Hodge decomposition components
 template <typename Derived, typename T, int EmbeddedDim, int Dim> template <int D>
@@ -264,14 +297,9 @@ auto DECMeshCore<Derived,T,EmbeddedDim,Dim>::exact_up(const VecX& o) const -> Ve
 
 
     //d<D> | hi<D>dt<D>   (h<D+1>)
-    auto L = weak_laplacian_down<D+1>();
 
-    VecX rhs = d<D>(o);
 
-    Eigen::ConjugateGradient<SparseMatrix, Eigen::Upper|Eigen::Lower> solver(L);
-    VecX p = solver.solveWithGuess(rhs,VecX::Zero(rhs.rows()));
-    p = hi<D+1>(p);
-    return p;
+    return weak_poisson_down<D+1>(weak_poisson_down_rhs<D>(o));
 }
 template <typename Derived, typename T, int EmbeddedDim, int Dim> template <int D>
 auto DECMeshCore<Derived,T,EmbeddedDim,Dim>::coexact_down(const VecX& o) const -> VecX {
@@ -281,14 +309,8 @@ auto DECMeshCore<Derived,T,EmbeddedDim,Dim>::coexact_down(const VecX& o) const -
     //p =(dHd^T)^{-1} dHu
 
 
-
     //(hi<D>)    dt<D-1>h<D> | d<D-1>
-    auto L = weak_laplacian_up<D-1>();
-    VecX rhs = d<D-1>().transpose() * h<D>(o);
-
-    Eigen::ConjugateGradient<SparseMatrix, Eigen::Upper|Eigen::Lower> solver(L);
-    VecX p = solver.solveWithGuess(rhs,VecX::Zero(rhs.rows()));
-    return p;
+    return weak_poisson_up<D-1>(weak_poisson_up_rhs<D>(o));
 }
 template <typename Derived, typename T, int EmbeddedDim, int Dim> template <int D>
 auto DECMeshCore<Derived,T,EmbeddedDim,Dim>::exact(const VecX& o) const -> VecX {
