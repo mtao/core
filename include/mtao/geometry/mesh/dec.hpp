@@ -276,7 +276,6 @@ auto DECMeshCore<Derived,T,EmbeddedDim,Dim>::weak_poisson_down(const VecX& rhs) 
     auto L = weak_laplacian_down<D>();
     Eigen::ConjugateGradient<SparseMatrix, Eigen::Upper|Eigen::Lower> solver(L);
     VecX p = solver.solveWithGuess(rhs,VecX::Zero(rhs.rows()));
-    p = hi<D>(p);
     return p;
 }
 template <typename Derived, typename T, int EmbeddedDim, int Dim> template <int D>
@@ -299,7 +298,7 @@ auto DECMeshCore<Derived,T,EmbeddedDim,Dim>::exact_up(const VecX& o) const -> Ve
     //d<D> | hi<D>dt<D>   (h<D+1>)
 
 
-    return weak_poisson_down<D+1>(weak_poisson_down_rhs<D>(o));
+    return hi<D+1>(weak_poisson_down<D+1>(weak_poisson_down_rhs<D>(o)));
 }
 template <typename Derived, typename T, int EmbeddedDim, int Dim> template <int D>
 auto DECMeshCore<Derived,T,EmbeddedDim,Dim>::coexact_down(const VecX& o) const -> VecX {
