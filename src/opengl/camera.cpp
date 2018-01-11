@@ -145,6 +145,7 @@ namespace mtao { namespace opengl {
     }
 
     void Camera3D::pan() {
+        auto&& io = ImGui::GetIO();
         if(io.KeyShift) {
             m_distance += .5 * io.MouseWheel;
             m_distance = std::max<float>(1e-5,m_distance);
