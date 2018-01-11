@@ -40,15 +40,15 @@ namespace mtao { namespace geometry {
             constexpr static int D = SimplexDerived::RowsAtCompileTime;//simplex dim
             using Scalar = typename VertexDerived::Scalar;
 
-            Eigen::Matrix<Scalar,E,N> C(V.rows(),S.cols());
+            mtao::VectorX<Scalar> C(S.cols());
 
-            Eigen::Matrix<Scalar,E,D> v(V.rows(),S.rows());
+            mtao::Matrix<Scalar,E,D> v(V.rows(),S.rows());
             for(int i = 0; i < S.cols(); ++i) {
                 auto s = S.col(i);
                 for(int j = 0; j < S.rows(); ++j) {
                     v.col(j) = V.col(s(j));
                 }
-                C.col(i) = volume(v);
+                C(i) = volume(v);
             }
             return C;
         }
