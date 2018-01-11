@@ -1,6 +1,5 @@
 #ifndef VOLUME_H
 #define VOLUME_H
-#include <Eigen/Dense>
 #include "mtao/types.h"
 #include "mtao/util.h"
 #include <numeric>
@@ -53,6 +52,23 @@ namespace mtao { namespace geometry {
             }
             return C;
         }
+
+    template <typename VertexDerived, typename SimplexDerived> 
+        auto dual_volumes( const Eigen::MatrixBase<VertexDerived>& V, const Eigen::MatrixBase<SimplexDerived>& S) {
+            auto PV = volumes(V,S);
+            int elementsPerCell = S.rows();
+            using Scalar = typename VertexDerived::Scalar;
+            mtao::VectorX<Scalar> Vo = mtao::VectorX<Scalar>::Zero(V.cols());
+            for(int i = 0; i < S.rows(); ++i) {
+                auto s = S.col(i);
+                auto v = PV(i);
+                for(int j = 0; j < S.cols(); ++j) {
+                    Vo(s(j)) += v;
+                }
+            }
+            return Vo / elementsPerCell;
+        }
+
 
     template <int D, int S>
         struct dim_specific {
