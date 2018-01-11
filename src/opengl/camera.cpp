@@ -120,6 +120,11 @@ namespace mtao { namespace opengl {
     void Camera3D::reset() {
         m_translation = glm::vec3();
         m_rotation = glm::vec3();
+        m_camera_pos = glm::vec3(0,0,5);
+        m_target_pos = glm::vec3(0,0,0);
+        m_camera_up = glm::vec3(0,1,0);
+        m_distance = glm::length(m_camera_pos - m_target_pos);
+
     }
     glm::mat4 Camera3D::m() const {
         //auto r = glm::rotate(Camera::m(), m_rotation);
@@ -140,8 +145,10 @@ namespace mtao { namespace opengl {
     }
 
     void Camera3D::pan() {
-        auto&& io = ImGui::GetIO();
         if(io.KeyShift) {
+            m_distance += .5 * io.MouseWheel;
+            m_distance = std::max<float>(1e-5,m_distance);
+            set_distance(m_distance);
             if(ImGui::IsMouseClicked(0)) {
                 enableDrag();
             } 
