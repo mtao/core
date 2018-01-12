@@ -5,9 +5,6 @@
 #include <numeric>
 #include <cassert>
 
-#include "mtao/logging/logger.hpp"
-#include "mtao/logging/timer.hpp"
-using namespace mtao::logging;
 namespace mtao { namespace geometry {
 
     template <typename Derived>
@@ -45,7 +42,7 @@ namespace mtao { namespace geometry {
             mtao::Matrix<Scalar,E,D> v(V.rows(),S.rows());
             for(int i = 0; i < S.cols(); ++i) {
                 auto s = S.col(i);
-                for(int j = 0; j < S.rows(); ++j) {
+                for(int j = 0; j < s.rows(); ++j) {
                     v.col(j) = V.col(s(j));
                 }
                 C(i) = volume(v);
@@ -59,14 +56,15 @@ namespace mtao { namespace geometry {
             int elementsPerCell = S.rows();
             using Scalar = typename VertexDerived::Scalar;
             mtao::VectorX<Scalar> Vo = mtao::VectorX<Scalar>::Zero(V.cols());
-            for(int i = 0; i < S.rows(); ++i) {
+            for(int i = 0; i < S.cols(); ++i) {
                 auto s = S.col(i);
                 auto v = PV(i);
-                for(int j = 0; j < S.cols(); ++j) {
+                for(int j = 0; j < S.rows(); ++j) {
                     Vo(s(j)) += v;
                 }
             }
-            return Vo / elementsPerCell;
+            Vo /= elementsPerCell;
+            return Vo;
         }
 
 
