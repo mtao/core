@@ -23,9 +23,9 @@ namespace mtao { namespace geometry { namespace mesh {
             }
             return R;
         }
-    //For each element in C, if every vertex satisfies f(v) then it remains, tossed o.w
+    //For each element in C, if every vertex satisfies f(v) then true, false o.w
     template <typename T, int D, int D2, typename Func>
-        auto element_filter(const mtao::ColVectors<T,D>& V, const mtao::ColVectors<int,D2>& C, const Func& f) {
+        auto element_filter_mask(const mtao::ColVectors<T,D>& V, const mtao::ColVectors<int,D2>& C, const Func& f) {
             mtao::VectorX<bool> B(C.cols());
             for(int i = 0; i < C.cols(); ++i) {
                 bool enabled = true;
@@ -37,7 +37,12 @@ namespace mtao { namespace geometry { namespace mesh {
                 }
                 B(i) = enabled;
             }
-            return element_filter_vec(V,C,B);
+            return B;
+        }
+    //For each element in C, if every vertex satisfies f(v) then it remains, tossed o.w
+    template <typename T, int D, int D2, typename Func>
+        auto element_filter(const mtao::ColVectors<T,D>& V, const mtao::ColVectors<int,D2>& C, const Func& f) {
+            return element_filter_vec(V,C,element_filter_mask(V,C,f));
         }
 
 
