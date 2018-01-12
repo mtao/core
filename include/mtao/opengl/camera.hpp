@@ -91,6 +91,7 @@ class Camera3D: public Camera {
         bool m_dragMode = false;
         bool m_angularDragMode = false;
         float m_fov_y = 45.0;
+        float m_distance = 5.0;
         glm::vec3 m_translation;
         glm::vec3 m_rotation;
 };

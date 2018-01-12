@@ -1,14 +1,10 @@
 #ifndef VOLUME_H
 #define VOLUME_H
-#include <Eigen/Dense>
 #include "mtao/types.h"
 #include "mtao/util.h"
 #include <numeric>
 #include <cassert>
 
-#include "mtao/logging/logger.hpp"
-#include "mtao/logging/timer.hpp"
-using namespace mtao::logging;
 namespace mtao { namespace geometry {
 
     template <typename Derived>
@@ -41,18 +37,36 @@ namespace mtao { namespace geometry {
             constexpr static int D = SimplexDerived::RowsAtCompileTime;//simplex dim
             using Scalar = typename VertexDerived::Scalar;
 
-            Eigen::Matrix<Scalar,E,N> C(V.rows(),S.cols());
+            mtao::VectorX<Scalar> C(S.cols());
 
-            Eigen::Matrix<Scalar,E,D> v(V.rows(),S.rows());
+            mtao::Matrix<Scalar,E,D> v(V.rows(),S.rows());
             for(int i = 0; i < S.cols(); ++i) {
                 auto s = S.col(i);
-                for(int j = 0; j < S.rows(); ++j) {
+                for(int j = 0; j < s.rows(); ++j) {
                     v.col(j) = V.col(s(j));
                 }
-                C.col(i) = volume(v);
+                C(i) = volume(v);
             }
             return C;
         }
+
+    template <typename VertexDerived, typename SimplexDerived> 
+        auto dual_volumes( const Eigen::MatrixBase<VertexDerived>& V, const Eigen::MatrixBase<SimplexDerived>& S) {
+            auto PV = volumes(V,S);
+            int elementsPerCell = S.rows();
+            using Scalar = typename VertexDerived::Scalar;
+            mtao::VectorX<Scalar> Vo = mtao::VectorX<Scalar>::Zero(V.cols());
+            for(int i = 0; i < S.cols(); ++i) {
+                auto s = S.col(i);
+                auto v = PV(i);
+                for(int j = 0; j < S.rows(); ++j) {
+                    Vo(s(j)) += v;
+                }
+            }
+            Vo /= elementsPerCell;
+            return Vo;
+        }
+
 
     template <int D, int S>
         struct dim_specific {

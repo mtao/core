@@ -83,10 +83,14 @@ namespace mtao { namespace opengl { namespace renderers {
     }
 
     void MeshRenderer::setMesh(const MatrixXgf& V, const MatrixXui& F, bool normalize) {
+        assert(F.minCoeff() >= 0);
+        assert(F.maxCoeff() < V.cols());
         auto N = computeNormals(V,F);
         setMesh(V,F,N,normalize);
     }
     void MeshRenderer::setMesh(const MatrixXgf& V, const MatrixXui& F, const MatrixXgf& N, bool normalize) {
+        assert(F.minCoeff() >= 0);
+        assert(F.maxCoeff() < V.cols());
         setVertices(V,normalize);
         setFaces(F);
         setMeanEdgeLength(V,F,normalize);
