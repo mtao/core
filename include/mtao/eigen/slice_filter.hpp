@@ -23,9 +23,9 @@ namespace mtao { namespace eigen {
             for(int i = 0; i < (Row?A.rows():A.cols()); ++i) {
                 if(M(i)) {
                     if constexpr(Row) {
-                    B.row(c++) = A.row(i);
+                        B.row(c++) = A.row(i);
                     } else {
-                    B.col(c++) = A.col(i);
+                        B.col(c++) = A.col(i);
                     }
                 }
             }
