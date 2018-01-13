@@ -15,9 +15,10 @@ int main() {
     }
     std::cout << T << std::endl << std::endl;
 
-    auto T2 = mtao::eigen::col_slice_filter(T,mtao::VectorX<bool>::Random(T.cols()));
+    auto T2 = mtao::eigen::slice_filter_col(T,mtao::VectorX<bool>::Random(T.cols()));
     std::cout << T2 << std::endl << std::endl;
-    auto T3 = mtao::eigen::row_slice_filter(T,mtao::VectorX<bool>::Random(T.rows()));
+    auto T3 = mtao::eigen::slice_filter_row(T,mtao::VectorX<bool>::Random(T.rows()));
+    std::cout << T3.rows() << " " << T3.cols() << std::endl;
     std::cout << T3 << std::endl << std::endl;
 
 

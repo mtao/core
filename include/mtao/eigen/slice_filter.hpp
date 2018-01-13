@@ -32,12 +32,12 @@ namespace mtao { namespace eigen {
             return B;
         }
     template <typename Derived>
-        auto row_slice_filter(const Eigen::MatrixBase<Derived>& A, const mtao::VectorX<bool>& M) {
+        auto slice_filter_row(const Eigen::MatrixBase<Derived>& A, const mtao::VectorX<bool>& M) {
             return slice_filter<true>(A,M);
         }
 
     template <typename Derived>
-        auto col_slice_filter(const Eigen::MatrixBase<Derived>& A, const mtao::VectorX<bool>& M) {
+        auto slice_filter_col(const Eigen::MatrixBase<Derived>& A, const mtao::VectorX<bool>& M) {
             return slice_filter<false>(A,M);
         }
 
