@@ -13,7 +13,7 @@ int main() {
     for(int i = 0; i < S; ++i) {
         T.col(i) = mtao::Vector<int,3>(3*i,3*i+1,3*i+2);
     }
-    std::cout << T << std::endl;
+    std::cout << T << std::endl << std::endl;
 
     auto T2 = mtao::eigen::col_slice_filter(T,mtao::VectorX<bool>::Random(T.cols()));
     std::cout << T2 << std::endl << std::endl;
