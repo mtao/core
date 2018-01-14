@@ -44,6 +44,8 @@ class MeshRenderer: public Renderer {
         void render_edges() const;
         void render_faces() const;
         void render_vfield() const;
+        void drawEdges(const MeshRenderBuffers& buffs) const;
+        void drawFaces(const MeshRenderBuffers& buffs) const;
 
 
 
@@ -53,9 +55,11 @@ class MeshRenderer: public Renderer {
         void setMesh(const MatrixXgf& V, const MatrixXui& F, const MatrixXgf& N, bool normalize=false);
         void setVertices(const MatrixXgf& V, bool normalize = false);
         void setVField(const MatrixXgf& V);
+        void setFaces(const MatrixXgf& V, bool normalize = false);
+        void setEdges(const MatrixXgf& V, bool normalize = false);
         void setFaces(const MatrixXui& F);
-        void setColor(const MatrixXgf& C);
         void setEdges(const MatrixXui& E);
+        void setColor(const MatrixXgf& C);
         void setNormals(const MatrixXgf& N);
         void setEdgesFromFaces(const MatrixXui& F);
         void setMeanEdgeLength(const MatrixXgf& V, const MatrixXui& F, bool normalize=false);
@@ -131,6 +135,10 @@ class MeshRenderer: public Renderer {
         FaceStyle m_face_style = FaceStyle::Phong;
         EdgeType m_edge_type = EdgeType::Disabled;
         VertexType m_vertex_type = VertexType::Flat;
+        //control whetehr edge/face  should use aan index buffer (drawElements) or the vertices themselves (drawArrays)
+        bool m_edge_draw_elements = true;
+        bool m_face_draw_elements = true;
+
         bool m_show_vector_field = false;
 
         int m_dim=2;
