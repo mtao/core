@@ -278,7 +278,8 @@ namespace mtao { namespace opengl { namespace renderers {
             static const char* edge_types[] = {
                 "Disabled",
                 "BaryEdge",
-                "Mesh"
+                "Mesh",
+                "Color"
             };
             int et = static_cast<int>(m_edge_type);
             ImGui::Combo("Edge Type", &et, edge_types,IM_ARRAYSIZE(edge_types));
@@ -310,7 +311,7 @@ namespace mtao { namespace opengl { namespace renderers {
                     if(m_vertex_type == VertexType::Flat) {
                         ImGui::ColorEdit3("vertex color", glm::value_ptr(m_vertex_color));
                     }
-                    if(m_edge_type != EdgeType::Disabled) {
+                    if(m_edge_type != EdgeType::Disabled && m_edge_type != EdgeType::Color) {
                         ImGui::ColorEdit3("edge color", glm::value_ptr(m_edge_color));
                     }
                     if(m_face_style ==FaceStyle::Flat) {
@@ -473,6 +474,17 @@ namespace mtao { namespace opengl { namespace renderers {
             flat_program()->getUniform("color").setVector(m_edge_color);
 
             auto vpos_active = flat_program()->getAttrib("vPos").enableRAII();
+            drawEdges(buffs);
+        } else if(style == EdgeType::Color) {
+            if(!buffs.colors) {
+                mtao::logging::warn() << "vertex colors not set, can't render edges" ;
+                return;
+            }
+            auto active = vert_color_program()->useRAII();
+
+            auto vcol_active = phong_program()->getAttrib("vColor").enableRAII();
+
+            auto vpos_active = vert_color_program()->getAttrib("vPos").enableRAII();
             drawEdges(buffs);
         }
     }

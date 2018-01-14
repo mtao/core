@@ -29,7 +29,7 @@ class MeshRenderer: public Renderer {
         using MatrixXui = Eigen::Matrix<GLuint, Eigen::Dynamic,Eigen::Dynamic>;
 
         enum class FaceStyle: int { Disabled = 0, Flat, Color, Phong };
-        enum class EdgeType: int { Disabled= 0, BaryEdge, Mesh};
+        enum class EdgeType: int { Disabled= 0, BaryEdge, Mesh, Color};
         enum class VertexType: int { Disabled= 0, Flat, Color};
 
         MeshRenderer(int dim);
