@@ -133,6 +133,9 @@ namespace mtao { namespace opengl { namespace renderers {
     }
     void MeshRenderer::setVertices(const MatrixXgf& V, bool normalize) {
 
+        if(V.size() == 0) {
+            buffers()->vertices = nullptr;
+        }
 
 
 
@@ -167,6 +170,9 @@ namespace mtao { namespace opengl { namespace renderers {
     }
 
     void MeshRenderer::setNormals(const MatrixXgf& N) {
+        if(N.size() == 0) {
+            buffers()->normals= nullptr;
+        }
         if(m_dim == 3) {
 
             if(!buffers()->normals) {
@@ -190,6 +196,9 @@ namespace mtao { namespace opengl { namespace renderers {
 
     }
     void MeshRenderer::setColor(const MatrixXgf& C) {
+        if(C.size() == 0) {
+            buffers()->colors= nullptr;
+        }
         auto m_vaoraii = vao().enableRAII();
         if(!buffers()->colors) {
             buffers()->colors = std::make_unique<BO>();
@@ -221,6 +230,9 @@ namespace mtao { namespace opengl { namespace renderers {
         m_face_draw_elements = true;
     }
     void MeshRenderer::setEdges(const MatrixXui& E) {
+        if(E.size() == 0) {
+            buffers()->edges= nullptr;
+        }
 
         if(!buffers()->edges) {
             buffers()->edges = std::make_unique<IBO>(GL_LINES);
