@@ -18,6 +18,7 @@ namespace mtao { namespace opengl {
     }
     void Camera::set_shape(int w, int h) {
         m_shape = glm::ivec2(w,h);
+        update();
     }
     float Camera::aspect() const {
         if(m_shape[1] != 0) {
@@ -90,6 +91,9 @@ namespace mtao { namespace opengl {
     void Camera2D::pan() {
         auto&& io = ImGui::GetIO();
         if(io.KeyShift) {
+            m_scale+= .5 * io.MouseWheel;
+            m_scale = std::max<float>(1e-5,m_scale);
+            set_scale(m_scale);
             if(ImGui::IsMouseClicked(0)) {
                 enableDrag();
             }
