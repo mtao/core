@@ -1,6 +1,5 @@
 #include "mtao/geometry/strands.h"
 #include <algorithm>
-#include <iostream>
 namespace mtao { namespace geometry {
 
     strand::strand(int a, int b): data({a,b}) {}

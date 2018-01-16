@@ -8,6 +8,10 @@ namespace mtao { namespace geometry {
 struct strand {
     strand() = default;
     strand(int a, int b);
+    strand(strand&&) = default;
+    strand(const strand&) = default;
+    strand& operator=(strand&&) = default;
+    strand& operator=(const strand&) = default;
     std::list<int> data;
 
     int front() const { return data.front(); }
