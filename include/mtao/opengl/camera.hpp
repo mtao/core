@@ -30,6 +30,7 @@ class Camera {
         void ortho(float scale=1.0f);
 
         void perspective(float fovy=45.0);
+        virtual void update() {}
 
 
         glm::vec2 get_zRange(const std::vector<glm::vec3>& ) const;
@@ -52,7 +53,7 @@ class Camera2D: public Camera {
         float& scale() { return m_scale; }
         float scale() const { return m_scale; }
         void set_scale(float scale);
-        void update();
+        void update() override;
         void pan();
         void enableDrag() { m_dragMode = true;}
         void disableDrag() { m_dragMode = false; }
@@ -75,7 +76,7 @@ class Camera3D: public Camera {
         const glm::vec3& camera_up() const { return m_camera_up; }
         void set_distance(float distance);
         
-        void update();
+        void update() override;
         void pan();
         void enableDrag() { m_dragMode = true;}
         void disableDrag() { m_dragMode = false; }
