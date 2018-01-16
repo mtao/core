@@ -25,6 +25,8 @@ TARGET_LINK_LIBRARIES(log_test mtao_core)
 
 ADD_EXECUTABLE(halfedge_test halfedge_test.cpp)
 TARGET_LINK_LIBRARIES(halfedge_test mtao_geometry)
+ADD_EXECUTABLE(strand_test strand_test.cpp)
+TARGET_LINK_LIBRARIES(strand_test mtao_geometry)
 
 #ADD_EXECUTABLE(static_iteration_test src/static_iteration_test.cpp)
 

@@ -150,6 +150,8 @@ ADD_LIBRARY(mtao_geometry
     #include/mtao/geometry/mesh/read_plc.hpp
     include/mtao/geometry/mesh/boundary_matrix.h
     include/mtao/geometry/mesh/boundary_facets.h
+    include/mtao/geometry/strands.h
+    src/geometry/strands.cpp
     )
 
 TARGET_LINK_LIBRARIES(mtao_geometry mtao_core)
