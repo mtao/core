@@ -52,7 +52,7 @@ namespace mtao { namespace logging {
                     return "";
                 }
             };
-            write_cout(Level::Info, "Adding log file ", filename, " to outputs of ", m_alias, " at level ", log_type_string(level), continuing());
+            write_cerr(Level::Info, "Adding log file ", filename, " to outputs of ", m_alias, " at level ", log_type_string(level), continuing());
             write_output(m_outputs[filename],Level::Info, "Logging from log ", m_alias, " at level ", log_type_string(level));
         }
 
@@ -100,7 +100,7 @@ namespace mtao { namespace logging {
         for(auto&& op: m_outputs) {
             write_line_nodec(op.second, l,dec + str);
         }
-        write_line_cout(l,str);
+        write_line_cerr(l,str);
     }
     void Logger::write_line(Output& output, Level l,const std::string& str) {
         if(l <= output.level) {
@@ -108,10 +108,10 @@ namespace mtao { namespace logging {
             write_line_nodec(output, l,dec);
         }
     }
-    void Logger::write_line_cout(Level l,const std::string& str) {
+    void Logger::write_line_cerr(Level l,const std::string& str) {
         if(l <= m_level) {
             std::string dec = decorator(l,true);
-            write_line_cout_nodec(l,dec+str);
+            write_line_cerr_nodec(l,dec+str);
         }
     }
 
@@ -120,9 +120,9 @@ namespace mtao { namespace logging {
             output.out << str;
         }
     }
-    void Logger::write_line_cout_nodec(Level l, const std::string& str) {
+    void Logger::write_line_cerr_nodec(Level l, const std::string& str) {
         if(l <= m_level) {
-            std::cout << str;
+            std::cerr << str;
         }
     }
 

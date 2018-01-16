@@ -14,7 +14,7 @@ namespace mtao {
             CommandLineParser();
             void parse(int argc, char * argv[]);
             const std::vector<std::string>& args() const {return m_args;}
-            const std::string& args(size_t idx) const {return m_args[idx];}
+            const std::string& arg(size_t idx) const {return m_args[idx];}
 
             struct AntiBool {
                 std::string target_name;
@@ -42,7 +42,7 @@ namespace mtao {
                     void activate() {m_active = true;}
                     void set_value(const std::string& str) {
                         m_active = true;
-                        m_value = str;
+                        md_value = str;
                     }
                     ValueType type() const {return m_type;}
                 private:

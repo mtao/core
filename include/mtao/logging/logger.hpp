@@ -44,15 +44,15 @@ namespace mtao {
                         write_line(output, l,process_line(std::forward<Args>(args)...));
                     }
                 template <typename... Args>
-                    void write_cout(Level l, Args&&... args) {
-                        write_line_cout(l,process_line(std::forward<Args>(args)...));
+                    void write_cerr(Level l, Args&&... args) {
+                        write_line_cerr(l,process_line(std::forward<Args>(args)...));
                     }
 
                 void write_line(Level l,const std::string& str);
                 void write_line(Output& output, Level l,const std::string& str);
                 void write_line_nodec(Output& output, Level l,const std::string& str);
-                void write_line_cout(Level l,const std::string& str);
-                void write_line_cout_nodec(Level l,const std::string& str);
+                void write_line_cerr(Level l,const std::string& str);
+                void write_line_cerr_nodec(Level l,const std::string& str);
 
                 size_t current_time() const;
 
