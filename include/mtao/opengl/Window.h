@@ -14,7 +14,7 @@ class Window {
         Window(const std::string& name = "Name", int width = 640, int height = 480);
         ~Window();
 
-        void draw();
+        void draw(bool show_gui = true);
         void run();
         //int key, int scancode, int action, int mods
         void setKeyCallback(GLFWkeyfun f);
@@ -28,7 +28,7 @@ class Window {
 
 
         void save_frame(const std::string& filename);
-        void record(const std::function<bool(int)>& f, const std::string& prefix);
+        void record(const std::function<bool(int)>& f, const std::string& prefix, bool show_gui = false);
 
         void set_render_func(const std::function<void(int,int)>& f) {m_render_func = f;}
         void set_gui_func(const std::function<void()>& f) {m_gui_func = f;}

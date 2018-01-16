@@ -84,7 +84,7 @@ void Window::run() {
     }
 }
 
-void Window::draw() {
+void Window::draw(bool show_gui) {
     //ImGuiIO& io = ImGui::GetIO();
     makeCurrent();
     glfwPollEvents();
@@ -97,7 +97,9 @@ void Window::draw() {
     m_gui.newFrame();
     m_gui_func();
     m_render_func(display_w,display_h);
+    if(show_gui) {
     m_gui.render();
+    }
     glfwSwapBuffers(window);
 
 }
@@ -166,11 +168,11 @@ void Window::save_frame(const std::string& filename) {
 
     image.write(filename);
 }
-void Window::record(const std::function<bool(int)>& f, const std::string& prefix) {
+void Window::record(const std::function<bool(int)>& f, const std::string& prefix, bool show_gui) {
 
     int idx = 0;
     while(f(idx++)) {
-        draw();
+        draw(show_gui);
 
         std::stringstream ss;
         ss << prefix << idx << ".png";
