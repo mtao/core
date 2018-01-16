@@ -29,21 +29,23 @@ class MeshRenderer: public Renderer {
         using MatrixXui = Eigen::Matrix<GLuint, Eigen::Dynamic,Eigen::Dynamic>;
 
         enum class FaceStyle: int { Disabled = 0, Flat, Color, Phong };
-        enum class EdgeType: int { Disabled= 0, BaryEdge, Mesh};
-        enum class VertexType: int { Disabled= 0, Flat, Color};
+        enum class EdgeStyle: int { Disabled= 0, BaryEdge, Mesh, Color};
+        enum class VertexStyle: int { Disabled= 0, Flat, Color};
 
         MeshRenderer(int dim);
 
         void render() const override;
         void render(const MeshRenderBuffers& buffs) const;
-        void render_points(const MeshRenderBuffers& buffs, VertexType style = VertexType::Disabled) const;
-        void render_edges(const MeshRenderBuffers& buffs, EdgeType style = EdgeType::Disabled) const;
+        void render_points(const MeshRenderBuffers& buffs, VertexStyle style = VertexStyle::Disabled) const;
+        void render_edges(const MeshRenderBuffers& buffs, EdgeStyle style = EdgeStyle::Disabled) const;
         void render_faces(const MeshRenderBuffers& buffs, FaceStyle style = FaceStyle::Disabled) const;
         void render_vfield(const MeshRenderBuffers& buffs) const;
         void render_points() const;
         void render_edges() const;
         void render_faces() const;
         void render_vfield() const;
+        void drawEdges(const MeshRenderBuffers& buffs) const;
+        void drawFaces(const MeshRenderBuffers& buffs) const;
 
 
 
@@ -53,9 +55,11 @@ class MeshRenderer: public Renderer {
         void setMesh(const MatrixXgf& V, const MatrixXui& F, const MatrixXgf& N, bool normalize=false);
         void setVertices(const MatrixXgf& V, bool normalize = false);
         void setVField(const MatrixXgf& V);
+        void setFaces(const MatrixXgf& V, bool normalize = false);
+        void setEdges(const MatrixXgf& V, bool normalize = false);
         void setFaces(const MatrixXui& F);
-        void setColor(const MatrixXgf& C);
         void setEdges(const MatrixXui& E);
+        void setColor(const MatrixXgf& C);
         void setNormals(const MatrixXgf& N);
         void setEdgesFromFaces(const MatrixXui& F);
         void setMeanEdgeLength(const MatrixXgf& V, const MatrixXui& F, bool normalize=false);
@@ -81,20 +85,20 @@ class MeshRenderer: public Renderer {
         inline FaceStyle get_face_style() {
             return m_face_style;
         }
-        inline EdgeType get_edge_style() {
+        inline EdgeStyle get_edge_style() {
             return m_edge_type;
         }
-        inline VertexType get_vertex_style() {
+        inline VertexStyle get_vertex_style() {
             return m_vertex_type;
         }
 
         inline void set_face_style(FaceStyle style=FaceStyle::Disabled) {
             m_face_style = style;
         }
-        inline void set_edge_style(EdgeType style=EdgeType::Disabled) {
+        inline void set_edge_style(EdgeStyle style=EdgeStyle::Disabled) {
             m_edge_type = style;
         }
-        inline void set_vertex_type(VertexType style=VertexType::Disabled) {
+        inline void set_vertex_style(VertexStyle style=VertexStyle::Disabled) {
             m_vertex_type = style;
         }
         inline void show_vector_field(bool yes=  true) {
@@ -129,8 +133,12 @@ class MeshRenderer: public Renderer {
         std::shared_ptr<MeshRenderBuffers> m_buffers;
 
         FaceStyle m_face_style = FaceStyle::Phong;
-        EdgeType m_edge_type = EdgeType::Disabled;
-        VertexType m_vertex_type = VertexType::Flat;
+        EdgeStyle m_edge_type = EdgeStyle::Disabled;
+        VertexStyle m_vertex_type = VertexStyle::Flat;
+        //control whetehr edge/face  should use aan index buffer (drawElements) or the vertices themselves (drawArrays)
+        bool m_edge_draw_elements = true;
+        bool m_face_draw_elements = true;
+
         bool m_show_vector_field = false;
 
         int m_dim=2;

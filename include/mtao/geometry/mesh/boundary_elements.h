@@ -7,6 +7,7 @@
 #include <mtao/geometry/mesh/cell_indexer.h>
 
 
+//Takes a mesh C and its faces F and creates a matrix where each entry (i,j) points to the face comprised of every vertex except hte one at that index. i.e C(i,j) \cap F(R(i,j)) = C(j)
 namespace mtao { namespace geometry { namespace mesh {
 
     namespace internal {
