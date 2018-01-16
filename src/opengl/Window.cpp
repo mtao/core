@@ -170,8 +170,7 @@ void Window::save_frame(const std::string& filename) {
 }
 void Window::record(const std::function<bool(int)>& f, const std::string& prefix, bool show_gui) {
 
-    int idx = 0;
-    while(f(idx++)) {
+    for(int idx = 0; f(idx); ++idx) {
         draw(show_gui);
 
         std::stringstream ss;
