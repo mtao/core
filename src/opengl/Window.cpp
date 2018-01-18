@@ -5,6 +5,7 @@
 #include <imgui.h>
 #include <vector>
 #include <png++/png.hpp>
+#include <iomanip>
 #include <mtao/logging/logger.hpp>
 
 namespace mtao {namespace opengl {
@@ -174,7 +175,7 @@ void Window::record(const std::function<bool(int)>& f, const std::string& prefix
         draw(show_gui);
 
         std::stringstream ss;
-        ss << prefix << idx << ".png";
+        ss << prefix << std::setfill('0') << std::setw(6) << idx << ".png";
         save_frame(ss.str());
     }
 }
