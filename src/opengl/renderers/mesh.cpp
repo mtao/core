@@ -36,7 +36,7 @@ namespace mtao { namespace opengl { namespace renderers {
         m_buffers = std::make_shared<MeshRenderBuffers>();
     }
 
-    void MeshRenderer::update_vertex_scale(const MatrixXgf& V) {
+    void MeshRenderer::update_vertex_scale(const MatrixXgfCRef& V) {
         auto minPos = V.rowwise().minCoeff();
         auto maxPos = V.rowwise().maxCoeff();
         auto range = maxPos - minPos;
@@ -50,7 +50,7 @@ namespace mtao { namespace opengl { namespace renderers {
 
     }
 
-    auto MeshRenderer::computeNormals(const MatrixXgf& V, const MatrixXui& F) -> MatrixXgf {
+    auto MeshRenderer::computeNormals(const MatrixXgfCRef& V, const MatrixXuiCRef& F) -> MatrixXgf {
         MatrixXgf N;
         if(m_dim == 2) {
             return N;
@@ -82,13 +82,23 @@ namespace mtao { namespace opengl { namespace renderers {
 
     }
 
-    void MeshRenderer::setMesh(const MatrixXgf& V, const MatrixXui& F, bool normalize) {
+    void MeshRenderer::setMesh(const MatrixXgfCRef& V, const MatrixXuiCRef& F, bool normalize) {
+        if(V.size() == 0) {
+            warn() << "No vertices sent to setMesh, igoring";
+            return;
+        }
+        if(F.size() == 0) {
+            warn() << "No faces sent to setMesh, igoring";
+            return;
+        }
         assert(F.minCoeff() >= 0);
         assert(F.maxCoeff() < V.cols());
         auto N = computeNormals(V,F);
         setMesh(V,F,N,normalize);
     }
-    void MeshRenderer::setMesh(const MatrixXgf& V, const MatrixXui& F, const MatrixXgf& N, bool normalize) {
+    void MeshRenderer::setMesh(const MatrixXgfCRef& V, const MatrixXuiCRef& F, const MatrixXgfCRef& N, bool normalize) {
+        assert(F.rows() > 0);
+        assert(F.cols() > 0);
         assert(F.minCoeff() >= 0);
         assert(F.maxCoeff() < V.cols());
         setVertices(V,normalize);
@@ -96,10 +106,10 @@ namespace mtao { namespace opengl { namespace renderers {
         setMeanEdgeLength(V,F,normalize);
         setNormals(N);
     }
-    void MeshRenderer::setMeanEdgeLength(const MatrixXgf& V, const MatrixXui& F, bool normalize) {
+    void MeshRenderer::setMeanEdgeLength(const MatrixXgfCRef& V, const MatrixXuiCRef& F, bool normalize) {
         float r = 1;
 
-        auto compute_mean_edge_length = [&](const MatrixXgf& V) -> float {
+        auto compute_mean_edge_length = [&](const MatrixXgfCRef& V) -> float {
             float ret = 0;
             for(int i = 0; i < F.cols(); ++i) {
                 for(int j = 0; j < F.rows(); ++j) {
@@ -119,7 +129,7 @@ namespace mtao { namespace opengl { namespace renderers {
             baryedge_program()->getUniform("mean_edge_length").set(mean_edge_length);
         }
     }
-    void MeshRenderer::setVField(const MatrixXgf& V) {
+    void MeshRenderer::setVField(const MatrixXgfCRef& V) {
         if(!buffers()->vectors) {
             buffers()->vectors = std::make_unique<BO>();
         }
@@ -131,7 +141,7 @@ namespace mtao { namespace opengl { namespace renderers {
         buffers()->vectors->bind();
         vector_field_program()->getAttrib("vVec").setPointer(m_dim, GL_FLOAT, GL_FALSE, sizeof(float) * m_dim, (void*) 0);
     }
-    void MeshRenderer::setVertices(const MatrixXgf& V, bool normalize) {
+    void MeshRenderer::setVertices(const MatrixXgfCRef& V, bool normalize) {
 
         if(V.size() == 0) {
             buffers()->vertices = nullptr;
@@ -169,7 +179,7 @@ namespace mtao { namespace opengl { namespace renderers {
         }
     }
 
-    void MeshRenderer::setNormals(const MatrixXgf& N) {
+    void MeshRenderer::setNormals(const MatrixXgfCRef& N) {
         if(N.size() == 0) {
             buffers()->normals= nullptr;
         }
@@ -195,7 +205,7 @@ namespace mtao { namespace opengl { namespace renderers {
         }
 
     }
-    void MeshRenderer::setColor(const MatrixXgf& C) {
+    void MeshRenderer::setColor(const MatrixXgfCRef& C) {
         if(C.size() == 0) {
             buffers()->colors= nullptr;
         }
@@ -210,17 +220,17 @@ namespace mtao { namespace opengl { namespace renderers {
         buffers()->colors->setData(C.data(),sizeof(float) * C.size());
         vert_color_program()->getAttrib("vColor").setPointer(3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*) 0);
     }
-    void MeshRenderer::setFaces(const MatrixXgf& V, bool normalize) {
+    void MeshRenderer::setFaces(const MatrixXgfCRef& V, bool normalize) {
         setVertices(V,normalize);
         m_face_draw_elements = false;
     }
-    void MeshRenderer::setEdges(const MatrixXgf& V, bool normalize) {
+    void MeshRenderer::setEdges(const MatrixXgfCRef& V, bool normalize) {
 
         setVertices(V,normalize);
         m_edge_draw_elements = false;
 
     }
-    void MeshRenderer::setFaces(const MatrixXui& F) {
+    void MeshRenderer::setFaces(const MatrixXuiCRef& F) {
         if(!buffers()->faces) {
             buffers()->faces = std::make_unique<IBO>(GL_TRIANGLES);
         }
@@ -229,7 +239,7 @@ namespace mtao { namespace opengl { namespace renderers {
         setEdgesFromFaces(F);
         m_face_draw_elements = true;
     }
-    void MeshRenderer::setEdges(const MatrixXui& E) {
+    void MeshRenderer::setEdges(const MatrixXuiCRef& E) {
         if(E.size() == 0) {
             buffers()->edges= nullptr;
         }
@@ -241,7 +251,7 @@ namespace mtao { namespace opengl { namespace renderers {
         buffers()->edges->setData(E.data(),sizeof(GLuint) * E.size());
         m_edge_draw_elements = true;
     }
-    void MeshRenderer::setEdgesFromFaces(const MatrixXui& F) {
+    void MeshRenderer::setEdgesFromFaces(const MatrixXuiCRef& F) {
         MatrixXui  E(2,3*F.cols());
 
         E.leftCols(F.cols()) = F.topRows(2);

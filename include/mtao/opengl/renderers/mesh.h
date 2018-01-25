@@ -27,6 +27,10 @@ class MeshRenderer: public Renderer {
     public:
         using MatrixXgf = Eigen::Matrix<GLfloat, Eigen::Dynamic,Eigen::Dynamic>;
         using MatrixXui = Eigen::Matrix<GLuint, Eigen::Dynamic,Eigen::Dynamic>;
+        using MatrixXgfRef = Eigen::Ref<MatrixXgf>;
+        using MatrixXuiRef = Eigen::Ref<MatrixXui>;
+        using MatrixXgfCRef = Eigen::Ref<const MatrixXgf>;
+        using MatrixXuiCRef = Eigen::Ref<const MatrixXui>;
 
         enum class FaceStyle: int { Disabled = 0, Flat, Color, Phong };
         enum class EdgeStyle: int { Disabled= 0, BaryEdge, Mesh, Color};
@@ -51,21 +55,21 @@ class MeshRenderer: public Renderer {
 
         void imgui_interface() override;
         std::list<ShaderProgram*> mvp_programs() const override ;
-        void setMesh(const MatrixXgf& V, const MatrixXui& F, bool normalize = false);
-        void setMesh(const MatrixXgf& V, const MatrixXui& F, const MatrixXgf& N, bool normalize=false);
-        void setVertices(const MatrixXgf& V, bool normalize = false);
-        void setVField(const MatrixXgf& V);
-        void setFaces(const MatrixXgf& V, bool normalize = false);
-        void setEdges(const MatrixXgf& V, bool normalize = false);
-        void setFaces(const MatrixXui& F);
-        void setEdges(const MatrixXui& E);
-        void setColor(const MatrixXgf& C);
-        void setNormals(const MatrixXgf& N);
-        void setEdgesFromFaces(const MatrixXui& F);
-        void setMeanEdgeLength(const MatrixXgf& V, const MatrixXui& F, bool normalize=false);
+        void setMesh(const MatrixXgfCRef& V, const MatrixXuiCRef& F, bool normalize = false);
+        void setMesh(const MatrixXgfCRef& V, const MatrixXuiCRef& F, const MatrixXgfCRef& N, bool normalize=false);
+        void setVertices(const MatrixXgfCRef& V, bool normalize = false);
+        void setVField(const MatrixXgfCRef& V);
+        void setFaces(const MatrixXgfCRef& V, bool normalize = false);
+        void setEdges(const MatrixXgfCRef& V, bool normalize = false);
+        void setFaces(const MatrixXuiCRef& F);
+        void setEdges(const MatrixXuiCRef& E);
+        void setColor(const MatrixXgfCRef& C);
+        void setNormals(const MatrixXgfCRef& N);
+        void setEdgesFromFaces(const MatrixXuiCRef& F);
+        void setMeanEdgeLength(const MatrixXgfCRef& V, const MatrixXuiCRef& F, bool normalize=false);
 
         //Area weighted normal
-        MatrixXgf computeNormals(const MatrixXgf& V, const MatrixXui& F);
+        MatrixXgf computeNormals(const MatrixXgfCRef& V, const MatrixXuiCRef& F);
 
 
         inline bool shaders_enabled() const { return s_shaders_enabled[m_dim-2]; }
@@ -115,7 +119,7 @@ class MeshRenderer: public Renderer {
         void loadShaders(int dim);
         void update_edge_threshold();
         void update_phong_shading();
-        void update_vertex_scale(const MatrixXgf& V);
+        void update_vertex_scale(const MatrixXgfCRef& V);
 
         static bool s_shaders_enabled[2];
 
