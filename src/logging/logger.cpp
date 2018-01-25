@@ -157,6 +157,9 @@ namespace mtao { namespace logging {
     }
 
 
+    LoggerContext get_logger(const std::pair<std::string,Level>& pr) {
+        return get_logger(pr.first,pr.second);
+    }
     LoggerContext get_logger(const std::string& alias, Level level) {
         if(auto it = active_loggers.find(alias);
                 it != active_loggers.end()) {

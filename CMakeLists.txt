@@ -92,10 +92,12 @@ SET(LEVELSET_HEADERS
 ADD_LIBRARY(mtao_core
     include/mtao/logging/logger.hpp
     include/mtao/logging/timer.hpp
+    include/mtao/logging/profiler.hpp
     include/mtao/cmdline_parser.hpp
     include/mtao/hotkey_manager.hpp
     src/logging/logger.cpp
     src/logging/timer.cpp
+    src/logging/profiler.cpp
     src/cmdline_parser.cpp
     src/hotkey_manager.cpp
     )

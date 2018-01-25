@@ -78,6 +78,7 @@ namespace mtao {
 
                 auto instance(Level l) { return Instance(this, l); }
                 void set_level(Level l) { m_level = l; }
+                const std::string& alias() const { return m_alias; }
             private:
                 std::string m_alias;
                 std::map<std::string,Output> m_outputs;
@@ -89,27 +90,30 @@ namespace mtao {
         class LoggerContext {
             public:
                 LoggerContext() {}
-                LoggerContext(Logger* log, Level l=Level::Warn): logger(log), level(l) {}
+                LoggerContext(Logger* log, Level l=Level::Warn): m_logger(log), m_level(l) {}
 
                 template <typename T>
                     LoggerContext& operator<<(const T& v) {
-                        if(logger) {
-                            logger->write(level,v);
+                        if(m_logger) {
+                            m_logger->write(m_level,v);
                         }
                         return *this;
                     }
                 template <typename... Args>
                     void write(Args&&... args) {
-                        if(logger) {
-                            logger->write(level,std::forward<Args>(args)...);
+                        if(m_logger) {
+                            m_logger->write(m_level,std::forward<Args>(args)...);
                         }
                     }
 
 
-                auto instance() { return logger->instance(level); }
+                auto instance() { return m_logger->instance(level()); }
+                Level level() const { return m_level; }
+                const std::string& alias() const { return m_logger->alias(); }
+                std::pair<std::string,Level> info() const { return {alias(),level()}; }
             private:
-                Logger* logger = nullptr;
-                Level level = Level::Info;
+                Logger* m_logger = nullptr;
+                Level m_level = Level::Info;
         };
 
 
@@ -118,6 +122,7 @@ namespace mtao {
 
 
         LoggerContext get_logger(const std::string& alias, Level l=Level::Info);
+        LoggerContext get_logger(const std::pair<std::string, Level>& pr);
         Logger& make_logger(const std::string& alias="default", const std::string& filename="default.log", Level l=Level::All, bool continueFile=false);
         Logger& make_logger(const std::string& alias="default", Level l = Level::All);
         extern std::map<std::string,mtao::logging::Logger> active_loggers;
