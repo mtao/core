@@ -6,6 +6,7 @@
 #include "mtao/opengl/shader.h"
 #include "mtao/opengl/vao.h"
 #include "mtao/opengl/bo.h"
+#include "mtao/util.h"
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wint-in-bool-context"
 #include <Eigen/Dense>
@@ -112,6 +113,27 @@ class MeshRenderer: public Renderer {
         void unset_all();
 
         inline void setBuffers(const std::shared_ptr<MeshRenderBuffers>& buf) { m_buffers = buf; }
+
+
+
+
+        MTAO_ACCESSORS(glm::vec3,face_color,m_face_color)
+        MTAO_ACCESSORS(glm::vec3,edge_color,m_edge_color)
+        MTAO_ACCESSORS(glm::vec3,vertex_color,m_vertex_color)
+        MTAO_ACCESSORS(float,edge_threshold,m_edge_threshold)
+
+        MTAO_ACCESSORS(glm::vec3,light_pos,m_light_pos )
+        MTAO_ACCESSORS(glm::vec4,ambientMat,m_ambientMat )
+        MTAO_ACCESSORS(glm::vec4,diffuseMat,m_diffuseMat )
+        MTAO_ACCESSORS(glm::vec4,spectularMat,m_specularMat )
+        MTAO_ACCESSORS(float,specularExpMat,m_specularExpMat )
+
+        MTAO_ACCESSORS(float,vector_scale,m_vector_scale )
+        MTAO_ACCESSORS(float,vector_color_scale,m_vector_color_scale )
+        MTAO_ACCESSORS(glm::vec3,vector_tip_color,m_vector_tip_color )
+        MTAO_ACCESSORS(glm::vec3,vector_base_color,m_vector_base_color )
+
+
 
         MeshRenderBuffers* buffers() { return m_buffers.get(); }
         const MeshRenderBuffers* buffers() const { return m_buffers.get(); }
