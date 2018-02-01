@@ -52,6 +52,7 @@ namespace mtao { namespace geometry {
             Eigen::Matrix<Scalar,E,N> C(V.rows(),S.cols());
 
             Eigen::Matrix<Scalar,E,D> v(V.rows(),S.rows());
+#pragma omp parallel for
             for(int i = 0; i < S.cols(); ++i) {
                 auto s = S.col(i);
                 for(int j = 0; j < S.rows(); ++j) {

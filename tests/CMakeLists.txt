@@ -13,6 +13,7 @@ ADD_EXECUTABLE(type_size_test type_size_test.cpp)
 ADD_EXECUTABLE(enumerate_test enumerate_test.cpp)
 ADD_EXECUTABLE(element_filter_test element_filter_test.cpp)
 ADD_EXECUTABLE(slice_filter_test slice_filter_test.cpp)
+ADD_EXECUTABLE(barycentric_test barycentric_test.cpp)
 
 ADD_EXECUTABLE(colvector_loop_test colvector_loop_test.cpp)
 
