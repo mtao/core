@@ -35,10 +35,12 @@ void tri() {
     std::cout << P << std::endl;
 
     for(int i = 0; i < P.cols(); ++i) {
-        std::cout << mtao::geometry::barycentric_simplicial(T,P.col(i).eval()).transpose() << std::endl;
+        std::cout << i << ") " << mtao::geometry::barycentric_simplicial(T,P.col(i).eval()).transpose() << std::endl;
     }
 }
-    void tet() {
+
+
+void tet() {
 
     //Triangle T;
     Tetrahedron T;
@@ -46,6 +48,7 @@ void tri() {
     T.col(1) = Vec3(1.0,0.0,0.0);
     T.col(2) = Vec3(0.0,1.0,0.0);
     T.col(3) = Vec3(0.0,0.0,1.0);
+
 
 
 
@@ -68,7 +71,7 @@ void tri() {
     std::cout << P << std::endl;
 
     for(int i = 0; i < P.cols(); ++i) {
-        std::cout << mtao::geometry::barycentric_simplicial(T,P.col(i).eval()).transpose() << std::endl;
+        std::cout << i << ") " << mtao::geometry::barycentric_simplicial(T,P.col(i).eval()).transpose() << std::endl;
     }
 
 

@@ -55,51 +55,42 @@ namespace mtao { namespace geometry {
         return weights / weights.sum();
 
     }
-    template <typename T, int D, int C>
+    template <typename T, int D, int C, bool UseVolumeBarycentric=false>
         auto barycentric_simplicial(const Matrix<T,D,C>& P, const mtao::Vector<T,D>& p) -> mtao::Vector<T,C> {
-            std::cout << std::endl;
 
             mtao::Vector<T,C> ret;
 
-            auto V = volume_unsigned(P);
-            Matrix<T,D,C> SC = P;
-            for(int i = 0; i < C; ++i) {
-                SC.col(i) = p;
-                ret(i) = volume_unsigned(SC);
-                SC.col(i) = P.col(i);
-            }
-            return ret / V;
-
-
-
-
-            /*
-            for(int i = 0; i < C; ++i) {
-                auto n = N.col(i);
-                int i1 = (i+1)%C;
-                auto o = P.col(i1);
-                auto d = P.col(i);
-                n = o -  d;
-                std::cout <<  i << "->" << i1 << " = " << n.transpose() << std::endl;
-                for(int j = (i1+1)%C; j!=i; j = (j+1)%C) {
-                    mtao::Vector<T,D> l = P.col(j) - o;
-                    l.normalize();
-                    std::cout << "Projecting with: " << j  << ": " << l.transpose()<< std::endl;
-                    n = n - l.dot(n) * l;
-                    std::cout << "new N: " << n.transpose() << std::endl;
+            if constexpr(UseVolumeBarycentric) {
+                auto V = volume_unsigned(P);
+                Matrix<T,D,C> SC = P;
+                for(int i = 0; i < C; ++i) {
+                    SC.col(i) = p;
+                    ret(i) = volume_unsigned(SC);
+                    SC.col(i) = P.col(i);
                 }
-                auto nn = n.norm();
-                n = (n / nn ) / nn;
-                std::cout << "Resulting N: " << n.transpose() << std::endl;
+                return ret / V;
+            } else {
+
+                mtao::Matrix<double,D,C-2> SC;
+                for(int i = 0; i < C; ++i) {
+                    Vector<T,D> n;
+                    int i1 = (i+1)%C;
+                    auto o = P.col(i1);
+                    auto d = P.col(i);
+                    for(int j = (i1+1)%C; j!=i; j = (j+1)%C) {
+                        SC.col((j + C - i1 - 1)%C) = P.col(j) - o;
+                    }
+                    auto M = (SC.transpose() * SC).eval();
+                    auto b = SC.transpose() * (o-d);
+                    n =   o-d - SC * M.inverse() * (b);
+                    auto nn = n.norm();
+                    n = (n / nn ) / nn;
+
+                    ret(i) = 1 - n.dot(p - P.col(i));
+                }
+                return ret;
             }
 
-
-            for(int i = 0; i < C; ++i) {
-                ret(i) = 1 - N.col(i).dot(p - P.col(i));
-            }
-
-            return ret;
-            */
         }
 
 }}
