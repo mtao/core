@@ -1,4 +1,5 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.7)
 ADD_SUBDIRECTORY(mesh_viewer)
 ADD_SUBDIRECTORY(mesh2d_viewer)
+ADD_SUBDIRECTORY(grid_viewer)
 ADD_SUBDIRECTORY(sphere_obj_generator)

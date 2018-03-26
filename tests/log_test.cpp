@@ -12,7 +12,7 @@ int main() {
     log.write("welp",3,4);
 
     {
-        auto timer = mtao::logging::timer("task",false,"A");
+        auto t = mtao::logging::timer("task",false,"A");
         int x = 0;
         for(int i = 0; i < (1 << 10); ++i) {
             mtao::logging::info() <<"iteration: " << i;

@@ -34,8 +34,8 @@ namespace mtao {namespace opengl {namespace shaders {
         } else {
             ss << "    fPos = vPos;\n";
             ss << "    fNormal = vNormal;\n";
-            ss << "    fColor = vColor;\n";
         }
+        ss << "    fColor = vColor;\n";
         ss << "}\n";
         return prepareShader(ss.str().c_str(), GL_VERTEX_SHADER);
     }

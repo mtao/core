@@ -182,6 +182,7 @@ namespace mtao { namespace opengl { namespace renderers {
     void MeshRenderer::setNormals(const MatrixXgfCRef& N) {
         if(N.size() == 0) {
             buffers()->normals= nullptr;
+            return;
         }
         if(m_dim == 3) {
 
@@ -208,6 +209,7 @@ namespace mtao { namespace opengl { namespace renderers {
     void MeshRenderer::setColor(const MatrixXgfCRef& C) {
         if(C.size() == 0) {
             buffers()->colors= nullptr;
+            return;
         }
         auto m_vaoraii = vao().enableRAII();
         if(!buffers()->colors) {
