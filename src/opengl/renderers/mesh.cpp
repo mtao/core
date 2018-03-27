@@ -333,13 +333,13 @@ namespace mtao { namespace opengl { namespace renderers {
             if(m_face_style == FaceStyle::Flat || m_vertex_type == VertexStyle::Flat || m_edge_type != EdgeStyle::Disabled) {
                 if(ImGui::TreeNode("Flat Shading Parameters")) {
                     if(m_vertex_type == VertexStyle::Flat) {
-                        ImGui::ColorEdit3("vertex color", glm::value_ptr(m_vertex_color));
+                        ImGui::ColorEdit4("vertex color", glm::value_ptr(m_vertex_color));
                     }
                     if(m_edge_type != EdgeStyle::Disabled && m_edge_type != EdgeStyle::Color) {
-                        ImGui::ColorEdit3("edge color", glm::value_ptr(m_edge_color));
+                        ImGui::ColorEdit4("edge color", glm::value_ptr(m_edge_color));
                     }
                     if(m_face_style ==FaceStyle::Flat) {
-                        ImGui::ColorEdit3("face color", glm::value_ptr(m_face_color));
+                        ImGui::ColorEdit4("face color", glm::value_ptr(m_face_color));
                     }
                     ImGui::TreePop();
                 }
@@ -351,8 +351,8 @@ namespace mtao { namespace opengl { namespace renderers {
             }
             if(m_show_vector_field) {
                 ImGui::SliderFloat("Vector Scaling", &m_vector_scale,1e-5,1e0,"%.5f");
-                ImGui::ColorEdit3("vector tip color", glm::value_ptr(m_vector_tip_color));
-                ImGui::ColorEdit3("vector base color", glm::value_ptr(m_vector_base_color));
+                ImGui::ColorEdit4("vector tip color", glm::value_ptr(m_vector_tip_color));
+                ImGui::ColorEdit4("vector base color", glm::value_ptr(m_vector_base_color));
                 ImGui::SliderFloat("Vector Color Scaling", &m_vector_color_scale,1e-3,1e1);
 
             }
@@ -404,21 +404,22 @@ namespace mtao { namespace opengl { namespace renderers {
         if(!buffs.vertices) {
             return;
         }
-        if(m_vertex_type != VertexStyle::Disabled) {
-            render_points(buffs,m_vertex_type);
+        if(m_face_style != FaceStyle::Disabled) {
+            render_faces(buffs, m_face_style);
         }
         if(m_edge_type != EdgeStyle::Disabled) {
             render_edges(buffs, m_edge_type);
         }
-        if(m_face_style != FaceStyle::Disabled) {
-            render_faces(buffs, m_face_style);
-        }
         if(m_show_vector_field) {
             render_vfield(buffs);
+        }
+        if(m_vertex_type != VertexStyle::Disabled) {
+            render_points(buffs,m_vertex_type);
         }
     }
         void MeshRenderer::render_vfield(const MeshRenderBuffers& buffs) const {
             auto vao_a = vao().enableRAII();
+            glLineWidth(line_width());
             if(buffs.vectors) {
                 glLineWidth(2);
                 auto active = vector_field_program()->useRAII();
@@ -435,7 +436,7 @@ namespace mtao { namespace opengl { namespace renderers {
         }
 
     void MeshRenderer::render_points(const MeshRenderBuffers& buffs, VertexStyle style) const {
-        glPointSize(5);
+        glPointSize(point_size());
         if(!buffs.vertices) {
             mtao::logging::warn() << "vertex positions not set, can't render points" ;
             return;
@@ -485,6 +486,10 @@ namespace mtao { namespace opengl { namespace renderers {
         }
     }
     void MeshRenderer::render_edges(const MeshRenderBuffers& buffs, EdgeStyle style) const {
+        glLineWidth(line_width());
+        if(!buffs.vertices) {
+            return;
+        }
 
         if(style == EdgeStyle::BaryEdge) {
             auto active = baryedge_program()->useRAII();
@@ -513,6 +518,9 @@ namespace mtao { namespace opengl { namespace renderers {
         }
     }
     void MeshRenderer::render_faces(const MeshRenderBuffers& buffs, FaceStyle style) const {
+        if(!buffs.vertices) {
+            return;
+        }
 
         if(style == FaceStyle::Phong) {
             auto active = phong_program()->useRAII();

@@ -2,8 +2,8 @@
 #include <iostream>
 #include "imgui.h"
 #include "mtao/opengl/shader.h"
-#include "mtao/opengl/vao.h"
-#include "mtao/opengl/bo.h"
+#include "mtao/opengl/renderers/bbox.h"
+#include "mtao/opengl/renderers/axis.h"
 #include <mtao/eigen/stack.h>
 #include <memory>
 #include "grid.h"
@@ -35,6 +35,8 @@ int NI=200;
 int NJ=200;
 
 std::unique_ptr<renderers::MeshRenderer> renderer;
+std::unique_ptr<renderers::BBoxRenderer2> bbox_renderer;
+std::unique_ptr<renderers::AxisRenderer> axis_renderer;
 
 std::unique_ptr<ShaderProgram> edge_program;
 std::unique_ptr<Window> window;
@@ -73,6 +75,8 @@ void set_colors(const Mat& data) {
 void prepare_mesh(int i, int j) {
 
     renderer = std::make_unique<renderers::MeshRenderer>(2);
+    bbox_renderer = std::make_unique<renderers::BBoxRenderer2>();
+    axis_renderer = std::make_unique<renderers::AxisRenderer>(2);
 
     auto [V,F] = make_mesh(i,j);
     V.array() -= .5;
@@ -83,6 +87,12 @@ void prepare_mesh(int i, int j) {
     signs = data.array() / (data.array().pow(2) + 1e-5).sqrt();
 
 
+    using BBox = renderers::BBoxRenderer2::BBox;
+    BBox bb;
+    for(int i = 0; i < V.cols(); ++i) {
+        bb.extend(V.col(i));
+    }
+    bbox_renderer->set(bb);
 
     data = data.array().pow(3);
 
@@ -118,6 +128,12 @@ void centered_difference() {
     dy.block(1,0,NI-2,NJ) /= 2;
 }
 
+glm::vec2 grid_space(const glm::vec2& p) {
+    return (p + glm::vec2(.5) ) * glm::vec2(NI,NJ);
+}
+glm::vec2 grid_mouse_pos() {
+    return grid_space(cam.mouse_pos(ImGui::GetIO().MousePos));
+}
 
 Mat G() {
     centered_difference();
@@ -180,8 +196,6 @@ void render(int width, int height) {
     // Rendering
     glViewport(0, 0, width, height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
 
     glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
 
@@ -190,7 +204,18 @@ void render(int width, int height) {
 
     renderer->set_mvp(cam.mvp());
     renderer->set_mvp(cam.mv(),cam.p());
+    bbox_renderer->set_mvp(cam.mvp());
+    axis_renderer->set_mvp(cam.mvp());
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_ALWAYS);
+    glEnable(GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     renderer->render();
+    
+    glDepthFunc(GL_LESS);
+    bbox_renderer->render();
+    axis_renderer->render();
+
     auto&& io = ImGui::GetIO();
     auto p = cam.mouse_pos(io.MousePos);
     //mtao::logging::trace() << "Mouse coordinate: " << p.x << "," << p.y;
@@ -216,7 +241,18 @@ void gui_func() {
 
 
         ImGui::ColorEdit3("clear color", (float*)&clear_color);
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        auto gpos = grid_mouse_pos();
+        glm::ivec2 gposi;
+        gposi.x = std::max<int>(0,std::min<int>(NI-1,gpos.x));
+        gposi.y = std::max<int>(0,std::min<int>(NJ-1,gpos.y));
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS) [%.3f,%.3f]", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate,gpos.x,gpos.y);
+        ImGui::Text("[%d,%d]: %.5f", gposi.x,gposi.y,data(gposi.x,gposi.y));
+
+
+
+
+
+
 
     }
     if(ImGui::Button("Reset  Translation?")) {

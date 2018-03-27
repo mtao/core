@@ -111,16 +111,19 @@ class MeshRenderer: public Renderer {
         }
 
         void unset_all();
+        void hide_all() { unset_all(); }
 
         inline void setBuffers(const std::shared_ptr<MeshRenderBuffers>& buf) { m_buffers = buf; }
 
 
 
 
-        MTAO_ACCESSORS(glm::vec3,face_color,m_face_color)
-        MTAO_ACCESSORS(glm::vec3,edge_color,m_edge_color)
-        MTAO_ACCESSORS(glm::vec3,vertex_color,m_vertex_color)
+        MTAO_ACCESSORS(glm::vec4,face_color,m_face_color)
+        MTAO_ACCESSORS(glm::vec4,edge_color,m_edge_color)
+        MTAO_ACCESSORS(glm::vec4,vertex_color,m_vertex_color)
         MTAO_ACCESSORS(float,edge_threshold,m_edge_threshold)
+        MTAO_ACCESSORS(float,line_width,m_line_width)
+        MTAO_ACCESSORS(float,point_size,m_point_size)
 
         MTAO_ACCESSORS(glm::vec3,light_pos,m_light_pos )
         MTAO_ACCESSORS(glm::vec4,ambientMat,m_ambientMat )
@@ -130,8 +133,8 @@ class MeshRenderer: public Renderer {
 
         MTAO_ACCESSORS(float,vector_scale,m_vector_scale )
         MTAO_ACCESSORS(float,vector_color_scale,m_vector_color_scale )
-        MTAO_ACCESSORS(glm::vec3,vector_tip_color,m_vector_tip_color )
-        MTAO_ACCESSORS(glm::vec3,vector_base_color,m_vector_base_color )
+        MTAO_ACCESSORS(glm::vec4,vector_tip_color,m_vector_tip_color )
+        MTAO_ACCESSORS(glm::vec4,vector_base_color,m_vector_base_color )
 
 
 
@@ -171,10 +174,12 @@ class MeshRenderer: public Renderer {
 
         float m_vertex_scale = 1.0;
 
-        glm::vec3 m_face_color = glm::vec3(1,0,0);
-        glm::vec3 m_edge_color = glm::vec3(0,1,0);
-        glm::vec3 m_vertex_color = glm::vec3(0,0,1);
+        glm::vec4 m_face_color = glm::vec4(1,0,0,1);
+        glm::vec4 m_edge_color = glm::vec4(0,1,0,1);
+        glm::vec4 m_vertex_color = glm::vec4(0,0,1,1);
         float m_edge_threshold = 0.001;
+        float m_line_width = 1;
+        float m_point_size = 1;
 
         //phong shading program
         glm::vec3 m_light_pos = glm::vec3(0,10,0);
@@ -186,8 +191,8 @@ class MeshRenderer: public Renderer {
         //Vector field program
         float m_vector_scale = 0.1;
         float m_vector_color_scale = 0.1;
-        glm::vec3 m_vector_tip_color = glm::vec3(1,0,0);
-        glm::vec3 m_vector_base_color = glm::vec3(0,0,0);
+        glm::vec4 m_vector_tip_color = glm::vec4(1,0,0,1);
+        glm::vec4 m_vector_base_color = glm::vec4(0,0,0,1);
 
 
 };

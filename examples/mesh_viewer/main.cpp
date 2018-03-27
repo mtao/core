@@ -7,6 +7,7 @@
 #include <memory>
 #include <algorithm>
 #include "mtao/opengl/renderers/mesh.h"
+#include "mtao/opengl/renderers/bbox.h"
 #include "mtao/geometry/mesh/sphere.hpp"
 #include "mtao/geometry/mesh/read_obj.hpp"
 #include "mtao/geometry/bounding_box.hpp"
@@ -27,10 +28,12 @@ bool animate = false;
 bool save_frame = false;
 std::unique_ptr<Window> window;
 std::unique_ptr<renderers::MeshRenderer> renderer;
+std::unique_ptr<renderers::BBoxRenderer3> bbox_renderer;
 ImVec4 clear_color = ImColor(114, 144, 154);
 
 void prepare_mesh(const ColVectors3f& V, const ColVectors3i&F) {
     renderer = std::make_unique<renderers::MeshRenderer>(3);
+    bbox_renderer = std::make_unique<renderers::BBoxRenderer3>();
 
 
     auto bb = mtao::geometry::bounding_box(V);
@@ -40,6 +43,18 @@ void prepare_mesh(const ColVectors3f& V, const ColVectors3i&F) {
     ColVectors3f VV = V /  scale;
 
     renderer->setMesh(VV,F,true);
+    {
+    using BBox = renderers::BBoxRenderer3::BBox;
+    BBox bb;
+    for(int i = 0; i < VV.cols(); ++i) {
+        bb.extend(VV.col(i));
+    }
+    //Artifact of how i normalize in my meshrenderer. should just delete that functionality
+    auto m = ((bb.min() + bb.max())/2).eval();
+    bb.min() -= m;
+    bb.max() -= m;
+    bbox_renderer->set(bb);
+    }
 
     renderers::MeshRenderer::MatrixXgf C = renderer->computeNormals(V,F).array();
     renderer->setColor(C);
@@ -86,8 +101,10 @@ void render(int width, int height) {
 
     renderer->set_mvp(cam.mvp());
     renderer->set_mvp(cam.mv(),cam.p());
+    bbox_renderer->set_mvp(cam.mvp());
 
     renderer->render();
+    bbox_renderer->render();
     if(save_frame) {
         window->save_frame("frame.png");
         save_frame = false;
