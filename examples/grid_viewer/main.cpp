@@ -17,6 +17,7 @@
 
 using namespace mtao::opengl;
 
+std::vector<glm::vec2> pts;
 
 
 float look_distance = 0.6;
@@ -216,9 +217,6 @@ void render(int width, int height) {
     bbox_renderer->render();
     axis_renderer->render();
 
-    auto&& io = ImGui::GetIO();
-    auto p = cam.mouse_pos(io.MousePos);
-    //mtao::logging::trace() << "Mouse coordinate: " << p.x << "," << p.y;
 
 
 }
@@ -275,10 +273,105 @@ void gui_func() {
         data = data_original;
     }
 }
+void set_keys() {
+    auto&& h= window->hotkeys();
+
+    h.add([&]() {
+            std::scoped_lock l(render_mutex);
+            renderer->hide_meshes();
+            renderer->show_mesh_vertices();
+            },"hide meshes and show vertices", GLFW_KEY_K);
+    h.add([&]() {
+            std::scoped_lock l(render_mutex);
+            renderer->toggle_form_normalization();
+            simrender_dirty = true;
+            },"toggle form normalization", GLFW_KEY_O);
+
+    h.add([&]() {
+            std::scoped_lock l(render_mutex);
+            renderer->hide_all();
+            },"hide everything", GLFW_KEY_L);
+    h.add([&]() {
+            std::scoped_lock l(render_mutex);
+            rendermode = SimRenderMode::Pressure;
+            renderer->set2form_style();
+            simrender_dirty = true;
+            debug() << "Pressure";
+            },"visualize pressure", GLFW_KEY_3);
+    h.add([&]() {
+            std::scoped_lock l(render_mutex);
+            rendermode = SimRenderMode::Vorticity;
+            renderer->set0form_style();
+            simrender_dirty = true;
+            debug() << "Vorticity";
+            },"visualize vorticity", GLFW_KEY_1);
+    h.add([&]() {
+            std::scoped_lock l(render_mutex);
+            rendermode = SimRenderMode::Streamfunctions;
+            renderer->set0form_style();
+            simrender_dirty = true;
+            debug() << "Streamfunction";
+            },"visualize streamfunction", GLFW_KEY_4);
+    h.add([&]() {
+            std::scoped_lock l(render_mutex);
+            rendermode = SimRenderMode::Divergence;
+            renderer->set2form_style();
+            simrender_dirty = true;
+            debug() << "Divergence";
+            },"visualize divergence", GLFW_KEY_2);
+    h.add([&]() {
+            std::scoped_lock l(render_mutex);
+            rendermode = SimRenderMode::Velocity;
+            renderer->hide_all();
+            renderer->enable_vfields();
+            simrender_dirty = true;
+            },"visualize velocity", GLFW_KEY_5);
+    h.add([&]() {
+            std::scoped_lock l(render_mutex);
+            rendermode = SimRenderMode::Dirichlet;
+            renderer->hide_all();
+            renderer->enable_vfields();
+            simrender_dirty = true;
+            },"visualize dirichlet", GLFW_KEY_6);
+    h.add([&]() {
+            std::scoped_lock l(render_mutex);
+            velform = dirichlet_boundary;
+            update_form_objects();
+            simrender_dirty = true;
+            },"visualize dirichlet", GLFW_KEY_D);
+    h.add([&]() {
+            std::scoped_lock l(render_mutex);
+            velform = dirichlet_boundary;
+            std::tie(divergence,pressure) = fluid_decomposition_compress<1>(*m_ptr,dirichlet_boundary);
+            velform = velform_compress<2>(*m_ptr,pressure);
+            update_form_objects();
+            simrender_dirty = true;
+            },"visualize dirichlet_pressure", GLFW_KEY_F);
+
+    h.add([&]() {
+            cur_edge--;
+            edge_clamp();
+    }, "Decrement current edge", GLFW_KEY_N);
+    h.add([&]() {
+            cur_edge++;
+            edge_clamp();
+    }, "Increment current edge", GLFW_KEY_M);
+    h.add([&]() {
+            velform = dirichlet_boundary;
+            set_form_states();
+            simrender_dirty = true;
+            },"use dirichlet boundary conditions", GLFW_KEY_D);
+    h.add([&]() {
+            cur_edge++;
+            edge_clamp();
+            }, "Update edge", GLFW_KEY_M);
+
+}
 
 int main(int argc, char * argv[]) {
 
     window = std::make_unique<Window>();
+    set_keys();
     window->set_gui_func(gui_func);
     window->set_render_func(render);
     window->makeCurrent();

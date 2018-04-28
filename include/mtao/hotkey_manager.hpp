@@ -4,6 +4,7 @@
 #include <set>
 #include <functional>
 #include <sstream>
+#include <optional>
 
 namespace mtao {
     class HotkeyManager {

@@ -32,6 +32,8 @@ std::unique_ptr<renderers::BBoxRenderer3> bbox_renderer;
 ImVec4 clear_color = ImColor(114, 144, 154);
 
 void prepare_mesh(const ColVectors3f& V, const ColVectors3i&F) {
+    mtao::logging::debug() << "preparing mesh. f range: " << F.minCoeff() << " << " << F.maxCoeff();
+    mtao::logging::debug() << "preparing mesh. v count: " << V.cols();
     renderer = std::make_unique<renderers::MeshRenderer>(3);
     bbox_renderer = std::make_unique<renderers::BBoxRenderer3>();
 
