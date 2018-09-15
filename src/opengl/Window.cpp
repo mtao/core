@@ -95,10 +95,14 @@ void Window::draw(bool show_gui) {
 
     int display_w, display_h;
     glfwGetFramebufferSize(window,&display_w, &display_h);
-    m_gui.newFrame();
-    m_gui_func();
-    m_render_func(display_w,display_h);
-    if(show_gui) {
+    if(m_gui_func) {
+        m_gui.newFrame();
+        m_gui_func();
+    }
+    if(m_render_func) {
+        m_render_func(display_w,display_h);
+    }
+    if(m_gui_func && show_gui) {
     m_gui.render();
     }
     glfwSwapBuffers(window);
