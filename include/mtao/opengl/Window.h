@@ -49,6 +49,7 @@ class Window {
 
         static size_t s_window_count;
 };
+void set_opengl_version_hints(int major=4, int minor=5, int profile=GLFW_OPENGL_CORE_PROFILE);
 
 }}
 

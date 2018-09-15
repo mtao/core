@@ -370,6 +370,7 @@ void set_keys() {
 
 int main(int argc, char * argv[]) {
 
+    set_opengl_version_hint();
     window = std::make_unique<Window>();
     set_keys();
     window->set_gui_func(gui_func);

@@ -182,4 +182,15 @@ void Window::record(const std::function<bool(int)>& f, const std::string& prefix
     }
 }
 
+void set_opengl_version_hints(int major, int minor, int profile) {
+    if (!glfwInit()) {
+        std::cerr <<" GLFWInit faillure!" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, major);
+   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor);
+   glfwWindowHint(GLFW_OPENGL_PROFILE, profile);
+}
+
 }}
+

@@ -120,6 +120,7 @@ void render(int width, int height) {
 
 int main(int argc, char * argv[]) {
 
+    set_opengl_version_hint();
     window = std::make_unique<Window>();
     window->set_gui_func(gui_func);
     window->set_render_func(render);
