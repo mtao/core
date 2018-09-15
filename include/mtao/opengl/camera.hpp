@@ -53,6 +53,7 @@ class Camera2D: public Camera {
         float& scale() { return m_scale; }
         float scale() const { return m_scale; }
         void set_scale(float scale);
+        void set_translation(const glm::vec2& t);
         void update() override;
         void pan();
         void enableDrag() { m_dragMode = true;}

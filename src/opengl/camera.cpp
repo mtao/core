@@ -84,6 +84,10 @@ namespace mtao { namespace opengl {
         m_scale = scale;
         update();
     }
+    void Camera2D::set_translation(const glm::vec2& t) {
+        m_translation = t;
+        update();
+    }
     void Camera2D::update() {
         ortho(m_scale);
     }
