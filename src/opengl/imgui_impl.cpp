@@ -17,7 +17,8 @@ namespace mtao { namespace opengl {
 void ImGuiImpl::setWindow(GLFWwindow* window) {
     m_Window = window;
 }
-ImGuiImpl::ImGuiImpl(GLFWwindow* window): m_Window(window) {
+ImGuiImpl::ImGuiImpl(GLFWwindow* window, bool use_old_gl): m_Window(window), m_use_old_gl(use_old_gl) {
+    m_context = ImGui::CreateContext();
 
     ImGuiIO& io = ImGui::GetIO();
     io.KeyMap[ImGuiKey_Tab] = GLFW_KEY_TAB;                         // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array.
@@ -53,6 +54,7 @@ ImGuiImpl::~ImGuiImpl() {
     invalidateDeviceObjects();
     //Theoretically I suspect I should be calling shutdown but it causes a segfault taht I don't understand
     //ImGui::Shutdown();
+    ImGui::DestroyContext(m_context);
 }
 void ImGuiImpl::newFrame() {
     if (!m_FontTexture) {
@@ -103,21 +105,23 @@ void ImGuiImpl::newFrame() {
     ImGui::NewFrame();
 }
 void ImGuiImpl::invalidateDeviceObjects() {
-    if (m_VaoHandle) glDeleteVertexArrays(1, &m_VaoHandle);
-    if (m_VboHandle) glDeleteBuffers(1, &m_VboHandle);
-    if (m_ElementsHandle) glDeleteBuffers(1, &m_ElementsHandle);
-    m_VaoHandle = m_VboHandle = m_ElementsHandle = 0;
+    if(!m_use_old_gl) {
+        if (m_VaoHandle) glDeleteVertexArrays(1, &m_VaoHandle);
+        if (m_VboHandle) glDeleteBuffers(1, &m_VboHandle);
+        if (m_ElementsHandle) glDeleteBuffers(1, &m_ElementsHandle);
+        m_VaoHandle = m_VboHandle = m_ElementsHandle = 0;
 
-    if (m_ShaderHandle && m_VertHandle) glDetachShader(m_ShaderHandle, m_VertHandle);
-    if (m_VertHandle) glDeleteShader(m_VertHandle);
-    m_VertHandle = 0;
+        if (m_ShaderHandle && m_VertHandle) glDetachShader(m_ShaderHandle, m_VertHandle);
+        if (m_VertHandle) glDeleteShader(m_VertHandle);
+        m_VertHandle = 0;
 
-    if (m_ShaderHandle && m_FragHandle) glDetachShader(m_ShaderHandle, m_FragHandle);
-    if (m_FragHandle) glDeleteShader(m_FragHandle);
-    m_FragHandle = 0;
+        if (m_ShaderHandle && m_FragHandle) glDetachShader(m_ShaderHandle, m_FragHandle);
+        if (m_FragHandle) glDeleteShader(m_FragHandle);
+        m_FragHandle = 0;
 
-    if (m_ShaderHandle) glDeleteProgram(m_ShaderHandle);
-    m_ShaderHandle = 0;
+        if (m_ShaderHandle) glDeleteProgram(m_ShaderHandle);
+        m_ShaderHandle = 0;
+    }
 
     if (m_FontTexture)
     {
@@ -128,76 +132,82 @@ void ImGuiImpl::invalidateDeviceObjects() {
 }
 void ImGuiImpl::createDeviceObjects() {
     // Backup GL state
-    GLint last_texture, last_array_buffer, last_vertex_array;
+    GLint last_texture;
     glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
-    glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &last_array_buffer);
-    glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &last_vertex_array);
+    GLint last_array_buffer, last_vertex_array;
 
-    const GLchar *vertex_shader =
-        "#version 330\n"
-        "uniform mat4 ProjMtx;\n"
-        "in vec2 Position;\n"
-        "in vec2 UV;\n"
-        "in vec4 Color;\n"
-        "out vec2 Fram_UV;\n"
-        "out vec4 Fram_Color;\n"
-        "void main()\n"
-        "{\n"
-        "	Fram_UV = UV;\n"
-        "	Fram_Color = Color;\n"
-        "	gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
-        "}\n";
+    if(!m_use_old_gl) {
+        glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &last_array_buffer);
+        glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &last_vertex_array);
 
-    const GLchar* fragment_shader =
-        "#version 330\n"
-        "uniform sampler2D Texture;\n"
-        "in vec2 Fram_UV;\n"
-        "in vec4 Fram_Color;\n"
-        "out vec4 Out_Color;\n"
-        "void main()\n"
-        "{\n"
-        "	Out_Color = Fram_Color * texture( Texture, Fram_UV.st);\n"
-        "}\n";
+        const GLchar *vertex_shader =
+            "#version 330\n"
+            "uniform mat4 ProjMtx;\n"
+            "in vec2 Position;\n"
+            "in vec2 UV;\n"
+            "in vec4 Color;\n"
+            "out vec2 Fram_UV;\n"
+            "out vec4 Fram_Color;\n"
+            "void main()\n"
+            "{\n"
+            "	Fram_UV = UV;\n"
+            "	Fram_Color = Color;\n"
+            "	gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
+            "}\n";
 
-    m_ShaderHandle = glCreateProgram();
-    m_VertHandle = glCreateShader(GL_VERTEX_SHADER);
-    m_FragHandle = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(m_VertHandle, 1, &vertex_shader, 0);
-    glShaderSource(m_FragHandle, 1, &fragment_shader, 0);
-    glCompileShader(m_VertHandle);
-    glCompileShader(m_FragHandle);
-    glAttachShader(m_ShaderHandle, m_VertHandle);
-    glAttachShader(m_ShaderHandle, m_FragHandle);
-    glLinkProgram(m_ShaderHandle);
+        const GLchar* fragment_shader =
+            "#version 330\n"
+            "uniform sampler2D Texture;\n"
+            "in vec2 Fram_UV;\n"
+            "in vec4 Fram_Color;\n"
+            "out vec4 Out_Color;\n"
+            "void main()\n"
+            "{\n"
+            "	Out_Color = Fram_Color * texture( Texture, Fram_UV.st);\n"
+            "}\n";
 
-    m_AttribLocationTex = glGetUniformLocation(m_ShaderHandle, "Texture");
-    m_AttribLocationProjMtx = glGetUniformLocation(m_ShaderHandle, "ProjMtx");
-    m_AttribLocationPosition = glGetAttribLocation(m_ShaderHandle, "Position");
-    m_AttribLocationUV = glGetAttribLocation(m_ShaderHandle, "UV");
-    m_AttribLocationColor = glGetAttribLocation(m_ShaderHandle, "Color");
+        m_ShaderHandle = glCreateProgram();
+        m_VertHandle = glCreateShader(GL_VERTEX_SHADER);
+        m_FragHandle = glCreateShader(GL_FRAGMENT_SHADER);
+        glShaderSource(m_VertHandle, 1, &vertex_shader, 0);
+        glShaderSource(m_FragHandle, 1, &fragment_shader, 0);
+        glCompileShader(m_VertHandle);
+        glCompileShader(m_FragHandle);
+        glAttachShader(m_ShaderHandle, m_VertHandle);
+        glAttachShader(m_ShaderHandle, m_FragHandle);
+        glLinkProgram(m_ShaderHandle);
 
-    glGenBuffers(1, &m_VboHandle);
-    glGenBuffers(1, &m_ElementsHandle);
+        m_AttribLocationTex = glGetUniformLocation(m_ShaderHandle, "Texture");
+        m_AttribLocationProjMtx = glGetUniformLocation(m_ShaderHandle, "ProjMtx");
+        m_AttribLocationPosition = glGetAttribLocation(m_ShaderHandle, "Position");
+        m_AttribLocationUV = glGetAttribLocation(m_ShaderHandle, "UV");
+        m_AttribLocationColor = glGetAttribLocation(m_ShaderHandle, "Color");
 
-    glGenVertexArrays(1, &m_VaoHandle);
-    glBindVertexArray(m_VaoHandle);
-    glBindBuffer(GL_ARRAY_BUFFER, m_VboHandle);
-    glEnableVertexAttribArray(m_AttribLocationPosition);
-    glEnableVertexAttribArray(m_AttribLocationUV);
-    glEnableVertexAttribArray(m_AttribLocationColor);
+        glGenBuffers(1, &m_VboHandle);
+        glGenBuffers(1, &m_ElementsHandle);
+
+        glGenVertexArrays(1, &m_VaoHandle);
+        glBindVertexArray(m_VaoHandle);
+        glBindBuffer(GL_ARRAY_BUFFER, m_VboHandle);
+        glEnableVertexAttribArray(m_AttribLocationPosition);
+        glEnableVertexAttribArray(m_AttribLocationUV);
+        glEnableVertexAttribArray(m_AttribLocationColor);
 
 #define OFFSETOF(TYPE, ELEMENT) ((size_t)&(((TYPE *)0)->ELEMENT))
-    glVertexAttribPointer(m_AttribLocationPosition, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (GLvoid*)OFFSETOF(ImDrawVert, pos));
-    glVertexAttribPointer(m_AttribLocationUV, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (GLvoid*)OFFSETOF(ImDrawVert, uv));
-    glVertexAttribPointer(m_AttribLocationColor, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ImDrawVert), (GLvoid*)OFFSETOF(ImDrawVert, col));
+        glVertexAttribPointer(m_AttribLocationPosition, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (GLvoid*)OFFSETOF(ImDrawVert, pos));
+        glVertexAttribPointer(m_AttribLocationUV, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (GLvoid*)OFFSETOF(ImDrawVert, uv));
+        glVertexAttribPointer(m_AttribLocationColor, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ImDrawVert), (GLvoid*)OFFSETOF(ImDrawVert, col));
 #undef OFFSETOF
+    }
 
     createFontsTexture();
 
-    // Restore modified GL state
     glBindTexture(GL_TEXTURE_2D, last_texture);
-    glBindBuffer(GL_ARRAY_BUFFER, last_array_buffer);
-    glBindVertexArray(last_vertex_array);
+    if(!m_use_old_gl) {
+        // Restore modified GL state
+        glBindBuffer(GL_ARRAY_BUFFER, last_array_buffer);
+        glBindVertexArray(last_vertex_array);
+    }
 
 }
 
@@ -226,8 +236,98 @@ void        ImGuiImpl::charCallback(GLFWwindow*,unsigned int c) {
     if (c > 0 && c < 0x10000)
         io.AddInputCharacter((unsigned short)c);
 }
-void ImGuiImpl::renderDrawLists(void* void_draw_data) {
-    ImDrawData* draw_data = (ImDrawData*)void_draw_data;
+void ImGuiImpl::renderDrawLists2(ImDrawData* draw_data) {
+    // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
+    ImGuiIO& io = ImGui::GetIO();
+    int fb_width = (int)(draw_data->DisplaySize.x * io.DisplayFramebufferScale.x);
+    int fb_height = (int)(draw_data->DisplaySize.y * io.DisplayFramebufferScale.y);
+    if (fb_width == 0 || fb_height == 0)
+        return;
+    draw_data->ScaleClipRects(io.DisplayFramebufferScale);
+
+    // We are using the OpenGL fixed pipeline to make the example code simpler to read!
+    // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, vertex/texcoord/color pointers, polygon fill.
+    GLint last_texture; glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
+    GLint last_polygon_mode[2]; glGetIntegerv(GL_POLYGON_MODE, last_polygon_mode);
+    GLint last_viewport[4]; glGetIntegerv(GL_VIEWPORT, last_viewport);
+    GLint last_scissor_box[4]; glGetIntegerv(GL_SCISSOR_BOX, last_scissor_box); 
+    glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_TRANSFORM_BIT);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_COLOR_MATERIAL);
+    glEnable(GL_SCISSOR_TEST);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
+    glEnable(GL_TEXTURE_2D);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    //glUseProgram(0); // You may want this if using this code in an OpenGL 3+ context where shaders may be bound
+
+    // Setup viewport, orthographic projection matrix
+    // Our visible imgui space lies from draw_data->DisplayPos (top left) to draw_data->DisplayPos+data_data->DisplaySize (bottom right). DisplayMin is typically (0,0) for single viewport apps.
+    glViewport(0, 0, (GLsizei)fb_width, (GLsizei)fb_height);
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(draw_data->DisplayPos.x, draw_data->DisplayPos.x + draw_data->DisplaySize.x, draw_data->DisplayPos.y + draw_data->DisplaySize.y, draw_data->DisplayPos.y, -1.0f, +1.0f);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    // Render command lists
+    ImVec2 pos = draw_data->DisplayPos;
+    for (int n = 0; n < draw_data->CmdListsCount; n++)
+    {
+        const ImDrawList* cmd_list = draw_data->CmdLists[n];
+        const ImDrawVert* vtx_buffer = cmd_list->VtxBuffer.Data;
+        const ImDrawIdx* idx_buffer = cmd_list->IdxBuffer.Data;
+        glVertexPointer(2, GL_FLOAT, sizeof(ImDrawVert), (const GLvoid*)((const char*)vtx_buffer + IM_OFFSETOF(ImDrawVert, pos)));
+        glTexCoordPointer(2, GL_FLOAT, sizeof(ImDrawVert), (const GLvoid*)((const char*)vtx_buffer + IM_OFFSETOF(ImDrawVert, uv)));
+        glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(ImDrawVert), (const GLvoid*)((const char*)vtx_buffer + IM_OFFSETOF(ImDrawVert, col)));
+
+        for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
+        {
+            const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
+            if (pcmd->UserCallback)
+            {
+                // User callback (registered via ImDrawList::AddCallback)
+                pcmd->UserCallback(cmd_list, pcmd);
+            }
+            else
+            {
+                ImVec4 clip_rect = ImVec4(pcmd->ClipRect.x - pos.x, pcmd->ClipRect.y - pos.y, pcmd->ClipRect.z - pos.x, pcmd->ClipRect.w - pos.y);
+                if (clip_rect.x < fb_width && clip_rect.y < fb_height && clip_rect.z >= 0.0f && clip_rect.w >= 0.0f)
+                {
+                    // Apply scissor/clipping rectangle
+                    glScissor((int)clip_rect.x, (int)(fb_height - clip_rect.w), (int)(clip_rect.z - clip_rect.x), (int)(clip_rect.w - clip_rect.y));
+
+                    // Bind texture, Draw
+                    glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->TextureId);
+                    glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, idx_buffer);
+                }
+            }
+            idx_buffer += pcmd->ElemCount;
+        }
+    }
+
+    // Restore modified state
+    glDisableClientState(GL_COLOR_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glBindTexture(GL_TEXTURE_2D, (GLuint)last_texture);
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glPopAttrib();
+    glPolygonMode(GL_FRONT, (GLenum)last_polygon_mode[0]); glPolygonMode(GL_BACK, (GLenum)last_polygon_mode[1]);
+    glViewport(last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]);
+    glScissor(last_scissor_box[0], last_scissor_box[1], (GLsizei)last_scissor_box[2], (GLsizei)last_scissor_box[3]);
+}
+void ImGuiImpl::renderDrawLists3(ImDrawData* draw_data) {
     // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
     ImGuiIO& io = ImGui::GetIO();
     int fb_width = (int)(io.DisplaySize.x * io.DisplayFramebufferScale.x);
@@ -354,7 +454,11 @@ bool ImGuiImpl::createFontsTexture() {
 void ImGuiImpl::render() {
     ImGui::Render();
 
-    renderDrawLists(ImGui::GetDrawData());
+    if(m_use_old_gl) {
+    renderDrawLists2(ImGui::GetDrawData());
+    } else {
+    renderDrawLists3(ImGui::GetDrawData());
+    }
 }
 
 }}

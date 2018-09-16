@@ -2,11 +2,13 @@
 #define IMGUI_IMPL_H
 
 struct GLFWwindow;
+class ImDrawData;
+struct ImGuiContext;
 namespace mtao { namespace opengl {
 
 class ImGuiImpl {
     public:
-    ImGuiImpl(GLFWwindow* window = nullptr);
+    ImGuiImpl(GLFWwindow* window = nullptr, bool use_old_gl = false);
     ~ImGuiImpl();
     void newFrame();
 
@@ -22,11 +24,13 @@ class ImGuiImpl {
     void render();
 
     private:
-    void renderDrawLists(void* draw_data);
+    void renderDrawLists2(ImDrawData* draw_data);
+    void renderDrawLists3(ImDrawData* draw_data);
     bool createFontsTexture();
     private:
     // Data
     GLFWwindow*  m_Window = nullptr;
+    ImGuiContext* m_context = nullptr;
     double       m_Time = 0.0f;
     static bool         s_MousePressed[3];
     static float        s_MouseWheel;
@@ -35,6 +39,7 @@ class ImGuiImpl {
     int          m_AttribLocationTex = 0, m_AttribLocationProjMtx = 0;
     int          m_AttribLocationPosition = 0, m_AttribLocationUV = 0, m_AttribLocationColor = 0;
     unsigned int m_VboHandle = 0, m_VaoHandle = 0, m_ElementsHandle = 0;
+    bool m_use_old_gl = false;
 };
 
 }}

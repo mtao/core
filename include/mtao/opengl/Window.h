@@ -14,6 +14,11 @@ class Window {
         Window(const std::string& name = "Name", int width = 640, int height = 480);
         ~Window();
 
+        //TODO: someday should identify these things 
+        void make_imgui(bool use_old_gl=false);
+        void use_old_opengl();
+        void use_new_opengl();
+
         void draw(bool show_gui = true);
         void run();
         //int key, int scancode, int action, int mods
