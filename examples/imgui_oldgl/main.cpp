@@ -56,7 +56,7 @@ int main(int argc, char * argv[]) {
 
     set_opengl_version_hints(3,0,GLFW_OPENGL_ANY_PROFILE);
     window = std::make_unique<Window>();
-    window->make_imgui(true);
+    window->force_imgui_old_gl();
     window->set_gui_func(gui_func);
     window->set_render_func(render);
     window->makeCurrent();

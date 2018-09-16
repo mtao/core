@@ -15,9 +15,7 @@ class Window {
         ~Window();
 
         //TODO: someday should identify these things 
-        void make_imgui(bool use_old_gl=false);
-        void use_old_opengl();
-        void use_new_opengl();
+        void force_imgui_old_gl(bool do_use=true);
 
         void draw(bool show_gui = true);
         void run();
