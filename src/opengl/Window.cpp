@@ -107,6 +107,9 @@ void Window::draw(bool show_gui) {
     m_gui.render();
     }
     glfwSwapBuffers(window);
+    if(m_is_recording) {
+        save_frame();
+    }
 
 }
 
@@ -148,6 +151,9 @@ std::array<int,2> Window::getSize() const {
     return size;
 }
 
+void Window::save_frame() {
+    save_frame(get_frame_filename(m_frame_number++));
+}
 void Window::save_frame(const std::string& filename) {
 
     auto [w,h] = getSize();
@@ -174,16 +180,23 @@ void Window::save_frame(const std::string& filename) {
 
     image.write(filename);
 }
+std::string Window::get_frame_filename(int frame) const {
+    std::stringstream ss;
+    ss << m_recording_prefix << std::setfill('0') << std::setw(6) << frame << ".png";
+    return ss.str();
+}
 void Window::record(const std::function<bool(int)>& f, const std::string& prefix, bool show_gui) {
+    m_recording_prefix = prefix;
 
     for(int idx = 0; f(idx); ++idx) {
         draw(show_gui);
 
-        std::stringstream ss;
-        ss << prefix << std::setfill('0') << std::setw(6) << idx << ".png";
-        save_frame(ss.str());
+        save_frame(get_frame_filename(idx));
     }
 }
+void Window::start_recording() { m_is_recording = true; }
+void Window::stop_recording() { m_is_recording = false; }
+void Window::set_recording_prefix(const std::string& str) { m_recording_prefix = str; }
 
 void set_opengl_version_hints(int major, int minor, int profile) {
     if (!glfwInit()) {

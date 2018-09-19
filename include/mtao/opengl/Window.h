@@ -30,6 +30,7 @@ class Window {
         void resize(int w, int h) { setSize(w,h); }
 
 
+        void save_frame();
         void save_frame(const std::string& filename);
         void record(const std::function<bool(int)>& f, const std::string& prefix, bool show_gui = false);
 
@@ -43,11 +44,29 @@ class Window {
         static void keyCallback(GLFWwindow*,int key, int scancode, int action, int mods);
         HotkeyManager& hotkeys();
         const HotkeyManager& hotkeys() const;
+
+        void start_recording();
+        void stop_recording();
+        bool is_recording() const { return m_is_recording; }
+        void set_recording_prefix(const std::string& str);
+        void reset_frame_number() { m_frame_number = 0; }
+
+    private:
+        std::string get_frame_filename(int frame) const;
+
+
     private:
         GLFWwindow* window;
         std::function<void()> m_gui_func;
         std::function<void(int,int)> m_render_func;
         ImGuiImpl m_gui;
+
+        bool m_is_recording = false;
+        std::string m_recording_prefix = "frame";
+        int m_frame_number = 0;
+
+
+
         static std::map<GLFWwindow*,HotkeyManager> s_hotkeys;
 
         static size_t s_window_count;
