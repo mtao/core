@@ -76,9 +76,6 @@ Window::~Window() {
     }
 }
 
-void Window::force_imgui_old_gl(bool do_use) {
-    m_gui = ImGuiImpl(window,do_use);
-}
 
 void Window::run() {
     while (!glfwWindowShouldClose(window)) {

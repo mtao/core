@@ -14,8 +14,6 @@ class Window {
         Window(const std::string& name = "Name", int width = 640, int height = 480);
         ~Window();
 
-        //TODO: someday should identify these things 
-        void force_imgui_old_gl(bool do_use=true);
 
         void draw(bool show_gui = true);
         void run();
