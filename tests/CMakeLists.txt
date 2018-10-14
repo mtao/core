@@ -25,6 +25,7 @@ TARGET_LINK_LIBRARIES(log_test mtao_core)
 ADD_EXECUTABLE(profiler_test profiler_test.cpp)
 TARGET_LINK_LIBRARIES(profiler_test mtao_core)
 
+ADD_EXECUTABLE(tuple_call_test tuple_call_test.cpp)
 
 ADD_EXECUTABLE(halfedge_test halfedge_test.cpp)
 TARGET_LINK_LIBRARIES(halfedge_test mtao_geometry)
