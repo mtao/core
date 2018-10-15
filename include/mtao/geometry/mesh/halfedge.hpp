@@ -1,6 +1,9 @@
 #ifndef HALFEDGE_CELLCOMPLEX_H
 #define HALFEDGE_CELLCOMPLEX_H
 #include <vector>
+#include <map>
+#include <iostream>
+#include <set>
 #include "mtao/types.h"
 
 namespace mtao { namespace geometry { namespace mesh {
@@ -27,8 +30,11 @@ class HalfEdgeMesh {
 
         HalfEdgeMesh(const std::string& str);
         HalfEdgeMesh(const Cells& F);
+        HalfEdgeMesh(const mtao::ColVectors<int,2>& E);//From non-dual edges
         HalfEdgeMesh() = default;
         void construct(const Cells& F);
+        template <typename T, int D>
+        void make_topology(const mtao::ColVectors<T,D>& V);
 
         auto vertex_indices() { return m_edges.row(int(Index::VertexIndex)); }
         auto cell_indices() { return m_edges.row(int(Index::CellIndex)); }
@@ -66,6 +72,9 @@ class HalfEdgeMesh {
         bool is_boundary_vertex(int index) const;
         bool is_boundary_cell(int index) const;
 
+    private:
+        void clear(size_t new_size = 0);
+        std::map<int,std::set<int>> vertex_edges_no_topology() const;
     private:
         Edges m_edges;
         
@@ -161,5 +170,40 @@ struct boundary_iterator: public edge_iterator_base<boundary_iterator> {
     static void increment(HalfEdge& he);
 };
 
+template <typename T, int D>
+void HalfEdgeMesh::make_topology(const mtao::ColVectors<T,D>& V) {
+    if constexpr(D == 2) {
+        //MAke edge connectivity
+        auto e2v = vertex_edges_no_topology();
+        for(auto&& [vidx,edges]: e2v) {
+            auto o = V.col(vidx);
+            std::map<T,int> edge_angles;
+            std::transform(edges.begin(),edges.end(),std::inserter(edge_angles,edge_angles.end()), [&](int eidx) {
+                    HalfEdge e = edge(eidx);
+                    std::cout << e.index() << "=>" << e.get_dual().vertex() << std::endl;
+                    auto p = V.col(e.dual().vertex()) - o;
+                    T ang = std::atan2(p.y(),p.x());
+                    return std::make_pair(ang,eidx);
+                    });
+            auto nit = edge_angles.begin();
+            auto it = nit++;
+            auto ni = next_indices();
+            auto di = dual_indices();
+            for(; nit != edge_angles.end(); ++it, ++nit) {
+                int nidx = nit->second;
+                int idx = it->second;
+                std::cout << idx << "====>" << nidx << std::endl;
+                ni(idx) = di(nidx);
+            }
+            int idx = it->second;
+            ni(idx) = di(edge_angles.begin()->second);
+                std::cout << idx << "====>" << edge_angles.begin()->second << std::endl;
+
+
+        }
+    } else {
+        static_assert(D != 2);
+    }
+}
 }}}
 #endif//HALFEDGE_CELLCOMPLEX_H

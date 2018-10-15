@@ -3,6 +3,7 @@
 #include <tuple>
 #include <set>
 #include "mtao/logging/logger.hpp"
+#include <iostream>
 using namespace mtao::logging;
 
 namespace mtao { namespace geometry { namespace mesh {
@@ -15,6 +16,24 @@ HalfEdgeMesh::HalfEdgeMesh(const Cells& F) {
     construct(F);
 }
 
+HalfEdgeMesh::HalfEdgeMesh(const mtao::ColVectors<int,2>& E) {
+    clear(2*E.cols());
+
+    auto vi = vertex_indices();
+    auto di = dual_indices();
+    for(int i = 0; i < E.cols(); ++i) {
+        auto e = E.col(i);
+        vi(2*i) = e(0);
+        vi(2*i+1) = e(1);
+        di(2*i) = 2*i+1;
+        di(2*i+1) = 2*i;
+    }
+}
+
+
+void HalfEdgeMesh::clear(size_t new_size) {
+    m_edges = Edges::Constant(int(Index::IndexEnd),int(new_size),-1);
+}
 void HalfEdgeMesh::construct(const Cells& F) {
     using Edge = std::tuple<int,int>;
 
@@ -34,7 +53,7 @@ void HalfEdgeMesh::construct(const Cells& F) {
         size += cell_size(f);
     }
 
-    m_edges = Edges::Constant(int(Index::IndexEnd),size,-1);
+    clear(size);
 
     std::map<Edge,int> ei_map;
 
@@ -161,6 +180,21 @@ HalfEdge HalfEdge::get_dual() const {
 }
 
 
+std::map<int,std::set<int>> HalfEdgeMesh::vertex_edges_no_topology() const {
+    std::map<int,std::set<int>> map;
+    for(int i = 0; i < size(); ++i) {
+        map[vertex_index(i)].insert(i);
+    }
+
+    for(auto&& [vidx,eidx]: map) {
+        std::cout << vidx << ": ";
+        for(auto&& eidx: eidx) {
+            std::cout << eidx << " ";
+        }
+        std::cout << std::endl;
+    }
+    return map;
+}
 
 
 
