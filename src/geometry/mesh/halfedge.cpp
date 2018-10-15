@@ -1,9 +1,10 @@
 #include "mtao/geometry/mesh/halfedge.hpp"
+#include "mtao/data_structures/disjoint_set.hpp"
+
 #include <map>
 #include <tuple>
 #include <set>
 #include "mtao/logging/logger.hpp"
-#include <iostream>
 using namespace mtao::logging;
 
 namespace mtao { namespace geometry { namespace mesh {
@@ -82,6 +83,27 @@ void HalfEdgeMesh::construct(const Cells& F) {
         }
     }
 
+}
+void HalfEdgeMesh::make_cells() {
+    auto ci = cell_indices();
+    mtao::data_structures::DisjointSet<int> ds;
+    for(int i = 0; i < size(); ++i) {
+        ci(i) = i;
+        ds.add_node(i);
+    }
+    for(int i = 0; i < size(); ++i) {
+        ds.join(i,next_index(i));
+    }
+    ds.reduce_all();
+
+    std::map<int,int> reindexer;
+    for(auto&& i: ds.root_indices()) {
+        reindexer[ds.node(i).data] = reindexer.size();
+    }
+
+    for(int i = 0; i < size(); ++i) {
+        ci(i) = reindexer[ds.get_root(i).data];
+    }
 }
 
 std::vector<int> HalfEdgeMesh::cells() const {
@@ -186,13 +208,6 @@ std::map<int,std::set<int>> HalfEdgeMesh::vertex_edges_no_topology() const {
         map[vertex_index(i)].insert(i);
     }
 
-    for(auto&& [vidx,eidx]: map) {
-        std::cout << vidx << ": ";
-        for(auto&& eidx: eidx) {
-            std::cout << eidx << " ";
-        }
-        std::cout << std::endl;
-    }
     return map;
 }
 

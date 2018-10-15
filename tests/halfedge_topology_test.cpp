@@ -43,6 +43,7 @@ int main(int argc, char * argv[]) {
 
     auto C = hem.cells();
     for(int i = 0; i < C.size(); ++i) {
+        std::cout << hem.edge(C[i]).cell() << ": ";
         cell_iterator(&hem,C[i])([&](auto&& e) {
                 std::cout << e.vertex() << " ";
                 });

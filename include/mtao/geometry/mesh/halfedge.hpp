@@ -2,7 +2,6 @@
 #define HALFEDGE_CELLCOMPLEX_H
 #include <vector>
 #include <map>
-#include <iostream>
 #include <set>
 #include "mtao/types.h"
 
@@ -51,6 +50,7 @@ class HalfEdgeMesh {
         int cell_index(int idx) const { return cell_indices()(idx); }
         const Edges& edges() const { return m_edges; }
 
+        //Returns a unique halfedge to access a particular element type
         std::vector<int> cells() const;
         std::vector<int> vertices() const;
         std::vector<int> boundary() const;
@@ -75,6 +75,7 @@ class HalfEdgeMesh {
     private:
         void clear(size_t new_size = 0);
         std::map<int,std::set<int>> vertex_edges_no_topology() const;
+        void make_cells();//assumes duals and cells nexts are set up, makes every element part of some cell
     private:
         Edges m_edges;
         
@@ -180,7 +181,6 @@ void HalfEdgeMesh::make_topology(const mtao::ColVectors<T,D>& V) {
             std::map<T,int> edge_angles;
             std::transform(edges.begin(),edges.end(),std::inserter(edge_angles,edge_angles.end()), [&](int eidx) {
                     HalfEdge e = edge(eidx);
-                    std::cout << e.index() << "=>" << e.get_dual().vertex() << std::endl;
                     auto p = V.col(e.dual().vertex()) - o;
                     T ang = std::atan2(p.y(),p.x());
                     return std::make_pair(ang,eidx);
@@ -192,17 +192,16 @@ void HalfEdgeMesh::make_topology(const mtao::ColVectors<T,D>& V) {
             for(; nit != edge_angles.end(); ++it, ++nit) {
                 int nidx = nit->second;
                 int idx = it->second;
-                std::cout << idx << "====>" << nidx << std::endl;
                 ni(idx) = di(nidx);
             }
             int idx = it->second;
             ni(idx) = di(edge_angles.begin()->second);
-                std::cout << idx << "====>" << edge_angles.begin()->second << std::endl;
 
 
         }
+        make_cells();
     } else {
-        static_assert(D != 2);
+        static_assert(D == 2);
     }
 }
 }}}
