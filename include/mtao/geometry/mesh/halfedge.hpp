@@ -175,28 +175,33 @@ template <typename T, int D>
 void HalfEdgeMesh::make_topology(const mtao::ColVectors<T,D>& V) {
     if constexpr(D == 2) {
         //MAke edge connectivity
+        auto ni = next_indices();
+        auto di = dual_indices();
         auto e2v = vertex_edges_no_topology();
         for(auto&& [vidx,edges]: e2v) {
-            auto o = V.col(vidx);
-            std::map<T,int> edge_angles;
+            if(edges.size() == 1) {
+                int eidx = *edges.begin();
+                ni(eidx) = di(eidx);
+            } else {
+                auto o = V.col(vidx);
+                std::map<T,int> edge_angles;
 
-            std::transform(edges.begin(),edges.end(),std::inserter(edge_angles,edge_angles.end()), [&](int eidx) {
-                    HalfEdge e = edge(eidx);
-                    auto p = V.col(e.get_dual().vertex()) - o;
-                    T ang = std::atan2(p.y(),p.x());
-                    return std::make_pair(ang,eidx);
-                    });
-            auto nit = edge_angles.begin();
-            auto it = nit++;
-            auto ni = next_indices();
-            auto di = dual_indices();
-            for(; nit != edge_angles.end(); ++it, ++nit) {
-                int nidx = nit->second;
+                std::transform(edges.begin(),edges.end(),std::inserter(edge_angles,edge_angles.end()), [&](int eidx) {
+                        HalfEdge e = edge(eidx);
+                        auto p = V.col(e.get_dual().vertex()) - o;
+                        T ang = std::atan2(p.y(),p.x());
+                        return std::make_pair(ang,eidx);
+                        });
+                auto nit = edge_angles.begin();
+                auto it = nit++;
+                for(; nit != edge_angles.end(); ++it, ++nit) {
+                    int nidx = nit->second;
+                    int idx = it->second;
+                    ni(idx) = di(nidx);
+                }
                 int idx = it->second;
-                ni(idx) = di(nidx);
+                ni(idx) = di(edge_angles.begin()->second);
             }
-            int idx = it->second;
-            ni(idx) = di(edge_angles.begin()->second);
 
 
         }

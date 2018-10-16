@@ -91,12 +91,53 @@ void test1() {
     }
 }
 
+void test2() {
+    mtao::ColVectors<float,2> V(2,5);
+    mtao::ColVectors<int,2> E(2,5);
+
+    V.col(0) = mtao::Vec2f(0.,0.);
+    V.col(1) = mtao::Vec2f(1.,0.);
+    V.col(2) = mtao::Vec2f(1.,1.);
+    V.col(3) = mtao::Vec2f(0.,1.);
+    V.col(4) = mtao::Vec2f(.5f,.5f);
+
+    E.col(0) = mtao::Vec2i(0,1);
+    E.col(1) = mtao::Vec2i(1,2);
+    E.col(2) = mtao::Vec2i(2,3);
+    E.col(3) = mtao::Vec2i(3,0);
+    E.col(4) = mtao::Vec2i(0,4);
+        
+
+    std::cout << E << std::endl;
+
+    using namespace mtao::geometry::mesh;
+    HalfEdgeMesh hem(E);
+
+    std::cout << hem.edges() << std::endl << std::endl;
+
+
+
+    hem.make_topology(V);
+    std::cout << hem.edges() << std::endl << std::endl;
+
+    auto C = hem.cells();
+    for(int i = 0; i < C.size(); ++i) {
+        std::cout << hem.edge(C[i]).cell() << ": ";
+        cell_iterator(&hem,C[i])([&](auto&& e) {
+                std::cout << e.vertex() << " ";
+                });
+        std::cout << std::endl;
+        std::cout << std::endl << std::endl;
+    }
+}
 
 int main(int argc, char * argv[]) {
 
     test0();
     std::cout << "===================================================" << std::endl;
     test1();
+    std::cout << "===================================================" << std::endl;
+    test2();
     
 
 
