@@ -65,16 +65,7 @@ struct DisjointSet{
         return ret;
     }
     void reduce_all() {
-    for(auto&& n: nodes) {
-        if(n.root()) {
-            std::cout << "Root: " << n.data << std::endl;
-        } else {
-            std::cout << "Internal: " << n.data << " ==> " << *n.parent << std::endl;
-        }
-    }
-
         for(size_t i = 0; i < nodes.size(); ++i) {
-            std::cout << i<< std::endl;
             reduce_idx(i);
         }
     }

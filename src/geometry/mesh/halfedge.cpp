@@ -4,6 +4,8 @@
 #include <map>
 #include <tuple>
 #include <set>
+#include <algorithm>
+#include <iterator>
 #include "mtao/logging/logger.hpp"
 using namespace mtao::logging;
 
@@ -207,6 +209,7 @@ std::map<int,std::set<int>> HalfEdgeMesh::vertex_edges_no_topology() const {
     for(int i = 0; i < size(); ++i) {
         map[vertex_index(i)].insert(i);
     }
+
 
     return map;
 }
