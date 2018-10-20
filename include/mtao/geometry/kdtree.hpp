@@ -2,6 +2,7 @@
 #include <Eigen/Core>
 #include <vector>
 #include <memory>
+#include <array>
 #include "mtao/types.h"
 #include <sstream>
 #include <numeric>
@@ -26,10 +27,18 @@ namespace mtao { namespace geometry {
 
                 ~KDNode() = default;
                 KDNode() = delete;
-                KDNode(const KDNode&) = default;
-                KDNode(KDNode&&) = default;
-                KDNode& operator=(const KDNode&) = default;
-                KDNode& operator=(KDNode&&) = default;
+                KDNode(const KDNode&) = delete;
+                KDNode(KDNode&&) = delete;
+                KDNode& operator=(const KDNode&) = delete;
+                KDNode& operator=(KDNode&&) = delete;
+                KDNode(const KDTree<T,D>& tree, KDNode&& o): m_tree(tree), m_index(o.m_index) {
+                    if(o.left()) {
+                        left() = std::make_unique<ChildNodeType>(tree,std::move(*o.left()));
+                    }
+                    if(o.right()) {
+                        right() = std::make_unique<ChildNodeType>(tree,std::move(*o.right()));
+                    }
+                }
 
                 KDNode(const KDTree<T,D>& tree, int index): m_tree(tree), m_index(index) {}
                 KDNode(const KDTree<T,D>& tree, const BCIt& begin, const BCIt& end): m_tree(tree) {
@@ -174,15 +183,20 @@ namespace mtao { namespace geometry {
                 void balanced_creation() {
                     std::vector<size_t> P(m_points.size());
                     std::iota(P.begin(),P.end(),0);
-                    //m_node = std::make_unique<NodeType>(*this,P.begin(),P.end());
-                    m_node.reset(new NodeType(*this,P.begin(),P.end()));
+                    m_node = std::make_unique<NodeType>(*this,P.begin(),P.end());
                 }
                 KDTree() = default;
                 KDTree(const KDTree&) = delete;
-                KDTree(KDTree&&) = default;
+                KDTree(KDTree&&) = delete;
                 ~KDTree() = default;
                 KDTree& operator=(const KDTree&) = delete;
-                KDTree& operator=(KDTree&&) = default;
+                KDTree& operator=(KDTree&& o) {
+                    m_points = std::move(o.m_points);
+                    if(o.m_node) {
+                        m_node = std::make_unique<NodeType>(*this,std::move(*o.m_node));
+                    }
+                    return *this;
+                }
                 KDTree(const mtao::vector<Vec>& points): m_points(points) {
                     balanced_creation();
                 }
