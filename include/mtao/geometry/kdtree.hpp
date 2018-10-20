@@ -114,15 +114,19 @@ namespace mtao { namespace geometry {
                         T ad = axis_dist(p);
                         bool in_nearband = nearest_dist >= std::abs(ad);
 
+                        //[  node     point  child]
+                        //[  node     child  point]
                         //[  point    node   child]
                         //axis nearest_dist is negative and considering going down right child
-                        if(ad < 0 || in_nearband) {
-                            comp_child(left());
-                        }
-                        //[  child    node   point]
-                        //axis nearest_dist is positive and considering going down left child
                         if(ad >= 0 || in_nearband) {
                             comp_child(right());
+                        }
+                        //[  point  child     node]
+                        //[  child  point     node]
+                        //[  child    node   point]
+                        //axis nearest_dist is positive and considering going down left child
+                        if(ad < 0 || in_nearband) {
+                            comp_child(left());
                         }
 
                     }
