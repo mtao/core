@@ -24,6 +24,13 @@ namespace mtao { namespace geometry {
                 //balanced construciton iterator, used for one constructor
                 using BCIt = mtao::vector<size_t>::iterator;
 
+                ~KDNode() = default;
+                KDNode() = delete;
+                KDNode(const KDNode&) = default;
+                KDNode(KDNode&&) = default;
+                KDNode& operator=(const KDNode&) = default;
+                KDNode& operator=(KDNode&&) = default;
+
                 KDNode(const KDTree<T,D>& tree, int index): m_tree(tree), m_index(index) {}
                 KDNode(const KDTree<T,D>& tree, const BCIt& begin, const BCIt& end): m_tree(tree) {
                     assert(std::distance(begin,end) > 0);
@@ -34,22 +41,16 @@ namespace mtao { namespace geometry {
                     BCIt mid = begin + std::distance(begin,end)/2;
                     BCIt right_start = mid+1;
                     m_index = *mid;
-                    //std::cout << m_index << std::endl;
-                    //std::cout << std::distance(begin,mid) << " => " << std::distance(right_start,end) << std::endl;
                     if(std::distance(begin,mid) > 0) {
-                        //std::cout << "left: "<< std::distance(begin,mid) << std::endl;
                         left() = std::make_unique<ChildNodeType>(m_tree,begin,mid);
                     }
                     if(std::distance(right_start,end) > 0) {
-                        //std::cout << "right: " << std::distance(right_start,end) << std::endl;
                         right() = std::make_unique<ChildNodeType>(m_tree,right_start,end);
                     }
 
-                    std::cout << "Tree size: " << m_tree.size() << std::endl;
 
                 }
                 auto&& point() const {
-                    std::cout << "Master point check: " << m_index << "/" << m_tree.points().size() << std::endl;
                     return point(m_index);
                 }
                 auto&& point(size_t idx) const {return m_tree.point(idx);}
@@ -90,9 +91,6 @@ namespace mtao { namespace geometry {
                 template <typename Derived>
                    void nearest(const Eigen::MatrixBase<Derived>& p, size_t& nearest_index, T& nearest_dist) const { 
 
-                       std::cout <<  m_index << " / " << m_tree.size() << std::endl;
-                       std::cout <<  std::string(m_tree) << std::endl;
-                       point();
                         T dist = (point() - p).norm();
                         if(dist < nearest_dist) {
                             nearest_index = index();
@@ -179,10 +177,10 @@ namespace mtao { namespace geometry {
                     m_node = std::make_unique<NodeType>(*this,P.begin(),P.end());
                 }
                 KDTree() = default;
-                KDTree(const KDTree&) = default;
+                KDTree(const KDTree&) = delete;
                 KDTree(KDTree&&) = default;
                 ~KDTree() = default;
-                KDTree& operator=(const KDTree&) = default;
+                KDTree& operator=(const KDTree&) = delete;
                 KDTree& operator=(KDTree&&) = default;
                 KDTree(const mtao::vector<Vec>& points): m_points(points) {
                     balanced_creation();
@@ -201,7 +199,6 @@ namespace mtao { namespace geometry {
                         size_t idx = 0;
                         T d = std::numeric_limits<T>::max();
                         assert(m_node);
-                        std::cout << "Size?" << size() << std::endl;
 
                         m_node->nearest(p,idx,d); 
                         return idx;
