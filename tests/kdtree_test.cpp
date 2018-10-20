@@ -7,17 +7,14 @@ int main(int argc, char* argv[]) {
     mtao::vector<mtao::Vector<double,2>> vec(1000);
 
     std::generate(vec.begin(),vec.end(),[]() { return mtao::Vector<double,2>::Random().eval(); });
-    KDTree<double,2> kdt(vec);
-    kdt = KDTree<double,2>();
+    KDTree<double,2> kdt;
     for(auto&& v: vec) {
         kdt.insert(v);
-        //std::cout << kdt.max_depth() << ", ";
-        //std::cout << double(kdt.max_depth()) / kdt.size() << std::endl;
     }
     std::cout << kdt.max_depth() << ", ";
     std::cout << double(kdt.max_depth()) / kdt.size() << std::endl;
 
-    //kdt = KDTree<double,2>(vec);
+    kdt = KDTree<double,2>(vec);
     std::cout << kdt.max_depth() << ", ";
     std::cout << double(kdt.max_depth()) / kdt.size() << std::endl;
     std::cout << std::endl << std::endl;

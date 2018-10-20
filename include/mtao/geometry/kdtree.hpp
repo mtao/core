@@ -174,7 +174,8 @@ namespace mtao { namespace geometry {
                 void balanced_creation() {
                     std::vector<size_t> P(m_points.size());
                     std::iota(P.begin(),P.end(),0);
-                    m_node = std::make_unique<NodeType>(*this,P.begin(),P.end());
+                    //m_node = std::make_unique<NodeType>(*this,P.begin(),P.end());
+                    m_node.reset(new NodeType(*this,P.begin(),P.end()));
                 }
                 KDTree() = default;
                 KDTree(const KDTree&) = delete;
