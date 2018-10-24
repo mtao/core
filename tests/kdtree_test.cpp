@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
         kdt.insert(mtao::Vector<double,1>(.875));
         std::cout << std::string(kdt) << std::endl;
 
-        kdt.nearest(mtao::Vector<double,1>(.26));
+        kdt.nearest_point(mtao::Vector<double,1>(.26));
 
     }
 

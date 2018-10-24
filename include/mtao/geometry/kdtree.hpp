@@ -226,16 +226,24 @@ namespace mtao { namespace geometry {
                     return insert(p);
                 }
                 template <typename Derived>
-                    size_t nearest_index(const typename Eigen::MatrixBase<Derived>& p) const { 
+                    std::tuple<size_t,T> nearest(const typename Eigen::MatrixBase<Derived>& p) const { 
                         size_t idx = 0;
                         T d = std::numeric_limits<T>::max();
                         assert(m_node);
 
                         m_node->nearest(p,idx,d); 
-                        return idx;
+                        return {idx,d};
                     }
                 template <typename Derived>
-                    const Vec& nearest(const typename Eigen::MatrixBase<Derived>& p) const { return point(nearest_index(p)); }
+                    size_t nearest_index(const typename Eigen::MatrixBase<Derived>& p) const { 
+                        return std::get<0>(nearest(p));
+                    }
+                template <typename Derived>
+                    size_t nearest_distance(const typename Eigen::MatrixBase<Derived>& p) const { 
+                        return std::get<1>(nearest(p));
+                    }
+                template <typename Derived>
+                    const Vec& nearest_point(const typename Eigen::MatrixBase<Derived>& p) const { return point(nearest_index(p)); }
 
                 operator std::string() const { return *m_node; }
 
