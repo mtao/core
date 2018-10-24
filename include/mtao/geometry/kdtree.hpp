@@ -97,6 +97,7 @@ namespace mtao { namespace geometry {
                         c = std::make_unique<ChildNodeType>(m_tree,idx);
                     }
                 }
+
                 template <typename Derived>
                    void nearest(const Eigen::MatrixBase<Derived>& p, size_t& nearest_index, T& nearest_dist) const { 
 
@@ -184,7 +185,7 @@ namespace mtao { namespace geometry {
                 auto&& point(size_t idx) const {return m_points[idx];}
                 size_t size() const { return points().size(); }
 
-                void balanced_creation() {
+                void rebalance() {
                     std::vector<size_t> P(m_points.size());
                     std::iota(P.begin(),P.end(),0);
                     m_node = std::make_unique<NodeType>(*this,P.begin(),P.end());
@@ -202,9 +203,9 @@ namespace mtao { namespace geometry {
                     return *this;
                 }
                 KDTree(const mtao::vector<Vec>& points): m_points(points) {
-                    balanced_creation();
+                    rebalance();
                 }
-                void insert(const Vec& p) { 
+                size_t insert(const Vec& p) { 
                     size_t newidx = m_points.size();
                     m_points.push_back(p);
                     if(!m_node) {
@@ -212,6 +213,17 @@ namespace mtao { namespace geometry {
                     } else {
                         m_node->insert(newidx); 
                     }
+                    return newidx;
+                }
+                size_t pruning_insertion(const Vec& p, T eps = T(1e-5)) {
+
+                    if(m_node) {
+                        size_t ni = nearest_index(p);
+                        if((point(ni)-p).norm() < eps) {
+                            return ni;
+                        }
+                    }
+                    return insert(p);
                 }
                 template <typename Derived>
                     size_t nearest_index(const typename Eigen::MatrixBase<Derived>& p) const { 
