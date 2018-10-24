@@ -1,5 +1,5 @@
 #pragma once
-#include "mtao/geometry/prune_vertices.hpp"
+#include "mtao/geometry/kdtree.hpp"
 #include <map>
 
 namespace mtao { namespace geometry {
@@ -10,7 +10,6 @@ namespace mtao { namespace geometry {
         , int D = Vec::RowsAtCompileTime
         >
         std::tuple<Container,std::map<size_t,size_t>> prune(const Container& V, T eps = T(1e-8)) {
-            using mtao::geometry;
             Container ret_vec;
             KDTree<T,D> tree;
             std::map<size_t,size_t> remap;
