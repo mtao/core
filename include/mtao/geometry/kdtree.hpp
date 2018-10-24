@@ -218,7 +218,7 @@ namespace mtao { namespace geometry {
                 size_t pruning_insertion(const Vec& p, T eps = T(1e-5)) {
 
                     if(m_node) {
-                        size_t [ni,d] = nearest(p);
+                        auto [ni,d] = nearest(p);
                         if(d < eps) {
                             return ni;
                         }
