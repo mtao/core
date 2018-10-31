@@ -29,7 +29,7 @@ std::string getTypeName() {
 }
 
 template <typename T>
-std::string getTypeName(const T& t) {
+std::string getTypeName(T&& t) {
     return getTypeName<T>();
 }
 

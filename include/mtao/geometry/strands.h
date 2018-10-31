@@ -3,6 +3,7 @@
 #include <set>
 #include <optional>
 #include <algorithm>
+#include <array>
 
 namespace mtao { namespace geometry {
 struct strand {

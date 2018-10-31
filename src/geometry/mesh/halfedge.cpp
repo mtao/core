@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <iterator>
 #include "mtao/logging/logger.hpp"
+#include <mtao/iterator/enumerate.hpp>
 using namespace mtao::logging;
 
 namespace mtao { namespace geometry { namespace mesh {
@@ -18,6 +19,7 @@ HalfEdgeMesh::HalfEdgeMesh(const std::string& str) {
 HalfEdgeMesh::HalfEdgeMesh(const Cells& F) {
     construct(F);
 }
+HalfEdgeMesh::HalfEdgeMesh(const Edges& E): m_edges(E) {}
 
 HalfEdgeMesh::HalfEdgeMesh(const mtao::ColVectors<int,2>& E) {
     clear(2*E.cols());
@@ -316,6 +318,35 @@ std::vector<int> HalfEdgeMesh::dual_cell(int i) const {
             ret.push_back(e.cell());
             });
     return ret;
+}
+HalfEdgeMesh HalfEdgeMesh::submesh_from_cells(const std::set<int>& cell_indices) const {
+    std::set<int> edge_indices;
+    for(int i = 0; i < size(); ++i) {
+        if(auto it = cell_indices.find(cell_index(i)); it != cell_indices.end()) {
+            edge_indices.insert(i);
+        }
+    }
+    return submesh_from_edges(edge_indices);
+}
+HalfEdgeMesh HalfEdgeMesh::submesh_from_edges(const std::set<int>& edge_indices) const {
+    Edges new_edges(int(Index::IndexEnd),edge_indices.size());
+    std::map<int,int> edge_reindexer;
+    edge_reindexer[-1] = -1;
+    for(auto [a,b]: enumerate(edge_indices)) {
+        edge_reindexer[b] = a;
+        new_edges.col(a) = edges().col(b);
+        if(auto it = edge_indices.find(b); it == edge_indices.end()) {
+            new_edges.col(a)(int(Index::DualIndex)) = -1;
+        }
+    }
+    auto reindex = [&](int& idx) {
+            idx = edge_reindexer[idx];
+    };
+    for(int i = 0; i < new_edges.cols(); ++i) {
+            reindex(new_edges.col(i)(int(Index::DualIndex)));
+            reindex(new_edges.col(i)(int(Index::NextIndex)));
+    }
+    return HalfEdgeMesh(new_edges);
 }
 
 }}}

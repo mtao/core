@@ -20,8 +20,8 @@ int main() {
     std::set<double> c;
     std::transform(a.begin(),a.end(),std::inserter(c,c.end()),[](int v) -> double { return v / 2.32; });
 
-    for(auto&& v: a) { std::cout<<v << "," << std::endl;}
-    for(auto&& v: b) { std::cout<<v << "," << std::endl;}
+    for(auto&& v: a) { std::cout<<v << "," ;}std::cout<< std::endl;
+    for(auto&& v: b) { std::cout<<v << "," ;}std::cout<< std::endl;
     std::cout << "meh" << std::endl;
 
 
@@ -37,8 +37,17 @@ int main() {
 
     }
 
+    std::cout << "A values should change after this one" << std::endl;
+    for(auto&& [i,v]: enumerate(a)) {
+        std::cout << i << ": " << v << "==>";
+        v += i;
+        std::cout << v << std::endl;
+    }
+    for(auto&& v: a) { std::cout<<v << "," ;}std::cout<< std::endl;
+    std::cout << "Check a values?" << std::endl;
     for(auto [i,v]: enumerate(a)) {
-        std::cout << i << ": " << v << std::endl;
+        std::cout << i << ": " << v;
+    std::cout << std::endl;
     }
     for(auto&& [i,uvw]: enumerate(zip(a,b,c))) {
         auto&& [u,v,w] = uvw;

@@ -1,6 +1,9 @@
 #pragma once
 #include <tuple>
 #include <mtao/types.h>
+#include <iostream>
+#include <mtao/type_utils.h>
+#include <iostream>
 
 namespace mtao {
     namespace detail {
@@ -69,7 +72,7 @@ namespace mtao {
                         }
                     template <int... M>
                         auto dereference(IS<M...>) {
-                            return std::make_tuple(std::get<M>(m_its).operator*()...);
+                            return std::forward_as_tuple(std::get<M>(m_its).operator*()...);
                         }
                     template <int... M>
                         zip_iterator& increment(IS<M...>) {
@@ -98,7 +101,6 @@ namespace mtao {
 
                 using iterator = zip_iterator<typename std::remove_reference_t<Types>::iterator...>;
 
-                /*
                 template <int... M>
                     iterator _begin(IS<M...>) const { return iterator(std::get<M>(m_containers).begin() ...); }
                 template <int... M>
@@ -108,24 +110,29 @@ namespace mtao {
 
 
                 iterator end() const { return _end(_is());}
-                */
 
 
 
-                //zip_container(Types&&... t): m_containers{std::forward<Types>(t)...} {}
+                zip_container(Types&&... t): m_containers{std::forward<Types>(t)...} {
+                    std::cout << "Using this tuple: " << mtao::types::getTypeName(m_containers) << std::endl;
+                }
+                /*
                 zip_container(Types&&... t)
                     : m_begin{t.begin()...}
                     , m_end{t.end()...}
                         {}
                         auto begin() const { return m_begin; }
                         auto end() const { return m_end; }
+                        */
 
 
                 private:
 
+                /*
                 iterator m_begin;
                 iterator m_end;
-                //std::tuple<zip_choose_reference_t<Types>...> m_containers;
+                */
+                std::tuple<zip_choose_reference_t<Types>...> m_containers;
             };
     }
 

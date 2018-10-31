@@ -14,43 +14,42 @@ namespace mtao {
 
                 range_iterator& operator++() {m_val += m_inc; return *this;}
 
-                auto operator*() {return m_val;}
+                const int& operator*() const {return m_val;}
 
             private:
                 int m_val,m_inc;
         };
 
 
-        template <typename... Types>
-            struct range_container {
+        struct range_container {
 
 
-                range_container() = delete;
-                range_container(range_container&&) = default;
-                range_container(const range_container&) = default;
-                range_container& operator=(range_container&&) = default;
-                range_container& operator=(const range_container&) = default;
+            range_container() = delete;
+            range_container(range_container&&) = default;
+            range_container(const range_container&) = default;
+            range_container& operator=(range_container&&) = default;
+            range_container& operator=(const range_container&) = default;
 
-                using iterator = range_iterator;
+            using iterator = range_iterator;
 
-                iterator begin() const { return iterator(m_start,m_inc);}
-                iterator end() const { 
-                    int range = m_end - m_start;
-                    auto dr = std::lldiv(range,m_inc);
-                    if(dr.rem == 0) {
-                        return iterator(m_end,m_inc);
-                    } else {
-                        return iterator(m_start + m_inc * (dr.quot+1), m_inc);
-                    }
+            iterator begin() const { return iterator(m_start,m_inc);}
+            iterator end() const { 
+                int range = m_end - m_start;
+                auto dr = std::lldiv(range,m_inc);
+                if(dr.rem == 0) {
+                    return iterator(m_end,m_inc);
+                } else {
+                    return iterator(m_start + m_inc * (dr.quot+1), m_inc);
                 }
+            }
 
-                range_container(int a, int b, int c): m_start(a), m_end(b), m_inc(c) {}
+            range_container(int a, int b, int c): m_start(a), m_end(b), m_inc(c) {}
 
 
-                private:
-                int m_start, m_end, m_inc;
+            private:
+            int m_start, m_end, m_inc;
 
-            };
+        };
 
     } 
     auto range(int N = std::numeric_limits<int>::has_infinity?std::numeric_limits<int>::infinity():std::numeric_limits<int>::max()) {
