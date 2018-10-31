@@ -25,7 +25,7 @@ int main() {
     std::cout << "meh" << std::endl;
 
 
-    using namespace mtao;
+    using namespace mtao::iterator;
     for(auto [u,v,w]: zip(a,b,c)) {
         std::cout << u << "," << v << ": " << w << std::endl;
     }

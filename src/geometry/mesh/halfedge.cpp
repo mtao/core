@@ -332,7 +332,7 @@ HalfEdgeMesh HalfEdgeMesh::submesh_from_edges(const std::set<int>& edge_indices)
     Edges new_edges(int(Index::IndexEnd),edge_indices.size());
     std::map<int,int> edge_reindexer;
     edge_reindexer[-1] = -1;
-    for(auto [a,b]: enumerate(edge_indices)) {
+    for(auto [a,b]: mtao::iterator::enumerate(edge_indices)) {
         edge_reindexer[b] = a;
         new_edges.col(a) = edges().col(b);
         if(auto it = edge_indices.find(b); it == edge_indices.end()) {

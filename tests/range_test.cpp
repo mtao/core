@@ -2,7 +2,7 @@
 #include <mtao/iterator/range.hpp>
 
 int main() {
-    using namespace mtao;
+    using namespace mtao::iterator;
 
     for(auto&& v: range(10)) {
         std::cout << v << ",";
