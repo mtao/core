@@ -53,10 +53,10 @@ namespace mtao {
             };
 
         } 
-        auto range(int N = std::numeric_limits<int>::has_infinity?std::numeric_limits<int>::infinity():std::numeric_limits<int>::max()) {
+        inline auto range(int N = std::numeric_limits<int>::has_infinity?std::numeric_limits<int>::infinity():std::numeric_limits<int>::max()) {
             return detail::range_container(0,N,1);
         }
-        auto range(int a, int b, int inc = 1) {
+        inline auto range(int a, int b, int inc = 1) {
             return detail::range_container(a,b,inc);
         }
     }
