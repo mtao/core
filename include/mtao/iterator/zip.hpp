@@ -15,6 +15,14 @@ namespace mtao {
             struct zip_choose_reference<T,false> {
                 using value_type = T;
             };
+        template <typename T>
+            struct zip_choose_reference<const T,false> {
+                using value_type = const T;
+            };
+        template <typename T>
+            struct zip_choose_reference<const T,true> {
+                using value_type = const T&;
+            };
 
         template <typename T>
             struct is_initializer_list: public std::false_type {
@@ -72,7 +80,9 @@ namespace mtao {
                         }
                     template <int... M>
                         auto dereference(IS<M...>) {
-                            return std::forward_as_tuple(std::get<M>(m_its).operator*()...);
+                            using ret_types = std::tuple<decltype(std::get<M>(m_its).operator*())...>;
+                            using ret_type = std::tuple<zip_choose_reference_t<std::tuple_element_t<M,ret_types>>...>;
+                            return ret_type{std::forward<std::tuple_element_t<M,ret_types>>(std::get<M>(m_its).operator*())...};
                         }
                     template <int... M>
                         zip_iterator& increment(IS<M...>) {

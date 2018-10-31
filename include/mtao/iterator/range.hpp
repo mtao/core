@@ -14,7 +14,7 @@ namespace mtao {
 
                 range_iterator& operator++() {m_val += m_inc; return *this;}
 
-                const int& operator*() const {return m_val;}
+                int operator*() const {return m_val;}
 
             private:
                 int m_val,m_inc;
