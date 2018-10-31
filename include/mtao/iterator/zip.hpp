@@ -1,8 +1,7 @@
 #pragma once
 #include <tuple>
 #include <mtao/types.h>
-#include <iostream>
-#include <iostream>
+#include <utility>
 
 namespace mtao {
     namespace iterator {
@@ -109,7 +108,8 @@ namespace mtao {
                     zip_container& operator=(zip_container&&) = delete;
                     zip_container& operator=(const zip_container&) = delete;
 
-                    using iterator = zip_iterator<typename std::remove_reference_t<Types>::iterator...>;
+                    using iterator = zip_iterator<decltype(std::declval<Types>().begin())...>;
+                    //using iterator = zip_iterator<typename std::remove_reference_t<Types>::iterator...>;
 
                     template <int... M>
                         iterator _begin(IS<M...>) const { return iterator(std::get<M>(m_containers).begin() ...); }
