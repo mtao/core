@@ -227,7 +227,7 @@ void vertex_iterator::increment(HalfEdge& he) {
 }
 void boundary_iterator::increment(HalfEdge& he) {
     //Test that this works!
-    if(he.dual() != -1) {
+    if(he.dual()) {
         return;
     }
     he.next();

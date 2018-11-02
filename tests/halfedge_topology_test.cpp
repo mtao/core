@@ -120,10 +120,9 @@ void test2() {
     hem.make_topology(V);
     std::cout << hem.edges() << std::endl << std::endl;
 
-    auto C = hem.cells();
-    for(int i = 0; i < C.size(); ++i) {
-        std::cout << hem.edge(C[i]).cell() << ": ";
-        cell_iterator(&hem,C[i])([&](auto&& e) {
+    for(auto&& c: hem.cells()) {
+        std::cout << hem.edge(c).cell() << ": ";
+        cell_iterator(&hem,c)([&](auto&& e) {
                 std::cout << e.vertex() << " ";
                 });
         std::cout << std::endl;
