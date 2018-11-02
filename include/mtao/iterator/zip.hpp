@@ -79,9 +79,10 @@ namespace mtao {
                             }
                         template <int... M>
                             auto dereference(IS<M...>) {
-                                using ret_types = std::tuple<decltype(std::get<M>(m_its).operator*())...>;
+                                auto deref = [](auto&& a) { return *a; };
+                                using ret_types = std::tuple<decltype(deref(std::get<M>(m_its)))...>;
                                 using ret_type = std::tuple<zip_choose_reference_t<std::tuple_element_t<M,ret_types>>...>;
-                                return ret_type{std::forward<std::tuple_element_t<M,ret_types>>(std::get<M>(m_its).operator*())...};
+                                return ret_type{std::forward<std::tuple_element_t<M,ret_types>>(deref(std::get<M>(m_its)))...};
                             }
                         template <int... M>
                             zip_iterator& increment(IS<M...>) {
