@@ -113,14 +113,14 @@ namespace mtao {
                     //using iterator = zip_iterator<typename std::remove_reference_t<Types>::iterator...>;
 
                     template <int... M>
-                        iterator _begin(IS<M...>) const { return iterator(std::get<M>(m_containers).begin() ...); }
+                        iterator _begin(IS<M...>) { return iterator(std::get<M>(m_containers).begin() ...); }
                     template <int... M>
-                        iterator _end(IS<M...>) const { return iterator(std::get<M>(m_containers).end() ...); }
+                        iterator _end(IS<M...>) { return iterator(std::get<M>(m_containers).end() ...); }
 
-                    iterator begin() const { return _begin(_is());}
+                    iterator begin() { return _begin(_is());}
 
 
-                    iterator end() const { return _end(_is());}
+                    iterator end() { return _end(_is());}
 
 
 
