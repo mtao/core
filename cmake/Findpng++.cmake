@@ -54,10 +54,8 @@ find_path(png++_INCLUDE_DIR
 set(png++_INCLUDE_DIRS ${png++_INCLUDE_DIR} ${PNG_INCLUDE_DIRS})
 set(png++_LIBRARIES ${PNG_LIBRARIES})
 
+MESSAGE(STATUS "pngpp libs: ${png++_LIBRARIES}")
+
 find_package_handle_standard_args(png++ DEFAULT_MSG
     png++_INCLUDE_DIR)
 
-if(png++_FOUND)
-    set(png++_INCLUDE_DIRS ${png++_INCLUDE_DIR})
-    set(png++_LIBRARIES ${png++_LIBRARY})
-endif()
