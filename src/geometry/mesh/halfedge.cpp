@@ -365,6 +365,7 @@ HalfEdgeMesh HalfEdgeMesh::submesh_from_edges(const std::set<int>& edge_indices)
 }
 
 void HalfEdgeMesh::complete_boundary_cells() {
+    /*
     std::vector<int> duals;
     for(int i = 0; i < size(); ++i) {
         if(dual_index(i) == -1) {
@@ -417,7 +418,9 @@ void HalfEdgeMesh::complete_boundary_cells() {
             break;
         }
     }
+    */
 
 }
+
 
 }}}

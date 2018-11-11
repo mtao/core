@@ -30,17 +30,17 @@ void test0() {
     std::cout << E << std::endl;
 
     using namespace mtao::geometry::mesh;
-    HalfEdgeMesh hem(E);
+    auto hem = EmbeddedHalfEdgeMesh<float,2>::from_edges(V,E);
 
     std::cout << hem.edges() << std::endl << std::endl;
 
 
 
-    hem.make_topology(V);
+    hem.make_topology();
     std::cout << hem.edges() << std::endl << std::endl;
 
     auto C = hem.cells();
-    for(int i = 0; i < C.size(); ++i) {
+    for(size_t i = 0; i < C.size(); ++i) {
         std::cout << hem.edge(C[i]).cell() << ": ";
         cell_iterator(&hem,C[i])([&](auto&& e) {
                 std::cout << e.vertex() << " ";
@@ -71,17 +71,17 @@ void test1() {
     std::cout << E << std::endl;
 
     using namespace mtao::geometry::mesh;
-    HalfEdgeMesh hem(E);
+    auto hem = EmbeddedHalfEdgeMesh<float,2>::from_edges(V,E);
 
     std::cout << hem.edges() << std::endl << std::endl;
 
 
 
-    hem.make_topology(V);
+    hem.make_topology();
     std::cout << hem.edges() << std::endl << std::endl;
 
     auto C = hem.cells();
-    for(int i = 0; i < C.size(); ++i) {
+    for(size_t i = 0; i < C.size(); ++i) {
         std::cout << hem.edge(C[i]).cell() << ": ";
         cell_iterator(&hem,C[i])([&](auto&& e) {
                 std::cout << e.vertex() << " ";
@@ -111,13 +111,13 @@ void test2() {
     std::cout << E << std::endl;
 
     using namespace mtao::geometry::mesh;
-    HalfEdgeMesh hem(E);
+    auto hem = EmbeddedHalfEdgeMesh<float,2>::from_edges(V,E);
 
     std::cout << hem.edges() << std::endl << std::endl;
 
 
 
-    hem.make_topology(V);
+    hem.make_topology();
     std::cout << hem.edges() << std::endl << std::endl;
 
     for(auto&& c: hem.cells()) {
