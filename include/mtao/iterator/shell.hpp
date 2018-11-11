@@ -26,6 +26,14 @@ namespace mtao {
             auto shell(Container&& c) {
                 return shell(c.begin(),c.end());
             }
+        template <typename T, int D>
+            auto shell(const T c[D]) {
+                return shell(c,c+D);
+            }
+        template <typename T, int D>
+            auto shell(T c[D]) {
+                return shell(c,c+D);
+            }
     }
 
 

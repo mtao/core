@@ -24,8 +24,15 @@ int main() {
     for(auto&& v: b) { std::cout<<v << "," ;}std::cout<< std::endl;
     std::cout << "meh" << std::endl;
 
-
+    int x[3] = {1,2,3};
     using namespace mtao::iterator;
+
+    std::cout << "Array" << std::endl;
+    for(auto&& [u,v]: zip(x,x)) {
+        std::cout << u << "," << v << std::endl;
+    }
+
+
     for(auto [u,v,w]: zip(a,b,c)) {
         std::cout << u << "," << v << ": " << w << std::endl;
     }

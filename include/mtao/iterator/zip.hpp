@@ -2,24 +2,29 @@
 #include <tuple>
 #include <mtao/types.h>
 #include <utility>
+#include "shell.hpp"
 
 namespace mtao {
     namespace iterator {
         namespace detail {
             template <typename T, bool Expr =std::is_lvalue_reference_v<T>>
-                struct zip_choose_reference {
+                struct zip_choose_storage {
                     using value_type = T&;
                 };
             template <typename T>
-                struct zip_choose_reference<T,false> {
+                struct zip_choose_storage<T,false> {
                     using value_type = T;
                 };
+            template <typename T, int D>
+                struct zip_choose_storage<T[D],true> {
+                    using value_type = detail::shell_container<T*,T*>;
+                };
             template <typename T>
-                struct zip_choose_reference<const T,false> {
+                struct zip_choose_storage<const T,false> {
                     using value_type = const T;
                 };
             template <typename T>
-                struct zip_choose_reference<const T,true> {
+                struct zip_choose_storage<const T,true> {
                     using value_type = const T&;
                 };
 
@@ -47,7 +52,7 @@ namespace mtao {
                 using filter_initializer_list_t = typename filter_initializer_list<T>::value_type;
 
             template <typename T>
-                using zip_choose_reference_t = typename zip_choose_reference<T>::value_type;
+                using zip_choose_storage_t = typename zip_choose_storage<T>::value_type;
 
             template <typename... IteratorTypes>
                 struct zip_iterator {
@@ -81,7 +86,7 @@ namespace mtao {
                             auto dereference(IS<M...>) {
                                 auto deref = [](auto&& a) { return *a; };
                                 using ret_types = std::tuple<decltype(deref(std::get<M>(m_its)))...>;
-                                using ret_type = std::tuple<zip_choose_reference_t<std::tuple_element_t<M,ret_types>>...>;
+                                using ret_type = std::tuple<zip_choose_storage_t<std::tuple_element_t<M,ret_types>>...>;
                                 return ret_type{std::forward<std::tuple_element_t<M,ret_types>>(deref(std::get<M>(m_its)))...};
                             }
                         template <int... M>
@@ -109,18 +114,22 @@ namespace mtao {
                     zip_container& operator=(zip_container&&) = delete;
                     zip_container& operator=(const zip_container&) = delete;
 
-                    using iterator = zip_iterator<decltype(std::declval<Types>().begin())...>;
+                    using iterator = zip_iterator<decltype(std::begin(std::declval<Types>()))...>;
                     //using iterator = zip_iterator<typename std::remove_reference_t<Types>::iterator...>;
 
                     template <int... M>
-                        iterator _begin(IS<M...>) { return iterator(std::get<M>(m_containers).begin() ...); }
+                        iterator _begin(IS<M...>) { return iterator(std::begin(std::get<M>(m_containers)) ...); }
                     template <int... M>
-                        iterator _end(IS<M...>) { return iterator(std::get<M>(m_containers).end() ...); }
+                        iterator _end(IS<M...>) { return iterator(std::end(std::get<M>(m_containers)) ...); }
 
                     iterator begin() { return _begin(_is());}
 
 
                     iterator end() { return _end(_is());}
+                    iterator begin() const { return _begin(_is());}
+
+
+                    iterator end() const { return _end(_is());}
 
 
 
@@ -142,7 +151,7 @@ namespace mtao {
                        iterator m_begin;
                        iterator m_end;
                        */
-                    std::tuple<zip_choose_reference_t<Types>...> m_containers;
+                    std::tuple<zip_choose_storage_t<Types>...> m_containers;
                 };
         }
 
