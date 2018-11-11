@@ -32,8 +32,6 @@ class HalfEdgeMesh {
         static HalfEdgeMesh from_cells(const Cells& F);
         static HalfEdgeMesh from_edges(const mtao::ColVectors<int,2>& E);//From non-dual edges
         HalfEdgeMesh() = default;
-        template <typename T, int D>
-        void make_topology(const mtao::ColVectors<T,D>& V);
 
         auto vertex_indices() { return m_edges.row(int(Index::VertexIndex)); }
         auto cell_indices() { return m_edges.row(int(Index::CellIndex)); }
@@ -88,6 +86,29 @@ class HalfEdgeMesh {
 
 
 };
+
+
+template <typename T, int D>
+class EmbeddedHalfEdgeMesh: public HalfEdgeMesh {
+    public:
+
+
+        template <typename... Args>
+        EmbeddedHalfEdgeMesh(const mtao::ColVectors<T,D>& V, Args&& args): HalfEdgeMesh(std::forward<Args>(args)...), m_vertices(V) {}
+        auto V(int idx) { return V.col(i); }
+        auto V(int idx) const { return V.col(i); }
+        void make_topology();
+        auto T(int idx) const {
+            auto e = edge(idx);
+            int a = e.vertex();
+            int b = e.dual().vertex();
+            return V(b) - v(a);
+        }
+    private:
+        //creates next arrows
+        mtao::ColVectors<T,D> m_vertices;
+};
+
 
 
 struct HalfEdgeMesh::HalfEdge {
@@ -178,7 +199,8 @@ struct boundary_iterator: public edge_iterator_base<boundary_iterator> {
 };
 
 template <typename T, int D>
-void HalfEdgeMesh::make_topology(const mtao::ColVectors<T,D>& V) {
+void EmbeddedHalfEdgeMesh<T,D>::make_topology() {
+
     if constexpr(D == 2) {
         //MAke edge connectivity
         auto ni = next_indices();
@@ -189,15 +211,7 @@ void HalfEdgeMesh::make_topology(const mtao::ColVectors<T,D>& V) {
                 int eidx = *edges.begin();
                 ni(eidx) = di(eidx);
             } else {
-                auto o = V.col(vidx);
-                std::map<T,int> edge_angles;
-
-                std::transform(edges.begin(),edges.end(),std::inserter(edge_angles,edge_angles.end()), [&](int eidx) {
-                        HalfEdge e = edge(eidx);
-                        auto p = V.col(e.get_dual().vertex()) - o;
-                        T ang = std::atan2(p.y(),p.x());
-                        return std::make_pair(ang,eidx);
-                        });
+                edge_angles = get_edge_angles(eidx);
                 auto nit = edge_angles.begin();
                 auto it = nit++;
                 for(; nit != edge_angles.end(); ++it, ++nit) {
@@ -217,5 +231,21 @@ void HalfEdgeMesh::make_topology(const mtao::ColVectors<T,D>& V) {
         static_assert(D == 2);
     }
 }
+
+template <typename T, int D>
+std::map<T,int> EmbeddedHalfEdgeMesh<T,D>::get_edge_angles(int vidx) const {
+    vertex_iterator(&hem,C[i])([&](auto&& e) {
+            std::cout << e.cell() << " ";
+            });
+                auto o = V(vidx);
+                std::map<T,int> edge_angles;
+
+                std::transform(edges.begin(),edges.end(),std::inserter(edge_angles,edge_angles.end()), [&](int eidx) {
+                        HalfEdge e = edge(eidx);
+                        auto p = V(e.get_dual().vertex()) - o;
+                        T ang = std::atan2(p.y(),p.x());
+                        return std::make_pair(ang,eidx);
+                        });
+
 }}}
 #endif//HALFEDGE_CELLCOMPLEX_H
