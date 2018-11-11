@@ -28,11 +28,10 @@ class HalfEdgeMesh {
         struct HalfEdge;
 
         HalfEdgeMesh(const std::string& str);
-        explicit HalfEdgeMesh(const Edges& E);
-        explicit HalfEdgeMesh(const Cells& F);
-        explicit HalfEdgeMesh(const mtao::ColVectors<int,2>& E);//From non-dual edges
+        HalfEdgeMesh(const Edges& E);
+        static HalfEdgeMesh from_cells(const Cells& F);
+        static HalfEdgeMesh from_edges(const mtao::ColVectors<int,2>& E);//From non-dual edges
         HalfEdgeMesh() = default;
-        void construct(const Cells& F);
         template <typename T, int D>
         void make_topology(const mtao::ColVectors<T,D>& V);
 
@@ -75,11 +74,14 @@ class HalfEdgeMesh {
 
         HalfEdgeMesh submesh_from_cells(const std::set<int>& cell_indices) const;
         HalfEdgeMesh submesh_from_edges(const std::set<int>& edge_indices) const;
+        HalfEdgeMesh submesh_from_vertices(const std::set<int>& edge_indices) const;
 
     private:
+        void construct(const Cells& F);
         void clear(size_t new_size = 0);
         std::map<int,std::set<int>> vertex_edges_no_topology() const;
         void make_cells();//assumes duals and cells nexts are set up, makes every element part of some cell
+        void complete_boundary_cells();
     private:
         Edges m_edges;
         

@@ -16,16 +16,19 @@ using HalfEdge = HalfEdgeMesh::HalfEdge;
 HalfEdgeMesh::HalfEdgeMesh(const std::string& str) {
 }
 
-HalfEdgeMesh::HalfEdgeMesh(const Cells& F) {
-    construct(F);
+HalfEdgeMesh HalfEdgeMesh::from_cells(const Cells& F) {
+    HalfEdgeMesh hem;
+    hem.construct(F);
+    return hem;
 }
 HalfEdgeMesh::HalfEdgeMesh(const Edges& E): m_edges(E) {}
 
-HalfEdgeMesh::HalfEdgeMesh(const mtao::ColVectors<int,2>& E) {
-    clear(2*E.cols());
+HalfEdgeMesh HalfEdgeMesh::from_edges(const mtao::ColVectors<int,2>& E) {
+    HalfEdgeMesh hem;
+    hem.clear(2*E.cols());
 
-    auto vi = vertex_indices();
-    auto di = dual_indices();
+    auto vi = hem.vertex_indices();
+    auto di = hem.dual_indices();
     for(int i = 0; i < E.cols(); ++i) {
         auto e = E.col(i);
         vi(2*i) = e(0);
@@ -33,6 +36,7 @@ HalfEdgeMesh::HalfEdgeMesh(const mtao::ColVectors<int,2>& E) {
         di(2*i) = 2*i+1;
         di(2*i+1) = 2*i;
     }
+    return hem;
 }
 
 
@@ -42,6 +46,7 @@ void HalfEdgeMesh::clear(size_t new_size) {
 void HalfEdgeMesh::construct(const Cells& F) {
     using Edge = std::tuple<int,int>;
 
+    //Cell is the row until its first -1 entry
     auto cell_size = [](auto& f) -> int{
         for(int j = 0; j < f.rows(); ++j) {
             if(f(j) == -1) {
@@ -53,6 +58,7 @@ void HalfEdgeMesh::construct(const Cells& F) {
 
     int size = 0;
 
+    //total number of halfedges is the number of internal edges
     for(int i = 0; i < F.cols(); ++i) {
         auto f = F.col(i);
         size += cell_size(f);
@@ -319,6 +325,15 @@ std::vector<int> HalfEdgeMesh::dual_cell(int i) const {
             });
     return ret;
 }
+HalfEdgeMesh HalfEdgeMesh::submesh_from_vertices(const std::set<int>& vertex_indices) const {
+    std::set<int> edge_indices;
+    for(int i = 0; i < size(); ++i) {
+        if(auto it = vertex_indices.find(vertex_index(i)); it != vertex_indices.end()) {
+            edge_indices.insert(i);
+        }
+    }
+    return submesh_from_edges(edge_indices);
+}
 HalfEdgeMesh HalfEdgeMesh::submesh_from_cells(const std::set<int>& cell_indices) const {
     std::set<int> edge_indices;
     for(int i = 0; i < size(); ++i) {
@@ -347,6 +362,62 @@ HalfEdgeMesh HalfEdgeMesh::submesh_from_edges(const std::set<int>& edge_indices)
             reindex(new_edges.col(i)(int(Index::NextIndex)));
     }
     return HalfEdgeMesh(new_edges);
+}
+
+void HalfEdgeMesh::complete_boundary_cells() {
+    std::vector<int> duals;
+    for(int i = 0; i < size(); ++i) {
+        if(dual_index(i) == -1) {
+            duals.push_back(i);
+        }
+    }
+    int oldsize = size();
+    //get the reverse arrows for each edge
+    std::map<int,int> reverse_arrows;
+    for(int i = 0; i < oldsize; ++i) {
+        auto ni = next_index(i);
+        if(ni == -1) continue;
+        if(dual_index(ni) == -1) {
+        reverse_arrows[ni] = i;
+        }
+    }
+
+    m_edges.conservativeResize(m_edges.rows(),oldsize+duals.size());
+    for(int i = 0; i < duals.size(); ++i) {
+        int myind = i+oldsize;
+        int dualind = duals[i];
+        dual_indices()(dualind) = myind;
+        dual_indices()(myind) = dualind;
+        cell_indices()(dualind) = -1;
+
+
+    }
+
+    std::set<int> no_vertex_edges;
+    for(int i = 0; i < duals.size(); ++i) {
+        int myind = i+oldsize;
+        no_vertex_edges.insert(myind);
+    }
+    while(!no_vertex_edges.empty()) {
+        size_t s = no_vertex_edges.size();
+        bool found = false;
+        for(auto it = no_vertex_edges.begin(); it != no_vertex_edges.end();
+                found?no_vertex_edges.erase(it++):++it
+           ) {
+            found = false;
+            int myind = *it;
+            int dualind = dual_index(myind);
+            if(auto it = reverse_arrows.find(dualind); it != reverse_arrows.end()) {
+                vertex_indices()(myind) = vertex_index(it->second);
+                found = true;
+            }
+        }
+        //no changes, maybe something is unrecoverable
+        if( no_vertex_edges.size() == s) {
+            break;
+        }
+    }
+
 }
 
 }}}
