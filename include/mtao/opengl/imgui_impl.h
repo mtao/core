@@ -1,14 +1,13 @@
 #ifndef IMGUI_IMPL_H
 #define IMGUI_IMPL_H
 
+#include "imgui.h"
 struct GLFWwindow;
-class ImDrawData;
-struct ImGuiContext;
 namespace mtao { namespace opengl {
 
 class ImGuiImpl {
     public:
-    ImGuiImpl(GLFWwindow* window = nullptr, bool use_old_gl = false);
+    ImGuiImpl(GLFWwindow* window = nullptr);
     ~ImGuiImpl();
     void newFrame();
 
@@ -24,22 +23,31 @@ class ImGuiImpl {
     void render();
 
     private:
-    void renderDrawLists2(ImDrawData* draw_data);
-    void renderDrawLists3(ImDrawData* draw_data);
+    void renderDrawLists(ImDrawData* draw_data);
     bool createFontsTexture();
+    static bool CheckShader(GLuint handle, const char* desc);
+    static bool CheckProgram(GLuint handle, const char* desc);
+    void updateMouseCursor();
+    void updateMousePosAndButtons();
     private:
     // Data
     GLFWwindow*  m_Window = nullptr;
     ImGuiContext* m_context = nullptr;
-    double       m_Time = 0.0f;
-    static bool         s_MousePressed[3];
-    static float        s_MouseWheel;
+
+
+    double           m_Time = 0.0;
+    static bool             s_MouseJustPressed[5];
+    static GLFWcursor*      s_MouseCursors[ImGuiMouseCursor_COUNT];
+
+
+
+    char         m_GlslVersionString[32] = "";
     GLuint       m_FontTexture = 0;
-    int          m_ShaderHandle = 0, m_VertHandle = 0, m_FragHandle = 0;
+    GLuint       m_ShaderHandle = 0, m_VertHandle = 0, m_FragHandle = 0;
     int          m_AttribLocationTex = 0, m_AttribLocationProjMtx = 0;
     int          m_AttribLocationPosition = 0, m_AttribLocationUV = 0, m_AttribLocationColor = 0;
-    unsigned int m_VboHandle = 0, m_VaoHandle = 0, m_ElementsHandle = 0;
-    bool m_use_old_gl = false;
+    unsigned int m_VboHandle = 0, m_ElementsHandle = 0;
+
 };
 
 }}
