@@ -37,6 +37,7 @@ void printGLInfo() {
 
 Window::Window( const std::string& name, int width, int height) {
 
+    setErrorCallback(error_callback);
     if (s_window_count++ == 0 && !glfwInit()) {
         std::cerr <<" GLFWInit faillure!" << std::endl;
         exit(EXIT_FAILURE);
@@ -62,7 +63,6 @@ Window::Window( const std::string& name, int width, int height) {
     glfwSetCharCallback(window,   ImGuiImpl::charCallback);
 
 
-    setErrorCallback(error_callback);
     glfwSwapInterval(1);
 }
 

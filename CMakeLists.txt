@@ -21,8 +21,16 @@ INCLUDE_DIRECTORIES(/usr/include/eigen3)
 
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+OPTION(USE_IMGUI_IMPL "Should the OpenGL Window use the imgui example impl or not" ON)
+
 SET(IMGUI_PATH ${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui)
 INCLUDE_DIRECTORIES(${IMGUI_PATH})
+
+SET(IMGUI_IMPL
+    ${IMGUI_PATH}/examples/imgui_impl_glfw.cpp
+    ${IMGUI_PATH}/examples/imgui_impl_opengl3.cpp
+    )
+
 SET(IMGUI_SOURCES 
     ${IMGUI_PATH}/imgui.cpp 
     ${IMGUI_PATH}/imgui_draw.cpp

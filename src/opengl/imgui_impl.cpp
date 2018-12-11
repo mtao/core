@@ -10,6 +10,10 @@
 
 #include <imgui.h>
 #include "mtao/opengl/imgui_impl.h"
+#ifdef USE_IMGUI_IMPL
+#include "examples/imgui_impl_glfw.h"
+#include "examples/imgui_impl_opengl3.h"
+#endif
 
 namespace mtao { namespace opengl {
     bool         ImGuiImpl::s_MousePressed[3] = { false, false, false };
@@ -131,6 +135,20 @@ void ImGuiImpl::invalidateDeviceObjects() {
     }
 }
 void ImGuiImpl::createDeviceObjects() {
+#ifdef IMGUI_IMPL
+    // Setup Dear ImGui binding
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
+
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init(glsl_version);
+
+    // Setup style
+    ImGui::StyleColorsDark();
+#else
     // Backup GL state
     GLint last_texture;
     glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
@@ -208,6 +226,7 @@ void ImGuiImpl::createDeviceObjects() {
         glBindBuffer(GL_ARRAY_BUFFER, last_array_buffer);
         glBindVertexArray(last_vertex_array);
     }
+#endif
 
 }
 
