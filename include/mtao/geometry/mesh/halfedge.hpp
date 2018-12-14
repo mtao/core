@@ -34,6 +34,10 @@ class HalfEdgeMesh {
         static HalfEdgeMesh from_cells(const Cells& F);
         static HalfEdgeMesh from_edges(const mtao::ColVectors<int,2>& E);//From non-dual edges
         HalfEdgeMesh() = default;
+        HalfEdgeMesh(const HalfEdgeMesh&) = default;
+        HalfEdgeMesh(HalfEdgeMesh&&) = default;
+        HalfEdgeMesh& operator=(const HalfEdgeMesh&) = default;
+        HalfEdgeMesh& operator=(HalfEdgeMesh&&) = default;
 
         auto vertex_indices() { return m_edges.row(int(Index::VertexIndex)); }
         auto cell_indices() { return m_edges.row(int(Index::CellIndex)); }
@@ -121,6 +125,12 @@ class EmbeddedHalfEdgeMesh: public HalfEdgeMesh {
 
         using Vec = mtao::Vector<S,D>;
 
+        EmbeddedHalfEdgeMesh() = default;
+        EmbeddedHalfEdgeMesh(const EmbeddedHalfEdgeMesh&) = default;
+        EmbeddedHalfEdgeMesh(EmbeddedHalfEdgeMesh&&) = default;
+        EmbeddedHalfEdgeMesh& operator=(const EmbeddedHalfEdgeMesh&) = default;
+        EmbeddedHalfEdgeMesh& operator=(EmbeddedHalfEdgeMesh&&) = default;
+        ~EmbeddedHalfEdgeMesh() = default;
         template <typename... Args>
         EmbeddedHalfEdgeMesh(const mtao::ColVectors<S,D>& V, Args&&... args): HalfEdgeMesh(std::forward<Args>(args)...), m_vertices(V) {}
 
