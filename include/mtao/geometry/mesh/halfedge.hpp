@@ -146,6 +146,10 @@ class EmbeddedHalfEdgeMesh: public HalfEdgeMesh {
         auto V(int i) const { return m_vertices.col(i); }
         void make_topology();
         template <typename Derived>
+        bool is_inside(int cell_edge, const Eigen::MatrixBase<Derived>& p) const ;
+        template <typename Derived>
+        bool is_inside(const HalfEdge& cell_edge, const Eigen::MatrixBase<Derived>& p) const ;
+        template <typename Derived>
         int get_cell(const Eigen::MatrixBase<Derived>& p) const ;
         mtao::VectorX<int> get_cells(const mtao::ColVectors<S,D>& P) const;
         auto T(int idx) const {
@@ -267,10 +271,13 @@ void EmbeddedHalfEdgeMesh<S,D>::make_topology() {
 }
 template <typename S, int D>
 template <typename Derived>
-int EmbeddedHalfEdgeMesh<S,D>::get_cell(const Eigen::MatrixBase<Derived>& p) const {
+bool EmbeddedHalfEdgeMesh<S,D>::is_inside(int cell_edge, const Eigen::MatrixBase<Derived>& p) const {
+    return is_inside(edge(cell_edge),p);
+}
+template <typename S, int D>
+template <typename Derived>
+bool EmbeddedHalfEdgeMesh<S,D>::is_inside(const HalfEdge& cell_edge, const Eigen::MatrixBase<Derived>& p) const {
     static_assert(D == 2);
-    auto C = cells();
-
     auto edge = [](HalfEdge he) -> std::array<int,3> {
         int i = he.vertex(); he.next(); 
         int j = he.vertex(); he.next(); 
@@ -279,22 +286,31 @@ int EmbeddedHalfEdgeMesh<S,D>::get_cell(const Eigen::MatrixBase<Derived>& p) con
 
     };
 
-    for(size_t i = 0; i < C.size(); ++i) {
-        bool inside = true;
-        cell_iterator(this,C[i]).run_earlyout([&](auto&& e) -> bool{
-                auto [i,j,k] = edge(e);
-                auto a = V(i);
-                auto b = V(j);
-                auto c = V(k);
-                auto ba = b-a;
-                auto cb = c-b;
-                auto pb = p-b;
-                Vec n(-ba.y(),ba.x());
-                inside = pb.dot(n) * cb.dot(n) >= 0;
+    bool inside = true;
+    cell_iterator(this,cell_edge.index()).run_earlyout([&](auto&& e) -> bool{
+            auto [i,j,k] = edge(e);
+            auto a = V(i);
+            auto b = V(j);
+            auto c = V(k);
+            auto ba = b-a;
+            auto cb = c-b;
+            auto pb = p-b;
+            Vec n(-ba.y(),ba.x());
+            inside = pb.dot(n) * cb.dot(n) >= 0;
 
-                return inside;
-                });
-        if(inside) {
+            return inside;
+            });
+    return inside;
+}
+template <typename S, int D>
+template <typename Derived>
+int EmbeddedHalfEdgeMesh<S,D>::get_cell(const Eigen::MatrixBase<Derived>& p) const {
+    static_assert(D == 2);
+    auto C = cells();
+
+
+    for(size_t i = 0; i < C.size(); ++i) {
+        if(is_inside(i,p)) {
             return i;
         }
     }
