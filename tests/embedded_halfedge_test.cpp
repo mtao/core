@@ -54,6 +54,13 @@ int main(int argc, char * argv[]) {
     P.col(6) = mtao::Vec2f(.7,.8);
 
     std::cout << hem.get_cells(P).transpose() << std::endl;
+    std::cout << hem.get_cell( mtao::Vec2f(-1.0,0.0)) << std::endl;
+    std::cout << hem.get_cell( mtao::Vec2f(0.5,0.0) )<< std::endl;
+    std::cout << hem.get_cell( mtao::Vec2f(0.5,0.5) )<< std::endl;
+    std::cout << hem.get_cell( mtao::Vec2f(.2,.3) )<< std::endl;
+    std::cout << hem.get_cell( mtao::Vec2f(.3,.2) )<< std::endl;
+    std::cout << hem.get_cell( mtao::Vec2f(.7,.8) )<< std::endl;
+    std::cout << hem.get_cell( mtao::Vec2f(.7,.8) )<< std::endl;
 
     return 0;
 
