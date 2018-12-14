@@ -41,6 +41,8 @@ ADD_EXECUTABLE(halfedge_topology_test halfedge_topology_test.cpp)
 TARGET_LINK_LIBRARIES(halfedge_topology_test mtao_geometry)
 ADD_EXECUTABLE(halfedge_submesh_test halfedge_submesh_test.cpp)
 TARGET_LINK_LIBRARIES(halfedge_submesh_test mtao_geometry)
+ADD_EXECUTABLE(embedded_halfedge_test embedded_halfedge_test.cpp)
+TARGET_LINK_LIBRARIES(embedded_halfedge_test mtao_geometry)
 
 #ADD_EXECUTABLE(static_iteration_test src/static_iteration_test.cpp)
 

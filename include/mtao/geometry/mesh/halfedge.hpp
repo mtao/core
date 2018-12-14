@@ -5,6 +5,7 @@
 #include <set>
 #include <utility>
 #include "mtao/types.h"
+#include <iostream>
 
 namespace mtao { namespace geometry { namespace mesh {
 
@@ -118,6 +119,7 @@ template <typename S, int D>
 class EmbeddedHalfEdgeMesh: public HalfEdgeMesh {
     public:
 
+        using Vec = mtao::Vector<S,D>;
 
         template <typename... Args>
         EmbeddedHalfEdgeMesh(const mtao::ColVectors<S,D>& V, Args&&... args): HalfEdgeMesh(std::forward<Args>(args)...), m_vertices(V) {}
@@ -133,6 +135,7 @@ class EmbeddedHalfEdgeMesh: public HalfEdgeMesh {
         auto V(int i) { return m_vertices.col(i); }
         auto V(int i) const { return m_vertices.col(i); }
         void make_topology();
+        mtao::VectorX<int> get_cells(const mtao::ColVectors<S,D>& P) const;
         auto T(int idx) const {
             auto e = edge(idx);
             int a = e.vertex();
@@ -249,6 +252,52 @@ void EmbeddedHalfEdgeMesh<S,D>::make_topology() {
     } else {
         static_assert(D == 2);
     }
+}
+template <typename S, int D>
+mtao::VectorX<int> EmbeddedHalfEdgeMesh<S,D>::get_cells(const mtao::ColVectors<S,D>& P) const {
+    static_assert(D == 2);
+    auto C = cells();
+    mtao::VectorX<int> indices(P.cols());
+
+    auto edge = [](HalfEdge he) -> std::array<int,3> {
+        int i = he.vertex(); he.next(); 
+        int j = he.vertex(); he.next(); 
+        int k = he.vertex(); he.next(); 
+        return {{i,j,k}};
+
+    };
+
+    auto get_index = [&](auto&& p) -> int {
+        std::cout << p.transpose() << std::endl;
+        for(size_t i = 0; i < C.size(); ++i) {
+            bool inside = true;
+            cell_iterator(this,C[i]).run_earlyout([&](auto&& e) -> bool{
+                    auto [i,j,k] = edge(e);
+                    auto a = V(i);
+                    auto b = V(j);
+                    auto c = V(k);
+                    auto ba = b-a;
+                    auto cb = c-b;
+                    auto pb = p-b;
+                    Vec n(-ba.y(),ba.x());
+                    inside = pb.dot(n) * cb.dot(n) >= 0;
+
+                    return inside;
+                    });
+            if(inside) {
+                return i;
+            }
+        }
+        return -1;
+    };
+
+    for(int k = 0; k < P.cols(); ++k) {
+        auto& idx = indices(k);
+        auto p = P.col(k);
+        idx = get_index(p);
+
+    }
+    return indices;
 }
 
 template <typename S, int D>
