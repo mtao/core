@@ -5,6 +5,7 @@
 #include <set>
 #include <utility>
 #include "mtao/types.h"
+#include <iostream>
 
 namespace mtao { namespace geometry { namespace mesh {
 
@@ -33,6 +34,10 @@ class HalfEdgeMesh {
         static HalfEdgeMesh from_cells(const Cells& F);
         static HalfEdgeMesh from_edges(const mtao::ColVectors<int,2>& E);//From non-dual edges
         HalfEdgeMesh() = default;
+        HalfEdgeMesh(const HalfEdgeMesh&) = default;
+        HalfEdgeMesh(HalfEdgeMesh&&) = default;
+        HalfEdgeMesh& operator=(const HalfEdgeMesh&) = default;
+        HalfEdgeMesh& operator=(HalfEdgeMesh&&) = default;
 
         auto vertex_indices() { return m_edges.row(int(Index::VertexIndex)); }
         auto cell_indices() { return m_edges.row(int(Index::CellIndex)); }
@@ -118,7 +123,14 @@ template <typename S, int D>
 class EmbeddedHalfEdgeMesh: public HalfEdgeMesh {
     public:
 
+        using Vec = mtao::Vector<S,D>;
 
+        EmbeddedHalfEdgeMesh() = default;
+        EmbeddedHalfEdgeMesh(const EmbeddedHalfEdgeMesh&) = default;
+        EmbeddedHalfEdgeMesh(EmbeddedHalfEdgeMesh&&) = default;
+        EmbeddedHalfEdgeMesh& operator=(const EmbeddedHalfEdgeMesh&) = default;
+        EmbeddedHalfEdgeMesh& operator=(EmbeddedHalfEdgeMesh&&) = default;
+        ~EmbeddedHalfEdgeMesh() = default;
         template <typename... Args>
         EmbeddedHalfEdgeMesh(const mtao::ColVectors<S,D>& V, Args&&... args): HalfEdgeMesh(std::forward<Args>(args)...), m_vertices(V) {}
 
@@ -133,6 +145,13 @@ class EmbeddedHalfEdgeMesh: public HalfEdgeMesh {
         auto V(int i) { return m_vertices.col(i); }
         auto V(int i) const { return m_vertices.col(i); }
         void make_topology();
+        template <typename Derived>
+        bool is_inside(int cell_edge, const Eigen::MatrixBase<Derived>& p) const ;
+        template <typename Derived>
+        bool is_inside(const HalfEdge& cell_edge, const Eigen::MatrixBase<Derived>& p) const ;
+        template <typename Derived>
+        int get_cell(const Eigen::MatrixBase<Derived>& p) const ;
+        mtao::VectorX<int> get_cells(const mtao::ColVectors<S,D>& P) const;
         auto T(int idx) const {
             auto e = edge(idx);
             int a = e.vertex();
@@ -249,6 +268,97 @@ void EmbeddedHalfEdgeMesh<S,D>::make_topology() {
     } else {
         static_assert(D == 2);
     }
+}
+template <typename S, int D>
+template <typename Derived>
+bool EmbeddedHalfEdgeMesh<S,D>::is_inside(int cell_edge, const Eigen::MatrixBase<Derived>& p) const {
+    return is_inside(edge(cell_edge),p);
+}
+template <typename S, int D>
+template <typename Derived>
+bool EmbeddedHalfEdgeMesh<S,D>::is_inside(const HalfEdge& cell_edge, const Eigen::MatrixBase<Derived>& p) const {
+    static_assert(D == 2);
+    auto edge = [](HalfEdge he) -> std::array<int,3> {
+        int i = he.vertex(); he.next(); 
+        int j = he.vertex(); he.next(); 
+        int k = he.vertex(); he.next(); 
+        return {{i,j,k}};
+
+    };
+
+    bool inside = true;
+    cell_iterator(this,cell_edge.index()).run_earlyout([&](auto&& e) -> bool{
+            auto [i,j,k] = edge(e);
+            auto a = V(i);
+            auto b = V(j);
+            auto c = V(k);
+            auto ba = b-a;
+            auto cb = c-b;
+            auto pb = p-b;
+            Vec n(-ba.y(),ba.x());
+            inside = pb.dot(n) * cb.dot(n) >= 0;
+
+            return inside;
+            });
+    return inside;
+}
+template <typename S, int D>
+template <typename Derived>
+int EmbeddedHalfEdgeMesh<S,D>::get_cell(const Eigen::MatrixBase<Derived>& p) const {
+    static_assert(D == 2);
+    auto C = cells();
+
+
+    for(size_t i = 0; i < C.size(); ++i) {
+        if(is_inside(i,p)) {
+            return i;
+        }
+    }
+    return -1;
+}
+template <typename S, int D>
+mtao::VectorX<int> EmbeddedHalfEdgeMesh<S,D>::get_cells(const mtao::ColVectors<S,D>& P) const {
+    auto C = cells();
+    mtao::VectorX<int> indices(P.cols());
+
+    auto edge = [](HalfEdge he) -> std::array<int,3> {
+        int i = he.vertex(); he.next(); 
+        int j = he.vertex(); he.next(); 
+        int k = he.vertex(); he.next(); 
+        return {{i,j,k}};
+
+    };
+
+    auto get_index = [&](auto&& p) -> int {
+        for(size_t i = 0; i < C.size(); ++i) {
+            bool inside = true;
+            cell_iterator(this,C[i]).run_earlyout([&](auto&& e) -> bool{
+                    auto [i,j,k] = edge(e);
+                    auto a = V(i);
+                    auto b = V(j);
+                    auto c = V(k);
+                    auto ba = b-a;
+                    auto cb = c-b;
+                    auto pb = p-b;
+                    Vec n(-ba.y(),ba.x());
+                    inside = pb.dot(n) * cb.dot(n) >= 0;
+
+                    return inside;
+                    });
+            if(inside) {
+                return i;
+            }
+        }
+        return -1;
+    };
+
+    for(int k = 0; k < P.cols(); ++k) {
+        auto& idx = indices(k);
+        auto p = P.col(k);
+        idx = get_index(p);
+
+    }
+    return indices;
 }
 
 template <typename S, int D>
