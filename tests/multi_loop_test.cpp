@@ -1,7 +1,7 @@
 #include <iostream>
 #include <iterator>
 #include <array>
-#include "mtao/grid/grid_utils.h"
+#include <mtao/geometry/grid/grid_utils.h>
 
 
 

@@ -1,8 +1,8 @@
 #ifndef GRID_UTILS_H
 #define GRID_UTILS_H
 
-#include "types.h"
-#include "compat.h"
+#include <mtao/types.h>
+#include <mtao/compat.h>
 
 namespace mtao {
 

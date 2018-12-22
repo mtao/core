@@ -45,6 +45,7 @@ TARGET_LINK_LIBRARIES(halfedge_submesh_test mtao_geometry)
 #ADD_EXECUTABLE(static_iteration_test src/static_iteration_test.cpp)
 
 ADD_EXECUTABLE(disjoint_set_test disjoint_set_test.cpp)
+ADD_EXECUTABLE(static_loop_test static_loop_test.cpp)
 
 ADD_EXECUTABLE(cltest cltest.cpp)
 TARGET_LINK_LIBRARIES(cltest mtao_core)

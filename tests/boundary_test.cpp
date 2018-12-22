@@ -3,7 +3,7 @@
 #include <mtao/geometry/mesh/boundary_facets.h>
 #include <mtao/geometry/mesh/boundary_matrix.h>
 #include <mtao/geometry/mesh/boundary_elements.h>
-#include <mtao/enumerate.hpp>
+#include <mtao/iterator/enumerate.hpp>
 #include <iterator>
 
 int main() {
@@ -18,14 +18,14 @@ int main() {
         std::cout << B << std::endl << std::endl;
 
         auto bm = mtao::geometry::mesh::boundary_elements(B);
-        for(auto&& [idx,elems]: mtao::enumerate(bm)) {
+        for(auto&& [idx,elems]: mtao::iterator::enumerate(bm)) {
             std::cout << idx << ") ";
             std::copy(elems.begin(),elems.end(),std::ostream_iterator<int>(std::cout, ", "));
             std::cout << std::endl;
         }
         std::cout << std::endl;
         auto cbm = mtao::geometry::mesh::coboundary_elements(B);
-        for(auto&& [idx,elems]: mtao::enumerate(cbm)) {
+        for(auto&& [idx,elems]: mtao::iterator::enumerate(cbm)) {
             std::cout << idx << ") ";
             std::copy(elems.begin(),elems.end(),std::ostream_iterator<int>(std::cout, ", "));
             std::cout << std::endl;
@@ -50,14 +50,14 @@ int main() {
         std::cout << B2 << std::endl << std::endl;
         std::cout << B2*B << std::endl << std::endl;
         auto bm = mtao::geometry::mesh::boundary_elements(B);
-        for(auto&& [idx,elems]: mtao::enumerate(bm)) {
+        for(auto&& [idx,elems]: mtao::iterator::enumerate(bm)) {
             std::cout << idx << ") ";
             std::copy(elems.begin(),elems.end(),std::ostream_iterator<int>(std::cout, ", "));
             std::cout << std::endl;
         }
         std::cout << std::endl;
         auto cbm = mtao::geometry::mesh::coboundary_elements(B);
-        for(auto&& [idx,elems]: mtao::enumerate(cbm)) {
+        for(auto&& [idx,elems]: mtao::iterator::enumerate(cbm)) {
             std::cout << idx << ") ";
             std::copy(elems.begin(),elems.end(),std::ostream_iterator<int>(std::cout, ", "));
             std::cout << std::endl;
@@ -82,14 +82,14 @@ int main() {
         std::cout << B2 << std::endl << std::endl;
         std::cout << B2*B << std::endl << std::endl;
         auto bm = mtao::geometry::mesh::boundary_elements(B);
-        for(auto&& [idx,elems]: mtao::enumerate(bm)) {
+        for(auto&& [idx,elems]: mtao::iterator::enumerate(bm)) {
             std::cout << idx << ") ";
             std::copy(elems.begin(),elems.end(),std::ostream_iterator<int>(std::cout, ", "));
             std::cout << std::endl;
         }
         std::cout << std::endl;
         auto cbm = mtao::geometry::mesh::coboundary_elements(B);
-        for(auto&& [idx,elems]: mtao::enumerate(cbm)) {
+        for(auto&& [idx,elems]: mtao::iterator::enumerate(cbm)) {
             std::cout << idx << ") ";
             std::copy(elems.begin(),elems.end(),std::ostream_iterator<int>(std::cout, ", "));
             std::cout << std::endl;

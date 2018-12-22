@@ -2,7 +2,7 @@
 #define GRID_H
 
 //#include <array>
-#include "compat.h"
+#include <mtao/compat.h>
 #include <algorithm>
 #include "grid_utils.h"
 #include "grid_storage.h"
