@@ -182,7 +182,6 @@ std::set<HalfEdge> HalfEdgeMesh::cell_edges(int idx) const {
     std::set<HalfEdge> he;
     for(int i = 0; i < size(); ++i) {
         if(cell_index(i) == idx) {
-            std::cout << "PING!" << std::endl;
             he.emplace(this,i);
         }
     }
