@@ -70,8 +70,13 @@ struct DisjointSet{
         }
     }
 
+    size_t index(const Node& n) const {
+        return std::distance(&nodes.front(),&n);
+    }
+
 
     std::vector<Node> nodes;
+    //maps input data to 
     std::map<Data,size_t> data_map;
 
 };

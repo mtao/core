@@ -48,10 +48,10 @@ class HalfEdgeMesh {
         auto next_indices() const { return m_edges.row(int(Index::NextIndex)); }
         auto dual_indices() const { return m_edges.row(int(Index::DualIndex)); }
 
-        int vertex_index(int idx) const { return vertex_indices()(idx); }
-        int dual_index(int idx) const { return dual_indices()(idx); }
-        int next_index(int idx) const { return next_indices()(idx); }
-        int cell_index(int idx) const { return cell_indices()(idx); }
+        int vertex_index(int idx) const { if(idx < 0 || idx >= size()) return -1; else return vertex_indices()(idx); }
+        int dual_index(int idx) const {   if(idx < 0 || idx >= size()) return -1; else return dual_indices()(idx); }
+        int next_index(int idx) const {   if(idx < 0 || idx >= size()) return -1; else return next_indices()(idx); }
+        int cell_index(int idx) const {   if(idx < 0 || idx >= size()) return -1; else return cell_indices()(idx); }
         const Edges& edges() const { return m_edges; }
 
         //Returns a unique halfedge to access a particular element type
@@ -63,6 +63,8 @@ class HalfEdgeMesh {
         HalfEdge edge(int i) const;
         HalfEdge cell_edge(int i) const;
         HalfEdge vertex_edge(int i) const;
+        std::set<HalfEdge> cell_edges(int i) const;
+        std::set<HalfEdge> vertex_edges(int i) const;
 
         std::vector<int> cell(int i) const;
         std::vector<int> dual_cell(int i) const;
@@ -114,7 +116,11 @@ struct HalfEdgeMesh::HalfEdge {
         HalfEdge& dual();
 
         explicit operator int() const { return m_index; }
-        operator bool() const { return m_index != -1; }
+        explicit operator bool() const { return m_index != -1; }
+        bool operator<(const HalfEdge& other) const {
+            return m_index < other.m_index;
+        }
+
     private:
         const MeshType* m_cc;
         int m_index = -1;

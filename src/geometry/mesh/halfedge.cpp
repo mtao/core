@@ -162,30 +162,48 @@ HalfEdge HalfEdgeMesh::edge(int i) const {
 }
 
 HalfEdge HalfEdgeMesh::cell_edge(int idx) const {
-    for(int i = 0; i < size(); ++i) {
-        if(cell_index(i) == idx) {
-            return edge(i);
-        }
+    auto ce =  cell_edges(idx);
+    if(ce.empty()) {
+        return HalfEdge(this);
+    } else {
+        return *ce.begin();
     }
-    return HalfEdge(this);
 }
 
 HalfEdge HalfEdgeMesh::vertex_edge(int idx) const {
-    int ret = -1;
+    auto ve =  vertex_edges(idx);
+    if(ve.empty()) {
+        return HalfEdge(this);
+    } else {
+        return *ve.begin();
+    }
+}
+std::set<HalfEdge> HalfEdgeMesh::cell_edges(int idx) const {
+    std::set<HalfEdge> he;
+    for(int i = 0; i < size(); ++i) {
+        if(cell_index(i) == idx) {
+            std::cout << "PING!" << std::endl;
+            he.emplace(this,i);
+        }
+    }
+    return he;
+}
+std::set<HalfEdge> HalfEdgeMesh::vertex_edges(int idx) const {
+    std::set<HalfEdge> he;
     int dual = 0;
     for(int i = 0; i < size(); ++i) {
         auto vi = vertex_index(i);
         if(vi == idx) {
             if( dual != -1) {
-                ret = i;
-                dual = dual_index(ret);
+                dual = dual_index(i);
                 if(dual == -1) {
-                    trace() << "Finding edge for vertex " <<  idx<< " and found a boundary"<<ret<<"!";
+                    trace() << "Finding edge for vertex " <<  idx<< " and found a boundary"<<i<<"!";
                 }
+                he.emplace(this,i);
             }
         }
     }
-    return HalfEdge(this,ret);
+    return he;
 }
 
 HalfEdge::HalfEdge(const MeshType* cc, int idx): m_cc(cc), m_index(idx) {}
@@ -265,7 +283,7 @@ bool HalfEdgeMesh::is_boundary_vertex(int index) const {
     bool has_boundary_edge = false;
 
     vertex_iterator(vertex_edge(index)).run_earlyout([this,&has_boundary_edge](const HalfEdge& e) {
-            if(is_boundary(e)) {
+            if(is_boundary(int(e))) {
             has_boundary_edge = true;
             return false;
             }
@@ -278,7 +296,7 @@ bool HalfEdgeMesh::is_boundary_cell(int index) const {
     bool has_boundary_edge = false;
 
     cell_iterator(cell_edge(index)).run_earlyout([this,&has_boundary_edge](const HalfEdge& e) {
-            if(is_boundary(e)) {
+            if(is_boundary(int(e))) {
             has_boundary_edge = true;
             return false;
             }
