@@ -31,6 +31,8 @@ namespace mtao{
 
     using Mat3f = SquareMatrix<float,3> ;
     using Mat2f = SquareMatrix<float,2> ;
+    using ColVecs3f = ColVectors<float,3> ;
+    using ColVecs2f = ColVectors<float,2> ;
     using Vec3f = Vector<float,3> ;
     using Vec2f = Vector<float,2> ;
     using MatXf = MatrixX<float> ;
@@ -38,6 +40,8 @@ namespace mtao{
 
     using Mat3d = SquareMatrix<double,3> ;
     using Mat2d = SquareMatrix<double,2> ;
+    using ColVecs3d = ColVectors<double,3> ;
+    using ColVecs2d = ColVectors<double,2> ;
     using Vec3d = Vector<double,3> ;
     using Vec2d = Vector<double,2> ;
     using MatXd = MatrixX<double> ;
