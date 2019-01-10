@@ -1,5 +1,5 @@
 // GLAD/GLFW
-#include "glad/glad.h"
+#include "mtao/opengl/opengl_loader.hpp"
 #include <GLFW/glfw3.h>
 #ifdef _WIN32
 #undef APIENTRY
@@ -7,18 +7,45 @@
 #define GLFW_EXPOSE_NATIVE_WGL
 #include <GLFW/glfw3native.h>
 #endif
+#include <mtao/logging/logger.hpp>
+using namespace mtao::logging;
 
 #include <imgui.h>
 #include "mtao/opengl/imgui_impl.h"
+#ifdef USE_IMGUI_IMPL
+#include "examples/imgui_impl_glfw.h"
+#include "examples/imgui_impl_opengl3.h"
+#endif
 #include <stdio.h>
 
 namespace mtao { namespace opengl {
-    bool         ImGuiImpl::s_MousePressed[3] = { false, false, false };
-    float        ImGuiImpl::s_MouseWheel = 0.0f;
+bool             ImGuiImpl::s_MouseJustPressed[5] = { false, false, false, false, false };
+GLFWcursor*      ImGuiImpl::s_MouseCursors[ImGuiMouseCursor_COUNT] = { 0 };
 void ImGuiImpl::setWindow(GLFWwindow* window) {
     m_Window = window;
+
+    if(window != nullptr) {
+        ImGui_ImplGlfw_InitForOpenGL(window, true);
+        const char* glsl_version = "#version 130";
+        ImGui_ImplOpenGL3_Init(glsl_version);
+        ImGui::StyleColorsDark();
+        return;
+    }
 }
 ImGuiImpl::ImGuiImpl(GLFWwindow* window): m_Window(window) {
+#ifdef USE_IMGUI_IMPL
+    // Setup Dear ImGui binding
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
+
+
+
+    setWindow(window);
+
+#else
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 
@@ -49,24 +76,92 @@ ImGuiImpl::ImGuiImpl(GLFWwindow* window): m_Window(window) {
 #ifdef _WIN32
     io.ImeWindowHandle = glfwGetWin32Window(m_Window);
 #endif
+#endif
 
 
 }
 ImGuiImpl::~ImGuiImpl() {
+#ifdef USE_IMGUI_IMPL
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+#else
     invalidateDeviceObjects();
 
     //Theoretically I suspect I should be calling shutdown but it causes a segfault taht I don't understand
     //ImGui::Shutdown();
     ImGui::DestroyContext(m_context);
+#endif
+}
+
+void ImGuiImpl::updateMousePosAndButtons()
+{
+    // Update buttons
+    ImGuiIO& io = ImGui::GetIO();
+    for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++)
+    {
+        // If a mouse press event came, always pass it as "mouse held this frame", so we don't miss click-release events that are shorter than 1 frame.
+        io.MouseDown[i] = s_MouseJustPressed[i] || glfwGetMouseButton(m_Window, i) != 0;
+        s_MouseJustPressed[i] = false;
+    }
+
+    // Update mouse position
+    const ImVec2 mouse_pos_backup = io.MousePos;
+    io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
+#ifdef __EMSCRIPTEN__
+    const bool focused = true; // Emscripten
+#else
+    const bool focused = glfwGetWindowAttrib(m_Window, GLFW_FOCUSED) != 0;
+#endif
+    if (focused)
+    {
+        if (io.WantSetMousePos)
+        {
+            glfwSetCursorPos(m_Window, (double)mouse_pos_backup.x, (double)mouse_pos_backup.y);
+        }
+        else
+        {
+            double mouse_x, mouse_y;
+            glfwGetCursorPos(m_Window, &mouse_x, &mouse_y);
+            io.MousePos = ImVec2((float)mouse_x, (float)mouse_y);
+        }
+    }
+}
+
+void ImGuiImpl::updateMouseCursor()
+{
+    ImGuiIO& io = ImGui::GetIO();
+    if ((io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) || glfwGetInputMode(m_Window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
+        return;
+
+    ImGuiMouseCursor imgui_cursor = ImGui::GetMouseCursor();
+    if (imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor)
+    {
+        // Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
+        glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+    }
+    else
+    {
+        // Show OS mouse cursor
+        // FIXME-PLATFORM: Unfocused windows seems to fail changing the mouse cursor with GLFW 3.2, but 3.3 works here.
+        glfwSetCursor(m_Window, s_MouseCursors[imgui_cursor] ? s_MouseCursors[imgui_cursor] : s_MouseCursors[ImGuiMouseCursor_Arrow]);
+        glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
 }
 void ImGuiImpl::newFrame() {
+#ifdef USE_IMGUI_IMPL
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+#else
     if (!m_FontTexture) {
         createDeviceObjects();
     }
 
     ImGuiIO& io = ImGui::GetIO();
+    IM_ASSERT(io.Fonts->IsBuilt());     // Font atlas needs to be built, call renderer _NewFrame() function e.g. ImGui_ImplOpenGL3_NewFrame() 
 
-    // Setup display size (every frame to accommodate for window resizing)
+    // Setup display size
     int w, h;
     int display_w, display_h;
     glfwGetWindowSize(m_Window, &w, &h);
@@ -75,43 +170,53 @@ void ImGuiImpl::newFrame() {
     io.DisplayFramebufferScale = ImVec2(w > 0 ? ((float)display_w / w) : 0, h > 0 ? ((float)display_h / h) : 0);
 
     // Setup time step
-    double current_time =  glfwGetTime();
+    double current_time = glfwGetTime();
     io.DeltaTime = m_Time > 0.0 ? (float)(current_time - m_Time) : (float)(1.0f/60.0f);
     m_Time = current_time;
 
-    // Setup inputs
-    // (we already got mouse wheel, keyboard keys & characters from glfw callbacks polled in glfwPollEvents())
-    if (glfwGetWindowAttrib(m_Window, GLFW_FOCUSED))
+    updateMousePosAndButtons();
+    updateMouseCursor();
+
+    // Gamepad navigation mapping [BETA]
+    memset(io.NavInputs, 0, sizeof(io.NavInputs));
+    if (io.ConfigFlags & ImGuiConfigFlags_NavEnableGamepad)
     {
-        double mouse_x, mouse_y;
-        glfwGetCursorPos(m_Window, &mouse_x, &mouse_y);
-        io.MousePos = ImVec2((float)mouse_x, (float)mouse_y);   // Mouse position in screen coordinates (set to -1,-1 if no mouse / on another screen, etc.)
+        // Update gamepad inputs
+        #define MAP_BUTTON(NAV_NO, BUTTON_NO)       { if (buttons_count > BUTTON_NO && buttons[BUTTON_NO] == GLFW_PRESS) io.NavInputs[NAV_NO] = 1.0f; }
+        #define MAP_ANALOG(NAV_NO, AXIS_NO, V0, V1) { float v = (axes_count > AXIS_NO) ? axes[AXIS_NO] : V0; v = (v - V0) / (V1 - V0); if (v > 1.0f) v = 1.0f; if (io.NavInputs[NAV_NO] < v) io.NavInputs[NAV_NO] = v; }
+        int axes_count = 0, buttons_count = 0;
+        const float* axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &axes_count);
+        const unsigned char* buttons = glfwGetJoystickButtons(GLFW_JOYSTICK_1, &buttons_count);
+        MAP_BUTTON(ImGuiNavInput_Activate,   0);     // Cross / A
+        MAP_BUTTON(ImGuiNavInput_Cancel,     1);     // Circle / B
+        MAP_BUTTON(ImGuiNavInput_Menu,       2);     // Square / X
+        MAP_BUTTON(ImGuiNavInput_Input,      3);     // Triangle / Y
+        MAP_BUTTON(ImGuiNavInput_DpadLeft,   13);    // D-Pad Left
+        MAP_BUTTON(ImGuiNavInput_DpadRight,  11);    // D-Pad Right
+        MAP_BUTTON(ImGuiNavInput_DpadUp,     10);    // D-Pad Up
+        MAP_BUTTON(ImGuiNavInput_DpadDown,   12);    // D-Pad Down
+        MAP_BUTTON(ImGuiNavInput_FocusPrev,  4);     // L1 / LB
+        MAP_BUTTON(ImGuiNavInput_FocusNext,  5);     // R1 / RB
+        MAP_BUTTON(ImGuiNavInput_TweakSlow,  4);     // L1 / LB
+        MAP_BUTTON(ImGuiNavInput_TweakFast,  5);     // R1 / RB
+        MAP_ANALOG(ImGuiNavInput_LStickLeft, 0,  -0.3f,  -0.9f);
+        MAP_ANALOG(ImGuiNavInput_LStickRight,0,  +0.3f,  +0.9f);
+        MAP_ANALOG(ImGuiNavInput_LStickUp,   1,  +0.3f,  +0.9f);
+        MAP_ANALOG(ImGuiNavInput_LStickDown, 1,  -0.3f,  -0.9f);
+        #undef MAP_BUTTON
+        #undef MAP_ANALOG
+        if (axes_count > 0 && buttons_count > 0)
+            io.BackendFlags |= ImGuiBackendFlags_HasGamepad;
+        else
+            io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
     }
-    else
-    {
-        io.MousePos = ImVec2(-1,-1);
-    }
-
-    for (int i = 0; i < 3; i++)
-    {
-        io.MouseDown[i] = s_MousePressed[i] || glfwGetMouseButton(m_Window, i) != 0;    // If a mouse press event came, always pass it as "mouse held this frame", so we don't miss click-release events that are shorter than 1 frame.
-        s_MousePressed[i] = false;
-    }
-
-    io.MouseWheel = s_MouseWheel;
-    s_MouseWheel = 0.0f;
-
-    // Hide OS mouse cursor if ImGui is drawing it
-    glfwSetInputMode(m_Window, GLFW_CURSOR, io.MouseDrawCursor ? GLFW_CURSOR_HIDDEN : GLFW_CURSOR_NORMAL);
-
-    // Start the frame
     ImGui::NewFrame();
+#endif
 }
 void ImGuiImpl::invalidateDeviceObjects() {
-    if (m_VaoHandle) glDeleteVertexArrays(1, &m_VaoHandle);
     if (m_VboHandle) glDeleteBuffers(1, &m_VboHandle);
     if (m_ElementsHandle) glDeleteBuffers(1, &m_ElementsHandle);
-    m_VaoHandle = m_VboHandle = m_ElementsHandle = 0;
+    m_VboHandle = m_ElementsHandle = 0;
 
     if (m_ShaderHandle && m_VertHandle) glDetachShader(m_ShaderHandle, m_VertHandle);
     if (m_VertHandle) glDeleteShader(m_VertHandle);
@@ -126,12 +231,19 @@ void ImGuiImpl::invalidateDeviceObjects() {
 
     if (m_FontTexture)
     {
+        ImGuiIO& io = ImGui::GetIO();
         glDeleteTextures(1, &m_FontTexture);
-        ImGui::GetIO().Fonts->TexID = 0;
+        io.Fonts->TexID = 0;
         m_FontTexture = 0;
     }
 }
 void ImGuiImpl::createDeviceObjects() {
+#ifdef USE_IMGUI_IMPL
+    // Parse GLSL version string
+    int glsl_version = 130;
+    sscanf(m_GlslVersionString, "#version %d", &glsl_version);
+
+#else
     // Backup GL state
     // Backup GL state
     GLint last_texture, last_array_buffer, last_vertex_array;
@@ -139,9 +251,7 @@ void ImGuiImpl::createDeviceObjects() {
     glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &last_array_buffer);
     glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &last_vertex_array);
 
-    // Parse GLSL version string
-    int glsl_version = 130;
-    sscanf(m_GlslVersionString, "#version %d", &glsl_version);
+
 
     const GLchar* vertex_shader_glsl_120 =
         "uniform mat4 ProjMtx;\n"
@@ -301,16 +411,19 @@ void ImGuiImpl::createDeviceObjects() {
     glBindTexture(GL_TEXTURE_2D, last_texture);
     glBindBuffer(GL_ARRAY_BUFFER, last_array_buffer);
     glBindVertexArray(last_vertex_array);
+#endif
 
 
 }
 
 void ImGuiImpl::mouseButtonCallback(GLFWwindow*,int button, int action, int mods) {
-    if (action == GLFW_PRESS && button >= 0 && button < 3)
-        s_MousePressed[button] = true;
+    if (action == GLFW_PRESS && button >= 0 && button < IM_ARRAYSIZE(s_MouseJustPressed))
+        s_MouseJustPressed[button] = true;
 }
 void ImGuiImpl::scrollCallback(GLFWwindow*,double xoffset, double yoffset) {
-    s_MouseWheel += (float)yoffset; // Use fractional mouse wheel, 1.0 unit 5 lines.
+    ImGuiIO& io = ImGui::GetIO();
+    io.MouseWheelH += (float)xoffset;
+    io.MouseWheel += (float)yoffset;
 }
 void ImGuiImpl::keyCallback(GLFWwindow*,int key, int scancode, int action, int mods) {
     ImGuiIO& io = ImGui::GetIO();
@@ -473,7 +586,11 @@ void ImGuiImpl::renderDrawLists(ImDrawData* draw_data)
 void ImGuiImpl::render() {
     ImGui::Render();
 
+#ifdef USE_IMGUI_IMPL
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+#else
     renderDrawLists(ImGui::GetDrawData());
+#endif
 }
 // If you get an error please report on github. You may try different GL context version or GLSL version.
 bool ImGuiImpl::CheckShader(GLuint handle, const char* desc)

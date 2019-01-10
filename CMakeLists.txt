@@ -14,6 +14,19 @@ ADD_DEFINITIONS(-Wall)
 #ADD_DEFINITIONS(-Wno-deprecated-declarations)
 #ADD_DEFINITIONS(-Wno-unused-variable)
 
+OPTION(USE_IMGUI_IMPL "Should the OpenGL Window use the imgui example impl or not" ON)
+set(OPENGL_LOADER "GLEW" CACHE STRING "Let us select which OpenGL loader to use")
+
+
+ADD_DEFINITIONS(-DIMGUI_IMPL_OPENGL_LOADER_${OPENGL_LOADER})
+IF(${OPENGL_LOADER} STREQUAL "GLAD") 
+    SET(OPENGL_LOADER_SOURCES src/opengl/glad.c)
+ENDIF(${OPENGL_LOADER} STREQUAL "GLAD") 
+
+IF(${OPENGL_LOADER} STREQUAL "GLEW") 
+    SET(OPENGL_LOADER_LIBRARIES GLEW)
+ENDIF(${OPENGL_LOADER} STREQUAL "GLEW") 
+
 
 
 # Include dirs
@@ -22,14 +35,27 @@ INCLUDE_DIRECTORIES(/usr/include/eigen3)
 
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+
+
 SET(IMGUI_PATH ${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui)
 INCLUDE_DIRECTORIES(${IMGUI_PATH})
+
+SET(IMGUI_IMPL_SOURCES
+    ${IMGUI_PATH}/examples/imgui_impl_glfw.cpp
+    ${IMGUI_PATH}/examples/imgui_impl_opengl3.cpp
+    )
+
 SET(IMGUI_SOURCES 
     ${IMGUI_PATH}/imgui.cpp 
     ${IMGUI_PATH}/imgui_draw.cpp
     ${IMGUI_PATH}/imgui_widgets.cpp
     )
 
+IF(${USE_IMGUI_IMPL})
+    SET(IMGUI_SOURCES ${IMGUI_SOURCES} ${IMGUI_IMPL_SOURCES})
+    ADD_DEFINITIONS(-DUSE_IMGUI_IMPL)
+    ADD_DEFINITIONS(-DIMGUI_IMPL_OPENGL_LOADER_GLEW)
+ENDIF(${USE_IMGUI_IMPL})
 
 
 FIND_PACKAGE(Protobuf)
@@ -117,7 +143,7 @@ ADD_LIBRARY(mtao_core
 ADD_LIBRARY(mtao_opengl 
     ${COMMON_HEADERS}
     ${IMGUI_SOURCES}
-    src/opengl/glad.c
+    ${OPENGL_LOADER_SOURCES}
     src/opengl/imgui_impl.cpp
     src/opengl/Window.cpp
     src/opengl/Monitor.cpp
@@ -154,7 +180,9 @@ ADD_LIBRARY(mtao_opengl
     src/opengl/shaders/simple.cpp
     src/opengl/shaders/vectors.cpp
     )
-TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl mtao_core ${png++_LIBRARIES})
+
+
+TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl mtao_core ${png++_LIBRARIES} ${OPENGL_LOADER_LIBRARIES})
 
 
 ADD_DEFINITIONS(-g)
