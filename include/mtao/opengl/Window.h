@@ -1,6 +1,5 @@
 #ifndef WINDOW_H
 #define WINDOW_H
-#include "opengl_loader.hpp"
 #include <GLFW/glfw3.h>
 #include <functional>
 #include "imgui_impl.h"

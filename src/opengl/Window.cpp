@@ -1,3 +1,4 @@
+#include "mtao/opengl/opengl_loader.hpp"
 #include "mtao/opengl/Window.h"
 #include <iostream>
 #include <sstream>
