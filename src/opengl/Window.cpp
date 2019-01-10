@@ -115,6 +115,7 @@ void Window::draw(bool show_gui) {
 
     int display_w, display_h;
     glfwGetFramebufferSize(window,&display_w, &display_h);
+    glEnable(GL_MULTISAMPLE);
     if(m_gui_func) {
         m_gui.newFrame();
         m_gui_func();

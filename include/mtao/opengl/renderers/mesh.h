@@ -145,6 +145,8 @@ class MeshRenderer: public Renderer {
         void update_edge_threshold();
         void update_phong_shading();
         void update_vertex_scale(const MatrixXgfCRef& V);
+        std::array<float,2> get_line_width_range() const;
+        std::array<float,2> get_point_size_range() const;
 
         static bool s_shaders_enabled[2];
 
@@ -169,6 +171,8 @@ class MeshRenderer: public Renderer {
         bool m_face_draw_elements = true;
 
         bool m_show_vector_field = false;
+        bool m_use_line_smooth = false;//antialiasing
+        bool m_use_polygon_smooth = false;//antialiasing
 
         int m_dim=2;
 

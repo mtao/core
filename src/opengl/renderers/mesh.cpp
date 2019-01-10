@@ -320,6 +320,22 @@ namespace mtao { namespace opengl { namespace renderers {
 
             ImGui::Checkbox("Show vfield: ", &m_show_vector_field);
 
+            if(m_edge_type != EdgeStyle::Disabled && m_edge_type != EdgeStyle::BaryEdge) {
+                static std::array<float,2> range = get_line_width_range();
+                {
+                    bool tmp = m_use_line_smooth;
+                    ImGui::Checkbox("Use Antialiasing: ", &tmp);
+                    if(tmp != m_use_line_smooth) {
+                        m_use_line_smooth = tmp;
+                        range = get_line_width_range();
+                    }
+                }
+                ImGui::SliderFloat("Line Width",&m_line_width, range[0],range[1]);
+            }
+            if(m_vertex_type != VertexStyle::Disabled) {
+                static std::array<float,2> range = get_point_size_range();
+                ImGui::SliderFloat("Point Size",&m_point_size,range[0],range[1]);
+            }
 
             if(m_face_style == FaceStyle::Phong && ImGui::TreeNode("Phong Shading Parameters")) {
                 ImGui::ColorEdit3("ambient", glm::value_ptr(m_ambientMat));
@@ -368,6 +384,8 @@ namespace mtao { namespace opengl { namespace renderers {
         }
     }
     void MeshRenderer::render_points() const {
+        glEnable(GL_POLYGON_OFFSET_POINT);
+        glPolygonOffset(3,1);
         if(m_buffers) {
             auto vao_a = vao().enableRAII();
             if(m_vertex_type != VertexStyle::Disabled) {
@@ -376,6 +394,9 @@ namespace mtao { namespace opengl { namespace renderers {
         }
     }
     void MeshRenderer::render_edges() const {
+        glEnable(GL_POLYGON_OFFSET_LINE);
+        glEnable(GL_POLYGON_OFFSET_FILL);
+        glPolygonOffset(1,1);
         if(m_buffers) {
             auto vao_a = vao().enableRAII();
             if(m_edge_type != EdgeStyle::Disabled) {
@@ -385,6 +406,7 @@ namespace mtao { namespace opengl { namespace renderers {
     }
     void MeshRenderer::render_faces() const {
         if(m_buffers) {
+            glPolygonOffset(0,0);
             auto vao_a = vao().enableRAII();
             if(m_face_style != FaceStyle::Disabled) {
                 render_faces(*m_buffers, m_face_style);
@@ -392,6 +414,8 @@ namespace mtao { namespace opengl { namespace renderers {
         }
     }
     void MeshRenderer::render_vfield() const {
+        glEnable(GL_POLYGON_OFFSET_LINE);
+        glPolygonOffset(2,1);
         if(m_buffers) {
             auto vao_a = vao().enableRAII();
             if(m_show_vector_field) {
@@ -404,24 +428,29 @@ namespace mtao { namespace opengl { namespace renderers {
         if(!buffs.vertices) {
             return;
         }
-        if(m_face_style != FaceStyle::Disabled) {
-            render_faces(buffs, m_face_style);
-        }
-        if(m_edge_type != EdgeStyle::Disabled) {
-            render_edges(buffs, m_edge_type);
+        if(m_vertex_type != VertexStyle::Disabled) {
+            render_points(buffs,m_vertex_type);
         }
         if(m_show_vector_field) {
             render_vfield(buffs);
         }
-        if(m_vertex_type != VertexStyle::Disabled) {
-            render_points(buffs,m_vertex_type);
+        if(m_edge_type != EdgeStyle::Disabled) {
+            render_edges(buffs, m_edge_type);
+        }
+        if(m_face_style != FaceStyle::Disabled) {
+            render_faces(buffs, m_face_style);
         }
     }
         void MeshRenderer::render_vfield(const MeshRenderBuffers& buffs) const {
             auto vao_a = vao().enableRAII();
-            glLineWidth(line_width());
+
             if(buffs.vectors) {
-                glLineWidth(2);
+                glLineWidth(line_width());
+                if(m_use_line_smooth) {
+                    glEnable(GL_LINE_SMOOTH);
+                } else {
+                    glDisable(GL_LINE_SMOOTH);
+                }
                 auto active = vector_field_program()->useRAII();
                 vector_field_program()->getUniform("tip_color").setVector(m_vector_tip_color);
                 vector_field_program()->getUniform("base_color").setVector(m_vector_base_color);
@@ -487,6 +516,11 @@ namespace mtao { namespace opengl { namespace renderers {
     }
     void MeshRenderer::render_edges(const MeshRenderBuffers& buffs, EdgeStyle style) const {
         glLineWidth(line_width());
+        if(m_use_line_smooth) {
+            glEnable(GL_LINE_SMOOTH);
+        } else {
+            glDisable(GL_LINE_SMOOTH);
+        }
         if(!buffs.vertices) {
             return;
         }
@@ -580,10 +614,22 @@ namespace mtao { namespace opengl { namespace renderers {
         ret.splice(ret.end(),Renderer::mvp_programs());
         return ret;
     }
-        void MeshRenderer::unset_all() {
-            set_face_style(FaceStyle::Disabled);
-            set_edge_style(EdgeStyle::Disabled);
-            set_vertex_style(VertexStyle::Disabled);
-            show_vector_field(false);
-        }
+    void MeshRenderer::unset_all() {
+        set_face_style(FaceStyle::Disabled);
+        set_edge_style(EdgeStyle::Disabled);
+        set_vertex_style(VertexStyle::Disabled);
+        show_vector_field(false);
+    }
+
+    std::array<float,2> MeshRenderer::get_line_width_range() const {
+        std::array<float,2> ret;
+        GLenum pname = m_use_line_smooth?GL_SMOOTH_LINE_WIDTH_RANGE:GL_ALIASED_LINE_WIDTH_RANGE;
+        glGetFloatv(pname,&ret[0]);
+        return ret;
+    }
+    std::array<float,2> MeshRenderer::get_point_size_range() const {
+        std::array<float,2> ret;
+        glGetFloatv(GL_POINT_SIZE_RANGE,&ret[0]);
+        return ret;
+    }
 }}}
