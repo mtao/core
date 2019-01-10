@@ -26,10 +26,9 @@ void ImGuiImpl::setWindow(GLFWwindow* window) {
 
     if(window != nullptr) {
         ImGui_ImplGlfw_InitForOpenGL(window, true);
-    const char* glsl_version = "#version 130";
-    ImGui_ImplOpenGL3_Init(glsl_version);
-    ImGui::StyleColorsDark();
-    debug() << "ImGui Initialized!";
+        const char* glsl_version = "#version 130";
+        ImGui_ImplOpenGL3_Init(glsl_version);
+        ImGui::StyleColorsDark();
         return;
     }
 }
@@ -151,7 +150,6 @@ void ImGuiImpl::updateMouseCursor()
 }
 void ImGuiImpl::newFrame() {
 #ifdef USE_IMGUI_IMPL
-    debug() << "ImGui New Frame";
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();

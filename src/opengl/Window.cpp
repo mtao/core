@@ -116,19 +116,14 @@ void Window::draw(bool show_gui) {
     int display_w, display_h;
     glfwGetFramebufferSize(window,&display_w, &display_h);
     if(m_gui_func) {
-        //m_gui.newFrame();
-        //m_gui_func();
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-        ImGui::Render();
+        m_gui.newFrame();
+        m_gui_func();
     }
     if(m_render_func) {
         m_render_func(display_w,display_h);
     }
     if(m_gui_func && show_gui) {
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        //m_gui.render();
+        m_gui.render();
     }
     glfwSwapBuffers(window);
     if(m_is_recording) {
