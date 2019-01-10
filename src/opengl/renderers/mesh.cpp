@@ -1,9 +1,9 @@
+#include "mtao/opengl/opengl_loader.hpp"
 #include "mtao/opengl/renderers/mesh.h"
 #include <exception>
 #include <stdexcept>
 #include <sstream>
 #include <list>
-#include <glad/glad.h>
 #include <imgui.h>
 #include <glm/gtc/type_ptr.hpp>
 #include "mtao/opengl/shaders.h"

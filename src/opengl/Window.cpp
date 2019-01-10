@@ -7,6 +7,13 @@
 #include <png++/png.hpp>
 #include <iomanip>
 #include <mtao/logging/logger.hpp>
+#include "examples/imgui_impl_glfw.h"
+#include "examples/imgui_impl_opengl3.h"
+
+static void glfw_error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Glfw Error %d: %s\n", error, description);
+}
 
 namespace mtao {namespace opengl {
 size_t Window::s_window_count = 0;
@@ -37,7 +44,6 @@ void printGLInfo() {
 
 Window::Window( const std::string& name, int width, int height) {
 
-    setErrorCallback(error_callback);
     if (s_window_count++ == 0 && !glfwInit()) {
         std::cerr <<" GLFWInit faillure!" << std::endl;
         exit(EXIT_FAILURE);
@@ -46,15 +52,27 @@ Window::Window( const std::string& name, int width, int height) {
 
 
     window = glfwCreateWindow(width, height, name.c_str(), NULL, NULL);
+    setErrorCallback(error_callback);
     if (!window) {
         glfwTerminate();
         throw std::runtime_error("GLFW window creation failed!");
     }
     s_hotkeys[window];
-    m_gui.setWindow(window);
     makeCurrent();
-    gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+
+
+    // Initialize OpenGL loader
+#if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
+    bool err = gl3wInit() != 0;
+#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
+    bool err = glewInit() != GLEW_OK;
+#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
+    bool err = gladLoadGL() == 0;
+#else
+    bool err = false; // If you use IMGUI_IMPL_OPENGL_LOADER_CUSTOM, your loader is likely to requires some form of initialization.
+#endif
     printGLInfo();
+    m_gui.setWindow(window);
 
 
     glfwSetMouseButtonCallback(window, ImGuiImpl::mouseButtonCallback);
@@ -76,6 +94,10 @@ Window::~Window() {
     }
 }
 
+static void glfw_error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Glfw Error %d: %s\n", error, description);
+}
 
 void Window::run() {
     while (!glfwWindowShouldClose(window)) {
@@ -94,14 +116,19 @@ void Window::draw(bool show_gui) {
     int display_w, display_h;
     glfwGetFramebufferSize(window,&display_w, &display_h);
     if(m_gui_func) {
-        m_gui.newFrame();
-        m_gui_func();
+        //m_gui.newFrame();
+        //m_gui_func();
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        ImGui::Render();
     }
     if(m_render_func) {
         m_render_func(display_w,display_h);
     }
     if(m_gui_func && show_gui) {
-    m_gui.render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        //m_gui.render();
     }
     glfwSwapBuffers(window);
     if(m_is_recording) {
@@ -202,8 +229,11 @@ void set_opengl_version_hints(int major, int minor, int profile) {
     }
    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, major);
    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor);
-   glfwWindowHint(GLFW_OPENGL_PROFILE, profile);
+   //glfwWindowHint(GLFW_OPENGL_PROFILE, profile);
 }
 
 }}
+
+
+
 

@@ -1,5 +1,5 @@
 // GLAD/GLFW
-#include "glad/glad.h"
+#include "mtao/opengl/opengl_loader.hpp"
 #include <GLFW/glfw3.h>
 #ifdef _WIN32
 #undef APIENTRY
@@ -7,6 +7,8 @@
 #define GLFW_EXPOSE_NATIVE_WGL
 #include <GLFW/glfw3native.h>
 #endif
+#include <mtao/logging/logger.hpp>
+using namespace mtao::logging;
 
 #include <imgui.h>
 #include "mtao/opengl/imgui_impl.h"
@@ -21,8 +23,30 @@ bool             ImGuiImpl::s_MouseJustPressed[5] = { false, false, false, false
 GLFWcursor*      ImGuiImpl::s_MouseCursors[ImGuiMouseCursor_COUNT] = { 0 };
 void ImGuiImpl::setWindow(GLFWwindow* window) {
     m_Window = window;
+
+    if(window != nullptr) {
+        ImGui_ImplGlfw_InitForOpenGL(window, true);
+    const char* glsl_version = "#version 130";
+    ImGui_ImplOpenGL3_Init(glsl_version);
+    ImGui::StyleColorsDark();
+    debug() << "ImGui Initialized!";
+        return;
+    }
 }
 ImGuiImpl::ImGuiImpl(GLFWwindow* window): m_Window(window) {
+#ifdef USE_IMGUI_IMPL
+    // Setup Dear ImGui binding
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
+
+
+
+    setWindow(window);
+
+#else
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 
@@ -53,15 +77,22 @@ ImGuiImpl::ImGuiImpl(GLFWwindow* window): m_Window(window) {
 #ifdef _WIN32
     io.ImeWindowHandle = glfwGetWin32Window(m_Window);
 #endif
+#endif
 
 
 }
 ImGuiImpl::~ImGuiImpl() {
+#ifdef USE_IMGUI_IMPL
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+#else
     invalidateDeviceObjects();
 
     //Theoretically I suspect I should be calling shutdown but it causes a segfault taht I don't understand
     //ImGui::Shutdown();
     ImGui::DestroyContext(m_context);
+#endif
 }
 
 void ImGuiImpl::updateMousePosAndButtons()
@@ -119,6 +150,12 @@ void ImGuiImpl::updateMouseCursor()
     }
 }
 void ImGuiImpl::newFrame() {
+#ifdef USE_IMGUI_IMPL
+    debug() << "ImGui New Frame";
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+#else
     if (!m_FontTexture) {
         createDeviceObjects();
     }
@@ -176,6 +213,7 @@ void ImGuiImpl::newFrame() {
             io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
     }
     ImGui::NewFrame();
+#endif
 }
 void ImGuiImpl::invalidateDeviceObjects() {
     if (m_VboHandle) glDeleteBuffers(1, &m_VboHandle);
@@ -202,19 +240,11 @@ void ImGuiImpl::invalidateDeviceObjects() {
     }
 }
 void ImGuiImpl::createDeviceObjects() {
-#ifdef IMGUI_IMPL
-    // Setup Dear ImGui binding
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
+#ifdef USE_IMGUI_IMPL
+    // Parse GLSL version string
+    int glsl_version = 130;
+    sscanf(m_GlslVersionString, "#version %d", &glsl_version);
 
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init(glsl_version);
-
-    // Setup style
-    ImGui::StyleColorsDark();
 #else
     // Backup GL state
     // Backup GL state
@@ -223,9 +253,7 @@ void ImGuiImpl::createDeviceObjects() {
     glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &last_array_buffer);
     glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &last_vertex_array);
 
-    // Parse GLSL version string
-    int glsl_version = 130;
-    sscanf(m_GlslVersionString, "#version %d", &glsl_version);
+
 
     const GLchar* vertex_shader_glsl_120 =
         "uniform mat4 ProjMtx;\n"
@@ -560,7 +588,11 @@ void ImGuiImpl::renderDrawLists(ImDrawData* draw_data)
 void ImGuiImpl::render() {
     ImGui::Render();
 
+#ifdef USE_IMGUI_IMPL
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+#else
     renderDrawLists(ImGui::GetDrawData());
+#endif
 }
 // If you get an error please report on github. You may try different GL context version or GLSL version.
 bool ImGuiImpl::CheckShader(GLuint handle, const char* desc)

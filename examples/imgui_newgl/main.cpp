@@ -55,6 +55,7 @@ void render(int width, int height) {
 int main(int argc, char * argv[]) {
 
     set_opengl_version_hints(4,5);
+    set_opengl_version_hints(3,0,GLFW_OPENGL_COMPAT_PROFILE );
     window = std::make_unique<Window>();
     window->set_gui_func(gui_func);
     window->set_render_func(render);
@@ -64,5 +65,3 @@ int main(int argc, char * argv[]) {
 
     exit(EXIT_SUCCESS);
 }
-
-
