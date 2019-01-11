@@ -10,9 +10,7 @@ namespace mtao {
         template <typename ArrayType>
         ArrayType zero_array() {
             ArrayType a;
-            for(auto&& v: a) {
-                v = typename ArrayType::value_type(0);
-            }
+            std::fill(a.begin(),a.end(),ArrayType::value_type(0));
             return a;
         }
         template <typename T>
@@ -191,6 +189,7 @@ namespace mtao {
         typename GridType::Scalar bilerp(const GridType& g, const VecType& v) {
             return lerp(g,v);
         }
+
 }
 
 

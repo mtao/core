@@ -22,7 +22,7 @@ namespace mtao {
                 using index_type = mtao::compat::array<int,D>;
                 template <typename... Args>
                     Grid(Args... args): Grid(index_type{{static_cast<int>(args)...}}) {
-                        static_assert(sizeof...(args)== D,"");
+                        static_assert(sizeof...(args)== D);
                     }
                 Grid(const index_type& a): m_shape(a), m_storage(size_from_shape(a)) {
                     init_data();

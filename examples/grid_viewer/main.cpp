@@ -1,4 +1,5 @@
 #include "mtao/opengl/Window.h"
+#include<Eigen/IterativeLinearSolvers>
 #include <iostream>
 #include "imgui.h"
 #include "mtao/opengl/shader.h"
@@ -19,7 +20,12 @@ using namespace mtao::opengl;
 
 std::vector<glm::vec2> pts;
 
+enum class Mode: int { Smoothing, LSReinitialization };
+Mode mode = Mode::LSReinitialization;
+mtao::MatrixX<float> VV;
 
+float permeability = 1.0;
+float timestep = 1.0;
 float look_distance = 0.6;
 glm::mat4 mvp_it;
 float rotation_angle;
@@ -31,11 +37,14 @@ Mat data_original;
 Mat dx;
 Mat dy;
 Mat signs;
+Eigen::SparseMatrix<float> L;
 
 int NI=200;
 int NJ=200;
+Eigen::SimplicialLDLT<Eigen::SparseMatrix<float>> solver;
 
 std::unique_ptr<renderers::MeshRenderer> renderer;
+std::unique_ptr<renderers::MeshRenderer> renderer3;
 std::unique_ptr<renderers::BBoxRenderer2> bbox_renderer;
 std::unique_ptr<renderers::AxisRenderer> axis_renderer;
 
@@ -44,6 +53,7 @@ std::unique_ptr<Window> window;
 
 
 Camera2D cam;
+Camera3D cam3;
 
 void set_mvp(int w, int h) {
     cam.set_shape(w,h);
@@ -57,6 +67,10 @@ void set_mvp(int w, int h) {
     cam.update();
 
     mvp_it = cam.mvp_inv_trans();
+    cam3.set_shape(w,h);
+
+    cam3.pan();
+    cam3.update();
 
 }
 
@@ -71,21 +85,27 @@ void set_colors(const Mat& data) {
 
     Col.array() = Col.array().pow(.5);
     renderer->setColor(Col);
+
+    VV.row(2) = col;
+    renderer3->setVertices(VV);
+    renderer3->setColor(Col);
 }
 
 void prepare_mesh(int i, int j) {
 
+    renderer3 = std::make_unique<renderers::MeshRenderer>(3);
     renderer = std::make_unique<renderers::MeshRenderer>(2);
     bbox_renderer = std::make_unique<renderers::BBoxRenderer2>();
     axis_renderer = std::make_unique<renderers::AxisRenderer>(2);
 
     auto [V,F] = make_mesh(i,j);
     V.array() -= .5;
+    VV.resize(3,V.cols());
+    VV.topRows(2) = V;
 
     mtao::RowVectorX<GLfloat> col = V.colwise().norm().array() - GLfloat(.25);
     data = Eigen::Map<Mat>(col.data(),i,j);
 
-    signs = data.array() / (data.array().pow(2) + 1e-5).sqrt();
 
 
     using BBox = renderers::BBoxRenderer2::BBox;
@@ -96,6 +116,9 @@ void prepare_mesh(int i, int j) {
     bbox_renderer->set(bb);
 
     data = data.array().pow(3);
+    data.setZero();
+    data(NI/2,NJ/2) = 1;
+    data(NI/3,NJ/2) = -1;
 
     renderer->setMesh(V,F,false);
     renderer->set_face_style(renderers::MeshRenderer::FaceStyle::Color);
@@ -104,6 +127,9 @@ void prepare_mesh(int i, int j) {
     data_original = data;
 }
 
+void lsreconstruction_precompute() {
+    signs = data.array() / (data.array().pow(2) + 1e-5).sqrt();
+}
 
 
 
@@ -136,7 +162,7 @@ glm::vec2 grid_mouse_pos() {
     return grid_space(cam.mouse_pos(ImGui::GetIO().MousePos));
 }
 
-Mat G() {
+Mat levelset_reinit() {
     centered_difference();
     //return (dx.array().pow(2) + dy.array().pow(2)).sqrt() - 1;
     auto dx_ = (NI-1)*(data.rightCols(NJ-1) - data.leftCols(NJ-1));
@@ -169,24 +195,88 @@ Mat G() {
     auto dp = d.array().max(0).pow(2);
     auto dm = d.array().min(0).pow(2);
 
-    return mtao::eigen::finite((data_original.array() <= 0).select
+    Mat grad = mtao::eigen::finite((data_original.array() <= 0).select
     (ap.max(bm) + cp.max(dm),
     bp.max(am) + dp.max(cm)) - 1);
+    Mat D = signs.cwiseProduct(grad);
+    std::cout << "Mean error: " << D.mean() << std::endl;
+    D = data -  1.0 / (4 * std::max(NI,NJ)) * D;
+    return D;
 
 
     //dy.block(1,0,NI-2,NJ) /= 2;
 }
 
+Eigen::SparseMatrix<float> grid_boundary(int ni, int nj, bool dirichlet_boundary) {
+    int system_size = ni*nj;
+    int usize = (ni+1) * nj;
+    int vsize = (nj+1) * ni;
+    int offset = usize;
+
+    auto u_ind = [ni,nj](int i, int j) {
+        return i + j*(ni + 1);
+    };
+
+    auto v_ind = [ni,nj,offset](int i, int j) {
+        return i + j*ni + offset;
+    };
+
+    std::vector< Eigen::Triplet<float> > triplets;
+
+    Eigen::SparseMatrix<float> D(usize + vsize, system_size);
+    for (int j = 0; j < nj ; ++j) {
+        for (int i = 0; i < ni ; ++i) {
+            int index = i + ni*j;
+            if(!(dirichlet_boundary && i == 0)) {
+                triplets.push_back(Eigen::Triplet<float>( u_ind(i,j), index, 1.0));
+            }
+            if(!(dirichlet_boundary && i == ni-1)) {
+            triplets.push_back(Eigen::Triplet<float>( u_ind(i+1,j), index, -1.0));
+            }
+
+
+            if(!(dirichlet_boundary && j == 0)) {
+            triplets.push_back(Eigen::Triplet<float>(  v_ind(i,j), index, 1.0));
+            }
+            if(!(dirichlet_boundary && j == ni-1)) {
+            triplets.push_back(Eigen::Triplet<float>(  v_ind(i,j+1), index, -1.0));
+            }
+
+        }
+    }
+    D.setFromTriplets(triplets.begin(), triplets.end());
+    return D;
+}
+
+Mat smoothing() {
+    Mat D = data;
+    Eigen::Map<Eigen::VectorXf> theta(D.data(),D.size());
+    theta = solver.solve(theta);
+    return D;
+}
+void smoothing_precompute() {
+    int size = NI*NJ;
+    auto B = grid_boundary(NI,NJ,true);
+    //size ~ dx * dy ~ dx^2
+    L = 1.0 / size * B.transpose() * B;
+    Eigen::SparseMatrix<float> A(size,size);
+
+    A.setIdentity();
+    A += timestep * L;
+    solver.compute(A);
+}
 
 void do_animation() {
 
-    centered_difference();
+    switch(mode) {
+
+        case Mode::Smoothing:
+            data = smoothing(); break;
+        case Mode::LSReinitialization:
+            data = levelset_reinit(); break;
+    }
 
 
-    Mat D = signs.cwiseProduct(G());
-    std::cout << "Mean error: " << D.mean() << std::endl;
-
-    data -= 1.0 / (4 * std::max(NI,NJ)) * D;
     set_colors(data);
 }
 
@@ -207,6 +297,11 @@ void render(int width, int height) {
     renderer->set_mvp(cam.mv(),cam.p());
     bbox_renderer->set_mvp(cam.mvp());
     axis_renderer->set_mvp(cam.mvp());
+
+    renderer->set_mvp(cam3.mvp());
+    renderer->set_mvp(cam3.mv(),cam3.p());
+    bbox_renderer->set_mvp(cam3.mvp());
+    axis_renderer->set_mvp(cam3.mvp());
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_ALWAYS);
     glEnable(GL_BLEND);
@@ -234,6 +329,28 @@ void gui_func() {
         look_distance = std::min(std::max(look_distance,look_min),look_max);
 
         ImGui::Checkbox("animate", &animate);
+
+        {
+        static const char* items[] = {
+            "Smoothing",
+            "Levelset Reinitialization"
+        };
+            int m = static_cast<int>(mode);
+            ImGui::Combo("Mode", &m, items, IM_ARRAYSIZE(items));
+            mode = static_cast<Mode>(m);
+        }
+        {
+            float tmp = permeability;
+            float tmp2 = timestep;
+            ImGui::InputFloat("Permeability", &tmp,0,1e-5);
+            ImGui::InputFloat("Timestep", &tmp2,0,1e-5);
+            if(tmp != permeability || tmp2 != timestep) {
+                smoothing_precompute();
+                lsreconstruction_precompute();
+            }
+            permeability = tmp;
+            timestep = tmp2;
+        }
 
         renderer->imgui_interface();
 
@@ -274,7 +391,8 @@ void gui_func() {
     }
 }
 void set_keys() {
-    auto&& h= window->hotkeys();
+    //auto&& h= window->hotkeys();
+    /*
 
     h.add([&]() {
             std::scoped_lock l(render_mutex);
@@ -365,12 +483,14 @@ void set_keys() {
             cur_edge++;
             edge_clamp();
             }, "Update edge", GLFW_KEY_M);
+            */
 
 }
 
+
 int main(int argc, char * argv[]) {
 
-    set_opengl_version_hint();
+    //set_opengl_version_hint();
     window = std::make_unique<Window>();
     set_keys();
     window->set_gui_func(gui_func);
@@ -378,6 +498,8 @@ int main(int argc, char * argv[]) {
     window->makeCurrent();
 
     prepare_mesh(NI,NJ);
+    smoothing_precompute();
+    lsreconstruction_precompute();
     window->run();
 
     exit(EXIT_SUCCESS);
