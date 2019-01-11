@@ -24,8 +24,8 @@ enum class Mode: int { Smoothing, LSReinitialization };
 Mode mode = Mode::LSReinitialization;
 mtao::MatrixX<float> VV;
 
-float permeability = 1.0;
-float timestep = 1.0;
+float permeability = 100.0;
+float timestep = 1000.0;
 float look_distance = 0.6;
 glm::mat4 mvp_it;
 float rotation_angle;
@@ -116,13 +116,17 @@ void prepare_mesh(int i, int j) {
     bbox_renderer->set(bb);
 
     data = data.array().pow(3);
-    data.setZero();
-    data(NI/2,NJ/2) = 1;
-    data(NI/3,NJ/2) = -1;
+    //data.setZero();
+    //data(NI/2,NJ/2) = 1;
+    //data(NI/3,NJ/2) = -1;
 
     renderer->setMesh(V,F,false);
     renderer->set_face_style(renderers::MeshRenderer::FaceStyle::Color);
     renderer->set_vertex_style();
+
+    renderer3->set_face_style(renderers::MeshRenderer::FaceStyle::Color);
+    renderer3->set_vertex_style();
+    renderer3->setFaces(F);
     set_colors(data);
     data_original = data;
 }
@@ -298,6 +302,8 @@ void render(int width, int height) {
     bbox_renderer->set_mvp(cam.mvp());
     axis_renderer->set_mvp(cam.mvp());
 
+    renderer3->set_mvp(cam3.mvp());
+    renderer3->set_mvp(cam3.mv(),cam3.p());
     renderer->set_mvp(cam3.mvp());
     renderer->set_mvp(cam3.mv(),cam3.p());
     bbox_renderer->set_mvp(cam3.mvp());
@@ -306,11 +312,14 @@ void render(int width, int height) {
     glDepthFunc(GL_ALWAYS);
     glEnable(GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    renderer->render();
+    glEnable(GL_DEPTH_TEST);
+    //renderer->render();
     
     glDepthFunc(GL_LESS);
-    bbox_renderer->render();
-    axis_renderer->render();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    renderer3->render();
+    //bbox_renderer->render();
+    //axis_renderer->render();
 
 
 
@@ -490,7 +499,7 @@ void set_keys() {
 
 int main(int argc, char * argv[]) {
 
-    //set_opengl_version_hint();
+    set_opengl_version_hints(4,5);
     window = std::make_unique<Window>();
     set_keys();
     window->set_gui_func(gui_func);
