@@ -1,7 +1,7 @@
 #ifndef BUFFER_H
 #define BUFFER_H
 
-#include "opengl_loader.hpp"
+#include <GL/gl.h>
 namespace mtao { namespace opengl {
 
 

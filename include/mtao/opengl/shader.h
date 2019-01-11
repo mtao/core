@@ -1,6 +1,6 @@
 #ifndef SHADER_H
 #define SHADER_H
-#include "opengl_loader.hpp"
+#include <GL/gl.h>
 #include <string>
 #include <memory>
 #include "mtao/opengl/util.h"
