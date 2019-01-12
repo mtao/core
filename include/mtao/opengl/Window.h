@@ -53,7 +53,7 @@ class Window {
 
 
     private:
-        GLFWwindow* window;
+        GLFWwindow* window = nullptr;
         std::function<void()> m_gui_func;
         std::function<void(int,int)> m_render_func;
         ImGuiImpl m_gui;
