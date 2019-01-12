@@ -90,9 +90,11 @@ Window::~Window() {
     if(window) {
         glfwDestroyWindow(window);
     }
+#if !defined(USE_IMGUI_IMPL)
     if(s_window_count == 0) {
         glfwTerminate();
     }
+#endif
 }
 
 static void glfw_error_callback(int error, const char* description)
