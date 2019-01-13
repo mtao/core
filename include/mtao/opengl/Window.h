@@ -1,6 +1,5 @@
 #ifndef WINDOW_H
 #define WINDOW_H
-#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <functional>
 #include "imgui_impl.h"
@@ -54,7 +53,7 @@ class Window {
 
 
     private:
-        GLFWwindow* window;
+        GLFWwindow* window = nullptr;
         std::function<void()> m_gui_func;
         std::function<void(int,int)> m_render_func;
         ImGuiImpl m_gui;

@@ -1,6 +1,6 @@
+#include "mtao/opengl/opengl_loader.hpp"
 #include "mtao/opengl/util.h"
 #include <iostream>
-#include <glad/glad.h>
 #include "mtao/logging/logger.hpp"
 
 namespace mtao { namespace opengl {

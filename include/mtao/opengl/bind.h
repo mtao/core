@@ -2,7 +2,7 @@
 #define OPENGL_BIND_H
 #include <cstddef>
 #include <utility>
-#include <glad/glad.h>
+#include <GL/gl.h>
 
 
 namespace mtao { namespace opengl {

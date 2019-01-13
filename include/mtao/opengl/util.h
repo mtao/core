@@ -1,7 +1,7 @@
 #ifndef OPENGL_UTIL_H
 #define OPENGL_UTIL_H
 #include <string>
-#include <glad/glad.h>
+#include <GL/gl.h>
 #include "mtao/opengl/bind.h"
 #include "mtao/logging/logger.hpp"
 namespace mtao { namespace opengl {

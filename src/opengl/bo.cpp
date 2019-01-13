@@ -1,3 +1,4 @@
+#include "mtao/opengl/opengl_loader.hpp"
 #include "mtao/opengl/bo.h"
 #include <cassert>
 #include <GLFW/glfw3.h>

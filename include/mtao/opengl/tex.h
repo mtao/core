@@ -1,6 +1,6 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
-#include <glad/glad.h>
+#include <GL/gl.h>
 #include <vector>
 #include "mtao/opengl/util.h"
 namespace mtao { namespace opengl {

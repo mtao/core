@@ -1,6 +1,6 @@
 #ifndef VERTEX_ATTRIBUTE_H
 #define VERTEX_ATTRIBUTE_H
-#include <glad/glad.h>
+#include <GL/gl.h>
 #include <glm/vec3.hpp> // glm::vec3
 #include <glm/vec4.hpp> // glm::vec4
 #include <glm/mat4x4.hpp> // glm::mat4
