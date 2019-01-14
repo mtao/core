@@ -47,6 +47,8 @@ TARGET_LINK_LIBRARIES(embedded_halfedge_test mtao_geometry)
 #ADD_EXECUTABLE(static_iteration_test src/static_iteration_test.cpp)
 ADD_EXECUTABLE(combination_test combination_test.cpp)
 ADD_EXECUTABLE(staggered_grid_test staggered_grid_test.cpp)
+ADD_EXECUTABLE(laplacian_smoothing_test laplacian_smoothing_test.cpp)
+TARGET_LINK_LIBRARIES(laplacian_smoothing_test mtao_core)
 
 ADD_EXECUTABLE(disjoint_set_test disjoint_set_test.cpp)
 ADD_EXECUTABLE(static_loop_test static_loop_test.cpp)
