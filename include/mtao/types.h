@@ -1,2 +1,2 @@
-#include "mtao/types.h"
+#include "mtao/types.hpp"
 //NOTE: Deprecated header!
