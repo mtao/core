@@ -11,10 +11,12 @@
 #include "examples/imgui_impl_glfw.h"
 #include "examples/imgui_impl_opengl3.h"
 
+#if !defined(USE_IMGUI_IMPL)
 static void glfw_error_callback(int error, const char* description)
 {
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
+#endif
 
 namespace mtao {namespace opengl {
 size_t Window::s_window_count = 0;
@@ -72,6 +74,9 @@ Window::Window( const std::string& name, int width, int height) {
 #else
     bool err = false; // If you use IMGUI_IMPL_OPENGL_LOADER_CUSTOM, your loader is likely to requires some form of initialization.
 #endif
+    if(err) {
+        logging::fatal() << "OpenGL loader/wrangler failed to load!";
+    }
     printGLInfo();
     m_gui.setWindow(window);
 
@@ -90,15 +95,19 @@ Window::~Window() {
     if(window) {
         glfwDestroyWindow(window);
     }
+#if !defined(USE_IMGUI_IMPL)
     if(s_window_count == 0) {
         glfwTerminate();
     }
+#endif
 }
 
+#if !defined(USE_IMGUI_IMPL)
 static void glfw_error_callback(int error, const char* description)
 {
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
+#endif
 
 void Window::run() {
     while (!glfwWindowShouldClose(window)) {

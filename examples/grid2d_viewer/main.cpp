@@ -116,6 +116,9 @@ void prepare_mesh(int i, int j) {
     bbox_renderer->set(bb);
 
     data = data.array().pow(3);
+
+    data = .01 * (data.array() > 0).select(Mat::Ones(data.rows(),data.cols()),-1);
+
     //data.setZero();
     //data(NI/2,NJ/2) = 1;
     //data(NI/3,NJ/2) = -1;
