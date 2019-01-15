@@ -4,6 +4,21 @@
 #include "imgui.h"
 struct GLFWwindow;
 namespace mtao { namespace opengl {
+    namespace imgui {
+        IMGUI_API bool          DragDouble(const char* label, double* v, double v_speed = 1.0, double v_min = 0.0, double v_max = 0.0, const char* format = "%.6f", double power = 1.0);     // If v_min >= v_max we have no bound
+        IMGUI_API bool          DragDouble2(const char* label, double v[2], double v_speed = 1.0, double v_min = 0.0, double v_max = 0.0, const char* format = "%.6f", double power = 1.0);
+        IMGUI_API bool          DragDouble3(const char* label, double v[3], double v_speed = 1.0, double v_min = 0.0, double v_max = 0.0, const char* format = "%.6f", double power = 1.0);
+        IMGUI_API bool          DragDouble4(const char* label, double v[4], double v_speed = 1.0, double v_min = 0.0, double v_max = 0.0, const char* format = "%.6f", double power = 1.0);
+        IMGUI_API bool          SliderDouble(const char* label, double* v, double v_min, double v_max, const char* format = "%.6f", double power = 1.0);     // adjust format to decorate the value with a prefix or a suffix for in-slider labels or unit display. Use power!=1.0 for power curve sliders
+        IMGUI_API bool          SliderDouble2(const char* label, double v[2], double v_min, double v_max, const char* format = "%.6f", double power = 1.0);
+        IMGUI_API bool          SliderDouble3(const char* label, double v[3], double v_min, double v_max, const char* format = "%.6f", double power = 1.0);
+        IMGUI_API bool          SliderDouble4(const char* label, double v[4], double v_min, double v_max, const char* format = "%.6f", double power = 1.0);
+        IMGUI_API bool          VSliderDouble(const char* label, const ImVec2& size, double* v, double v_min, double v_max, const char* format = "%.6f", double power = 1.0);
+        IMGUI_API bool          InputDouble(const char* label, double* v, double step = 0.0, double step_fast = 0.0, const char* format = "%.6f", ImGuiInputTextFlags extra_flags = 0);
+        IMGUI_API bool          InputDouble2(const char* label, double v[2], const char* format = "%.6f", ImGuiInputTextFlags extra_flags = 0);
+        IMGUI_API bool          InputDouble3(const char* label, double v[3], const char* format = "%.6f", ImGuiInputTextFlags extra_flags = 0);
+        IMGUI_API bool          InputDouble4(const char* label, double v[4], const char* format = "%.6f", ImGuiInputTextFlags extra_flags = 0);
+    }
 
 class ImGuiImpl {
     public:

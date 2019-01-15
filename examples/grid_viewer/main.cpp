@@ -42,6 +42,7 @@ Eigen::SimplicialLDLT<Eigen::SparseMatrix<float>> solver;
 
 std::unique_ptr<renderers::MeshRenderer> renderer;
 std::unique_ptr<renderers::BBoxRenderer3> bbox_renderer;
+//glm::dvec4 clip_plane_equation;
 
 std::unique_ptr<Window> window;
 
@@ -94,7 +95,7 @@ void prepare_mesh(int i, int j, int k) {
 
     renderer->setVertices(V,false);
     renderer->setMesh(V,F,false);
-    //renderer->setEdges(E);
+    renderer->setEdges(make_edge_topology(i,j,k));
     renderer->set_edge_style(renderers::MeshRenderer::EdgeStyle::Mesh);
     renderer->set_vertex_style();
     renderer->set_face_style();
@@ -154,7 +155,11 @@ void render(int width, int height) {
     
     glDepthFunc(GL_LESS);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_CLIP_PLANE0);
+
+    //glClipPlane(GL_CLIP_PLANE0,glm::value_ptr(clip_plane_equation));
     renderer->render();
+    //glDisable(GL_CLIP_PLANE0);
     //bbox_renderer->render();
 
 
@@ -169,6 +174,7 @@ void gui_func() {
         auto&& io = ImGui::GetIO();
 
         ImGui::Checkbox("animate", &animate);
+        //mtao::opengl::imgui::SliderDouble4("Clip Plane",glm::value_ptr(clip_plane_equation),0,1);
 
 
         renderer->imgui_interface();
