@@ -2,21 +2,21 @@
 #include <algorithm>
 #include "grid_utils.h"
 #include "grid_storage.h"
+#include "indexing.hpp"
 
 
 namespace mtao {
     namespace geometry {
         namespace grid {
 
-            template <typename T, int D_, typename Allocator = ::mtao::allocator<T>, typename StorageType = internal::grid_storage<T,Allocator>>
-                class Grid: public utils::GridIndexer<D_> {
+            template <typename T,typename Indexer, typename Allocator = ::mtao::allocator<T>, typename StorageType = internal::grid_storage<T,Allocator>>
+                class IndexedGrid: public Indexer {
                     public:
                         using storage_type = StorageType;
                         //using storage_type = internal::grid_storage<T,Allocator>;
                         using value_type = T;
                         using Scalar = T;//for eigen compat
-                        static constexpr int D = D_;
-                        using Indexer = utils::GridIndexer<D>;
+                        static constexpr int D = Indexer::D;
                         using index_type = typename Indexer::index_type;
                         using Indexer::shape;
                         using Indexer::index;
@@ -25,16 +25,16 @@ namespace mtao {
                         using iterator_type = typename storage_type::iterator_type;
                         using const_iterator_type = typename storage_type::const_iterator_type;
                         template <typename... Args>
-                            Grid(Args... args): Grid(index_type{{static_cast<int>(args)...}}) {
+                            IndexedGrid(Args... args): IndexedGrid(index_type{{static_cast<int>(args)...}}) {
                                 static_assert(sizeof...(args)== D);
                             }
-                        Grid(const index_type& a): Indexer(a), m_storage(Indexer::size(a)) {
+                        IndexedGrid(const index_type& a): Indexer(a), m_storage(Indexer::size(a)) {
                             init_data();
                         }
-                        Grid() {}
-                        Grid(const Grid& other) = default;
-                        //Grid(Grid&& other) = default;
-                        Grid& operator=(const Grid& other) = default;
+                        IndexedGrid() {}
+                        IndexedGrid(const IndexedGrid& other) = default;
+                        //IndexedGrid(IndexedGrid&& other) = default;
+                        IndexedGrid& operator=(const IndexedGrid& other) = default;
                         iterator_type begin() { return m_storage.begin(); }
                         iterator_type end() { return m_storage.end(); }
                         const_iterator_type begin() const { return m_storage.begin(); }
@@ -69,31 +69,31 @@ namespace mtao {
                                 }
                             }
                         template <typename OpType>
-                            Grid cwiseUnaryOp(const OpType& op = OpType()) const {
-                                Grid g(shape());
+                            IndexedGrid cwiseUnaryOp(const OpType& op = OpType()) const {
+                                IndexedGrid g(shape());
                                 std::transform(begin(),end(),g.begin(),op);
                                 return g;
                             }
                         template <typename OpType>
-                            Grid cwiseBinaryOp(const Grid& other, const OpType& op = OpType()) const {
+                            IndexedGrid cwiseBinaryOp(const IndexedGrid& other, const OpType& op = OpType()) const {
                                 assert(shape() == other.shape());
-                                Grid g(shape());
+                                IndexedGrid g(shape());
                                 std::transform(begin(),end(),other.begin(),g.begin(),op);
                                 return g;
                             }
-                        Grid operator+(const Grid& other) const {
+                        IndexedGrid operator+(const IndexedGrid& other) const {
                             return cwiseBinaryOp(other,[](auto&& a, auto&& b) {return a+b;});
                         }
-                        Grid operator-(const Grid& other) const {
+                        IndexedGrid operator-(const IndexedGrid& other) const {
                             return cwiseBinaryOp(other,[](auto&& a, auto&& b) {return a-b;});
                         }
 
                         template <typename U>
-                            Grid operator*(const U& v) const {
+                            IndexedGrid operator*(const U& v) const {
                                 return cwiseUnaryOp([&v](auto&& a) {return v*a;});
                             }
                         template <typename U>
-                            Grid operator/(const U& v) const {
+                            IndexedGrid operator/(const U& v) const {
                                 return cwiseUnaryOp([&v](auto&& a) {return a/v;});
                             }
                         ////read only just over indices
@@ -127,8 +127,8 @@ namespace mtao {
 
                     public:
                         template <typename... Args>
-                            static Grid Constant(const value_type& v,Args... args ) {
-                                Grid g(args...);
+                            static IndexedGrid Constant(const value_type& v,Args... args ) {
+                                IndexedGrid g(args...);
                                 g.set_constant(v);
                                 return g;
                             }
@@ -141,6 +141,8 @@ namespace mtao {
 
 
                 };
+            template <typename T, int D, typename Allocator = ::mtao::allocator<T>, typename StorageType = internal::grid_storage<T,Allocator>>
+                using Grid = IndexedGrid<T,indexing::OrderedIndexer<D>,Allocator,StorageType>;
             /*
                template <typename T, int D, typename Allocator = mtao::allocator<T>>
                using DynamicGrid = Grid<T,Allocator,internal::grid_storage<T,Allocator>>;
