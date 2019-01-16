@@ -1,6 +1,7 @@
 #include <iostream>
 #include "mtao/geometry/grid/grid.h"
 #include <utility>
+#include <numeric>
 
 
 template <typename T>
@@ -12,30 +13,42 @@ void printGrid2(const T& g) {
         std::cout << std::endl;
     }
 }
+template <typename T>
+void printIndex2(const T& g) {
+    for(int i = 0; i < g.template width<0>(); ++i) {
+        for(int j = 0; j < g.template width<1>(); ++j) {
+            std::cout << g.index(i,j) << " ";
+        }
+        std::cout << std::endl;
+    }
+}
 
 auto returnGrid(int i, int j) {
-    mtao::Grid<float,2> a(i,j);
+    mtao::geometry::grid::Grid<float,2> a(i,j);
     for(size_t i = 0; i < a.size(); ++i) {
         a.get(i) = i;
     }
     return a;
 }
 //auto returnVGrid(int i, int j) {
-//    mtao::Grid<Eigen::Vector2f,2> a(i,j);
+//    mtao::geometry::grid::Grid<Eigen::Vector2f,2> a(i,j);
 //    for(int c = 0; c < a.size(); ++c) {
 //        a(c) = Eigen::Vector2f(float(c%i),float(j));
 //    }
 //    return a;
 //}
 struct A {
-    mtao::Grid<float,2> grid;
+    mtao::geometry::grid::Grid<float,2> grid;
 };
 
 
 void testA() {
-    //mtao::Grid<float,2> a(mtao::compat::array<int,2>{{3,5}});
+    std::cout << "TEST A" << std::endl;
+    std::cout << "======" << std::endl;
+    //mtao::geometry::grid::Grid<float,2> a(std::array<int,2>{{3,5}});
     A a;
     a.grid = returnGrid(3,5);
+    std::cout << "should print a 3x5 grid with inreasing indices" << std::endl;
     printGrid2(a.grid);
     //std::cout << std::endl;
     //std::cout << "Retrieval!" << std::endl;
@@ -52,7 +65,7 @@ void testA() {
     //std::cout << std::endl;
     ////std::cout << std::endl;
     ////std::cout << "Creating b: =================" << std::endl;
-    //auto b = mtao::Grid<Eigen::Vector2f,2>::Constant(Eigen::Vector2f::Ones(),3,5);
+    //auto b = mtao::geometry::grid::Grid<Eigen::Vector2f,2>::Constant(Eigen::Vector2f::Ones(),3,5);
     //std::cout << b.rows() << " " << b.cols() << std::endl;
     //std::cout << "b size: " << b.size() << std::endl;
     //printGrid2(b);
@@ -68,17 +81,19 @@ void testA() {
     //auto d = a;
     //printGrid2(d);
 
-    mtao::compat::array<int,3> arr;
+    std::array<int,3> arr;
     arr[0] = 2;
     arr[1] = 3;
     arr[2] = 4;
-    mtao::multi_loop(arr,[](auto&& a) {
+    std::cout << "Should print out every index less than 2,3,4" << std::endl;
+    mtao::geometry::grid::utils::multi_loop(arr,[](auto&& a) {
             for(auto&& v: a) {
             std::cout << v << " ";
             }
             std::cout << std::endl;
             });
-    mtao::right_multi_loop(arr,[](auto&& a) {
+    std::cout << "Should print out every index less than 2,3,4, but greatest first" << std::endl;
+    mtao::geometry::grid::utils::right_multi_loop(arr,[](auto&& a) {
             for(auto&& v: a) {
             std::cout << v << " ";
             }
@@ -88,16 +103,20 @@ void testA() {
     a.grid.loop_write_idx([&](auto&& v) -> float {
             return v[0];
             });
+    std::cout << "Should be a grid with just the x coordinate" << std::endl;
     printGrid2(a.grid);
     a.grid.loop_write_idx([&](auto&& v) -> float {
             return v[1];
             });
+    std::cout << "Should be a grid with just the y coordinate" << std::endl;
     printGrid2(a.grid);
 
 
 }
 
 void testB() {
+    std::cout << "TEST B" << std::endl;
+    std::cout << "======" << std::endl;
     auto A = returnGrid(5,5);
     auto B = returnGrid(5,5);
     for(auto&& a: A) {
@@ -106,18 +125,29 @@ void testB() {
     for(auto&& b: B) {
         b = 2;
     }
+    std::cout << "Grid of just 1" << std::endl;
     printGrid2(A);
     std::cout << std::endl;
+    std::cout << "Grid of just 2" << std::endl;
     printGrid2(B);
     std::cout << std::endl;
-    mtao::Grid<float,2> C;
+    mtao::geometry::grid::Grid<float,2> C;
     C = (A-B)/3;
+    std::cout << "Grid of A-B" << std::endl;
     printGrid2(A-B);
+    std::cout << "Grid of (A-B)/2" << std::endl;
     printGrid2(C);
 
 }
 void matlabTest() {
-    mtao::Grid<int,3> g(10,11,12);
+    std::cout << "MATLAB TEST:" << std::endl;
+    std::cout << "===============" << std::endl;
+    mtao::geometry::grid::Grid<int,3> g(10,11,12);
+    std::cout << "Shape:";
+    for(auto&& s: g.shape()) {
+        std::cout << s << ",";
+    }
+    std::cout << std::endl;
     std::iota(g.begin(),g.end(),1);
     /*
     >> x = reshape(1:(10*11*12),[10,11,12]);
