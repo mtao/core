@@ -6,6 +6,7 @@
 #include <utility>
 #include "mtao/types.h"
 #include <iostream>
+#include <array>
 
 namespace mtao { namespace geometry { namespace mesh {
 

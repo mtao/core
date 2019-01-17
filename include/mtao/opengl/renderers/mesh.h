@@ -38,6 +38,7 @@ class MeshRenderer: public Renderer {
         enum class VertexStyle: int { Disabled= 0, Flat, Color};
 
         MeshRenderer(int dim);
+        ~MeshRenderer();
 
         void render() const override;
         void render(const MeshRenderBuffers& buffs) const;

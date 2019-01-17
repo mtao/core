@@ -9,6 +9,7 @@ namespace mtao { namespace opengl { namespace renderers {
 class AxisRenderer: public MeshRenderer {
     public:
         AxisRenderer(int D);
+        ~AxisRenderer();
 
         void show();
         void hide();

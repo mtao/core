@@ -1,6 +1,5 @@
 #ifndef SHADER_H
 #define SHADER_H
-#include <GL/gl.h>
 #include <string>
 #include <memory>
 #include "mtao/opengl/util.h"

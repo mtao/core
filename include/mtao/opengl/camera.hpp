@@ -59,7 +59,7 @@ class Camera2D: public Camera {
         void enableDrag() { m_dragMode = true;}
         void disableDrag() { m_dragMode = false; }
         void reset(); 
-        glm::mat4 m() const;
+        glm::mat4 m() const override;
 
     private:
         float m_scale = 1.0;
@@ -84,7 +84,7 @@ class Camera3D: public Camera {
         void enableAngularDrag() { m_angularDragMode = true;}
         void disableAngularDrag() { m_angularDragMode = false; }
         void reset(); 
-        glm::mat4 m() const;
+        glm::mat4 m() const override;
 
     private:
         glm::vec3 m_camera_pos = glm::vec3(0,0,5);

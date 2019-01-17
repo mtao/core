@@ -26,7 +26,7 @@ namespace mtao { namespace opengl {
 
         if(window != nullptr) {
             ImGui_ImplGlfw_InitForOpenGL(window, true);
-            const char* glsl_version = "#version 130";
+            const char* glsl_version = "#version 410";
             ImGui_ImplOpenGL3_Init(glsl_version);
             ImGui::StyleColorsDark();
             return;

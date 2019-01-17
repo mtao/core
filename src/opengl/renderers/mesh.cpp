@@ -3,6 +3,7 @@
 #include <exception>
 #include <stdexcept>
 #include <sstream>
+#include <array>
 #include <list>
 #include <imgui.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -23,6 +24,7 @@ namespace mtao { namespace opengl { namespace renderers {
     std::unique_ptr<ShaderProgram> MeshRenderer::s_vert_color_program[2];
     std::unique_ptr<ShaderProgram> MeshRenderer::s_vector_field_program[2];
 
+    MeshRenderer::~MeshRenderer() {}
     MeshRenderer::MeshRenderer(int dim): m_dim(dim) {
         if(dim == 2 || dim == 3) {
             if(!shaders_enabled()) {

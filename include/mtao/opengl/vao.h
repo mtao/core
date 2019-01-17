@@ -1,6 +1,11 @@
 #ifndef VERTEX_ATTRIBUTE_H
 #define VERTEX_ATTRIBUTE_H
+#if defined(__APPLE__)
+#include <OpenGL/gl3.h>
+#define __gl_h_
+#else
 #include <GL/gl.h>
+#endif
 #include <glm/vec3.hpp> // glm::vec3
 #include <glm/vec4.hpp> // glm::vec4
 #include <glm/mat4x4.hpp> // glm::mat4

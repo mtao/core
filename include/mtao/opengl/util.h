@@ -1,7 +1,11 @@
 #ifndef OPENGL_UTIL_H
 #define OPENGL_UTIL_H
 #include <string>
+#if defined(__APPLE__)
+#include <OpenGL/gl3.h>
+#else
 #include <GL/gl.h>
+#endif
 #include "mtao/opengl/bind.h"
 #include "mtao/logging/logger.hpp"
 namespace mtao { namespace opengl {
