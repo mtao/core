@@ -10,6 +10,7 @@
 #include "mtao/opengl/shaders.h"
 #include "mtao/logging/logger.hpp"
 #include "mtao/geometry/bounding_box.hpp"
+#include "mtao/geometry/mesh/vertex_normals.hpp"
 using namespace mtao::logging;
 
 #define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
@@ -53,33 +54,7 @@ namespace mtao { namespace opengl { namespace renderers {
     }
 
     auto MeshRenderer::computeNormals(const MatrixXgfCRef& V, const MatrixXuiCRef& F) -> MatrixXgf {
-        MatrixXgf N;
-        if(m_dim == 2) {
-            return N;
-        }
-        N.resizeLike(V);
-        N.setZero();
-        //Eigen::VectorXf areas(V.cols());
-        //areas.setZero();
-        for(int i = 0; i < F.cols(); ++i) {
-            auto f = F.col(i);
-            auto a = V.col(f(0));
-            auto b = V.col(f(1));
-            auto c = V.col(f(2));
-
-            Eigen::Vector3f ba = b-a;
-            Eigen::Vector3f ca = c-a;
-            Eigen::Vector3f n = ba.cross(ca);
-            //float area = n.norm();
-            for(int j = 0; j < 3; ++j) {
-                N.col(f(j)) += n;
-                //areas(f(j)) += area;
-            }
-        }
-        //N.array().rowwise() /= areas.transpose().array();
-        N.colwise().normalize();
-
-        return N;
+        return mtao::geometry::mesh::vertex_normals(V,F);
 
 
     }
