@@ -184,7 +184,7 @@ ADD_LIBRARY(mtao_opengl
 TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl mtao_core ${png++_LIBRARIES} ${OPENGL_LOADER_LIBRARIES})
 
 
-ADD_DEFINITIONS(-g)
+ADD_DEFINITIONS(-O2)
 
 ADD_LIBRARY(mtao_geometry
     src/geometry/mesh/halfedge.cpp

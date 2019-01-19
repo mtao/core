@@ -69,14 +69,14 @@ void run_test(SolverType& solver, const std::string& name, bool print = false) {
     Eigen::SparseMatrix<float> A(size,size);
 
     auto t = mtao::logging::timer(name + "-total");
-    for(int i = 0; i < 20; ++i) {
+    for(int i = 0; i < 1; ++i) {
         timestep = std::pow(10,i);
         A.setIdentity();
         A /= timestep;
         A += L;
         //auto t = mtao::logging::timer(name);
         solver.compute(A);
-        for(int j = 0; j < 10; ++j) {
+        for(int j = 0; j < 100; ++j) {
             data = Mat::Random(N,N);
             for(int i = 0; i < 100; ++i) {
                 theta = solver.solve(theta);
