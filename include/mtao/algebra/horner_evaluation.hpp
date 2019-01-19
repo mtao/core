@@ -1,6 +1,7 @@
 #pragma once
 #include "mtao/iterator/reverse.hpp"
 #include "mtao/iterator/zip.hpp"
+#include "mtao/type_utils.h"
 
 
 namespace mtao {
@@ -8,7 +9,7 @@ namespace mtao {
 
         template <typename T, typename Coefficients>
             auto horner_evaluate(const T& value, const Coefficients& coeffs) {
-                using Scalar = std::remove_reference_t<std::remove_cv_t<T>>;
+                using Scalar = mtao::types::remove_cvref_t<T>;
                 static_assert(std::is_convertible_v<std::remove_reference_t<typename Coefficients::value_type>,Scalar>);
                 Scalar ret{};
                 for(auto&& c: coeffs) {
