@@ -90,7 +90,7 @@ namespace mtao {
                                         std::copy(m_data,m_data+copy_size,new_data);
                                         if(copy_size < this->size()) {
                                             for(size_t i = copy_size; i < size; ++i) {
-                                                a.construct(m_data+i,utils::internal::zero_value<T>());
+                                                a.construct(m_data+i,T{});
                                             }
 
                                         }

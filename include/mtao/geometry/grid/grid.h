@@ -2,7 +2,7 @@
 #include <algorithm>
 #include "grid_utils.h"
 #include "grid_storage.h"
-#include "indexing.hpp"
+#include "indexers/ordered_indexer.hpp"
 
 
 namespace mtao {
@@ -28,7 +28,7 @@ namespace mtao {
                             IndexedGrid(Args... args): IndexedGrid(index_type{{static_cast<int>(args)...}}) {
                                 static_assert(sizeof...(args)== D);
                             }
-                        IndexedGrid(const index_type& a): Indexer(a), m_storage(Indexer::size(a)) {
+                        IndexedGrid(const index_type& a): Indexer(a), m_storage(indexing::internal::size_from_shape(a)) {
                             init_data();
                         }
                         IndexedGrid() {}
@@ -135,7 +135,7 @@ namespace mtao {
 
                     private:
                         void init_data() {
-                            set_constant(utils::internal::zero_value<T>());
+                            set_constant(T{});
                         }
                         storage_type m_storage;
 

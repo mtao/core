@@ -148,6 +148,7 @@ void matlabTest() {
         std::cout << s << ",";
     }
     std::cout << std::endl;
+    std::cout << "Size: " << g.size() << std::endl;
     std::iota(g.begin(),g.end(),1);
     /*
     >> x = reshape(1:(10*11*12),[10,11,12]);

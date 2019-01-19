@@ -1,46 +1,14 @@
 #pragma once
-#include <tuple>
-#include <mtao/types.h>
-#include <utility>
+#include <mtao/types.hpp>
+#include <mtao/type_utils.h>
 #include "shell.hpp"
 
 namespace mtao {
     namespace iterator {
         namespace detail {
-            template <typename T, bool Expr =std::is_lvalue_reference_v<T>>
-                struct zip_choose_storage {
-                    using value_type = T&;
-                };
-            template <typename T>
-                struct zip_choose_storage<T,false> {
-                    using value_type = T;
-                };
-            template <typename T, int D>
-                struct zip_choose_storage<T[D],true> {
-                    using value_type = detail::shell_container<T*,T*>;
-                };
-            template <typename T>
-                struct zip_choose_storage<const T,false> {
-                    using value_type = const T;
-                };
-            template <typename T>
-                struct zip_choose_storage<const T,true> {
-                    using value_type = const T&;
-                };
 
-            template <typename T>
-                struct is_initializer_list: public std::false_type {
-                };
-            template <typename T>
-                struct is_initializer_list<std::initializer_list<T>>: public std::true_type {
-                };
-            template <typename T>
-                constexpr static bool is_initializer_list_v = is_initializer_list<T>::value;
 
-            template <typename T>
-                using remove_cvref_t = std::remove_reference_t<std::remove_cv_t<T>>;
-
-            template <typename T, bool Expr = is_initializer_list_v<remove_cvref_t<T>>>
+            template <typename T, bool Expr = mtao::types::is_initializer_list_v<mtao::types::remove_cvref_t<T>>>
                 struct filter_initializer_list {
                     using  value_type = std::vector<typename T::value_type>;
                 };
@@ -51,8 +19,6 @@ namespace mtao {
             template <typename T>
                 using filter_initializer_list_t = typename filter_initializer_list<T>::value_type;
 
-            template <typename T>
-                using zip_choose_storage_t = typename zip_choose_storage<T>::value_type;
 
             template <typename... IteratorTypes>
                 struct zip_iterator {
@@ -86,7 +52,7 @@ namespace mtao {
                             auto dereference(IS<M...>) {
                                 auto deref = [](auto&& a) { return *a; };
                                 using ret_types = std::tuple<decltype(deref(std::get<M>(m_its)))...>;
-                                using ret_type = std::tuple<zip_choose_storage_t<std::tuple_element_t<M,ret_types>>...>;
+                                using ret_type = std::tuple<choose_storage_t<std::tuple_element_t<M,ret_types>>...>;
                                 return ret_type{std::forward<std::tuple_element_t<M,ret_types>>(deref(std::get<M>(m_its)))...};
                             }
                         template <int... M>
@@ -135,23 +101,11 @@ namespace mtao {
 
                     zip_container(Types&&... t): m_containers{std::forward<Types>(t)...} {
                     }
-                    /*
-                       zip_container(Types&&... t)
-                       : m_begin{t.begin()...}
-                       , m_end{t.end()...}
-                       {}
-                       auto begin() const { return m_begin; }
-                       auto end() const { return m_end; }
-                       */
 
 
                     private:
 
-                    /*
-                       iterator m_begin;
-                       iterator m_end;
-                       */
-                    std::tuple<zip_choose_storage_t<Types>...> m_containers;
+                    std::tuple<choose_storage_t<Types>...> m_containers;
                 };
         }
 
