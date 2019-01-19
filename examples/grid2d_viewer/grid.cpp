@@ -1,10 +1,14 @@
 #include "grid.h"
 #include <array>
+#include "mtao/geometry/grid/indexers/ordered_indexer.hpp"
 
+
+
+using namespace mtao::geometry::grid::indexing;
 
 mtao::ColVectors<float,2> make_vertices(const int i, const int j) {
+    OrderedIndexer<2> idx({{i,j}});
     mtao::ColVectors<float,2> V(2,i*j);
-    auto idx = [i,j](int ii, int jj) { return index(i,j,ii,jj); };
     for(int ii = 0; ii < i; ++ii) {
         for(int jj = 0; jj < j; ++jj) {
             V.col(idx(ii,jj)) = mtao::Vector<float,2>(static_cast<float>(ii)/(i-1),static_cast<float>(jj)/(j-1));
@@ -13,8 +17,8 @@ mtao::ColVectors<float,2> make_vertices(const int i, const int j) {
     return V;
 }
 mtao::ColVectors<unsigned int,3> make_topology(const int i, const int j) {
+    OrderedIndexer<2> idx({{i,j}});
     mtao::ColVectors<unsigned int,3> F(3,2*(i-1)*(j-1));
-    auto idx = [i,j](int ii, int jj) { return index(i,j,ii,jj); };
     int counter = 0;
     for(int ii = 0; ii < i-1; ++ii) {
         for(int jj = 0; jj < j-1; ++jj) {

@@ -39,8 +39,13 @@ namespace mtao {
                                 size_t index(Args... args) const {
                                     static_assert(sizeof...(Args) == D);
                                     static_assert((std::is_convertible_v<Args,int> && ...));
-                                    return derived->index(std::forward<Args>(args)...);
+                                    return derived().index(std::forward<Args>(args)...);
                                 }
+
+                            template <typename... Args>
+                            size_t operator()(Args&&... args) const {
+                                return index(std::forward<Args>(args)...);
+                            }
 
                             const index_type& shape() const {return m_shape;}
                             int shape(size_t idx) const {return m_shape[idx];}

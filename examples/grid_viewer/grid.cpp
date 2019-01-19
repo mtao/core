@@ -1,10 +1,12 @@
 #include "grid.h"
 #include <array>
+#include "mtao/geometry/grid/indexers/ordered_indexer.hpp"
 
 
+using namespace mtao::geometry::grid::indexing;
 mtao::ColVectors<float,3> make_vertices(const int i, const int j, const int k) {
     mtao::ColVectors<float,3> V(3,i*j*k);
-    auto idx = [i,j,k](int ii, int jj, int kk) { return index(i,j,k,ii,jj,kk); };
+    OrderedIndexer<3> idx({{i,j,k}});
     for(int ii = 0; ii < i; ++ii) {
         for(int jj = 0; jj < j; ++jj) {
             for(int kk = 0; kk < k; ++kk) {
@@ -20,7 +22,7 @@ mtao::ColVectors<unsigned int,2> make_edge_topology(const int i, const int j, co
            +(i)*(j-1)*(k)
            +(i)*(j)*(k-1)
             );
-    auto idx = [i,j,k](int ii, int jj, int kk) { return index(i,j,k,ii,jj,kk); };
+    OrderedIndexer<3> idx({{i,j,k}});
     int counter = 0;
     for(int ii = 0; ii < i-1; ++ii) {
         for(int jj = 0; jj < j; ++jj) {
@@ -57,7 +59,7 @@ mtao::ColVectors<unsigned int,3> make_topology(const int i, const int j, const i
             +(i-1)*(j)*(k-1)
             +(i-1)*(j-1)*(k))
             );
-    auto idx = [i,j,k](int ii, int jj, int kk) { return index(i,j,k,ii,jj,kk); };
+    OrderedIndexer<3> idx({{i,j,k}});
     int counter = 0;
     for(int ii = 0; ii < i; ++ii) {
         for(int jj = 0; jj < j-1; ++jj) {
