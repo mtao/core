@@ -1,5 +1,4 @@
 #include "mtao/opengl/Window.h"
-#include<Eigen/IterativeLinearSolvers>
 #include <iostream>
 #include "imgui.h"
 #include "mtao/opengl/shader.h"
@@ -15,6 +14,7 @@
 #include "mtao/opengl/renderers/mesh.h"
 #include "mtao/opengl/camera.hpp"
 #include <mtao/eigen_utils.h>
+#include<Eigen/IterativeLinearSolvers>
 
 using namespace mtao::opengl;
 
