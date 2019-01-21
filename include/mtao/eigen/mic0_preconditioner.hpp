@@ -158,6 +158,7 @@ namespace mtao { namespace eigen { namespace preconditioners {
                 {
                     x = L.template triangularView<Eigen::UnitLower>().solve(b);
                     x.noalias() = Dinv.cwiseProduct(x);//safe beacuse it's a dot
+                    //x.noalias() = Dinv.asDiagonal() * x;//safe beacuse it's a dot
                     L.transpose().template triangularView<Eigen::UnitUpper>().solveInPlace(x);
                 }
 
