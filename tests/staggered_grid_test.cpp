@@ -41,9 +41,11 @@ void test() {
         std::cout << "Grid shape: ";
         printArr(a);
         std::cout << o.transpose() << " + " << dx.transpose() << std::endl;
+//        std::cout << gg.bbox().min().transpose() << " => " << gg.bbox().max().transpose() << std::endl;
     };
     std::fill(arr.begin(),arr.end(),10);
     mtao::geometry::grid::StaggeredGrid<float,D> sg(arr);
+        std::cout << "BBOX: "<< sg.bbox().min().transpose() << " => " << sg.bbox().max().transpose() << std::endl;
     auto g00 = sg.template grid<0,0>();
     auto g10 = sg.template grid<1,0>();
     auto g11 = sg.template grid<1,1>();

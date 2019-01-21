@@ -10,6 +10,7 @@ namespace mtao {
     namespace geometry {
         namespace grid {
 
+            //NOTE: Grid size = numer of cells are in the grid, rather than number of vertices
             template <typename T, typename Indexer>
                 class Grid: public Indexer {
                     public:
@@ -41,7 +42,7 @@ namespace mtao {
                         Grid(const index_type& a, const Eigen::MatrixBase<Derived>& dx, const Eigen::MatrixBase<Derived2>& origin = Vec::Zero()): Indexer(a), m_origin(origin), m_dx(dx) {}
                         template <typename Derived=Vec>
                         Grid(const index_type& a, const Eigen::MatrixBase<Derived>& dx, const Vec& origin = Vec::Zero()): Indexer(a), m_origin(origin), m_dx(dx) {}
-                        Grid(const index_type& a): Grid(a,(1.0 / (CIVecMap(a.data()).template cast<T>().array()-1)).matrix()) {}
+                        Grid(const index_type& a): Grid(a,(1.0 / (CIVecMap(a.data()).template cast<T>().array())).matrix()) {}
                         Grid() {}
                         Grid(const Grid& other) = default;
                         Grid(Grid&& other) = default;
@@ -52,7 +53,7 @@ namespace mtao {
                         }
 
                         BBox bbox() const {
-                            return BBox(origin(), vertex(shapeAsIVec()-IVec::Ones()));
+                            return BBox(origin(), vertex(shapeAsIVec()));
                         }
 
                         template <typename Derived>
