@@ -50,6 +50,7 @@ namespace mtao {
 
                 void write_line(Level l,const std::string& str);
                 void write_line(Output& output, Level l,const std::string& str);
+                //no decorator
                 void write_line_nodec(Output& output, Level l,const std::string& str);
                 void write_line_cerr(Level l,const std::string& str);
                 void write_line_cerr_nodec(Level l,const std::string& str);
@@ -123,7 +124,7 @@ namespace mtao {
 
         LoggerContext get_logger(const std::string& alias, Level l=Level::Info);
         LoggerContext get_logger(const std::pair<std::string, Level>& pr);
-        Logger& make_logger(const std::string& alias="default", const std::string& filename="default.log", Level l=Level::All, bool continueFile=false);
+        Logger& make_file_logger(const std::string& alias="default", const std::string& filename="default.log", Level l=Level::All, bool continueFile=false);
         Logger& make_logger(const std::string& alias="default", Level l = Level::All);
         extern std::map<std::string,mtao::logging::Logger> active_loggers;
         extern std::string default_log_alias;

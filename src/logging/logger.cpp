@@ -5,7 +5,7 @@
 
 namespace mtao { namespace logging {
     std::map<std::string,Logger> active_loggers;
-    Logger* default_logger = &make_logger("default","default.log",Level::All,true);//Making this continue because multiple files might log to it over time 
+    Logger* default_logger = &make_file_logger("default","default.log",Level::All,true);//Making this continue because multiple files might log to it over time 
 
     const std::string level_strings[int(Level::All)+1] = {
         std::string("Off"),
@@ -50,7 +50,7 @@ namespace mtao { namespace logging {
                 }
             };
             write_cerr(Level::Info, "Adding log file ", filename, " to outputs of ", m_alias, " at level ", log_type_string(level), continuing());
-            write_output(m_outputs[filename],Level::Info, "Logging from log ", m_alias, " at level ", log_type_string(level));
+            write_output(m_outputs[filename],Level::Info, "Logging to log ", m_alias, " at level ", log_type_string(level));
         }
 
 
@@ -69,7 +69,7 @@ namespace mtao { namespace logging {
 
         }
     }
-    Logger& make_logger(const std::string& alias, const std::string& filename, Level level, bool continueFile) {
+    Logger& make_file_logger(const std::string& alias, const std::string& filename, Level level, bool continueFile) {
 
         Logger& logger = make_logger(alias,level);
         logger.add_file(filename,level, continueFile);
@@ -85,7 +85,9 @@ namespace mtao { namespace logging {
             ss << std::put_time(std::localtime(&res), "%c");
             ss << "\033[0m";
         } else {
-            ss << current_time();
+            std::time_t res = std::time(NULL);
+            //ss << current_time();
+            ss << std::put_time(std::localtime(&res), "%c");
         }
         ss << "](" << log_type_string(l, humanReadable) << "): ";
         return ss.str();
@@ -102,7 +104,7 @@ namespace mtao { namespace logging {
     void Logger::write_line(Output& output, Level l,const std::string& str) {
         if(l <= output.level) {
             std::string dec = decorator(l);
-            write_line_nodec(output, l,dec);
+            write_line_nodec(output, l,dec+str);
         }
     }
     void Logger::write_line_cerr(Level l,const std::string& str) {
