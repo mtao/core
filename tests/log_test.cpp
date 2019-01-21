@@ -14,7 +14,7 @@ int main() {
     {
         auto t = mtao::logging::timer("task",false,"A");
         int x = 0;
-        for(int i = 0; i < (1 << 10); ++i) {
+        for(int i = 0; i < (1 << 2); ++i) {
             mtao::logging::info() <<"iteration: " << i;
             mtao::logging::fatal() <<"iteration: " << i;
             mtao::logging::error() <<"iteration: " << i;

@@ -40,10 +40,7 @@ namespace mtao { namespace logging {
 
         if(auto it = m_outputs.find(filename);
                 it == m_outputs.end()) {
-            std::ofstream outstream(filename);
-            if(continueFile) {
-                outstream.seekp(0, std::ios_base::end);
-            }
+            std::ofstream outstream = continueFile?std::ofstream(filename,std::ios::app):std::ofstream(filename);
             m_outputs[filename] = {std::move(outstream),level};
             auto continuing = [&]() -> std::string {
                 if(continueFile) {
