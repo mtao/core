@@ -46,8 +46,7 @@ namespace mtao {
                 using namespace mtao::iterator;
                 for(auto&& [v,c]:zip(ret,coeffs)) {
                     auto q = std::div(index,c);
-                    index = q.quot;
-                    v = q.rem;
+                    std::tie(index,v) = std::tie(q.quot,q.rem);
                 }
                 return ret;
             }
@@ -57,8 +56,7 @@ namespace mtao {
                 using namespace mtao::iterator;
                 for(auto&& [v,c]:zip(reverse(ret),reverse(coeffs))) {
                     auto q = std::div(index,c);
-                    index = q.quot;
-                    v = q.rem;
+                    std::tie(index,v) = std::tie(q.quot,q.rem);
                 }
                 return ret;
             }
