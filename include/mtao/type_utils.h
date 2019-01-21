@@ -23,8 +23,11 @@ namespace mtao { namespace types {
             int status = 0;
             using abi::__cxa_demangle;
             char* const readable_name = __cxa_demangle(name, 0, 0, &status);
-            const std::string name_str(status == 0 ? readable_name : name);
+            std::string name_str(status == 0 ? readable_name : name);
             free(readable_name);
+            if constexpr(std::is_reference_v<T>) {
+                name_str = name_str + "&";
+            }
             return name_str;
         }
 

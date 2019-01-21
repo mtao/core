@@ -1,7 +1,9 @@
 #include <iostream>
 #include <array>
 #include <mtao/algebra/horner_evaluation.hpp>
+#include "mtao/geometry/grid/grid_utils.h"
 #include <Eigen/Dense>
+#include <iterator>
 
 
 int main() {
@@ -87,4 +89,29 @@ int main() {
             std::cout << std::endl;
         }
     }
+
+
+    auto arrstr = [](auto&& idx) {
+        using ArrType = mtao::types::remove_cvref_t<decltype(idx)>;
+        using VT = typename ArrType::value_type;
+        std::stringstream ss;
+        
+        std::copy(idx.begin(),idx.end(),std::ostream_iterator<VT>(ss,","));
+        return ss.str();
+
+    };
+
+    using namespace mtao::algebra;
+    {
+        std::array<int,2> coeffs{{3,4}};
+        mtao::geometry::grid::utils::multi_loop(coeffs,[&](auto&& ij) {
+                int idx = horner_rowmajor_index(ij,coeffs);
+                auto arr = horner_rowmajor_inverse_index(idx,coeffs);
+                std::cout << arrstr(ij) << " => " << idx << " => " << arrstr(arr) << std::endl;
+                });
+    }
+
+
+
+
 }

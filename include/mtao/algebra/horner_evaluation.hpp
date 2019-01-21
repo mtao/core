@@ -40,6 +40,15 @@ namespace mtao {
                 }
                 return ret;
             }
+        template <typename T, typename Coefficients>
+            auto horner_rowmajor_inverse_index(T index, const Coefficients& coeffs) {
+                std::array<T,std::tuple_size_v<Coefficients>> ret;
+                using namespace mtao::iterator;
+                for(auto&& [v,c]:zip(ret,coeffs)) {
+                    v = index++;
+                }
+                return ret;
+            }
 
     }
 }

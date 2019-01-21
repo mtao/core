@@ -12,6 +12,7 @@ namespace mtao {
                 struct StaggeredGrid: public GridD<T,Dim, UseVertexGrid> {
                    
                     public:
+                        constexpr static int D = Dim;
                         using GridType = GridD<T,Dim, UseVertexGrid>;
                         using Base = GridType;
                         using index_type = typename Base::index_type;
@@ -29,12 +30,43 @@ namespace mtao {
                             const GridType& grid() const {
                             return std::get<K>(std::get<N>(m_grids));
                             }
-                        auto vertex(const index_type& idx) const {
-                            return grid<0,0>().vertex(idx);
-                        }
-                        auto vertices() const {
-                            return grid<0,0>().vertices();
-                        }
+                        template <int N, int K> size_t staggered_index(const index_type& idx) const {return grid<N,K>().index(idx);}
+                        template <int N, int K> auto staggered_vertices() const {return grid<N,K>().vertices();}
+                        template <int N, int K> auto staggered_vertex(const index_type& idx) const {return grid<N,K>().vertex(idx);}
+                        template <int N, int K> const index_type& staggered_shape() const {return grid<N,K>().shape();}
+                        template <int N, int K> size_t staggered_size() const {return grid<N,K>().size();}
+
+                        auto vertex(const index_type& idx) const {return staggered_vertex<0,0>(idx);}
+                        auto vertices() const {return staggered_vertices<0,0>();}
+
+
+                        size_t u_index(const index_type& idx) const { return staggered_index<1,0>(idx);}
+                        size_t v_index(const index_type& idx) const { return staggered_index<1,1>(idx);}
+                        size_t w_index(const index_type& idx) const { return staggered_index<1,2>(idx);}
+                        size_t vw_index(const index_type& idx) const { return staggered_index<2,0>(idx);}
+                        size_t uw_index(const index_type& idx) const { return staggered_index<2,1>(idx);}
+                        size_t uv_index(const index_type& idx) const { return staggered_index<2,2>(idx);}
+                        size_t vertex_index(const index_type& idx) const { return staggered_index<0,0>(idx);}
+                        size_t cell_index(const index_type& idx) const { return staggered_index<D,0>(idx);}
+
+                        const index_type& u_shape() const { return staggered_shape<1,0>();}
+                        const index_type& v_shape() const { return staggered_shape<1,1>();}
+                        const index_type& w_shape() const { return staggered_shape<1,2>();}
+                        const index_type& vw_shape() const { return staggered_shape<2,0>();}
+                        const index_type& uw_shape() const { return staggered_shape<2,1>();}
+                        const index_type& uv_shape() const { return staggered_shape<2,2>();}
+                        const index_type& vertex_shape() const { return staggered_shape<0,0>();}
+                        const index_type& cell_shape() const { return staggered_shape<D,0>();}
+
+                        size_t u_size() const { return staggered_size<1,0>();}
+                        size_t v_size() const { return staggered_size<1,1>();}
+                        size_t w_size() const { return staggered_size<1,2>();}
+                        size_t vw_size() const { return staggered_size<2,0>();}
+                        size_t uw_size() const { return staggered_size<2,1>();}
+                        size_t uv_size() const { return staggered_size<2,2>();}
+                        size_t vertex_size() const { return staggered_size<0,0>();}
+                        size_t cell_size() const { return staggered_size<D,0>();}
+
 
                     private:
                         void resize_grids() {
