@@ -22,7 +22,7 @@ int main() {
             mtao::logging::info() <<"iteration: " << i;
             mtao::logging::debug() <<"iteration: " << i;
             mtao::logging::trace() <<"iteration: " << i;
-            x += i;        
+            x += i;
         }
     }
 
