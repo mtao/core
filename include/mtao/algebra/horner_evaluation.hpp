@@ -41,11 +41,24 @@ namespace mtao {
                 return ret;
             }
         template <typename T, typename Coefficients>
-            auto horner_rowmajor_inverse_index(T index, const Coefficients& coeffs) {
+            auto horner_rowminor_inverse_index(T index, const Coefficients& coeffs) {
                 std::array<T,std::tuple_size_v<Coefficients>> ret;
                 using namespace mtao::iterator;
                 for(auto&& [v,c]:zip(ret,coeffs)) {
-                    v = index++;
+                    auto q = std::div(index,c);
+                    index = q.quot;
+                    v = q.rem;
+                }
+                return ret;
+            }
+        template <typename T, typename Coefficients>
+            auto horner_rowmajor_inverse_index(T index, const Coefficients& coeffs) {
+                std::array<T,std::tuple_size_v<Coefficients>> ret;
+                using namespace mtao::iterator;
+                for(auto&& [v,c]:zip(reverse(ret),reverse(coeffs))) {
+                    auto q = std::div(index,c);
+                    index = q.quot;
+                    v = q.rem;
                 }
                 return ret;
             }

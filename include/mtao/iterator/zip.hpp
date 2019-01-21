@@ -1,5 +1,6 @@
 #pragma once
 #include <mtao/types.hpp>
+#include <iostream>
 #include <mtao/type_utils.h>
 #include "shell.hpp"
 
@@ -48,12 +49,18 @@ namespace mtao {
                             bool less_than(IS<M...>, zip_iterator& o) const {
                                 return (std::less(std::get<M>(m_its),std::get<M>(o.m_its))  || ... );
                             }
+                        template <typename T>
+                        struct deref_type {
+                            using type = decltype(*std::declval<T>());
+                        };
+                        template <typename T>
+                        using deref_t = typename deref_type<T>::type;
                         template <int... M>
                             auto dereference(IS<M...>) {
-                                auto deref = [](auto&& a) { return *a; };
-                                using ret_types = std::tuple<decltype(deref(std::get<M>(m_its)))...>;
+                                using ret_types = std::tuple<deref_t<decltype((std::get<M>(m_its)))>...>;
                                 using ret_type = std::tuple<choose_storage_t<std::tuple_element_t<M,ret_types>>...>;
-                                return ret_type{std::forward<std::tuple_element_t<M,ret_types>>(deref(std::get<M>(m_its)))...};
+                                return ret_type{*std::get<M>(m_its)...};
+                                //return ret_type{std::forward<std::tuple_element_t<M,ret_types>>(*std::get<M>(m_its))...};
                             }
                         template <int... M>
                             zip_iterator& increment(IS<M...>) {

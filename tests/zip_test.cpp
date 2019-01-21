@@ -47,7 +47,7 @@ int main() {
     std::cout << "A values should change after this one" << std::endl;
     for(auto&& [i,v]: enumerate(a)) {
         std::cout << i << ": " << v << "==>";
-        v += i;
+        v = -i;
         std::cout << v << std::endl;
     }
     for(auto&& v: a) { std::cout<<v << "," ;}std::cout<< std::endl;

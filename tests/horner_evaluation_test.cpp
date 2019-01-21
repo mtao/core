@@ -6,6 +6,7 @@
 #include <iterator>
 
 
+
 int main() {
     std::array<int,3> coeffs{{1,1,0}};
     for(int i = 0; i < 10; ++i) {
@@ -102,14 +103,30 @@ int main() {
     };
 
     using namespace mtao::algebra;
-    {
-        std::array<int,2> coeffs{{3,4}};
+    auto test_inversing = [&](auto&& coeffs) {
+        std::cout << "Minor" << coeffs.size() << std::endl;
+        mtao::geometry::grid::utils::multi_loop(coeffs,[&](auto&& ij) {
+                int idx = horner_rowminor_index(ij,coeffs);
+                auto arr = horner_rowminor_inverse_index(idx,coeffs);
+                std::cout << arrstr(ij) << " => " << idx << " => " << arrstr(arr) << std::endl;
+                assert(ij == arr);
+                });
+        std::cout << std::endl;
+        std::cout << "Major" << coeffs.size() << std::endl;
         mtao::geometry::grid::utils::multi_loop(coeffs,[&](auto&& ij) {
                 int idx = horner_rowmajor_index(ij,coeffs);
                 auto arr = horner_rowmajor_inverse_index(idx,coeffs);
                 std::cout << arrstr(ij) << " => " << idx << " => " << arrstr(arr) << std::endl;
+                assert(ij == arr);
                 });
-    }
+    };
+    test_inversing(std::array<int,2>{{3,4}});
+    std::cout << std::endl;
+    std::cout << std::endl;
+    test_inversing(std::array<int,3>{{3,4,5}});
+    std::cout << std::endl;
+    std::cout << std::endl;
+    test_inversing(std::array<int,4>{{3,4,5,7}});
 
 
 
