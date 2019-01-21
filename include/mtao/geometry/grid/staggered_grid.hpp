@@ -1,67 +1,44 @@
 #pragma once
 #include "mtao/algebra/combinatorial.hpp"
+#include "staggered_grid_utils.hpp"
+#include "grid.h"
 #include <tuple>
 
 namespace mtao {
     namespace geometry {
         namespace grid {
-            namespace staggered_grid {
-                namespace internal {
-                    template <size_t E, size_t K, size_t L, size_t... N>
-                        constexpr std::array<int,E> offset_shape(std::integer_sequence<size_t,N...>, const std::array<int,E>& shape) {
-                            constexpr auto offsets = mtao::combinatorial::nCr_mask<E,K,L>();
-                            return {{(shape[N]+offsets[N])...}};
+
+            template <typename T, int Dim>
+                struct StaggeredGrid: public GridD<T,Dim> {
+                   
+                    public:
+                        using GridType = GridD<T,Dim>;
+                        using Base = GridType;
+                        using index_type = typename Base::index_type;
+                        using StaggeredGrids = decltype(staggered_grid::make_grids(std::declval<Base>()));
+                        template <typename... Args> 
+                            StaggeredGrid(const index_type& shape, Args&&... args): Base(shape, std::forward<Args>(args)...) {
+                                resize_grids();
+                            }
+                        StaggeredGrid() {}
+                        StaggeredGrid(const StaggeredGrid& other) = default;
+                        StaggeredGrid(StaggeredGrid&& other) = default;
+                        StaggeredGrid& operator=(const StaggeredGrid& other) = default;
+                        StaggeredGrid& operator=(StaggeredGrid&& other) = default;
+                        template <int N, int K>
+                            const GridType& grid() {
+                            return std::get<K>(std::get<N>(m_grids)); 
+                            }
+
+                    private:
+                        void resize_grids() {
+                            m_grids = staggered_grid::make_grids(*static_cast<Base*>(this));
                         }
-                    template <size_t E, size_t... N>
-                        constexpr std::array<int,E> offset_shape(std::integer_sequence<size_t,N...>, size_t K, size_t L, const std::array<int,E>& shape) {
-                            constexpr auto offsets = mtao::combinatorial::nCr_mask<E>(K,L);
-                            return {{(shape[N]+offsets[N])...}};
-                        }
+                        StaggeredGrids m_grids;
+                        
 
-                    template <size_t E, size_t... N>
-                        constexpr int offset_product(std::integer_sequence<size_t,N...>, const std::array<int,E>& shape, const std::bitset<E>& offsets) {
-                            return ((shape[N]+offsets[N]) * ...);
-                        }
-                    template <size_t E>
-                        constexpr int offset_product(const std::array<int,E>& shape, const std::bitset<E>& offsets) {
-                            return offset_product(std::make_integer_sequence<size_t,E>(),shape,offsets);
-                        }
+                };
 
-
-                    template <size_t E, size_t D, size_t N>
-                        constexpr int staggered_grid_size(const std::array<int,E>& shape) {
-                            return offset_product(shape,mtao::combinatorial::nCr_mask<E,D,N>());
-                        }
-
-                    template <size_t E, size_t D, size_t... N>
-                        constexpr auto staggered_grid_sizes_single_dim(std::integer_sequence<size_t,N...>, const std::array<int,E>& shape) {
-                            return std::array<int,sizeof...(N)>{{staggered_grid_size<E,D,N>(shape)...}};
-                        }
-                    template <size_t D, size_t... N>
-                        constexpr auto staggered_grid_sizes(std::integer_sequence<size_t,N...>, const std::array<int,D>& shape) {
-                            return std::make_tuple(staggered_grid_sizes_single_dim<D,N>(std::make_integer_sequence<size_t,mtao::combinatorial::nCr(D,N)>(),shape)...);
-                        }
-                }
-
-
-                //creates a tuple of tuples of grid sizes
-                template <size_t D>
-                    constexpr auto staggered_grid_sizes(const std::array<int,D>& shape) {
-                        return internal::staggered_grid_sizes(std::make_integer_sequence<size_t,D+1>(),shape);
-                    }
-
-                //shape of a K-cube in a E-complex, on type L
-                template <size_t E, size_t K, size_t L>
-                    constexpr std::array<int,E> offset_shape(const std::array<int,E>& shape) {
-                        return internal::offset_shape<E,K,L>(std::make_integer_sequence<int,E>(),shape);
-                    }
-
-                //shape of a K-cube in a E-complex, on type L
-                template <size_t E>
-                    constexpr std::array<int,E> offset_shape(size_t K, size_t L,const std::array<int,E>& shape) {
-                        return internal::offset_shape<E>(std::make_integer_sequence<int,E>(),K,L,shape);
-                    }
-            }
         }
     }
 }

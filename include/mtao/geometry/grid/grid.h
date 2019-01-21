@@ -44,8 +44,9 @@ namespace mtao {
                         Grid(const index_type& a): Grid(a,(1.0 / (CIVecMap(a.data()).template cast<T>().array()-1)).matrix()) {}
                         Grid() {}
                         Grid(const Grid& other) = default;
-                        //Grid(Grid&& other) = default;
+                        Grid(Grid&& other) = default;
                         Grid& operator=(const Grid& other) = default;
+                        Grid& operator=(Grid&& other) = default;
                         void resize(const index_type& idx) {
                             Indexer::resize(idx);
                         }
