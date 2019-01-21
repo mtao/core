@@ -44,7 +44,11 @@ void test() {
 //        std::cout << gg.bbox().min().transpose() << " => " << gg.bbox().max().transpose() << std::endl;
     };
     std::fill(arr.begin(),arr.end(),10);
-    mtao::geometry::grid::StaggeredGrid<float,D> sg(arr);
+    auto printSG = [&](auto&& sg) {
+        std::cout << "STAGGERED GRID STUFF" << std::endl;
+        std::cout << "vvvvvvvvvvvvvvvvvvvv" << std::endl;
+        std::cout << "vvvvvvvvvvvvvvvvvvvv" << std::endl;
+        std::cout << "vvvvvvvvvvvvvvvvvvvv" << std::endl;
         std::cout << "BBOX: "<< sg.bbox().min().transpose() << " => " << sg.bbox().max().transpose() << std::endl;
     auto g00 = sg.template grid<0,0>();
     auto g10 = sg.template grid<1,0>();
@@ -54,6 +58,20 @@ void test() {
     printG(g10);
     printG(g11);
     printG(gD0);
+    std::cout << sg.vertices().transpose() << std::endl;
+        std::cout << "^^^^^^^^^^^^^^^^^^^^" << std::endl;
+        std::cout << "^^^^^^^^^^^^^^^^^^^^" << std::endl;
+        std::cout << "^^^^^^^^^^^^^^^^^^^^" << std::endl;
+    };
+    {
+        mtao::geometry::grid::StaggeredGrid<float,D> sg(arr);
+        printSG(sg);
+    }
+    {
+        std::cout << "Use vertices shape as shape" << std::endl;
+        mtao::geometry::grid::StaggeredGrid<float,D,true> sg(arr);
+        printSG(sg);
+    }
 
     auto a00 = mtao::geometry::grid::staggered_grid::internal::offset_shape<D,0,0>(arr);
     auto aD0 = mtao::geometry::grid::staggered_grid::internal::offset_shape<D,D,0>(arr);

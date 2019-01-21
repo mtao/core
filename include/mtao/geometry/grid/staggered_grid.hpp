@@ -8,11 +8,11 @@ namespace mtao {
     namespace geometry {
         namespace grid {
 
-            template <typename T, int Dim>
-                struct StaggeredGrid: public GridD<T,Dim> {
+            template <typename T, int Dim, bool UseVertexGrid=false>
+                struct StaggeredGrid: public GridD<T,Dim, UseVertexGrid> {
                    
                     public:
-                        using GridType = GridD<T,Dim>;
+                        using GridType = GridD<T,Dim, UseVertexGrid>;
                         using Base = GridType;
                         using index_type = typename Base::index_type;
                         using StaggeredGrids = decltype(staggered_grid::make_grids(std::declval<Base>()));
@@ -26,13 +26,19 @@ namespace mtao {
                         StaggeredGrid& operator=(const StaggeredGrid& other) = default;
                         StaggeredGrid& operator=(StaggeredGrid&& other) = default;
                         template <int N, int K>
-                            const GridType& grid() {
-                            return std::get<K>(std::get<N>(m_grids)); 
+                            const GridType& grid() const {
+                            return std::get<K>(std::get<N>(m_grids));
                             }
+                        auto vertex(const index_type& idx) const {
+                            return grid<0,0>().vertex(idx);
+                        }
+                        auto vertices() const {
+                            return grid<0,0>().vertices();
+                        }
 
                     private:
                         void resize_grids() {
-                            m_grids = staggered_grid::make_grids(*static_cast<Base*>(this));
+                            m_grids = staggered_grid::make_grids(*static_cast<Base*>(this),std::integral_constant<bool,UseVertexGrid>());
                         }
                         StaggeredGrids m_grids;
                         

@@ -10,8 +10,8 @@ namespace mtao {
     namespace geometry {
         namespace grid {
 
-            //NOTE: Grid size = numer of cells are in the grid, rather than number of vertices
-            template <typename T, typename Indexer>
+            //NOTE: The UseVertexGrid flag is mainly for compabitibility with deriving staggered grids from this class
+            template <typename T, typename Indexer, bool UseVertexGrid=true>
                 class Grid: public Indexer {
                     public:
                         using value_type = T;
@@ -19,9 +19,11 @@ namespace mtao {
                         static constexpr int D = Indexer::D;
                         using index_type = typename Indexer::index_type;
                         using Indexer::shape;
+                        using Indexer::size;
                         using Indexer::index;
                         using Indexer::width;
                         using Vec = Vector<T,D>;
+                        using ColVecs = ColVectors<T,D>;
                         using VecMap = Eigen::Map<Vec>;
                         using CVecMap = Eigen::Map<const Vec>;
 
@@ -42,7 +44,7 @@ namespace mtao {
                         Grid(const index_type& a, const Eigen::MatrixBase<Derived>& dx, const Eigen::MatrixBase<Derived2>& origin = Vec::Zero()): Indexer(a), m_origin(origin), m_dx(dx) {}
                         template <typename Derived=Vec>
                         Grid(const index_type& a, const Eigen::MatrixBase<Derived>& dx, const Vec& origin = Vec::Zero()): Indexer(a), m_origin(origin), m_dx(dx) {}
-                        Grid(const index_type& a): Grid(a,(1.0 / (CIVecMap(a.data()).template cast<T>().array())).matrix()) {}
+                        Grid(const index_type& a): Grid(a,(1.0 / (CIVecMap(a.data()).template cast<T>().array()-UseVertexGrid)).matrix()) {}
                         Grid() {}
                         Grid(const Grid& other) = default;
                         Grid(Grid&& other) = default;
@@ -53,7 +55,11 @@ namespace mtao {
                         }
 
                         BBox bbox() const {
+                            if constexpr(UseVertexGrid) {
+                            return BBox(origin(), vertex(shapeAsIVec() - IVec::Ones()));
+                            } else {
                             return BBox(origin(), vertex(shapeAsIVec()));
+                            }
                         }
 
                         template <typename Derived>
@@ -66,6 +72,14 @@ namespace mtao {
                             return vertex(idx2ivec(idx));
                         }
 
+
+                        ColVecs vertices() const {
+                            ColVecs V(D,size());
+                            utils::multi_loop(shape(),[&](auto&& a) {
+                                    V.col(this->index(a)) = vertex(a);
+                                    });
+                            return V;
+                        }
 
                         auto shapeAsIVec() const {
                             return idx2ivec(shape());
@@ -81,8 +95,8 @@ namespace mtao {
                 };
 
 
-            template <typename T, int D>
-                using GridD = Grid<T,indexing::OrderedIndexer<D>>;
+            template <typename T, int D, bool UseVertexGrid=true>
+                using GridD = Grid<T,indexing::OrderedIndexer<D>,UseVertexGrid>;
             using Grid2f = GridD<float,2>;
             using Grid3f = GridD<float,3>;
             using Grid2i = GridD<int,2>;
