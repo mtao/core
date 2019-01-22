@@ -9,7 +9,7 @@
 template <int D>
 void test() {
     using Grid = mtao::geometry::grid::GridD<float,D>;
-    typename Grid::index_type a;
+    typename Grid::coord_type a;
     std::iota(a.begin(),a.end(),3);
     Grid g(a);
     auto bb = g.bbox();

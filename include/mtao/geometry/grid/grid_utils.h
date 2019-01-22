@@ -8,54 +8,54 @@ namespace mtao {
         namespace grid {
             namespace utils {
                 namespace internal {
-                    template <int N, int M, typename index_type, typename Func, bool Reverse = false>
+                    template <int N, int M, typename coord_type, typename Func, bool Reverse = false>
                         struct multi_looper {
                             constexpr static int MyN = Reverse?M-N-1:N;
-                            static void run(const index_type& bounds, index_type& idx, const Func& f) {
+                            static void run(const coord_type& bounds, coord_type& idx, const Func& f) {
                                 for(auto&& i = idx[MyN] = 0; i < bounds[MyN]; ++i) {
-                                    multi_looper<N+1,M,index_type,Func,Reverse>::run(bounds,idx,f);
+                                    multi_looper<N+1,M,coord_type,Func,Reverse>::run(bounds,idx,f);
                                 }
                                 idx[MyN] = 0;
                             }
-                            static void run(const index_type& begin, const index_type& end, index_type& idx, const Func& f) {
+                            static void run(const coord_type& begin, const coord_type& end, coord_type& idx, const Func& f) {
                                 for(auto&& i = idx[MyN] = begin[MyN]; i < end[MyN]; ++i) {
-                                    multi_looper<N+1,M,index_type,Func,Reverse>::run(begin,end,idx,f);
+                                    multi_looper<N+1,M,coord_type,Func,Reverse>::run(begin,end,idx,f);
                                 }
                                 idx[MyN] = begin[MyN];
                             }
                         };
-                    template <int N, typename index_type, typename Func, bool Reverse>
-                        struct multi_looper<N,N,index_type,Func,Reverse> {
-                            static void run(const index_type& bounds, index_type& idx, const Func& f) {
+                    template <int N, typename coord_type, typename Func, bool Reverse>
+                        struct multi_looper<N,N,coord_type,Func,Reverse> {
+                            static void run(const coord_type& bounds, coord_type& idx, const Func& f) {
                                 f(idx);
                             }
-                            static void run(const index_type& begin, const index_type& end, index_type& idx, const Func& f) {
+                            static void run(const coord_type& begin, const coord_type& end, coord_type& idx, const Func& f) {
                                 f(idx);
                             }
                         };
                 }
-                template <typename index_type, typename Func>
-                    void multi_loop(const index_type& index, const Func& f) {
-                        index_type idx;
+                template <typename coord_type, typename Func>
+                    void multi_loop(const coord_type& index, const Func& f) {
+                        coord_type idx;
                         std::fill(idx.begin(),idx.end(),0);
-                        internal::multi_looper<0,std::tuple_size<index_type>::value,index_type,Func,false>::run(index,idx,f);
+                        internal::multi_looper<0,std::tuple_size<coord_type>::value,coord_type,Func,false>::run(index,idx,f);
                     }
-                template <typename index_type, typename Func>
-                    void right_multi_loop(const index_type& index, const Func& f) {//Same above but does dimensions in reverse
-                        index_type idx;
+                template <typename coord_type, typename Func>
+                    void right_multi_loop(const coord_type& index, const Func& f) {//Same above but does dimensions in reverse
+                        coord_type idx;
                         std::fill(idx.begin(),idx.end(),0);
-                        internal::multi_looper<0,std::tuple_size<index_type>::value,index_type,Func,true>::run(index,idx,f);
+                        internal::multi_looper<0,std::tuple_size<coord_type>::value,coord_type,Func,true>::run(index,idx,f);
                     }
 
-                template <typename index_type, typename Func>
-                    void multi_loop(const index_type& begin, const index_type& end, const Func& f) {
-                        index_type idx(begin);
-                        internal::multi_looper<0,std::tuple_size<index_type>::value,index_type,Func,false>::run(begin,end,idx,f);
+                template <typename coord_type, typename Func>
+                    void multi_loop(const coord_type& begin, const coord_type& end, const Func& f) {
+                        coord_type idx(begin);
+                        internal::multi_looper<0,std::tuple_size<coord_type>::value,coord_type,Func,false>::run(begin,end,idx,f);
                     }
-                template <typename index_type, typename Func>
-                    void right_multi_loop(const index_type& begin, const index_type& end, const Func& f) {//Same above but does dimensions in reverse
-                        index_type idx(begin);
-                        internal::multi_looper<0,std::tuple_size<index_type>::value,index_type,Func,true>::run(begin,end,idx,f);
+                template <typename coord_type, typename Func>
+                    void right_multi_loop(const coord_type& begin, const coord_type& end, const Func& f) {//Same above but does dimensions in reverse
+                        coord_type idx(begin);
+                        internal::multi_looper<0,std::tuple_size<coord_type>::value,coord_type,Func,true>::run(begin,end,idx,f);
                     }
             }
 

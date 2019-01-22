@@ -18,7 +18,7 @@ namespace mtao {
                         using value_type = T;
                         using Scalar = T;//for eigen compat
                         static constexpr int D = Indexer::D;
-                        using index_type = typename Indexer::index_type;
+                        using coord_type = typename Indexer::coord_type;
                         using Indexer::shape;
                         using Indexer::size;
                         using Indexer::index;
@@ -28,12 +28,12 @@ namespace mtao {
                         using VecMap = Eigen::Map<Vec>;
                         using CVecMap = Eigen::Map<const Vec>;
 
-                        using index_scalar_type = typename index_type::value_type;
+                        using index_scalar_type = typename coord_type::value_type;
                         using IVec = Vector<index_scalar_type,D>;
                         using IVecMap = Eigen::Map<IVec>;
                         using CIVecMap = Eigen::Map<const IVec>;
 
-                        static auto idx2ivec(const index_type& idx) {
+                        static auto idx2ivec(const coord_type& idx) {
                             return CIVecMap(idx.data());
                         }
 
@@ -42,16 +42,16 @@ namespace mtao {
                         
 
                         template <typename Derived=Vec, typename Derived2>
-                        Grid(const index_type& a, const Eigen::MatrixBase<Derived>& dx, const Eigen::MatrixBase<Derived2>& origin = Vec::Zero()): Indexer(a), m_origin(origin), m_dx(dx) {}
+                        Grid(const coord_type& a, const Eigen::MatrixBase<Derived>& dx, const Eigen::MatrixBase<Derived2>& origin = Vec::Zero()): Indexer(a), m_origin(origin), m_dx(dx) {}
                         template <typename Derived=Vec>
-                        Grid(const index_type& a, const Eigen::MatrixBase<Derived>& dx, const Vec& origin = Vec::Zero()): Indexer(a), m_origin(origin), m_dx(dx) {}
-                        Grid(const index_type& a): Grid(a,(1.0 / (CIVecMap(a.data()).template cast<T>().array()-UseVertexGrid)).matrix()) {}
+                        Grid(const coord_type& a, const Eigen::MatrixBase<Derived>& dx, const Vec& origin = Vec::Zero()): Indexer(a), m_origin(origin), m_dx(dx) {}
+                        Grid(const coord_type& a): Grid(a,(1.0 / (CIVecMap(a.data()).template cast<T>().array()-UseVertexGrid)).matrix()) {}
                         Grid() {}
                         Grid(const Grid& other) = default;
                         Grid(Grid&& other) = default;
                         Grid& operator=(const Grid& other) = default;
                         Grid& operator=(Grid&& other) = default;
-                        void resize(const index_type& idx) {
+                        void resize(const coord_type& idx) {
                             Indexer::resize(idx);
                         }
 
@@ -69,7 +69,7 @@ namespace mtao {
                             static_assert(std::is_same_v<typename Derived::Scalar,index_scalar_type>);
                             return origin() + dx().asDiagonal() * (idx.template cast<T>());
                         }
-                        Vec vertex(const index_type& idx) const {
+                        Vec vertex(const coord_type& idx) const {
                             return vertex(idx2ivec(idx));
                         }
 

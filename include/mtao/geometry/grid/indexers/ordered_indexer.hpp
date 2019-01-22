@@ -11,7 +11,7 @@ namespace mtao {
                         public:
                             static constexpr int D = D_;
                             using Base = IndexerBase<D_,OrderedIndexer<D_>>;
-                            using index_type = typename Base::index_type;
+                            using coord_type = typename Base::coord_type;
                             using Base::Base;
                             using Base::resize;
                             using Base::size;
@@ -20,20 +20,27 @@ namespace mtao {
                             using Base::cols;
                             template <typename... Args>
                                 size_t index(Args... args) const {
-                                    return index(index_type{{args...}});
+                                    return index(coord_type{{args...}});
                                 }
-                            size_t index(const index_type& a) const {
+                            size_t index(const coord_type& a) const {
                                 if constexpr(RowMajor) {
                                 return ::mtao::algebra::horner_rowmajor_index(a,shape());
                                 } else {
                                 return ::mtao::algebra::horner_rowminor_index(a,shape());
                                 }
                             }
+                            coord_type unindex(size_t ind) const {
+                                if constexpr(RowMajor) {
+                                return ::mtao::algebra::horner_rowmajor_inverse_index(ind,shape());
+                                } else {
+                                return ::mtao::algebra::horner_rowminor_inverse_index(ind,shape());
+                                }
+                            }
 
                             /*
                             template <int Dim=0, typename... Args>
                                 size_t index(size_t a,Args... args) const {
-                                    return index(index_type{{
+                                    return index(coord_type{{
                                     assert(int(a) < shape(Dim));
                                     return a + shape(Dim) * index<Dim+1>(args...);
                                 }

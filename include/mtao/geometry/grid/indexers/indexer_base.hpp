@@ -22,7 +22,7 @@ namespace mtao {
                     class IndexerBase{
                         public:
                             static constexpr int D = D_;
-                            using index_type = std::array<int,D>;
+                            using coord_type = std::array<int,D>;
                             Derived& derived() { return *static_cast<Derived*>(this); }
                             const Derived& derived() const { return *static_cast<const Derived*>(this); }
 
@@ -31,8 +31,8 @@ namespace mtao {
                             IndexerBase(const IndexerBase&) = default;
                             IndexerBase& operator=(IndexerBase&&) = default;
                             IndexerBase& operator=(const IndexerBase&) = default;
-                            IndexerBase(const index_type& s): m_shape(s) {}
-                            void resize(const index_type& idx) {
+                            IndexerBase(const coord_type& s): m_shape(s) {}
+                            void resize(const coord_type& idx) {
                                 m_shape = idx;
                             }
                             template <typename... Args>
@@ -42,12 +42,16 @@ namespace mtao {
                                     return derived().index(std::forward<Args>(args)...);
                                 }
 
+                            coord_type unindex(size_t ind) const {
+                                return derived().unindex(ind);
+                            }
+
                             template <typename... Args>
                             size_t operator()(Args&&... args) const {
                                 return index(std::forward<Args>(args)...);
                             }
 
-                            const index_type& shape() const {return m_shape;}
+                            const coord_type& shape() const {return m_shape;}
                             int shape(size_t idx) const {return m_shape[idx];}
                             int width(size_t idx) const {return m_shape[idx];}
                             template <int Dim>
@@ -58,7 +62,7 @@ namespace mtao {
                             size_t size() const {return internal::size_from_shape(m_shape);}
 
                         private:
-                            index_type m_shape = {};//zero-initializes
+                            coord_type m_shape = {};//zero-initializes
                     };
 
             }

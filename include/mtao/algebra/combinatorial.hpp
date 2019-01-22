@@ -3,12 +3,24 @@
 #include <array>
 #include <cassert>
 
+
 namespace mtao {
     namespace combinatorial {
         constexpr size_t factorial(size_t n) {
+#ifdef USE_PRECOMPUTED_FACTORIALS
+            constexpr std::array<size_t,10> precomputed{{1,1,2,6,24,120,720,5040,40320,362880}};
+            return n<10?precomputed[n]:n*factorial(n-1);
+#else
             return n<1?1:n*factorial(n-1);
+#endif
         }
         constexpr size_t factorial_ratio(size_t a,size_t b) {
+            //take advantage of precomputed stuff
+#ifdef USE_PRECOMPUTED_FACTORIALS
+            if(a < 10 && b < 10) {
+                return factorial(a)/factorial(b);
+            }
+#endif
             return a<=b?1:a*factorial_ratio(a-1,b);
         }
         constexpr size_t nCr(size_t n, size_t r) {
