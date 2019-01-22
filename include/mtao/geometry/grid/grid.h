@@ -1,7 +1,7 @@
 #pragma once
 #include <algorithm>
 #include "grid_utils.h"
-#include "grid_storage.h"
+//#include "grid_storage.h"
 #include "indexers/ordered_indexer.hpp"
 #include <Eigen/Geometry>
 

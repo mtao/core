@@ -1,3 +1,4 @@
+#include <mtao/types.hpp>
 #include "mtao/opengl/Window.h"
 #include <iostream>
 #include "imgui.h"
@@ -6,7 +7,6 @@
 #include "mtao/opengl/renderers/axis.h"
 #include <mtao/eigen/stack.h>
 #include <memory>
-#include "grid.h"
 #include <algorithm>
 
 #include <glm/gtc/matrix_transform.hpp> 
@@ -15,6 +15,7 @@
 #include "mtao/opengl/camera.hpp"
 #include <mtao/eigen_utils.h>
 #include<Eigen/IterativeLinearSolvers>
+#include <mtao/geometry/grid/triangulation.hpp>
 
 using namespace mtao::opengl;
 
@@ -98,7 +99,11 @@ void prepare_mesh(int i, int j) {
     bbox_renderer = std::make_unique<renderers::BBoxRenderer2>();
     axis_renderer = std::make_unique<renderers::AxisRenderer>(2);
 
-    auto [V,F] = make_mesh(i,j);
+;
+    mtao::geometry::grid::Grid2f g({{i,j}});
+    mtao::geometry::grid::GridTriangulator<decltype(g)> gt(g);
+    auto V = gt.vertices();
+    auto F = gt.faces();
     V.array() -= .5;
     VV.resize(3,V.cols());
     VV.topRows(2) = V;

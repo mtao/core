@@ -1,3 +1,4 @@
+#include <mtao/types.hpp>
 #include "mtao/opengl/Window.h"
 #include <iostream>
 #include "imgui.h"
@@ -6,7 +7,6 @@
 #include "mtao/opengl/renderers/axis.h"
 #include <mtao/eigen/stack.h>
 #include <memory>
-#include "grid.h"
 #include <algorithm>
 
 #include <glm/gtc/matrix_transform.hpp> 
@@ -15,6 +15,7 @@
 #include "mtao/opengl/camera.hpp"
 #include <mtao/eigen_utils.h>
 #include <mtao/logging/logger.hpp>
+#include <mtao/geometry/grid/triangulation.hpp>
 using namespace mtao::logging;
 
 using namespace mtao::opengl;
@@ -66,7 +67,10 @@ void prepare_mesh(int i, int j, int k) {
     bbox_renderer = std::make_unique<renderers::BBoxRenderer3>();
 
     debug() << "Starting to make mesh";
-    auto [V,F] = make_mesh(i,j,k);
+    mtao::geometry::grid::Grid3f g({{i,j,k}});
+    mtao::geometry::grid::GridTriangulator<decltype(g)> gt(g);
+    auto V = gt.vertices();
+    auto F = gt.faces();
     V.array() -= .5;
 
     //mtao::RowVectorX<GLfloat> col = V.colwise().norm().array() - GLfloat(.25);
@@ -95,7 +99,7 @@ void prepare_mesh(int i, int j, int k) {
 
     renderer->setVertices(V,false);
     renderer->setMesh(V,F,false);
-    renderer->setEdges(make_edge_topology(i,j,k));
+    renderer->setEdges(gt.edges());
     renderer->set_edge_style(renderers::MeshRenderer::EdgeStyle::Mesh);
     renderer->set_vertex_style();
     renderer->set_face_style();

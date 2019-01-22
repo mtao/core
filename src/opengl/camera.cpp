@@ -154,15 +154,19 @@ namespace mtao { namespace opengl {
 
     void Camera3D::pan() {
         auto&& io = ImGui::GetIO();
+
+        
         if(io.KeyShift) {
             m_distance += .5 * io.MouseWheel;
             m_distance = std::max<float>(1e-5,m_distance);
             set_distance(m_distance);
-            if(ImGui::IsMouseClicked(0)) {
-                enableDrag();
-            } 
-            if(ImGui::IsMouseClicked(1)) {
-                enableAngularDrag();
+            if(!io.WantCaptureMouse) {
+                if(ImGui::IsMouseClicked(0)) {
+                    enableDrag();
+                } 
+                if(ImGui::IsMouseClicked(1)) {
+                    enableAngularDrag();
+                }
             }
         } 
         if(ImGui::IsMouseReleased(0)) {
