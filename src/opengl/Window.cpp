@@ -172,8 +172,12 @@ const HotkeyManager& Window::hotkeys() const {
     return s_hotkeys.at(window);
 }
 void Window::keyCallback(GLFWwindow* w,int key, int scancode, int action, int mods) {
-    s_hotkeys.at(w).press(key,mods,action);
-    ImGuiImpl::keyCallback(w,key,scancode,action,mods);
+
+    auto&& io = ImGui::GetIO();
+    if(!io.WantCaptureKeyboard) {
+        s_hotkeys.at(w).press(key,mods,action);
+    }
+        ImGuiImpl::keyCallback(w,key,scancode,action,mods);
 }
 
 
