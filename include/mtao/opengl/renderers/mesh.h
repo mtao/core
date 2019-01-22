@@ -114,7 +114,7 @@ class MeshRenderer: public Renderer {
         void unset_all();
         void hide_all() { unset_all(); }
 
-        inline void setBuffers(const std::shared_ptr<MeshRenderBuffers>& buf) { m_buffers = buf; }
+        inline void setBuffers(const std::shared_ptr<MeshRenderBuffers>& buf = {}) { m_buffers = buf; }
 
 
 

@@ -405,17 +405,17 @@ namespace mtao { namespace opengl { namespace renderers {
         if(!buffs.vertices) {
             return;
         }
+        if(m_face_style != FaceStyle::Disabled) {
+            render_faces(buffs, m_face_style);
+        }
+        if(m_edge_type != EdgeStyle::Disabled) {
+            render_edges(buffs, m_edge_type);
+        }
         if(m_vertex_type != VertexStyle::Disabled) {
             render_points(buffs,m_vertex_type);
         }
         if(m_show_vector_field) {
             render_vfield(buffs);
-        }
-        if(m_edge_type != EdgeStyle::Disabled) {
-            render_edges(buffs, m_edge_type);
-        }
-        if(m_face_style != FaceStyle::Disabled) {
-            render_faces(buffs, m_face_style);
         }
     }
         void MeshRenderer::render_vfield(const MeshRenderBuffers& buffs) const {

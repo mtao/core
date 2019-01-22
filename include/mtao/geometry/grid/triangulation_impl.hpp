@@ -1,7 +1,6 @@
 #include "mtao/geometry/grid/grid_utils.h"
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wnarrowing"
-#include <mtao/logging/timer.hpp>
 
 
 
@@ -10,16 +9,13 @@ namespace mtao { namespace geometry { namespace grid {
     template <typename GridType>
         ColVectors<unsigned int, 3> GridTriangulator<GridType>::faces() const {
 
-        auto t = logging::timer("face creation");
             if constexpr(D == 2) {
                 auto [i,j] = g.shape();
                 ColVectors<unsigned int,3> F(3,2*(i-1)*(j-1));
                 int counter = 0;
-                auto idx = [&](int ii, int jj) -> size_t { return ii + i * jj; };
                 utils::multi_loop(std::array<size_t,2>{{i-1,j-1}},[&](auto&& ij) {
                         auto [ii,jj] = ij;
-                        std::array<size_t,4> x{{idx(ii,jj),idx(ii+1,jj),idx(ii,jj+1),idx(ii+1,jj+1)}};
-                        //std::array<size_t,4> x{{g.index(ii,jj),g.index(ii+1,jj),g.index(ii,jj+1),g.index(ii+1,jj+1)}};
+                        std::array<size_t,4> x{{g.index(ii,jj),g.index(ii+1,jj),g.index(ii,jj+1),g.index(ii+1,jj+1)}};
                         F.col(counter++) = Vector<unsigned int,3>(x[0],x[1],x[2]);
                         F.col(counter++) = Vector<unsigned int,3>(x[1],x[2],x[3]);
                         });
@@ -65,21 +61,15 @@ namespace mtao { namespace geometry { namespace grid {
                 int counter = 0;
                 utils::multi_loop(std::array<size_t,2>{{i-1,j}},[&](auto&& ij) {
                         auto [ii,jj] = ij;
-                        unsigned int o = index(ii,jj);
-                        unsigned int x = index(ii+1,jj);
+                        unsigned int o = g.index(ii,jj);
+                        unsigned int x = g.index(ii+1,jj);
                         E.col(counter++) = Vector<unsigned int,2>(o,x);
                         });
                 utils::multi_loop(std::array<size_t,2>{{i,j-1}},[&](auto&& ij) {
                         auto [ii,jj] = ij;
-                        unsigned int o = index(ii,jj);
-                        unsigned int y = index(ii,jj+1);
+                        unsigned int o = g.index(ii,jj);
+                        unsigned int y = g.index(ii,jj+1);
                         E.col(counter++) = Vector<unsigned int,2>(o,y);
-                        });
-                utils::multi_loop(std::array<size_t,2>{{i,j}},[&](auto&& ij) {
-                        auto [ii,jj] = ij;
-                        unsigned int o = index(ii,jj);
-                        unsigned int z = index(ii,jj+1);
-                        E.col(counter++) = Vector<unsigned int,2>(o,z);
                         });
                 return E;
             } else if constexpr( D == 3) {
@@ -114,7 +104,6 @@ namespace mtao { namespace geometry { namespace grid {
         }
     template <typename GridType>
         auto  GridTriangulator<GridType>::vertices() const -> ColVectors<T,D> {
-        auto t = logging::timer("vertex creation");
             return g.vertices();
         }
 }}}
