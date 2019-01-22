@@ -2,6 +2,7 @@
 #include <mtao/types.hpp>
 #include <array>
 #include <tuple>
+#include <iostream>
 
 namespace mtao {
     namespace geometry {
@@ -12,14 +13,38 @@ namespace mtao {
                         struct multi_looper {
                             constexpr static int MyN = Reverse?M-N-1:N;
                             static void run(const coord_type& bounds, coord_type& idx, const Func& f) {
-                                for(auto&& i = idx[MyN] = 0; i < bounds[MyN]; ++i) {
-                                    multi_looper<N+1,M,coord_type,Func,Reverse>::run(bounds,idx,f);
+                                if constexpr(M >= N+2) {
+
+
+                                    constexpr static int NN = N+1;
+                                    constexpr static int MyNN = Reverse?M-NN-1:NN;
+                                    for(auto& i = idx[MyN] = 0; i < bounds[MyN]; ++i) {
+                                        for(auto& j = idx[MyNN] = 0; j < bounds[MyNN]; ++j) {
+                                            multi_looper<N+2,M,coord_type,Func,Reverse>::run(bounds,idx,f);
+                                        }
+                                    }
+                                    idx[MyNN] = 0;
+                                } else {
+                                    for(auto&& i = idx[MyN] = 0; i < bounds[MyN]; ++i) {
+                                        multi_looper<N+1,M,coord_type,Func,Reverse>::run(bounds,idx,f);
+                                    }
                                 }
                                 idx[MyN] = 0;
                             }
                             static void run(const coord_type& begin, const coord_type& end, coord_type& idx, const Func& f) {
-                                for(auto&& i = idx[MyN] = begin[MyN]; i < end[MyN]; ++i) {
-                                    multi_looper<N+1,M,coord_type,Func,Reverse>::run(begin,end,idx,f);
+                                if constexpr(M >= N+2) {
+                                    constexpr static int NN = N+1;
+                                    constexpr static int MyNN = Reverse?M-NN-1:NN;
+                                    for(auto& i = idx[MyN] = begin[MyN]; i < end[MyN]; ++i) {
+                                        for(auto& j = idx[MyNN] = begin[MyNN]; j < end[MyNN]; ++j) {
+                                            multi_looper<N+2,M,coord_type,Func,Reverse>::run(begin,end,idx,f);
+                                        }
+                                    }
+                                    idx[MyNN] = begin[MyNN];
+                                } else {
+                                    for(auto&& i = idx[MyN] = begin[MyN]; i < end[MyN]; ++i) {
+                                        multi_looper<N+1,M,coord_type,Func,Reverse>::run(begin,end,idx,f);
+                                    }
                                 }
                                 idx[MyN] = begin[MyN];
                             }
@@ -37,7 +62,6 @@ namespace mtao {
                 template <typename coord_type, typename Func>
                     void multi_loop(const coord_type& index, const Func& f) {
                         coord_type idx;
-                        std::fill(idx.begin(),idx.end(),0);
                         internal::multi_looper<0,std::tuple_size<coord_type>::value,coord_type,Func,false>::run(index,idx,f);
                     }
                 template <typename coord_type, typename Func>

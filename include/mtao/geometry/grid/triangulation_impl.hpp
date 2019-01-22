@@ -1,6 +1,7 @@
 #include "mtao/geometry/grid/grid_utils.h"
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wnarrowing"
+#include <mtao/logging/timer.hpp>
 
 
 
@@ -9,13 +10,16 @@ namespace mtao { namespace geometry { namespace grid {
     template <typename GridType>
         ColVectors<unsigned int, 3> GridTriangulator<GridType>::faces() const {
 
+        auto t = logging::timer("face creation");
             if constexpr(D == 2) {
                 auto [i,j] = g.shape();
                 ColVectors<unsigned int,3> F(3,2*(i-1)*(j-1));
                 int counter = 0;
+                auto idx = [&](int ii, int jj) -> size_t { return ii + i * jj; };
                 utils::multi_loop(std::array<size_t,2>{{i-1,j-1}},[&](auto&& ij) {
                         auto [ii,jj] = ij;
-                        std::array<size_t,4> x{{g.index(ii,jj),g.index(ii+1,jj),g.index(ii,jj+1),g.index(ii+1,jj+1)}};
+                        std::array<size_t,4> x{{idx(ii,jj),idx(ii+1,jj),idx(ii,jj+1),idx(ii+1,jj+1)}};
+                        //std::array<size_t,4> x{{g.index(ii,jj),g.index(ii+1,jj),g.index(ii,jj+1),g.index(ii+1,jj+1)}};
                         F.col(counter++) = Vector<unsigned int,3>(x[0],x[1],x[2]);
                         F.col(counter++) = Vector<unsigned int,3>(x[1],x[2],x[3]);
                         });
@@ -110,6 +114,7 @@ namespace mtao { namespace geometry { namespace grid {
         }
     template <typename GridType>
         auto  GridTriangulator<GridType>::vertices() const -> ColVectors<T,D> {
+        auto t = logging::timer("vertex creation");
             return g.vertices();
         }
 }}}
