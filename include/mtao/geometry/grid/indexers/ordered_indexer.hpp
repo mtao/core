@@ -20,7 +20,7 @@ namespace mtao {
                             using Base::cols;
                             template <typename... Args>
                                 size_t index(Args... args) const {
-                                    return index(coord_type{{args...}});
+                                    return index(coord_type{{static_cast<int>(args)...}});
                                 }
                             size_t index(const coord_type& a) const {
                                 if constexpr(RowMajor) {
