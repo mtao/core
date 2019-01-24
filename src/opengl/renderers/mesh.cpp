@@ -107,6 +107,9 @@ namespace mtao { namespace opengl { namespace renderers {
         }
     }
     void MeshRenderer::setVField(const MatrixXgfCRef& V) {
+        if(!m_buffers) {
+            m_buffers = std::make_shared<MeshRenderBuffers>();
+        }
         if(!buffers()->vectors) {
             buffers()->vectors = std::make_unique<BO>();
         }
@@ -119,6 +122,9 @@ namespace mtao { namespace opengl { namespace renderers {
         vector_field_program()->getAttrib("vVec").setPointer(m_dim, GL_FLOAT, GL_FALSE, sizeof(float) * m_dim, (void*) 0);
     }
     void MeshRenderer::setVertices(const MatrixXgfCRef& V, bool normalize) {
+        if(!m_buffers) {
+            m_buffers = std::make_shared<MeshRenderBuffers>();
+        }
 
         if(V.size() == 0) {
             buffers()->vertices = nullptr;
@@ -157,6 +163,9 @@ namespace mtao { namespace opengl { namespace renderers {
     }
 
     void MeshRenderer::setNormals(const MatrixXgfCRef& N) {
+        if(!m_buffers) {
+            m_buffers = std::make_shared<MeshRenderBuffers>();
+        }
         if(N.size() == 0) {
             buffers()->normals= nullptr;
             return;
@@ -184,6 +193,9 @@ namespace mtao { namespace opengl { namespace renderers {
 
     }
     void MeshRenderer::setColor(const MatrixXgfCRef& C) {
+        if(!m_buffers) {
+            m_buffers = std::make_shared<MeshRenderBuffers>();
+        }
         if(C.size() == 0) {
             buffers()->colors= nullptr;
             return;
@@ -210,6 +222,9 @@ namespace mtao { namespace opengl { namespace renderers {
 
     }
     void MeshRenderer::setFaces(const MatrixXuiCRef& F) {
+        if(!m_buffers) {
+            m_buffers = std::make_shared<MeshRenderBuffers>();
+        }
         if(!buffers()->faces) {
             buffers()->faces = std::make_unique<IBO>(GL_TRIANGLES);
         }
@@ -219,6 +234,9 @@ namespace mtao { namespace opengl { namespace renderers {
         m_face_draw_elements = true;
     }
     void MeshRenderer::setEdges(const MatrixXuiCRef& E) {
+        if(!m_buffers) {
+            m_buffers = std::make_shared<MeshRenderBuffers>();
+        }
         if(E.size() == 0) {
             buffers()->edges= nullptr;
         }
@@ -263,8 +281,8 @@ namespace mtao { namespace opengl { namespace renderers {
         shaders_enabled() = true;
     }
 
-    void MeshRenderer::imgui_interface() {
-        if(ImGui::TreeNode("Mesh Renderer")) {
+    void MeshRenderer::imgui_interface(const std::string& name) {
+        if(ImGui::TreeNode(name.c_str())) {
 
             static const char* shading_names[] = {
                 "Disabled",

@@ -55,7 +55,7 @@ class MeshRenderer: public Renderer {
 
 
 
-        void imgui_interface() override;
+        void imgui_interface(const std::string& name = "Mesh Renderer") override;
         std::list<ShaderProgram*> mvp_programs() const override ;
         void setMesh(const MatrixXgfCRef& V, const MatrixXuiCRef& F, bool normalize = false);
         void setMesh(const MatrixXgfCRef& V, const MatrixXuiCRef& F, const MatrixXgfCRef& N, bool normalize=false);
