@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "mtao/geometry/mesh/sphere.hpp"
-#include "mtao/geometry/mesh/area_normals.h"
+#include "mtao/geometry/mesh/area_normals.hpp"
 
 
 int main() {

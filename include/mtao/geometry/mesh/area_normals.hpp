@@ -6,7 +6,7 @@ namespace mtao { namespace geometry { namespace mesh {
     //Area weighted normals
 
     template <typename VDerived, typename FDerived>
-        auto area_normals(const Eigen::MatrixBase<VDerived>& V, const Eigen::MatrixBase<FDerived>& F) {
+        auto area_normals(const Eigen::MatrixBase<VDerived>& V, const Eigen::MatrixBase<FDerived>& F, bool normalized=true) {
             
             auto N = VDerived::Zero(V.rows(),V.cols()).eval();
             auto FN = face_normals(V,F);
@@ -16,7 +16,9 @@ namespace mtao { namespace geometry { namespace mesh {
                     N.col(f(j)) += FN.col(i);
                 }
             }
-            N.colwise().normalize();
+            if(normalized) {
+                N.colwise().normalize();
+            }
             return N;
         }
 }}}

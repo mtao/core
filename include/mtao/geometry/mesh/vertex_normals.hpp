@@ -6,7 +6,7 @@ namespace mtao { namespace geometry { namespace mesh {
     //Area weighted normals
 
     template <typename VDerived, typename FDerived>
-        auto vertex_normals(const Eigen::MatrixBase<VDerived>& V, const Eigen::MatrixBase<FDerived>& F) {
+        auto vertex_normals(const Eigen::MatrixBase<VDerived>& V, const Eigen::MatrixBase<FDerived>& F, bool normalized = true) {
             constexpr static int CRows = VDerived::RowsAtCompileTime;
             auto N = VDerived::Zero(V.rows(),V.cols()).eval();
             using T = typename VDerived::Scalar;
@@ -43,7 +43,9 @@ namespace mtao { namespace geometry { namespace mesh {
                     }
                 }
             }
-            N.colwise().normalize();
+            if(normalized) {
+                N.colwise().normalize();
+            }
 
             return N;
         }
