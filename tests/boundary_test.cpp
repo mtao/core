@@ -12,18 +12,22 @@ int main() {
         for(int i = 0; i < E.cols(); ++i) {
             E.col(i) = mtao::Vector<int,2>(i,(i+1)%E.cols());
         }
+        std::cout << "Boundary facets: " << std::endl;
         auto P = mtao::geometry::mesh::boundary_facets(E);
         std::cout << P << std::endl;
+        std::cout << "Boundary matrix: " << std::endl;
         auto B = mtao::geometry::mesh::boundary_matrix<float>(E,P);
         std::cout << B << std::endl << std::endl;
 
         auto bm = mtao::geometry::mesh::boundary_elements(B);
+        std::cout << "Boundary elements: " << std::endl;
         for(auto&& [idx,elems]: mtao::iterator::enumerate(bm)) {
             std::cout << idx << ") ";
             std::copy(elems.begin(),elems.end(),std::ostream_iterator<int>(std::cout, ", "));
             std::cout << std::endl;
         }
         std::cout << std::endl;
+        std::cout << "Coboundary elements: " << std::endl;
         auto cbm = mtao::geometry::mesh::coboundary_elements(B);
         for(auto&& [idx,elems]: mtao::iterator::enumerate(cbm)) {
             std::cout << idx << ") ";
