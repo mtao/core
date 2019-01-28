@@ -30,11 +30,15 @@ namespace mtao {
                                 }
                             }
                             coord_type unindex(size_t ind) const {
+                                coord_type c;
                                 if constexpr(RowMajor) {
-                                return ::mtao::algebra::horner_rowmajor_inverse_index(ind,shape());
+                                auto v = ::mtao::algebra::horner_rowmajor_inverse_index(ind,shape());
+                                std::transform(v.begin(),v.end(),c.begin(),[](size_t a) -> int { return a; });
                                 } else {
-                                return ::mtao::algebra::horner_rowminor_inverse_index(ind,shape());
+                                auto v = ::mtao::algebra::horner_rowminor_inverse_index(ind,shape());
+                                std::transform(v.begin(),v.end(),c.begin(),[](size_t a) -> int { return a; });
                                 }
+                                return c;
                             }
 
                             /*

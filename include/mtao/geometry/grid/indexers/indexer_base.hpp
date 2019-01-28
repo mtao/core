@@ -51,6 +51,33 @@ namespace mtao {
                                 return index(std::forward<Args>(args)...);
                             }
 
+                            bool valid_index(const coord_type& c) const {
+                                for(size_t i = 0; i < D; ++i) {
+                                    auto& v = c[i];
+                                    if(v < 0 || v >= m_shape[i]) {
+                                        return false;
+                                    }
+                                }
+                                return true;
+                            }
+                            template <typename... Args>
+                                bool valid_index(Args&&... args) const {
+                                    if constexpr(sizeof...(Args) == D) {
+                                    }
+                                    static_assert(sizeof...(Args) == D);
+                                    static_assert((std::is_convertible_v<Args,int> && ...));
+                                    return valid_index(coord_type{{args...}});
+                                }
+                            /*
+                            template <typename... Args>
+                                bool valid_index(Args&&... args) const {
+                                    if constexpr(sizeof...(Args) == D) {
+                                    }
+                                    static_assert(sizeof...(Args) == D);
+                                    static_assert((std::is_convertible_v<Args,int> && ...));
+                                    return valid_index(coord_type{{args...}});
+                                }
+                            */
                             const coord_type& shape() const {return m_shape;}
                             int shape(size_t idx) const {return m_shape[idx];}
                             int width(size_t idx) const {return m_shape[idx];}
