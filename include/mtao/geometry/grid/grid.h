@@ -22,6 +22,8 @@ namespace mtao {
                         using Indexer::shape;
                         using Indexer::size;
                         using Indexer::index;
+                        using Indexer::unindex;
+                        using Indexer::valid_index;
                         using Indexer::width;
                         using Vec = Vector<T,D>;
                         using ColVecs = ColVectors<T,D>;
@@ -71,6 +73,9 @@ namespace mtao {
                         }
                         Vec vertex(const coord_type& idx) const {
                             return vertex(idx2ivec(idx));
+                        }
+                        Vec vertex(int idx) const {
+                            return vertex(unindex(idx));
                         }
 
 

@@ -17,7 +17,7 @@ namespace mtao {
                         using value_type = T;
                         using Scalar = T;//for eigen compat
                         static constexpr int D = Indexer::D;
-                        using index_type = typename Indexer::index_type;
+                        using coord_type = typename Indexer::coord_type;
                         using Indexer::shape;
                         using Indexer::index;
                         using Indexer::width;
@@ -25,10 +25,10 @@ namespace mtao {
                         using iterator_type = typename storage_type::iterator_type;
                         using const_iterator_type = typename storage_type::const_iterator_type;
                         template <typename... Args>
-                            GridData(Args... args): GridData(index_type{{static_cast<int>(args)...}}) {
+                            GridData(Args... args): GridData(coord_type{{static_cast<int>(args)...}}) {
                                 static_assert(sizeof...(args)== D);
                             }
-                        GridData(const index_type& a): Indexer(a), m_storage(indexing::internal::size_from_shape(a)) {
+                        GridData(const coord_type& a): Indexer(a), m_storage(indexing::internal::size_from_shape(a)) {
                             init_data();
                         }
                         GridData() {}
@@ -39,7 +39,7 @@ namespace mtao {
                         iterator_type end() { return m_storage.end(); }
                         const_iterator_type begin() const { return m_storage.begin(); }
                         const_iterator_type end() const { return m_storage.end(); }
-                        void resize(const index_type& idx) {
+                        void resize(const coord_type& idx) {
                             Indexer::resize(idx);
                             size_t sfs = Indexer::size();
                             if(sfs != m_storage.size()) {
@@ -55,8 +55,8 @@ namespace mtao {
                         T& get(size_t a) {return m_storage(a);}
                         const T& get(size_t a) const {return m_storage(a);}
 
-                        T& operator()(const index_type& t) {return m_storage(index(t));}
-                        const T& operator()(const index_type& t) const {return m_storage(index(t));}
+                        T& operator()(const coord_type& t) {return m_storage(index(t));}
+                        const T& operator()(const coord_type& t) const {return m_storage(index(t));}
                         T* data() {return m_storage.data();}
                         const T* data() const {return m_storage.data();}
 
@@ -97,26 +97,26 @@ namespace mtao {
                                 return cwiseUnaryOp([&v](auto&& a) {return a/v;});
                             }
                         ////read only just over indices
-                        //void loop(const std::function<void(const index_type&)>& f) const {
+                        //void loop(const std::function<void(const coord_type&)>& f) const {
                         //    utils::multi_loop(m_shape,[&](auto&& v) {
                         //            f(v);
                         //            });
                         //}
                         //read only with values
-                        void loop(const std::function<void(const index_type&, const Scalar&)>& f) const {
+                        void loop(const std::function<void(const coord_type&, const Scalar&)>& f) const {
                             utils::multi_loop(shape(),[&](auto&& v) {
                                     f(v,(*this)(v));
                                     });
                         }
                         //write using index and current value
-                        void loop_write(const std::function<Scalar(const index_type&, const Scalar&)>& f) {
+                        void loop_write(const std::function<Scalar(const coord_type&, const Scalar&)>& f) {
                             utils::multi_loop(shape(),[&](auto&& v) {
                                     auto&& p = (*this)(v);
                                     p = f(v,p);
                                     });
                         }
                         //write using only index
-                        void loop_write_idx(const std::function<Scalar(const index_type&)>& f) {
+                        void loop_write_idx(const std::function<Scalar(const coord_type&)>& f) {
                             utils::multi_loop(shape(),[&](auto&& v) {
                                     (*this)(v) = f(v);
                                     });
