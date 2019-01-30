@@ -8,7 +8,7 @@ namespace mtao { namespace geometry { namespace mesh {
             constexpr static int CRows = VDerived::RowsAtCompileTime;
             auto N = VDerived::Zero(V.rows(),F.cols()).eval();
             using T = typename VDerived::Scalar;
-            if constexpr(CRows == 2) {
+            if (F.rows()== 2) {
             for(int i = 0; i < F.cols(); ++i) {
                 auto e = F.col(i);
                 auto a = V.col(e(0));
@@ -17,7 +17,7 @@ namespace mtao { namespace geometry { namespace mesh {
                 mtao::Vector<T,2> ba = b-a;
                 N.col(i) = mtao::Vector<T,2>(-ba.y(),ba.x());
             }
-            } else if constexpr(CRows == 3) {
+            } else if (F.rows() == 3) {
 
             for(int i = 0; i < F.cols(); ++i) {
                 auto f = F.col(i);

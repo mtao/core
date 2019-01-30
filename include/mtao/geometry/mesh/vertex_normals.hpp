@@ -10,7 +10,7 @@ namespace mtao { namespace geometry { namespace mesh {
             constexpr static int CRows = VDerived::RowsAtCompileTime;
             auto N = VDerived::Zero(V.rows(),V.cols()).eval();
             using T = typename VDerived::Scalar;
-            if constexpr(CRows == 2) {
+            if (F.rows()== 2) {
                 for(int i = 0; i < F.cols(); ++i) {
                     auto e = F.col(i);
                     auto a = V.col(e(0));
@@ -22,7 +22,7 @@ namespace mtao { namespace geometry { namespace mesh {
                         N.col(e(j)) += n;
                     }
                 }
-            } else if constexpr(CRows == 3) {
+            } else if (F.rows() == 3) {
 
                 for(int i = 0; i < F.cols(); ++i) {
                     auto f = F.col(i);
