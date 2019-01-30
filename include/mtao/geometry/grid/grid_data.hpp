@@ -20,17 +20,18 @@ namespace mtao {
                         using coord_type = typename Indexer::coord_type;
                         using Indexer::shape;
                         using Indexer::index;
+                        using Indexer::valid_index;
                         using Indexer::width;
 
                         using iterator_type = typename storage_type::iterator_type;
                         using const_iterator_type = typename storage_type::const_iterator_type;
+                        GridData(const coord_type& a): Indexer(a), m_storage(indexing::internal::size_from_shape(a)) {
+                            init_data();
+                        }
                         template <typename... Args>
                             GridData(Args... args): GridData(coord_type{{static_cast<int>(args)...}}) {
                                 static_assert(sizeof...(args)== D);
                             }
-                        GridData(const coord_type& a): Indexer(a), m_storage(indexing::internal::size_from_shape(a)) {
-                            init_data();
-                        }
                         GridData() {}
                         GridData(const GridData& other) = default;
                         //GridData(GridData&& other) = default;
@@ -127,8 +128,8 @@ namespace mtao {
 
                     public:
                         template <typename... Args>
-                            static GridData Constant(const value_type& v,Args... args ) {
-                                GridData g(args...);
+                            static GridData Constant(const value_type& v,Args&&... args ) {
+                                GridData g(std::forward<Args>(args)...);
                                 g.set_constant(v);
                                 return g;
                             }

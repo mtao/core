@@ -10,7 +10,7 @@ namespace mtao {
                 namespace internal {
                     template <size_t E, size_t K, size_t L, typename UseVertexTag=std::false_type, size_t... N>
                         constexpr std::array<int,E> offset_shape(std::integer_sequence<size_t,N...>, const std::array<int,E>& shape, UseVertexTag={}) {
-                            constexpr auto offsets = mtao::combinatorial::nCr_mask<E,K,L>();
+                            constexpr auto offsets = combinatorial::nCr_mask<E,K,L>();
                             if constexpr(UseVertexTag::value) {
                                 return {{(shape[N]-offsets[N])...}};
                             } else {
@@ -19,7 +19,7 @@ namespace mtao {
                         }
                     template <size_t E, size_t... N, typename UseVertexTag=std::false_type>
                         constexpr std::array<int,E> offset_shape(std::integer_sequence<size_t,N...>, size_t K, size_t L, const std::array<int,E>& shape, UseVertexTag={}) {
-                            constexpr auto offsets = mtao::combinatorial::nCr_mask<E>(K,L,UseVertexTag());
+                            constexpr auto offsets = combinatorial::nCr_mask<E>(K,L,UseVertexTag());
                             return {{(shape[N]+offsets[N])...}};
                         }
 
@@ -48,7 +48,7 @@ namespace mtao {
 
                     template <size_t E, size_t D, size_t N, typename UseVertexTag=std::false_type>
                         constexpr int staggered_grid_size(const std::array<int,E>& shape, UseVertexTag={}) {
-                            return offset_product(shape,mtao::combinatorial::nCr_mask<E,D,N>(), UseVertexTag());
+                            return offset_product(shape,combinatorial::nCr_mask<E,D,N>(), UseVertexTag());
                         }
 
                     template <size_t E, size_t D, size_t... N, typename UseVertexTag=std::false_type>
@@ -57,7 +57,7 @@ namespace mtao {
                         }
                     template <size_t D, size_t... N, typename UseVertexTag=std::false_type >
                         constexpr auto staggered_grid_sizes(std::integer_sequence<size_t,N...>, const std::array<int,D>& shape) {
-                            return std::make_tuple(staggered_grid_sizes_single_dim<D,N>(std::make_integer_sequence<size_t,mtao::combinatorial::nCr(D,N)>(),shape)...);
+                            return std::make_tuple(staggered_grid_sizes_single_dim<D,N>(std::make_integer_sequence<size_t,combinatorial::nCr(D,N)>(),shape)...);
                         }
 
                     template <int N, int K, typename GridType, typename UseVertexTag=std::false_type>
@@ -77,7 +77,7 @@ namespace mtao {
                     }
                 template <typename GridType, size_t...N, typename UseVertexTag=std::false_type>
                     auto make_grids(std::integer_sequence<size_t,N...>, const GridType& g,UseVertexTag={}) {
-                            return std::make_tuple(make_grids_single_dim<N>(std::make_integer_sequence<size_t,mtao::combinatorial::nCr(GridType::D,N)>(),g, UseVertexTag())...);
+                            return std::make_tuple(make_grids_single_dim<N>(std::make_integer_sequence<size_t,combinatorial::nCr(GridType::D,N)>(),g, UseVertexTag())...);
                     }
                 }
 

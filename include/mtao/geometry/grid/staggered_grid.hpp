@@ -15,9 +15,17 @@ namespace mtao {
                         constexpr static int D = Dim;
                         using GridType = GridD<T,Dim, UseVertexGrid>;
                         using Base = GridType;
+                        using Base::dx;
+                        using Base::shape;
+                        using Base::size;
+                        using Base::index;
+                        using Base::unindex;
                         using coord_type = typename Base::coord_type;
                         using StaggeredGrids = decltype(staggered_grid::make_grids(std::declval<Base>()));
-                        template <typename... Args> 
+                        StaggeredGrid(const coord_type& shape): Base(shape) {
+                            resize_grids();
+                        }
+                        template <typename... Args>
                             StaggeredGrid(const coord_type& shape, Args&&... args): Base(shape, std::forward<Args>(args)...) {
                                 resize_grids();
                             }
@@ -30,6 +38,13 @@ namespace mtao {
                             const GridType& grid() const {
                             return std::get<K>(std::get<N>(m_grids));
                             }
+                        auto&& vertex_grid() const {
+                            return grid<0,0>();
+                        }
+                        auto&& cell_grid() const {
+                            return grid<D,0>();
+                        }
+
                         template <int N, int K> size_t staggered_index(const coord_type& idx) const {return grid<N,K>().index(idx);}
                         template <int N, int K> auto staggered_vertices() const {return grid<N,K>().vertices();}
                         template <int N, int K> auto staggered_vertex(const coord_type& idx) const {return grid<N,K>().vertex(idx);}
@@ -37,6 +52,7 @@ namespace mtao {
                         template <int N, int K> size_t staggered_size() const {return grid<N,K>().size();}
 
                         auto vertex(const coord_type& idx) const {return staggered_vertex<0,0>(idx);}
+                        auto vertex(int idx) const {return vertex(unindex(idx));}
                         auto vertices() const {return staggered_vertices<0,0>();}
 
 
@@ -66,6 +82,15 @@ namespace mtao {
                         size_t uv_size() const { return staggered_size<2,2>();}
                         size_t vertex_size() const { return staggered_size<0,0>();}
                         size_t cell_size() const { return staggered_size<D,0>();}
+                        template <int D>
+                        size_t form_size() const {
+                            auto&& gs = m_grids[D];
+                            size_t size = 0;
+                            for(auto&& g: gs) {
+                                size += g.size();
+                            }
+                            return size;
+                        }
 
 
                     private:
