@@ -21,6 +21,17 @@ namespace mtao { namespace eigen {
             return Eigen::Map<const mtao::Vector<T,D>>(vec.data());
         }
 
+    template <template<class,class> typename Container, typename Allocator, typename EigenVec>
+        auto stl2eigen(const Container<EigenVec, Allocator>& vec) {
+            constexpr int D = EigenVec::RowsAtCompileTime;
+            using T = typename EigenVec::Scalar;
+            mtao::ColVectors<T,D> ret(D,vec.size());
+            for(auto&& [i,arr]: mtao::iterator::enumerate(vec)) {
+                ret.col(i) = arr;
+            }
+
+            return ret;
+        }
 
     template <template<class,class> typename Container, typename Allocator, typename T, size_t D>
         auto stl2eigen(const Container<std::array<T,D>, Allocator>& vec) {
@@ -45,6 +56,17 @@ namespace mtao { namespace eigen {
             mtao::ColVectors<T,D> ret(D,vec.size());
             for(auto&& [i,arr]: mtao::iterator::enumerate(vec)) {
                 ret.col(i) = stl2eigen(arr);
+            }
+
+            return ret;
+        }
+    template <template<class> typename Container, typename EigenVec>
+        auto stl2eigen(const Container<EigenVec>& vec) {
+            constexpr int D = EigenVec::RowsAtCompileTime;
+            using T = typename EigenVec::Scalar;
+            mtao::ColVectors<T,D> ret(D,vec.size());
+            for(auto&& [i,arr]: mtao::iterator::enumerate(vec)) {
+                ret.col(i) = arr;
             }
 
             return ret;

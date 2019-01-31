@@ -70,7 +70,10 @@ namespace mtao { namespace opengl { namespace renderers {
         }
         assert(F.minCoeff() >= 0);
         assert(F.maxCoeff() < V.cols());
-        auto N = computeNormals(V,F);
+        MatrixXgf N;
+        if(V.rows() == 3) {
+            N = computeNormals(V,F);
+        }
         setMesh(V,F,N,normalize);
     }
     void MeshRenderer::setMesh(const MatrixXgfCRef& V, const MatrixXuiCRef& F, const MatrixXgfCRef& N, bool normalize) {
