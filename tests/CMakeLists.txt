@@ -29,6 +29,9 @@ ADD_EXECUTABLE(cot_laplacian_test cot_laplacian_test.cpp)
 
 ADD_EXECUTABLE(colvector_loop_test colvector_loop_test.cpp)
 
+ADD_EXECUTABLE(stl2eigen_test stl2eigen_test.cpp)
+TARGET_LINK_LIBRARIES(stl2eigen_test mtao_core)
+
 ADD_EXECUTABLE(bounding_box_test bounding_box_test.cpp)
 TARGET_LINK_LIBRARIES(bounding_box_test mtao_core)
 

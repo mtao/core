@@ -36,10 +36,31 @@ namespace mtao { namespace types {
             return getTypeName<T>();
         }
 
+    template<typename T, class = void>
+        struct has_tuple_size: public std::false_type {};
+
+    template<class T>
+        struct has_tuple_size< T, std::enable_if_t<std::tuple_size<T>() == std::tuple_size<T>()>>: public std::true_type{};
+
     template <typename T>
-        size_t container_size(const T& container) {
-            return container.size();
+        constexpr size_t container_size(const T& container) {
+            if constexpr(has_tuple_size<T>()) {
+                return std::tuple_size<T>();
+            } else {
+                return container.size();
+            }
         }
+
+template <typename T >
+constexpr int check_size(T&& t) {
+    if(has_tuple_size<T>()) {
+        return 2;
+    } else {
+        return -1;
+    } 
+    return -1;
+
+}
 
     template <typename T, int N>
         constexpr size_t container_size(const T (&V)[N]) {
