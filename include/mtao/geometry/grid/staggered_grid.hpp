@@ -84,7 +84,7 @@ namespace mtao {
                         size_t cell_size() const { return staggered_size<D,0>();}
                         template <int D>
                         size_t form_size() const {
-                            auto&& gs = m_grids[D];
+                            auto&& gs = std::get<D>(m_grids);
                             size_t size = 0;
                             for(auto&& g: gs) {
                                 size += g.size();

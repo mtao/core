@@ -50,7 +50,17 @@ void test() {
         std::cout << "Use vertices shape as shape" << std::endl;
         mtao::geometry::grid::StaggeredGrid<float,D,true> sg(arr);
         printSG(sg);
+    std::cout << "sizes: " << std::endl;
+    std::cout << "Vertex size: " << sg.vertex_size() << std::endl;
+    std::cout << "u size: " << sg.u_size() << std::endl;
+    std::cout << "v size: " << sg.v_size() << std::endl;
+    if constexpr(D == 3) {
+    std::cout << "w size: " << sg.w_size() << std::endl;
     }
+    std::cout << "edge size: " << sg.edge_size() << std::endl;
+    std::cout << "flux_size: " << sg.flux_size() << std::endl;
+    }
+
 
 }
 
