@@ -1,8 +1,10 @@
 #pragma once
 #include <algorithm>
+#include "mtao/types.hpp"
 #include "grid_utils.h"
 #include "grid_storage.h"
 #include "indexers/ordered_indexer.hpp"
+#include <Eigen/Dense>
 
 
 namespace mtao {
@@ -60,6 +62,8 @@ namespace mtao {
                         const T& operator()(const coord_type& t) const {return m_storage(index(t));}
                         T* data() {return m_storage.data();}
                         const T* data() const {return m_storage.data();}
+                        auto as_eigen_vector() { return Eigen::Map<VectorX<T>>(data(),size()); }
+                        auto as_eigen_vector() const { return Eigen::Map<const VectorX<T>>(data(),size()); }
 
                         size_t size() const {return m_storage.size();}
 
@@ -83,19 +87,31 @@ namespace mtao {
                                 return g;
                             }
                         GridData operator+(const GridData& other) const {
-                            return cwiseBinaryOp(other,[](auto&& a, auto&& b) {return a+b;});
+                            GridData g(shape);
+                            g.as_eigen_vector() = this->as_eigen_vector() + other.as_eigen_vector();
+                            return g;
+                            //return cwiseBinaryOp(other,[](auto&& a, auto&& b) {return a+b;});
                         }
                         GridData operator-(const GridData& other) const {
-                            return cwiseBinaryOp(other,[](auto&& a, auto&& b) {return a-b;});
+                            GridData g(shape());
+                            g.as_eigen_vector() = this->as_eigen_vector() - other.as_eigen_vector();
+                            return g;
+                            //return cwiseBinaryOp(other,[](auto&& a, auto&& b) {return a-b;});
                         }
 
                         template <typename U>
                             GridData operator*(const U& v) const {
-                                return cwiseUnaryOp([&v](auto&& a) {return v*a;});
+                                GridData g(shape());
+                                g.as_eigen_vector() = v * this->as_eigen_vector();
+                                return g;
+                                //return cwiseUnaryOp([&v](auto&& a) {return v*a;});
                             }
                         template <typename U>
                             GridData operator/(const U& v) const {
-                                return cwiseUnaryOp([&v](auto&& a) {return a/v;});
+                                GridData g(shape());
+                                g.as_eigen_vector() = this->as_eigen_vector().array() / v;
+                                return g;
+                                //return cwiseUnaryOp([&v](auto&& a) {return a/v;});
                             }
                         ////read only just over indices
                         //void loop(const std::function<void(const coord_type&)>& f) const {

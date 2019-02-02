@@ -91,6 +91,8 @@ namespace mtao {
                             }
                             return size;
                         }
+                        size_t edge_size() const {return form_size<1>();}
+                        size_t flux_size() const {return form_size<D-1>();}
 
 
                     private:
