@@ -142,6 +142,7 @@ class MeshRenderer: public Renderer {
         MeshRenderBuffers* buffers() { return m_buffers.get(); }
         const MeshRenderBuffers* buffers() const { return m_buffers.get(); }
     private:
+        bool m_visible = true;
         void loadShaders(int dim);
         void update_edge_threshold();
         void update_phong_shading();

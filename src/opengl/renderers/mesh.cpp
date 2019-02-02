@@ -285,7 +285,9 @@ namespace mtao { namespace opengl { namespace renderers {
     }
 
     void MeshRenderer::imgui_interface(const std::string& name) {
-        if(ImGui::TreeNode(name.c_str())) {
+        ImGui::Checkbox(name.c_str(), &m_visible);
+        if(m_visible) {
+        if(ImGui::TreeNode((name + " options").c_str())) {
 
             static const char* shading_names[] = {
                 "Disabled",
@@ -373,10 +375,11 @@ namespace mtao { namespace opengl { namespace renderers {
 
             ImGui::TreePop();
         }
+        }
     }
 
     void MeshRenderer::render() const {
-        if(m_buffers) {
+        if(m_visible && m_buffers) {
             auto vao_a = vao().enableRAII();
             render(*m_buffers);
         }
