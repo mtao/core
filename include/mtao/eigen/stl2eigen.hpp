@@ -41,11 +41,11 @@ namespace mtao { namespace eigen {
         }
 
 
-    namespace internal {
-    template <typename Container, typename InnerType, int ColumnSize>
+    template <typename Container>
         auto stl2eigen(const Container& vec) {
 
             constexpr static int CSize = internal::container_size<Container>();
+            using InnerType = typename Container::value_type;
             if constexpr(std::is_base_of_v<Eigen::MatrixBase<InnerType>,InnerType>) {//internal eigen matrix
                 using T = typename InnerType::Scalar;
                 constexpr int D = InnerType::RowsAtCompileTime;
@@ -74,30 +74,5 @@ namespace mtao { namespace eigen {
                 return ret;
             }
         }
-    }
-    template <template<class,int> typename Container, typename InnerType, size_t D>
-        auto stl2eigen(const Container<InnerType, D>& vec) {
-            using CType = Container<InnerType, D>;
-            return internal::stl2eigen<CType,InnerType,D>(vec);
-
-        }
-    template <template<class...> typename Container, typename InnerType, typename... Types>
-        auto stl2eigen(const Container<InnerType, Types...>& vec) {
-            using CType = Container<InnerType, Types...>;
-            constexpr static int CSize = internal::container_size<CType>();
-            return internal::stl2eigen<CType,InnerType,CSize>(vec);
-
-        }
-    /*
-    template <template<class,class,class> typename Container, typename Less, typename Allocator, typename T, size_t D>
-        auto stl2eigen(const Container<std::array<T,D>, Less, Allocator>& vec) {
-            mtao::ColVectors<T,D> ret(D,vec.size());
-            for(auto&& [i,arr]: mtao::iterator::enumerate(vec)) {
-                ret.col(i) = stl2eigen(arr);
-            }
-
-            return ret;
-        }
-        */
 
 }}
