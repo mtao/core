@@ -67,7 +67,7 @@ void prepare_mesh(int i, int j, int k) {
     bbox_renderer = std::make_unique<renderers::BBoxRenderer3>();
 
     debug() << "Starting to make mesh";
-    mtao::geometry::grid::Grid3f g({{i,j,k}});
+    mtao::geometry::grid::Grid3f g(std::array<int,3>{{i,j,k}});
     mtao::geometry::grid::GridTriangulator<decltype(g)> gt(g);
     auto V = gt.vertices();
     auto F = gt.faces();

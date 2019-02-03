@@ -14,6 +14,9 @@ ADD_DEFINITIONS(-Wall)
 #ADD_DEFINITIONS(-Wno-deprecated-declarations)
 #ADD_DEFINITIONS(-Wno-unused-variable)
 
+
+OPTION(USE_ELTOPO "Should we build the el topo submodule" ON)
+
 OPTION(USE_IMGUI_IMPL "Should the OpenGL Window use the imgui example impl or not" ON)
 set(OPENGL_LOADER "GLEW" CACHE STRING "Let us select which OpenGL loader to use")
 
@@ -56,6 +59,13 @@ IF(${USE_IMGUI_IMPL})
     ADD_DEFINITIONS(-DIMGUI_IMPL_OPENGL_LOADER_GLEW)
 ENDIF(${USE_IMGUI_IMPL})
 
+IF(${USE_ELTOPO})
+    ADD_SUBDIRECTORY(extern/eltopo)
+    SET(ELTOPO_SOURCES
+        src/geometry/mesh/eltopo.cpp
+        include/mtao/geometry/mesh/eltopo.h
+        )
+ENDIF(${USE_ELTOPO})
 
 
 FIND_PACKAGE(Protobuf)
@@ -208,9 +218,14 @@ ADD_LIBRARY(mtao_geometry
     include/mtao/geometry/mesh/boundary_facets.h
     include/mtao/geometry/strands.h
     src/geometry/strands.cpp
+    ${ELTOPO_SOURCES}
     )
 
+TARGET_INCLUDE_DIRECTORIES(mtao_geometry PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extern/eltopo)
 TARGET_LINK_LIBRARIES(mtao_geometry mtao_core)
+IF(USE_ELTOPO)
+TARGET_LINK_LIBRARIES(mtao_geometry eltopo)
+ENDIF(USE_ELTOPO)
 
 
 ADD_SUBDIRECTORY(tests EXCLUDE_FROM_ALL)
