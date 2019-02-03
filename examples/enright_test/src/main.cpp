@@ -51,6 +51,7 @@ void prepare_mesh(const ColVectors3d& V, const ColVectors3i&F) {
 
     renderers::MeshRenderer::MatrixXgf C = renderer->computeNormals(V.cast<GLfloat>(),F.cast<GLuint>()).array();
     renderer->setColor(C);
+    renderer->set_edge_style(renderers::MeshRenderer::EdgeStyle::Mesh);
 }
 void set_mvp(int w, int h) {
     cam.set_shape(w,h);
@@ -146,6 +147,7 @@ void render(int width, int height) {
 
 int main(int argc, char * argv[]) {
 
+    set_opengl_version_hints();
     window = std::make_unique<Window>();
     window->set_gui_func(gui_func);
     window->set_render_func(render);
@@ -154,7 +156,7 @@ int main(int argc, char * argv[]) {
     if(argc < 2) {
         std::cout << "Need an obj input!" << std::endl;
         std::cout << "Loading a sphere mesh instead" << std::endl;
-        std::tie(V,F) = mtao::geometry::mesh::sphere<double>(2);
+        std::tie(V,F) = mtao::geometry::mesh::sphere<double>(3);
     } else {
         std::tie(V,F) = mtao::geometry::mesh::read_objD(argv[1]);
     }

@@ -63,14 +63,8 @@ void prepare_mesh(const ColVectors3f& V, const ColVectors3i&F) {
 }
 void set_mvp(int w, int h) {
     cam.set_shape(w,h);
-
-    //cam.v() = glm::lookAt(glm::vec3(1,0,0), glm::vec3(0,0,0), glm::vec3(0,1,0));
     cam.pan();
     cam.update();
-
-
-
-
 }
 
 void gui_func() {
