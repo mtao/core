@@ -7,6 +7,7 @@
 #include <eltopo3d/surftrack.h>
 
 
+ElTopoTracker& ElTopoTracker::operator=(ElTopoTracker&&) = default;
 ElTopoTracker& ElTopoTracker::operator=(const ElTopoTracker& o) {
     m_subdivision_scheme = o.m_subdivision_scheme;
     m_verbose = o.m_verbose;

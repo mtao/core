@@ -23,7 +23,7 @@ class ElTopoTracker {
         using RefCV3i = Eigen::Ref<ColVectors3i>;
         using CRefCV3d= Eigen::Ref<const ColVectors3d>;
         using CRefCV3i = Eigen::Ref<const ColVectors3i>;
-        ElTopoTracker& operator=(ElTopoTracker&&) = default;
+        ElTopoTracker& operator=(ElTopoTracker&&);
         ElTopoTracker& operator=(const ElTopoTracker&);
         ElTopoTracker(const ElTopoTracker&);
         ~ElTopoTracker();
