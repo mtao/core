@@ -44,15 +44,25 @@ namespace mtao {
                         auto&& cell_grid() const {
                             return grid<D,0>();
                         }
+                        template <int N>
+                            auto offsets() const {
+                                return std::get<N>(m_offsets);
+                            }
+                        template <int N, int K>
+                            int offset() const {
+                                return offsets<N>()[K];
+                            }
 
-                        template <int N, int K> size_t staggered_index(const coord_type& idx) const {return grid<N,K>().index(idx);}
+
+                        template <int N, int K> size_t staggered_index(const coord_type& idx) const {return offset<N,K>() + grid<N,K>().index(idx);}
+                        template <int N, int K> size_t staggered_unindex(int idx) const {return grid<N,K>().unindex(idx - offset<N,K>());}
                         template <int N, int K> auto staggered_vertices() const {return grid<N,K>().vertices();}
                         template <int N, int K> auto staggered_vertex(const coord_type& idx) const {return grid<N,K>().vertex(idx);}
                         template <int N, int K> const coord_type& staggered_shape() const {return grid<N,K>().shape();}
                         template <int N, int K> size_t staggered_size() const {return grid<N,K>().size();}
 
                         auto vertex(const coord_type& idx) const {return staggered_vertex<0,0>(idx);}
-                        auto vertex(int idx) const {return vertex(unindex(idx));}
+                        auto vertex(int idx) const {return vertex(staggered_unindex<0,0>(idx));}
                         auto vertices() const {return staggered_vertices<0,0>();}
 
 
@@ -94,12 +104,22 @@ namespace mtao {
                         size_t edge_size() const {return form_size<1>();}
                         size_t flux_size() const {return form_size<D-1>();}
 
+                        template <int D>
+                        size_t form_type(size_t index) const {
+                            using namespace iterator;
+                            auto&& ofs = offsets<D>();
+                            for(auto&& idx: enumerate(ofs)) {
+                            }
+
+                        }
 
                     private:
                         void resize_grids() {
                             m_grids = staggered_grid::make_grids(*static_cast<Base*>(this),std::integral_constant<bool,UseVertexGrid>());
+                            m_offsets = staggered_grid::staggered_grid_sizes(shape(),std::integral_constant<bool,UseVertexGrid>());
                         }
                         StaggeredGrids m_grids;
+                        decltype(staggered_grid::staggered_grid_sizes(std::declval<coord_type>())) m_offsets;
                         
 
                 };
