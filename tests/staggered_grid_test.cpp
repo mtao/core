@@ -3,6 +3,8 @@
 #include <numeric>
 #include <iterator>
 #include <array>
+#include <mtao/iterator/enumerate.hpp>
+#include <mtao/iterator/reverse.hpp>
 
 using namespace mtao;
 
@@ -14,6 +16,8 @@ void test() {
     for(auto&& a: arr) {
         std::cout << a << ",";
     }
+    std::cout << std::endl;
+    /*
     auto printArr = [&](auto&& a) {
 
         std::copy(a.begin(),a.end(),std::ostream_iterator<int>(std::cout,","));
@@ -59,6 +63,49 @@ void test() {
     }
     std::cout << "edge size: " << sg.edge_size() << std::endl;
     std::cout << "flux_size: " << sg.flux_size() << std::endl;
+    }
+
+    */
+    {
+        mtao::geometry::grid::StaggeredGrid<float,D,true> sg(arr);
+        auto ofs = sg.template offsets<1>();
+        for(auto&& v: ofs) {
+            std::cout << v << "," ;
+        }
+        std::cout << std::endl;
+        auto grids= sg.template grids<1>();
+        for(auto&& v: grids) {
+            std::cout << v.size()  << "," ;
+        }
+        std::cout << std::endl;
+        auto sizes = std::get<1>(mtao::geometry::grid::staggered_grid::staggered_grid_sizes(sg.shape()));
+        for(auto&& v: sizes) {
+            std::cout << v << "," ;
+        }
+        using namespace iterator;
+
+        for(int index = 0; index < sg.template form_size<1>(); ++index) {
+
+            auto [c,ft] = sg.template form_unindex<1>(index);
+            std::cout << index <<") " << ft << ": ";
+
+
+            for(auto&& v: c) {
+                std::cout << v << ",";
+            }
+            std::cout << "=> " << sg.template staggered_index<1>(c,ft);
+            std::cout << std::endl;
+        }
+        std::cout << std::endl;
+        auto&& g = sg.template grid<1>(0);
+        for(int i = 0; i < g.size(); ++i) {
+            std::cout << i << ")";
+            auto c = g.unindex(i);
+            for(auto&& v: c) {
+                std::cout << v << ",";
+            }
+            std::cout << "=>" << g.index(c) << std::endl;
+        }
     }
 
 

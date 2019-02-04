@@ -1,7 +1,9 @@
 #pragma once
 #include "mtao/algebra/combinatorial.hpp"
+#include "mtao/type_utils.h"
 #include <tuple>
 #include <algorithm>
+#include <numeric>
 
 namespace mtao {
     namespace geometry {
@@ -56,8 +58,8 @@ namespace mtao {
                             return std::array<int,sizeof...(N)>{{staggered_grid_size<E,D,N>(shape, UseVertexTag())...}};
                         }
                     template <size_t D, size_t... N, typename UseVertexTag=std::false_type >
-                        constexpr auto staggered_grid_sizes(std::integer_sequence<size_t,N...>, const std::array<int,D>& shape) {
-                            return std::make_tuple(staggered_grid_sizes_single_dim<D,N>(std::make_integer_sequence<size_t,combinatorial::nCr(D,N)>(),shape)...);
+                        constexpr auto staggered_grid_sizes(std::integer_sequence<size_t,N...>, const std::array<int,D>& shape, UseVertexTag) {
+                            return std::make_tuple(staggered_grid_sizes_single_dim<D,N>(std::make_integer_sequence<size_t,combinatorial::nCr(D,N)>(),shape, UseVertexTag())...);
                         }
 
                     template <int N, int K, typename GridType, typename UseVertexTag=std::false_type>
@@ -79,13 +81,33 @@ namespace mtao {
                     auto make_grids(std::integer_sequence<size_t,N...>, const GridType& g,UseVertexTag={}) {
                             return std::make_tuple(make_grids_single_dim<N>(std::make_integer_sequence<size_t,combinatorial::nCr(GridType::D,N)>(),g, UseVertexTag())...);
                     }
+
+                template <typename SizeType, size_t...N>
+                    auto partial_sum_per_size(std::integer_sequence<size_t,N...>, const SizeType& sizes) {
+                        auto sum = [](auto&& sizes) {
+                            using T = types::remove_cvref_t<decltype(sizes)>;
+                            constexpr size_t s = std::tuple_size<T>()+1;
+                            std::array<int,s> m;
+                            m[0] = 0;
+                            std::partial_sum(sizes.begin(),sizes.end(),m.begin()+1);
+                            return m;
+                        };
+                        return std::make_tuple(sum(std::get<N>(sizes))...);
+                    }
                 }
 
 
                 //creates a tuple of tuples of grid sizes
                 template <size_t D, typename UseVertexTag=std::false_type>
                     constexpr auto staggered_grid_sizes(const std::array<int,D>& shape, UseVertexTag={}) {
-                        return internal::staggered_grid_sizes(std::make_integer_sequence<size_t,D+1>(),shape);
+                        return internal::staggered_grid_sizes(std::make_integer_sequence<size_t,D+1>(),shape, UseVertexTag());
+                    }
+                //creates a tuple of tuples of grid sizes
+                template <size_t D, typename UseVertexTag=std::false_type>
+                    constexpr auto staggered_grid_offsets(const std::array<int,D>& shape, UseVertexTag={}) {
+                        auto sizes = staggered_grid_sizes(shape,UseVertexTag());
+                        return internal::partial_sum_per_size(std::make_integer_sequence<size_t,D+1>(),sizes);
+
                     }
                 template <typename GridType, typename UseVertexTag=std::false_type>
                     auto make_grids(const GridType& g,UseVertexTag={}) {

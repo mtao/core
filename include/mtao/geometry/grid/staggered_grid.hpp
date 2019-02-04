@@ -1,6 +1,7 @@
 #pragma once
 #include "mtao/algebra/combinatorial.hpp"
 #include "staggered_grid_utils.hpp"
+#include "mtao/iterator/enumerate.hpp"
 #include "grid.h"
 #include <tuple>
 
@@ -38,6 +39,14 @@ namespace mtao {
                             const GridType& grid() const {
                             return std::get<K>(std::get<N>(m_grids));
                             }
+                        template <int N>
+                            auto&& grids() const {
+                            return std::get<N>(m_grids);
+                            }
+                        template <int N>
+                            const GridType& grid(int K) const {
+                            return std::get<N>(m_grids)[K];
+                            }
                         auto&& vertex_grid() const {
                             return grid<0,0>();
                         }
@@ -52,16 +61,26 @@ namespace mtao {
                             int offset() const {
                                 return offsets<N>()[K];
                             }
+                        template <int N>
+                            int offset(int K) const {
+                                return offsets<N>()[K];
+                            }
 
 
                         template <int N, int K> size_t staggered_index(const coord_type& idx) const {return offset<N,K>() + grid<N,K>().index(idx);}
-                        template <int N, int K> size_t staggered_unindex(int idx) const {return grid<N,K>().unindex(idx - offset<N,K>());}
+                        template <int N> size_t staggered_index(const coord_type& idx, int K) const {return offset<N>(K) + grid<N>(K).index(idx);}
+                        template <int N, int K> auto staggered_unindex(int idx) const {return grid<N,K>().unindex(idx - offset<N,K>());}
+                        template <int N> auto staggered_unindex(int idx, int K) const {return grid<N>(K).unindex(idx - offset<N>(K));}
                         template <int N, int K> auto staggered_vertices() const {return grid<N,K>().vertices();}
                         template <int N, int K> auto staggered_vertex(const coord_type& idx) const {return grid<N,K>().vertex(idx);}
                         template <int N, int K> const coord_type& staggered_shape() const {return grid<N,K>().shape();}
                         template <int N, int K> size_t staggered_size() const {return grid<N,K>().size();}
+                        template <int N> auto staggered_vertices(int K) const {return grid<N>(K).vertices();}
+                        template <int N> auto staggered_vertex(const coord_type& idx, int K) const {return grid<N>(K).vertex(idx);}
+                        template <int N> const coord_type& staggered_shape(int K) const {return grid<N>(K).shape();}
+                        template <int N> size_t staggered_size(int K) const {return grid<N>(K).size();}
 
-                        auto vertex(const coord_type& idx) const {return staggered_vertex<0,0>(idx);}
+                        auto vertex(const coord_type& idx,int K) const {return staggered_vertex<0>(idx,K);}
                         auto vertex(int idx) const {return vertex(staggered_unindex<0,0>(idx));}
                         auto vertices() const {return staggered_vertices<0,0>();}
 
@@ -94,32 +113,41 @@ namespace mtao {
                         size_t cell_size() const { return staggered_size<D,0>();}
                         template <int D>
                         size_t form_size() const {
-                            auto&& gs = std::get<D>(m_grids);
-                            size_t size = 0;
-                            for(auto&& g: gs) {
-                                size += g.size();
-                            }
-                            return size;
+                            auto&& gs = std::get<D>(m_offsets);
+                            using U = types::remove_cvref_t<decltype(gs)>;
+                            return gs[std::tuple_size<U>()-1];
                         }
                         size_t edge_size() const {return form_size<1>();}
                         size_t flux_size() const {return form_size<D-1>();}
 
                         template <int D>
-                        size_t form_type(size_t index) const {
+                        size_t form_type(int index) const {
                             using namespace iterator;
                             auto&& ofs = offsets<D>();
-                            for(auto&& idx: enumerate(ofs)) {
+                            size_t result = 0;
+                            using U = types::remove_cvref_t<decltype(ofs)>;
+                            for(auto&& [i,v]: enumerate(reverse(ofs))) {
+                                if(index >= v) {
+                                    result = std::tuple_size<U>() - i - 1;
+                                    break;
+                                }
                             }
-
+                            return result;
                         }
+                        template <int D>
+                            auto form_unindex(int idx) const {
+                                int ft = form_type<D>(idx);
+                                return std::make_tuple(staggered_unindex<D>(idx,ft),ft);
+
+                            }
 
                     private:
                         void resize_grids() {
                             m_grids = staggered_grid::make_grids(*static_cast<Base*>(this),std::integral_constant<bool,UseVertexGrid>());
-                            m_offsets = staggered_grid::staggered_grid_sizes(shape(),std::integral_constant<bool,UseVertexGrid>());
+                            m_offsets = staggered_grid::staggered_grid_offsets(shape(),std::integral_constant<bool,UseVertexGrid>());
                         }
                         StaggeredGrids m_grids;
-                        decltype(staggered_grid::staggered_grid_sizes(std::declval<coord_type>())) m_offsets;
+                        decltype(staggered_grid::staggered_grid_offsets(std::declval<coord_type>())) m_offsets;
                         
 
                 };
