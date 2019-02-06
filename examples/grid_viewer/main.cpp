@@ -159,7 +159,7 @@ void render(int width, int height) {
     
     glDepthFunc(GL_LESS);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_CLIP_PLANE0);
+    //glEnable(GL_CLIP_PLANE0);
 
     //glClipPlane(GL_CLIP_PLANE0,glm::value_ptr(clip_plane_equation));
     renderer->render();
