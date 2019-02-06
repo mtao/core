@@ -51,7 +51,7 @@ namespace mtao {
                                 return index(std::forward<Args>(args)...);
                             }
 
-                            bool valid_index(const coord_type& c) const {
+                            bool valid_index_(const coord_type& c) const {
                                 for(size_t i = 0; i < D; ++i) {
                                     auto& v = c[i];
                                     if(v < 0 || v >= m_shape[i]) {
@@ -63,10 +63,12 @@ namespace mtao {
                             template <typename... Args>
                                 bool valid_index(Args&&... args) const {
                                     if constexpr(sizeof...(Args) == D) {
+                                        static_assert(sizeof...(Args) == D);
+                                        static_assert((std::is_convertible_v<Args,int> && ...));
+                                        return valid_index_(coord_type{{args...}});
+                                    }  else {
+                                        return valid_index_(std::forward<Args>(args)...);
                                     }
-                                    static_assert(sizeof...(Args) == D);
-                                    static_assert((std::is_convertible_v<Args,int> && ...));
-                                    return valid_index(coord_type{{args...}});
                                 }
                             /*
                             template <typename... Args>

@@ -80,9 +80,12 @@ namespace mtao {
                         template <int N> const coord_type& staggered_shape(int K) const {return grid<N>(K).shape();}
                         template <int N> size_t staggered_size(int K) const {return grid<N>(K).size();}
 
-                        auto vertex(const coord_type& idx,int K) const {return staggered_vertex<0>(idx,K);}
+                        auto vertex(const coord_type& idx) const {return staggered_vertex<0,0>(idx);}
                         auto vertex(int idx) const {return vertex(staggered_unindex<0,0>(idx));}
                         auto vertices() const {return staggered_vertices<0,0>();}
+                        auto cell_vertex(const coord_type& idx) const {return staggered_vertex<D>(idx);}
+                        auto cell_vertex(int idx) const {return vertex(staggered_unindex<D,0>(idx));}
+                        auto cell_vertices() const {return staggered_vertices<D,0>();}
 
 
                         size_t u_index(const coord_type& idx) const { return staggered_index<1,0>(idx);}
