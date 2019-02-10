@@ -124,7 +124,10 @@ namespace mtao {
                         size_t flux_size() const {return form_size<D-1>();}
 
                         template <int D>
-                        size_t form_type(int index) const {
+                        int form_type(int index) const {
+                            if(index < 0) {
+                                return -1;
+                            }
                             using namespace iterator;
                             auto&& ofs = offsets<D>();
                             size_t result = 0;
@@ -134,6 +137,9 @@ namespace mtao {
                                     result = std::tuple_size<U>() - i - 1;
                                     break;
                                 }
+                            }
+                            if(result >= ofs.size()) {
+                                return -1;
                             }
                             return result;
                         }
