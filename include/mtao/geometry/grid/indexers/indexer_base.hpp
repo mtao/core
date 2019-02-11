@@ -60,10 +60,7 @@ namespace mtao {
                                 }
                                 return true;
                             }
-                            template <typename... Args
-                                , typename = std::enable_if_t<sizeof...(Args) == D>
-                                 , typename = std::enable_if_t<(std::is_convertible_v<Args,int> && ...)>
-                                >
+                            template <typename... Args>
                                 bool valid_index(Args&&... args) const {
                                     if constexpr(sizeof...(Args) == D) {
                                         static_assert(sizeof...(Args) == D);

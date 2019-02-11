@@ -149,7 +149,11 @@ namespace mtao { namespace opengl {
     }
     void Camera3D::update() {
         v() = glm::lookAt(m_camera_pos,m_target_pos,m_camera_up);
-        perspective(m_fov_y);
+        if(m_ortho) {
+            ortho();
+        } else {
+            perspective(m_fov_y);
+        }
     }
 
     void Camera3D::pan() {
