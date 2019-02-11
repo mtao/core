@@ -30,6 +30,14 @@ namespace mtao { namespace eigen {
         auto stl2eigen(const std::array<T,D>& vec) {
             return Eigen::Map<const mtao::Vector<T,D>>(vec.data());
         }
+    template <typename T, typename Allocator, typename = std::enable_if_t<std::is_scalar_v<T>>>
+        auto stl2eigen(std::vector<T, Allocator>& vec) {
+            return Eigen::Map<mtao::VectorX<T>>(vec.data(),vec.size());
+        }
+    template <typename T, size_t D, typename = std::enable_if_t<std::is_scalar_v<T>>>
+        auto stl2eigen(std::array<T,D>& vec) {
+            return Eigen::Map<mtao::Vector<T,D>>(vec.data());
+        }
     template <size_t D>
         auto stl2eigen(const std::bitset<D>& bs) {
             mtao::Vector<bool,D> v;

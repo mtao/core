@@ -23,13 +23,19 @@ namespace mtao {
                         using Base::unindex;
                         using coord_type = typename Base::coord_type;
                         using StaggeredGrids = decltype(staggered_grid::make_grids(std::declval<Base>()));
+                        /*
                         StaggeredGrid(const coord_type& shape): Base(shape) {
                             resize_grids();
                         }
+                        */
                         template <typename... Args>
-                            StaggeredGrid(const coord_type& shape, Args&&... args): Base(shape, std::forward<Args>(args)...) {
+                            StaggeredGrid(Args&&... args): Base(std::forward<Args>(args)...) {
                                 resize_grids();
                             }
+                        //template <typename... Args>
+                        //    StaggeredGrid(const coord_type& shape, Args&&... args): Base(shape, std::forward<Args>(args)...) {
+                        //        resize_grids();
+                        //    }
                         StaggeredGrid() {}
                         StaggeredGrid(const StaggeredGrid& other) = default;
                         StaggeredGrid(StaggeredGrid&& other) = default;

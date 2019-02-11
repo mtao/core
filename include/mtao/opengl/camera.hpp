@@ -77,8 +77,8 @@ class Camera3D: public Camera {
         const glm::vec3& camera_up() const { return m_camera_up; }
         void set_distance(float distance);
         
-        bool set_ortho() { m_ortho = true; }
-        bool set_perspective() { m_ortho = false; }
+        void set_ortho() { m_ortho = true; }
+        void set_perspective() { m_ortho = false; }
         void update() override;
         void pan();
         void enableDrag() { m_dragMode = true;}

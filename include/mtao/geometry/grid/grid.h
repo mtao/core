@@ -11,12 +11,13 @@ namespace mtao {
         namespace grid {
 
             //NOTE: The UseVertexGrid flag is mainly for compabitibility with deriving staggered grids from this class
-            template <typename T, typename Indexer, bool UseVertexGrid=true>
+            template <typename T, typename Indexer, bool UseVertexGrid_=true>
                 class Grid: public Indexer {
                     public:
                         EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
                         using value_type = T;
                         using Scalar = T;//for eigen compat
+                        static constexpr int UseVertexGrid = UseVertexGrid_;
                         static constexpr int D = Indexer::D;
                         using coord_type = typename Indexer::coord_type;
                         using Indexer::shape;
