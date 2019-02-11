@@ -86,9 +86,11 @@ namespace mtao {
 
 
 
-                        auto vertex(int idx) const {return staggered_vertex<0,0>(idx);}
+                        auto vertex(const coord_type& idx) const {return staggered_vertex<0,0>(idx);}
+                        auto vertex(int idx) const {return vertex(staggered_unindex<0,0>(idx));}
                         auto vertices() const {return staggered_vertices<0,0>();}
-                        auto cell_vertex(int idx) const {return staggered_vertex<D,0>(idx);}
+                        auto cell_vertex(const coord_type& idx) const {return staggered_vertex<D>(idx);}
+                        auto cell_vertex(int idx) const {return vertex(staggered_unindex<D,0>(idx));}
                         auto cell_vertices() const {return staggered_vertices<D,0>();}
 
 
@@ -128,7 +130,10 @@ namespace mtao {
                         size_t flux_size() const {return form_size<D-1>();}
 
                         template <int D>
-                        size_t form_type(int index) const {
+                        int form_type(int index) const {
+                            if(index < 0) {
+                                return -1;
+                            }
                             using namespace iterator;
                             auto&& ofs = offsets<D>();
                             size_t result = 0;
@@ -138,6 +143,9 @@ namespace mtao {
                                     result = std::tuple_size<U>() - i - 1;
                                     break;
                                 }
+                            }
+                            if(result >= ofs.size()) {
+                                return -1;
                             }
                             return result;
                         }

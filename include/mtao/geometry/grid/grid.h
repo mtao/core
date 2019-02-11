@@ -93,6 +93,17 @@ namespace mtao {
                         auto&& origin() const { return m_origin; }
                         auto&& dx() const { return m_dx; }
 
+                        template <typename Derived>
+                            auto coord(const Eigen::MatrixBase<Derived>& v) const {
+                                Vec p = (v - origin()).cwiseQuotient( dx());
+                                std::array<int,D> coord;
+                                std::array<T,D> quot;
+                                IVecMap(coord.data()) = p.template cast<int>();
+                                VecMap(quot.data()) = p - IVecMap(coord.data()).template cast<T>();
+                                return std::make_tuple(coord,quot);
+                            }
+
+
                     private:
                         Vec m_origin = Vec::Zero();
                         Vec m_dx = Vec::Ones();
