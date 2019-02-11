@@ -191,12 +191,15 @@ ADD_LIBRARY(mtao_opengl
     include/mtao/opengl/renderers/bbox.h
     src/opengl/renderers/axis.cpp
     include/mtao/opengl/renderers/axis.h
+    src/opengl/renderers/tube.cpp
+    include/mtao/opengl/renderers/tube.h
 
     #Shaders
     src/opengl/shaders/phong.cpp
     src/opengl/shaders/baryedge.cpp
     src/opengl/shaders/simple.cpp
     src/opengl/shaders/vectors.cpp
+    src/opengl/shaders/tube.cpp
     )
 
 
