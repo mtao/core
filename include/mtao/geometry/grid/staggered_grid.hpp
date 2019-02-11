@@ -79,10 +79,17 @@ namespace mtao {
                         template <int N> auto staggered_vertex(const coord_type& idx, int K) const {return grid<N>(K).vertex(idx);}
                         template <int N> const coord_type& staggered_shape(int K) const {return grid<N>(K).shape();}
                         template <int N> size_t staggered_size(int K) const {return grid<N>(K).size();}
+                        template <int N, int K=0>
+                        auto staggered_vertex(int idx) const {return staggered_vertex<N,K>(staggered_unindex<N,K>(idx));}
+                        template <int N>
+                        auto staggered_vertex(int idx, int K) const {return staggered_vertex<N>(staggered_unindex<N>(idx,K),K);}
 
-                        auto vertex(const coord_type& idx,int K) const {return staggered_vertex<0>(idx,K);}
-                        auto vertex(int idx) const {return vertex(staggered_unindex<0,0>(idx));}
+
+
+                        auto vertex(int idx) const {return staggered_vertex<0,0>(idx);}
                         auto vertices() const {return staggered_vertices<0,0>();}
+                        auto cell_vertex(int idx) const {return staggered_vertex<D,0>(idx);}
+                        auto cell_vertices() const {return staggered_vertices<D,0>();}
 
 
                         size_t u_index(const coord_type& idx) const { return staggered_index<1,0>(idx);}
@@ -133,6 +140,10 @@ namespace mtao {
                                 }
                             }
                             return result;
+                        }
+
+                        size_t edge_type(int index) const {
+                            return form_type<1>(index);
                         }
                         template <int D>
                             auto form_unindex(int idx) const {
