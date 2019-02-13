@@ -4,3 +4,6 @@
 [submodule "extern/eltopo"]
 	path = extern/eltopo
 	url = https://github.com/mtao/eltopo.git
+[submodule "extern/triangle"]
+	path = extern/triangle
+	url = https://github.com/libigl/triangle
