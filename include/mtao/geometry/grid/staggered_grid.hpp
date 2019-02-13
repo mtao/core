@@ -175,15 +175,9 @@ namespace mtao {
 
                             }
                         template <typename Derived>
-                        auto coord(const Eigen::MatrixBase<Derived>& v) const-> std::tuple<coord_type,std::array<double,D>> {
+                        auto coord(const Eigen::MatrixBase<Derived>& v) const {
 
-                            Vec p = (v - origin()).cwiseQuotient( dx());
-                            std::cout << p.transpose() << "/" << dx().transpose() << std::endl;
-                            coord_type coord;
-                            IVecMap(coord.data()) = p.array().floor().template cast<int>();
-                            std::array<double,D> quot;
-                            VecMap(quot.data()) = p - IVecMap(coord.data()).template cast<double>();
-                            return std::make_tuple(coord,quot);
+                            return vertex_grid().coord(v);
                         }
 
                     private:
