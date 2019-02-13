@@ -139,6 +139,10 @@ class MeshRenderer: public Renderer {
 
 
 
+        bool buffers_available() const { return bool(m_buffers); }
+        void make_buffers() {
+            m_buffers = std::make_shared<MeshRenderBuffers>();
+        }
         MeshRenderBuffers* buffers() { return m_buffers.get(); }
         const MeshRenderBuffers* buffers() const { return m_buffers.get(); }
     private:

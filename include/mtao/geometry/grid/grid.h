@@ -11,12 +11,13 @@ namespace mtao {
         namespace grid {
 
             //NOTE: The UseVertexGrid flag is mainly for compabitibility with deriving staggered grids from this class
-            template <typename T, typename Indexer, bool UseVertexGrid=true>
+            template <typename T, typename Indexer, bool UseVertexGrid_=true>
                 class Grid: public Indexer {
                     public:
                         EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
                         using value_type = T;
                         using Scalar = T;//for eigen compat
+                        static constexpr int UseVertexGrid = UseVertexGrid_;
                         static constexpr int D = Indexer::D;
                         using coord_type = typename Indexer::coord_type;
                         using Indexer::shape;
@@ -92,6 +93,17 @@ namespace mtao {
                         }
                         auto&& origin() const { return m_origin; }
                         auto&& dx() const { return m_dx; }
+
+                        template <typename Derived>
+                            auto coord(const Eigen::MatrixBase<Derived>& v) const {
+                                Vec p = (v - origin()).cwiseQuotient( dx());
+                                std::array<int,D> coord;
+                                std::array<T,D> quot;
+                                IVecMap(coord.data()) = p.template cast<int>();
+                                VecMap(quot.data()) = p - IVecMap(coord.data()).template cast<T>();
+                                return std::make_tuple(coord,quot);
+                            }
+
 
                     private:
                         Vec m_origin = Vec::Zero();

@@ -38,6 +38,8 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/extern/triangle)
+ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/extern/triangle)
 
 SET(IMGUI_PATH ${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui)
 INCLUDE_DIRECTORIES(${IMGUI_PATH})
@@ -191,12 +193,15 @@ ADD_LIBRARY(mtao_opengl
     include/mtao/opengl/renderers/bbox.h
     src/opengl/renderers/axis.cpp
     include/mtao/opengl/renderers/axis.h
+    src/opengl/renderers/tube.cpp
+    include/mtao/opengl/renderers/tube.h
 
     #Shaders
     src/opengl/shaders/phong.cpp
     src/opengl/shaders/baryedge.cpp
     src/opengl/shaders/simple.cpp
     src/opengl/shaders/vectors.cpp
+    src/opengl/shaders/tube.cpp
     )
 
 
@@ -209,6 +214,9 @@ ADD_LIBRARY(mtao_geometry
     src/geometry/mesh/halfedge.cpp
     src/geometry/mesh/halfedge_fv_map.cpp
     src/geometry/mesh/read_obj.cpp
+    src/geometry/mesh/triangle/triangle_wrapper.cpp
+    src/geometry/mesh/triangle/triangle_wrapper_imgui.cpp
+    src/geometry/mesh/triangle/mesh.cpp
     #src/geometry/mesh/read_plc.cpp
     include/mtao/geometry/mesh/halfedge.hpp
     include/mtao/geometry/mesh/halfedge_fv_map.hpp
@@ -222,7 +230,7 @@ ADD_LIBRARY(mtao_geometry
     )
 
 TARGET_INCLUDE_DIRECTORIES(mtao_geometry PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extern/eltopo)
-TARGET_LINK_LIBRARIES(mtao_geometry mtao_core)
+TARGET_LINK_LIBRARIES(mtao_geometry mtao_core triangle)
 IF(USE_ELTOPO)
 TARGET_LINK_LIBRARIES(mtao_geometry eltopo)
 ENDIF(USE_ELTOPO)

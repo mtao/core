@@ -29,13 +29,19 @@ namespace mtao {
                         using IVecMap = typename Base::IVecMap;
                         using CIVecMap = typename Base::CIVecMap;
                         using StaggeredGrids = decltype(staggered_grid::make_grids(std::declval<Base>()));
+                        /*
                         StaggeredGrid(const coord_type& shape): Base(shape) {
                             resize_grids();
                         }
+                        */
                         template <typename... Args>
-                            StaggeredGrid(const coord_type& shape, Args&&... args): Base(shape, std::forward<Args>(args)...) {
+                            StaggeredGrid(Args&&... args): Base(std::forward<Args>(args)...) {
                                 resize_grids();
                             }
+                        //template <typename... Args>
+                        //    StaggeredGrid(const coord_type& shape, Args&&... args): Base(shape, std::forward<Args>(args)...) {
+                        //        resize_grids();
+                        //    }
                         StaggeredGrid() {}
                         StaggeredGrid(const StaggeredGrid& other) = default;
                         StaggeredGrid(StaggeredGrid&& other) = default;
@@ -87,6 +93,12 @@ namespace mtao {
                         template <int N> auto staggered_vertex(const coord_type& idx, int K) const {return grid<N>(K).vertex(idx);}
                         template <int N> const coord_type& staggered_shape(int K) const {return grid<N>(K).shape();}
                         template <int N> size_t staggered_size(int K) const {return grid<N>(K).size();}
+                        template <int N, int K=0>
+                        auto staggered_vertex(int idx) const {return staggered_vertex<N,K>(staggered_unindex<N,K>(idx));}
+                        template <int N>
+                        auto staggered_vertex(int idx, int K) const {return staggered_vertex<N>(staggered_unindex<N>(idx,K),K);}
+
+
 
                         auto vertex(const coord_type& idx) const {return staggered_vertex<0,0>(idx);}
                         auto vertex(int idx) const {return vertex(staggered_unindex<0,0>(idx));}
@@ -133,7 +145,10 @@ namespace mtao {
                         size_t flux_size() const {return form_size<D-1>();}
 
                         template <int D>
-                        size_t form_type(int index) const {
+                        int form_type(int index) const {
+                            if(index < 0) {
+                                return -1;
+                            }
                             using namespace iterator;
                             auto&& ofs = offsets<D>();
                             size_t result = 0;
@@ -144,7 +159,14 @@ namespace mtao {
                                     break;
                                 }
                             }
+                            if(result >= ofs.size()) {
+                                return -1;
+                            }
                             return result;
+                        }
+
+                        size_t edge_type(int index) const {
+                            return form_type<1>(index);
                         }
                         template <int D>
                             auto form_unindex(int idx) const {
