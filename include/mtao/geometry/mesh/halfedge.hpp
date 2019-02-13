@@ -5,6 +5,7 @@
 #include <set>
 #include <utility>
 #include "mtao/types.h"
+#include <Eigen/Geometry>
 #include <iostream>
 #include <array>
 
@@ -285,28 +286,60 @@ template <typename S, int D>
 template <typename Derived>
 bool EmbeddedHalfEdgeMesh<S,D>::is_inside(const HalfEdge& cell_edge, const Eigen::MatrixBase<Derived>& p) const {
     static_assert(D == 2);
-    auto edge = [](HalfEdge he) -> std::array<int,3> {
-        int i = he.vertex(); he.next(); 
-        int j = he.vertex(); he.next(); 
-        int k = he.vertex(); he.next(); 
-        return {{i,j,k}};
-
-    };
 
     bool inside = true;
-    cell_iterator(this,cell_edge.index()).run_earlyout([&](auto&& e) -> bool{
-            auto [i,j,k] = edge(e);
-            auto a = V(i);
-            auto b = V(j);
-            auto c = V(k);
-            auto ba = b-a;
-            auto cb = c-b;
-            auto pb = p-b;
-            Vec n(-ba.y(),ba.x());
-            inside = pb.dot(n) * cb.dot(n) >= 0;
+    if constexpr(true) {
+        auto edge = [](HalfEdge he) -> std::array<int,2> {
+            int i = he.vertex(); he.next(); 
+            int j = he.vertex();
+            return {{i,j}};
 
-            return inside;
-            });
+        };
+
+        auto winding_number = [&](auto&& p) -> S{
+            S value = 0;
+        cell_iterator(this,cell_edge.index())([&](auto&& e){
+                auto [i,j] = edge(e);
+                auto a = V(i) - p;
+                auto b = V(j) - p;
+                S aa = std::atan2(a.y(),a.x());
+                S ba = std::atan2(b.y(),b.x());
+                S ang = ba - aa;
+                if(ang > M_PI) {
+                ang -= 2 * M_PI;
+                } else if(ang <= -M_PI) {
+                ang += 2*M_PI;
+                }
+                value += ang;
+
+                });
+        return value;
+
+        };
+        return std::abs(winding_number(p)) > 1;//1 is ok, looking for multiples of 2pi right?
+    } else {
+        auto edge = [](HalfEdge he) -> std::array<int,3> {
+            int i = he.vertex(); he.next(); 
+            int j = he.vertex(); he.next(); 
+            int k = he.vertex(); he.next(); 
+            return {{i,j,k}};
+
+        };
+
+        cell_iterator(this,cell_edge.index()).run_earlyout([&](auto&& e) -> bool{
+                auto [i,j,k] = edge(e);
+                auto a = V(i);
+                auto b = V(j);
+                auto c = V(k);
+                auto ba = b-a;
+                auto cb = c-b;
+                auto pb = p-b;
+                Vec n(-ba.y(),ba.x());
+                inside = pb.dot(n) * cb.dot(n) >= 0;
+
+                return inside;
+                });
+    }
     return inside;
 }
 template <typename S, int D>
