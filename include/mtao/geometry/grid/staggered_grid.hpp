@@ -22,6 +22,12 @@ namespace mtao {
                         using Base::index;
                         using Base::unindex;
                         using coord_type = typename Base::coord_type;
+                        using Vec = typename Base::Vec;
+                        using VecMap = typename Base::VecMap;
+                        using CVecMap = typename Base::CVecMap;
+                        using IVec = typename Base::IVec;
+                        using IVecMap = typename Base::IVecMap;
+                        using CIVecMap = typename Base::CIVecMap;
                         using StaggeredGrids = decltype(staggered_grid::make_grids(std::declval<Base>()));
                         StaggeredGrid(const coord_type& shape): Base(shape) {
                             resize_grids();
@@ -35,6 +41,8 @@ namespace mtao {
                         StaggeredGrid(StaggeredGrid&& other) = default;
                         StaggeredGrid& operator=(const StaggeredGrid& other) = default;
                         StaggeredGrid& operator=(StaggeredGrid&& other) = default;
+
+                        auto&& origin() const { return vertex_grid().origin(); }
                         template <int N, int K>
                             const GridType& grid() const {
                             return std::get<K>(std::get<N>(m_grids));
@@ -114,6 +122,7 @@ namespace mtao {
                         size_t uv_size() const { return staggered_size<2,2>();}
                         size_t vertex_size() const { return staggered_size<0,0>();}
                         size_t cell_size() const { return staggered_size<D,0>();}
+
                         template <int D>
                         size_t form_size() const {
                             auto&& gs = std::get<D>(m_offsets);
@@ -143,6 +152,17 @@ namespace mtao {
                                 return std::make_tuple(staggered_unindex<D>(idx,ft),ft);
 
                             }
+                        template <typename Derived>
+                        auto coord(const Eigen::MatrixBase<Derived>& v) const-> std::tuple<coord_type,std::array<double,D>> {
+
+                            Vec p = (v - origin()).cwiseQuotient( dx());
+                            std::cout << p.transpose() << "/" << dx().transpose() << std::endl;
+                            coord_type coord;
+                            IVecMap(coord.data()) = p.array().floor().template cast<int>();
+                            std::array<double,D> quot;
+                            VecMap(quot.data()) = p - IVecMap(coord.data()).template cast<double>();
+                            return std::make_tuple(coord,quot);
+                        }
 
                     private:
                         void resize_grids() {
