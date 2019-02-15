@@ -131,7 +131,7 @@ auto ElTopoTracker::get_triangles() const -> ColVectors3i {
         auto& t = tris[i];
         F.col(i) = Eigen::Map<const Eigen::Matrix<size_t,3,1>>(&t[0]).cast<int>();
     }
-    assert(F.maxCoeff() < m_surf->get_num_vertices());
+    assert(F.maxCoeff() < int(m_surf->get_num_vertices()));
     return F;
 }
 

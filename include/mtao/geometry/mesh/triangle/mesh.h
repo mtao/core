@@ -47,7 +47,7 @@ namespace mtao::geometry::mesh::triangle {
             std::vector<int> offsets(1,0);
             std::partial_sum(sizes.begin(),sizes.end(), std::back_inserter(offsets));
             T H(accessor(data[0]).rows(),offsets.back());
-            for(int i = 0; i < data.size(); ++i) {
+            for(size_t i = 0; i < data.size(); ++i) {
                 auto&& h = accessor(data[i]);
                 H.block(0,offsets[i],h.rows(),h.cols()) = h;
             }
@@ -64,7 +64,7 @@ namespace mtao::geometry::mesh::triangle {
             std::vector<int> offsets(1,0);
             std::partial_sum(sizes.begin(),sizes.end(), std::back_inserter(offsets));
             T H(offsets.back(),accessor(data[0]).cols());
-            for(int i = 0; i < data.size(); ++i) {
+            for(size_t i = 0; i < data.size(); ++i) {
                 auto&& h = accessor(data[i]);
                 H.block(offsets[i],0,h.rows(),h.cols()) = h;
             }

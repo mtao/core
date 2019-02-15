@@ -46,7 +46,7 @@ namespace mtao::geometry::mesh::triangle {
         std::tie(m.H,std::ignore) = vector_hstack<decltype(m.V)>(components,[](const Mesh& m) { return m.H; });
         std::tie(m.E,edge_offsets) = vector_hstack<decltype(m.E)>(components,[](const Mesh& m) { return m.E; });
 
-        for(int i = 0; i < components.size(); ++i) {
+        for(size_t i = 0; i < components.size(); ++i) {
             auto mo = edge_offsets[i];
             auto mn = edge_offsets[i+1];
             m.E.block(0,mo,2,mn-mo).array() += vertex_offsets[i];
