@@ -1,6 +1,11 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
-#include <glad/glad.h>
+#if defined(__APPLE__)
+#include <OpenGL/gl3.h>
+#define __gl_h_
+#else
+#include <GL/gl.h>
+#endif
 #include <vector>
 #include "mtao/opengl/util.h"
 namespace mtao { namespace opengl {

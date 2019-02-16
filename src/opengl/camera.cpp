@@ -84,6 +84,10 @@ namespace mtao { namespace opengl {
         m_scale = scale;
         update();
     }
+    void Camera2D::set_translation(const glm::vec2& t) {
+        m_translation = t;
+        update();
+    }
     void Camera2D::update() {
         ortho(m_scale);
     }
@@ -91,7 +95,7 @@ namespace mtao { namespace opengl {
     void Camera2D::pan() {
         auto&& io = ImGui::GetIO();
         if(io.KeyShift) {
-            m_scale+= .5 * io.MouseWheel;
+            m_scale+= .1 * io.MouseWheel;
             m_scale = std::max<float>(1e-5,m_scale);
             set_scale(m_scale);
             if(ImGui::IsMouseClicked(0)) {
@@ -145,20 +149,28 @@ namespace mtao { namespace opengl {
     }
     void Camera3D::update() {
         v() = glm::lookAt(m_camera_pos,m_target_pos,m_camera_up);
-        perspective(m_fov_y);
+        if(m_ortho) {
+            ortho();
+        } else {
+            perspective(m_fov_y);
+        }
     }
 
     void Camera3D::pan() {
         auto&& io = ImGui::GetIO();
+
+        
         if(io.KeyShift) {
             m_distance += .5 * io.MouseWheel;
             m_distance = std::max<float>(1e-5,m_distance);
             set_distance(m_distance);
-            if(ImGui::IsMouseClicked(0)) {
-                enableDrag();
-            } 
-            if(ImGui::IsMouseClicked(1)) {
-                enableAngularDrag();
+            if(!io.WantCaptureMouse) {
+                if(ImGui::IsMouseClicked(0)) {
+                    enableDrag();
+                } 
+                if(ImGui::IsMouseClicked(1)) {
+                    enableAngularDrag();
+                }
             }
         } 
         if(ImGui::IsMouseReleased(0)) {

@@ -53,12 +53,13 @@ class Camera2D: public Camera {
         float& scale() { return m_scale; }
         float scale() const { return m_scale; }
         void set_scale(float scale);
+        void set_translation(const glm::vec2& t);
         void update() override;
         void pan();
         void enableDrag() { m_dragMode = true;}
         void disableDrag() { m_dragMode = false; }
         void reset(); 
-        glm::mat4 m() const;
+        glm::mat4 m() const override;
 
     private:
         float m_scale = 1.0;
@@ -76,6 +77,8 @@ class Camera3D: public Camera {
         const glm::vec3& camera_up() const { return m_camera_up; }
         void set_distance(float distance);
         
+        void set_ortho() { m_ortho = true; }
+        void set_perspective() { m_ortho = false; }
         void update() override;
         void pan();
         void enableDrag() { m_dragMode = true;}
@@ -83,12 +86,13 @@ class Camera3D: public Camera {
         void enableAngularDrag() { m_angularDragMode = true;}
         void disableAngularDrag() { m_angularDragMode = false; }
         void reset(); 
-        glm::mat4 m() const;
+        glm::mat4 m() const override;
 
     private:
         glm::vec3 m_camera_pos = glm::vec3(0,0,5);
         glm::vec3 m_target_pos = glm::vec3(0,0,0);
         glm::vec3 m_camera_up = glm::vec3(0,1,0);
+        bool m_ortho = false;
         bool m_dragMode = false;
         bool m_angularDragMode = false;
         float m_fov_y = 45.0;

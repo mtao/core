@@ -2,6 +2,7 @@
 
 #include <Eigen/Dense>
 #include <tuple>
+#include <vector>
 #include <utility>
 #include <algorithm>
 

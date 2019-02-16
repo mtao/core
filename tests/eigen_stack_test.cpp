@@ -4,7 +4,7 @@
 #include "mtao/eigen_utils.h"
 int main() {
     using VecXf = mtao::Vector<float,Eigen::Dynamic>;
-    using MatXf = mtao::SquareMatrix<float,Eigen::Dynamic>;
+    //using MatXf = mtao::SquareMatrix<float,Eigen::Dynamic>;
     using namespace mtao;
     using namespace mtao::eigen;
 

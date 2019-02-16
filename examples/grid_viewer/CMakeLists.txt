@@ -1,8 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.7)
 ADD_EXECUTABLE(grid_viewer
     main.cpp
-    grid.cpp
-    grid.h
     )
 ADD_DEFINITIONS(-g)
 

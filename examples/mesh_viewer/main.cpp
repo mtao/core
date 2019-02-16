@@ -32,6 +32,8 @@ std::unique_ptr<renderers::BBoxRenderer3> bbox_renderer;
 ImVec4 clear_color = ImColor(114, 144, 154);
 
 void prepare_mesh(const ColVectors3f& V, const ColVectors3i&F) {
+    mtao::logging::debug() << "preparing mesh. f range: " << F.minCoeff() << " << " << F.maxCoeff();
+    mtao::logging::debug() << "preparing mesh. v count: " << V.cols();
     renderer = std::make_unique<renderers::MeshRenderer>(3);
     bbox_renderer = std::make_unique<renderers::BBoxRenderer3>();
 
@@ -61,14 +63,8 @@ void prepare_mesh(const ColVectors3f& V, const ColVectors3i&F) {
 }
 void set_mvp(int w, int h) {
     cam.set_shape(w,h);
-
-    //cam.v() = glm::lookAt(glm::vec3(1,0,0), glm::vec3(0,0,0), glm::vec3(0,1,0));
     cam.pan();
     cam.update();
-
-
-
-
 }
 
 void gui_func() {
@@ -118,6 +114,7 @@ void render(int width, int height) {
 
 int main(int argc, char * argv[]) {
 
+    set_opengl_version_hints();
     window = std::make_unique<Window>();
     window->set_gui_func(gui_func);
     window->set_render_func(render);

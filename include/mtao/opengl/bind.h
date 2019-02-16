@@ -2,7 +2,12 @@
 #define OPENGL_BIND_H
 #include <cstddef>
 #include <utility>
-#include <glad/glad.h>
+#if defined(__APPLE__)
+#include <OpenGL/gl3.h>
+#define __gl_h_
+#else
+#include <GL/gl.h>
+#endif
 
 
 namespace mtao { namespace opengl {

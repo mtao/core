@@ -38,6 +38,7 @@ class MeshRenderer: public Renderer {
         enum class VertexStyle: int { Disabled= 0, Flat, Color};
 
         MeshRenderer(int dim);
+        ~MeshRenderer();
 
         void render() const override;
         void render(const MeshRenderBuffers& buffs) const;
@@ -54,7 +55,7 @@ class MeshRenderer: public Renderer {
 
 
 
-        void imgui_interface() override;
+        void imgui_interface(const std::string& name = "Mesh Renderer") override;
         std::list<ShaderProgram*> mvp_programs() const override ;
         void setMesh(const MatrixXgfCRef& V, const MatrixXuiCRef& F, bool normalize = false);
         void setMesh(const MatrixXgfCRef& V, const MatrixXuiCRef& F, const MatrixXgfCRef& N, bool normalize=false);
@@ -113,7 +114,7 @@ class MeshRenderer: public Renderer {
         void unset_all();
         void hide_all() { unset_all(); }
 
-        inline void setBuffers(const std::shared_ptr<MeshRenderBuffers>& buf) { m_buffers = buf; }
+        inline void setBuffers(const std::shared_ptr<MeshRenderBuffers>& buf = {}) { m_buffers = buf; }
 
 
 
@@ -138,13 +139,20 @@ class MeshRenderer: public Renderer {
 
 
 
+        bool buffers_available() const { return bool(m_buffers); }
+        void make_buffers() {
+            m_buffers = std::make_shared<MeshRenderBuffers>();
+        }
         MeshRenderBuffers* buffers() { return m_buffers.get(); }
         const MeshRenderBuffers* buffers() const { return m_buffers.get(); }
     private:
+        bool m_visible = true;
         void loadShaders(int dim);
         void update_edge_threshold();
         void update_phong_shading();
         void update_vertex_scale(const MatrixXgfCRef& V);
+        std::array<float,2> get_line_width_range() const;
+        std::array<float,2> get_point_size_range() const;
 
         static bool s_shaders_enabled[2];
 
@@ -169,6 +177,8 @@ class MeshRenderer: public Renderer {
         bool m_face_draw_elements = true;
 
         bool m_show_vector_field = false;
+        bool m_use_line_smooth = false;//antialiasing
+        bool m_use_polygon_smooth = false;//antialiasing
 
         int m_dim=2;
 

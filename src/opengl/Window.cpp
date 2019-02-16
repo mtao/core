@@ -1,3 +1,4 @@
+#include "mtao/opengl/opengl_loader.hpp"
 #include "mtao/opengl/Window.h"
 #include <iostream>
 #include <sstream>
@@ -7,6 +8,15 @@
 #include <png++/png.hpp>
 #include <iomanip>
 #include <mtao/logging/logger.hpp>
+#include "examples/imgui_impl_glfw.h"
+#include "examples/imgui_impl_opengl3.h"
+
+#if !defined(USE_IMGUI_IMPL)
+static void glfw_error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Glfw Error %d: %s\n", error, description);
+}
+#endif
 
 namespace mtao {namespace opengl {
 size_t Window::s_window_count = 0;
@@ -43,19 +53,38 @@ Window::Window( const std::string& name, int width, int height) {
     }
 
 
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT,GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
+#if defined(__APPLE__)
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+#endif
 
-   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     window = glfwCreateWindow(width, height, name.c_str(), NULL, NULL);
+    setErrorCallback(error_callback);
     if (!window) {
         glfwTerminate();
         throw std::runtime_error("GLFW window creation failed!");
     }
     s_hotkeys[window];
-    m_gui.setWindow(window);
     makeCurrent();
-    gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+
+
+    // Initialize OpenGL loader
+#if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
+    bool err = gl3wInit() != 0;
+#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
+    bool err = glewInit() != GLEW_OK;
+#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
+    bool err = gladLoadGL() == 0;
+#else
+    bool err = false; // If you use IMGUI_IMPL_OPENGL_LOADER_CUSTOM, your loader is likely to requires some form of initialization.
+#endif
+    if(err) {
+        logging::fatal() << "OpenGL loader/wrangler failed to load!";
+    }
     printGLInfo();
+    m_gui.setWindow(window);
 
 
     glfwSetMouseButtonCallback(window, ImGuiImpl::mouseButtonCallback);
@@ -64,7 +93,6 @@ Window::Window( const std::string& name, int width, int height) {
     glfwSetCharCallback(window,   ImGuiImpl::charCallback);
 
 
-    setErrorCallback(error_callback);
     glfwSwapInterval(1);
 }
 
@@ -73,11 +101,19 @@ Window::~Window() {
     if(window) {
         glfwDestroyWindow(window);
     }
+#if !defined(USE_IMGUI_IMPL)
     if(s_window_count == 0) {
         glfwTerminate();
     }
+#endif
 }
 
+#if !defined(USE_IMGUI_IMPL)
+static void glfw_error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Glfw Error %d: %s\n", error, description);
+}
+#endif
 
 void Window::run() {
     while (!glfwWindowShouldClose(window)) {
@@ -95,13 +131,21 @@ void Window::draw(bool show_gui) {
 
     int display_w, display_h;
     glfwGetFramebufferSize(window,&display_w, &display_h);
-    m_gui.newFrame();
-    m_gui_func();
-    m_render_func(display_w,display_h);
-    if(show_gui) {
-    m_gui.render();
+    glEnable(GL_MULTISAMPLE);
+    if(m_gui_func) {
+        m_gui.newFrame();
+        m_gui_func();
+    }
+    if(m_render_func) {
+        m_render_func(display_w,display_h);
+    }
+    if(m_gui_func && show_gui) {
+        m_gui.render();
     }
     glfwSwapBuffers(window);
+    if(m_is_recording) {
+        save_frame();
+    }
 
 }
 
@@ -128,8 +172,12 @@ const HotkeyManager& Window::hotkeys() const {
     return s_hotkeys.at(window);
 }
 void Window::keyCallback(GLFWwindow* w,int key, int scancode, int action, int mods) {
-    s_hotkeys.at(w).press(key,mods,action);
-    ImGuiImpl::keyCallback(w,key,scancode,action,mods);
+
+    auto&& io = ImGui::GetIO();
+    if(!io.WantCaptureKeyboard) {
+        s_hotkeys.at(w).press(key,mods,action);
+    }
+        ImGuiImpl::keyCallback(w,key,scancode,action,mods);
 }
 
 
@@ -143,6 +191,9 @@ std::array<int,2> Window::getSize() const {
     return size;
 }
 
+void Window::save_frame() {
+    save_frame(get_frame_filename(m_frame_number++));
+}
 void Window::save_frame(const std::string& filename) {
 
     auto [w,h] = getSize();
@@ -169,15 +220,36 @@ void Window::save_frame(const std::string& filename) {
 
     image.write(filename);
 }
+std::string Window::get_frame_filename(int frame) const {
+    std::stringstream ss;
+    ss << m_recording_prefix << std::setfill('0') << std::setw(6) << frame << ".png";
+    return ss.str();
+}
 void Window::record(const std::function<bool(int)>& f, const std::string& prefix, bool show_gui) {
+    m_recording_prefix = prefix;
 
     for(int idx = 0; f(idx); ++idx) {
         draw(show_gui);
 
-        std::stringstream ss;
-        ss << prefix << std::setfill('0') << std::setw(6) << idx << ".png";
-        save_frame(ss.str());
+        save_frame(get_frame_filename(idx));
     }
+}
+void Window::start_recording() { m_is_recording = true; }
+void Window::stop_recording() { m_is_recording = false; }
+void Window::set_recording_prefix(const std::string& str) { m_recording_prefix = str; }
+
+void set_opengl_version_hints(int major, int minor, int profile) {
+    if (!glfwInit()) {
+        std::cerr <<" GLFWInit faillure!" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, major);
+   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor);
+   //glfwWindowHint(GLFW_OPENGL_PROFILE, profile);
 }
 
 }}
+
+
+
+

@@ -1,18 +1,17 @@
 #ifndef COMPAT_H
 #define COMPAT_H
 
-#define USE_BOOST
 #ifdef USE_BOOST
-//#include <boost/array.hpp>
+#include <boost/array.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <boost/tr1/array.hpp>
+//#include <boost/tr1/array.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/bind.hpp>
 namespace mtao {namespace compat {
     template <typename T, int D>
         using array = boost::array<T,D>;
     template <typename T>
-        using tuple_size = std::tr1::tuple_size<T>;
+        using tuple_size = std::tuple_size<T>;
 
     template <bool B, class T, class F>
         struct conditional {
@@ -44,6 +43,7 @@ namespace mtao {namespace compat {
 #include <array>
 #include <tuple>
 #include <type_traits>
+#include <functional>
 namespace mtao {namespace compat {
     template <typename T, int D>
         using array = std::array<T,D>;

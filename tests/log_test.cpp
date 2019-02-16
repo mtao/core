@@ -6,7 +6,7 @@
 
 int main() {
     std::cout << getenv("_") << std::endl;
-    mtao::logging::make_logger("A", "a.log", mtao::logging::Level::All);
+    mtao::logging::make_file_logger("A", "a.log", mtao::logging::Level::All);
 
     auto log = mtao::logging::get_logger("A",mtao::logging::Level::Fatal);
     log.write("welp",3,4);
@@ -14,7 +14,7 @@ int main() {
     {
         auto t = mtao::logging::timer("task",false,"A");
         int x = 0;
-        for(int i = 0; i < (1 << 10); ++i) {
+        for(int i = 0; i < (1 << 2); ++i) {
             mtao::logging::info() <<"iteration: " << i;
             mtao::logging::fatal() <<"iteration: " << i;
             mtao::logging::error() <<"iteration: " << i;
@@ -22,7 +22,7 @@ int main() {
             mtao::logging::info() <<"iteration: " << i;
             mtao::logging::debug() <<"iteration: " << i;
             mtao::logging::trace() <<"iteration: " << i;
-            x += i;        
+            x += i;
         }
     }
 

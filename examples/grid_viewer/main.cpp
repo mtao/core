@@ -1,3 +1,4 @@
+#include <mtao/types.hpp>
 #include "mtao/opengl/Window.h"
 #include <iostream>
 #include "imgui.h"
@@ -6,7 +7,6 @@
 #include "mtao/opengl/renderers/axis.h"
 #include <mtao/eigen/stack.h>
 #include <memory>
-#include "grid.h"
 #include <algorithm>
 
 #include <glm/gtc/matrix_transform.hpp> 
@@ -14,95 +14,107 @@
 #include "mtao/opengl/renderers/mesh.h"
 #include "mtao/opengl/camera.hpp"
 #include <mtao/eigen_utils.h>
+#include <mtao/logging/logger.hpp>
+#include <mtao/geometry/grid/triangulation.hpp>
+using namespace mtao::logging;
 
 using namespace mtao::opengl;
 
+std::vector<glm::vec3> pts;
 
+enum class Mode: int { Smoothing, LSReinitialization };
+Mode mode = Mode::LSReinitialization;
 
-float look_distance = 0.6;
-glm::mat4 mvp_it;
-float rotation_angle;
-glm::vec3 edge_color;
+float permeability = 100.0;
+float timestep = 1000.0;
 bool animate = false;
-using Mat = mtao::MatrixX<GLfloat>;
-Mat data;
-Mat data_original;
-Mat dx;
-Mat dy;
-Mat signs;
+using Vec = mtao::VectorX<GLfloat>;
+Vec data;
+Vec data_original;
+Vec dx;
+Vec dy;
+Vec signs;
+Eigen::SparseMatrix<float> L;
 
-int NI=200;
-int NJ=200;
+int NI=20;
+int NJ=20;
+int NK=20;
+Eigen::SimplicialLDLT<Eigen::SparseMatrix<float>> solver;
 
 std::unique_ptr<renderers::MeshRenderer> renderer;
-std::unique_ptr<renderers::BBoxRenderer2> bbox_renderer;
-std::unique_ptr<renderers::AxisRenderer> axis_renderer;
+std::unique_ptr<renderers::BBoxRenderer3> bbox_renderer;
+//glm::dvec4 clip_plane_equation;
 
-std::unique_ptr<ShaderProgram> edge_program;
 std::unique_ptr<Window> window;
 
 
-Camera2D cam;
+Camera3D cam;
 
 void set_mvp(int w, int h) {
     cam.set_shape(w,h);
-    auto&& m = cam.m();
-    m = glm::mat4();
-    m = glm::rotate(m,(float) rotation_angle,glm::vec3(0,0,1));
-
-    //cam.v() = glm::lookAt(glm::vec3(1,0,0), glm::vec3(0,0,0), glm::vec3(0,1,0));
     cam.pan();
-    cam.set_scale(look_distance);
     cam.update();
-
-    mvp_it = cam.mvp_inv_trans();
-
 }
 
 
 
 
 
-void set_colors(const Mat& data) {
-    mtao::RowVectorX<GLfloat> col = Eigen::Map<const mtao::RowVectorX<GLfloat>>(data.data(),data.size());
 
-    mtao::MatrixX<GLfloat> Col = mtao::eigen::vstack((col.array()>0).select(col,0),-(col.array()<0).select(col,0),mtao::RowVectorX<GLfloat>::Zero(data.size()));
+void prepare_mesh(int i, int j, int k) {
 
-    Col.array() = Col.array().pow(.5);
-    renderer->setColor(Col);
-}
+    renderer = std::make_unique<renderers::MeshRenderer>(3);
+    bbox_renderer = std::make_unique<renderers::BBoxRenderer3>();
 
-void prepare_mesh(int i, int j) {
-
-    renderer = std::make_unique<renderers::MeshRenderer>(2);
-    bbox_renderer = std::make_unique<renderers::BBoxRenderer2>();
-    axis_renderer = std::make_unique<renderers::AxisRenderer>(2);
-
-    auto [V,F] = make_mesh(i,j);
+    debug() << "Starting to make mesh";
+    mtao::geometry::grid::Grid3f g(std::array<int,3>{{i,j,k}});
+    mtao::geometry::grid::GridTriangulator<decltype(g)> gt(g);
+    auto V = gt.vertices();
+    auto F = gt.faces();
     V.array() -= .5;
 
-    mtao::RowVectorX<GLfloat> col = V.colwise().norm().array() - GLfloat(.25);
-    data = Eigen::Map<Mat>(col.data(),i,j);
+    //mtao::RowVectorX<GLfloat> col = V.colwise().norm().array() - GLfloat(.25);
+    //data = Eigen::Map<Mat>(col.data(),i,j);
+    //
+    data = V.colwise().norm().transpose().array() - .3 ;
 
-    signs = data.array() / (data.array().pow(2) + 1e-5).sqrt();
 
+    debug() << "Done making mesh";
 
-    using BBox = renderers::BBoxRenderer2::BBox;
+    using BBox = renderers::BBoxRenderer3::BBox;
     BBox bb;
     for(int i = 0; i < V.cols(); ++i) {
         bb.extend(V.col(i));
     }
+    debug() << "Done making bb";
     bbox_renderer->set(bb);
 
+    /*
     data = data.array().pow(3);
+    */
+    //data.setZero();
+    //data(NI/2,NJ/2) = 1;
+    //data(NI/3,NJ/2) = -1;
 
+
+    renderer->setVertices(V,false);
     renderer->setMesh(V,F,false);
-    renderer->set_face_style(renderers::MeshRenderer::FaceStyle::Color);
+    renderer->setEdges(gt.edges());
+    renderer->set_edge_style(renderers::MeshRenderer::EdgeStyle::Mesh);
     renderer->set_vertex_style();
-    set_colors(data);
-    data_original = data;
+    renderer->set_face_style();
+
+    auto col = data.transpose();
+    mtao::MatrixX<GLfloat> Col = mtao::eigen::vstack((col.array()>0).select(col,0),-(col.array()<0).select(col,0),mtao::RowVectorX<GLfloat>::Zero(data.size()));
+    renderer->setColor(Col);
+
 }
 
+/*
+void lsreconstruction_precompute() {
+    signs = data.array() / (data.array().pow(2) + 1e-5).sqrt();
+}
+*/
 
 
 
@@ -112,81 +124,10 @@ ImVec4 clear_color = ImColor(114, 144, 154);
 
 
 
-void centered_difference() {
 
-    auto dx_ = (NI-1)*(data.rightCols(NJ-1) - data.leftCols(NJ-1));
-    auto dy_ = (NJ-1)*(data.topRows(NI-1) - data.bottomRows(NI-1));
-    dx.resizeLike(data);
-    dy.resizeLike(data);
-    dx.setZero();
-    dy.setZero();
-    dx.leftCols(NJ-1) = dx_;
-    dx.rightCols(NJ-1) += dx_;
-    dy.topRows(NI-1) = dy_;
-    dy.bottomRows(NI-1) += dy_;
-    dx.block(0,1,NI,NJ-2) /= 2;
-    dy.block(1,0,NI-2,NJ) /= 2;
-}
-
-glm::vec2 grid_space(const glm::vec2& p) {
-    return (p + glm::vec2(.5) ) * glm::vec2(NI,NJ);
-}
-glm::vec2 grid_mouse_pos() {
-    return grid_space(cam.mouse_pos(ImGui::GetIO().MousePos));
-}
-
-Mat G() {
-    centered_difference();
-    //return (dx.array().pow(2) + dy.array().pow(2)).sqrt() - 1;
-    auto dx_ = (NI-1)*(data.rightCols(NJ-1) - data.leftCols(NJ-1));
-    auto dy_ = (NJ-1)*(data.topRows(NI-1) - data.bottomRows(NI-1));
-
-    Mat a(data.rows(),data.cols());
-    Mat b(data.rows(),data.cols());
-    Mat c(data.rows(),data.cols());
-    Mat d(data.rows(),data.cols());
-    a.setZero();
-    b.setZero();
-    c.setZero();
-    d.setZero();
-
-    dx.resizeLike(data);
-    dy.resizeLike(data);
-    dx.setZero();
-    dy.setZero();
-    a.leftCols(NJ-1) = dx_;
-    b.rightCols(NJ-1) = dx_;
-    c.bottomRows(NI-1) = dy_;
-    d.topRows(NI-1) = dy_;
-
-    auto ap = a.array().max(0).pow(2);
-    auto am = a.array().min(0).pow(2);
-    auto bp = b.array().max(0).pow(2);
-    auto bm = b.array().min(0).pow(2);
-    auto cp = c.array().max(0).pow(2);
-    auto cm = c.array().min(0).pow(2);
-    auto dp = d.array().max(0).pow(2);
-    auto dm = d.array().min(0).pow(2);
-
-    return mtao::eigen::finite((data_original.array() <= 0).select
-    (ap.max(bm) + cp.max(dm),
-    bp.max(am) + dp.max(cm)) - 1);
-
-
-    //dy.block(1,0,NI-2,NJ) /= 2;
-}
 
 
 void do_animation() {
-
-    centered_difference();
-
-
-    Mat D = signs.cwiseProduct(G());
-    std::cout << "Mean error: " << D.mean() << std::endl;
-
-    data -= 1.0 / (4 * std::max(NI,NJ)) * D;
-    set_colors(data);
 }
 
 void render(int width, int height) {
@@ -205,20 +146,26 @@ void render(int width, int height) {
     renderer->set_mvp(cam.mvp());
     renderer->set_mvp(cam.mv(),cam.p());
     bbox_renderer->set_mvp(cam.mvp());
-    axis_renderer->set_mvp(cam.mvp());
+
+    renderer->set_mvp(cam.mvp());
+    renderer->set_mvp(cam.mv(),cam.p());
+    bbox_renderer->set_mvp(cam.mvp());
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_ALWAYS);
     glEnable(GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    renderer->render();
+    glEnable(GL_DEPTH_TEST);
+    //renderer->render();
     
     glDepthFunc(GL_LESS);
-    bbox_renderer->render();
-    axis_renderer->render();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    //glEnable(GL_CLIP_PLANE0);
 
-    auto&& io = ImGui::GetIO();
-    auto p = cam.mouse_pos(io.MousePos);
-    //mtao::logging::trace() << "Mouse coordinate: " << p.x << "," << p.y;
+    //glClipPlane(GL_CLIP_PLANE0,glm::value_ptr(clip_plane_equation));
+    renderer->render();
+    //glDisable(GL_CLIP_PLANE0);
+    //bbox_renderer->render();
+
 
 
 }
@@ -226,27 +173,24 @@ void render(int width, int height) {
 
 void gui_func() {
     {
-        float look_min=0.0001f, look_max=100.0f;
         ImGui::Text("Hello, world!");
 
-        ImGui::SliderFloat("look_distance", &look_distance, look_min,look_max,"%.3f");
-        ImGui::SliderFloat("angle", &rotation_angle,0,M_PI,"%.3f");
         auto&& io = ImGui::GetIO();
-        look_distance += .5 * io.MouseWheel;
-        look_distance = std::min(std::max(look_distance,look_min),look_max);
 
         ImGui::Checkbox("animate", &animate);
+        //mtao::opengl::imgui::SliderDouble4("Clip Plane",glm::value_ptr(clip_plane_equation),0,1);
+
 
         renderer->imgui_interface();
 
 
         ImGui::ColorEdit3("clear color", (float*)&clear_color);
-        auto gpos = grid_mouse_pos();
-        glm::ivec2 gposi;
-        gposi.x = std::max<int>(0,std::min<int>(NI-1,gpos.x));
-        gposi.y = std::max<int>(0,std::min<int>(NJ-1,gpos.y));
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS) [%.3f,%.3f]", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate,gpos.x,gpos.y);
-        ImGui::Text("[%d,%d]: %.5f", gposi.x,gposi.y,data(gposi.x,gposi.y));
+        //auto gpos = grid_mouse_pos();
+        //glm::ivec2 gposi;
+        //gposi.x = std::max<int>(0,std::min<int>(NI-1,gpos.x));
+        //gposi.y = std::max<int>(0,std::min<int>(NJ-1,gpos.y));
+        //ImGui::Text("Application average %.3f ms/frame (%.1f FPS) [%.3f,%.3f]", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate,gpos.x,gpos.y);
+        //ImGui::Text("[%d,%d]: %.5f", gposi.x,gposi.y,data(gposi.x,gposi.y));
 
 
 
@@ -262,28 +206,26 @@ void gui_func() {
         do_animation();
     }
     if(ImGui::Button("norm")) {
-        Mat n= (dx.array().pow(2) + dy.array().pow(2));
-        set_colors(n);
-    }
-    if(ImGui::Button("dx")) {
-        set_colors(dx);
-    }
-    if(ImGui::Button("dy")) {
-        set_colors(dy);
     }
     if(ImGui::Button("Reset")) {
-        data = data_original;
     }
 }
+void set_keys() {
+    auto&& h= window->hotkeys();
+
+}
+
 
 int main(int argc, char * argv[]) {
 
+    set_opengl_version_hints(4,5);
     window = std::make_unique<Window>();
+    set_keys();
     window->set_gui_func(gui_func);
     window->set_render_func(render);
     window->makeCurrent();
 
-    prepare_mesh(NI,NJ);
+    prepare_mesh(NI,NJ,NK);
     window->run();
 
     exit(EXIT_SUCCESS);

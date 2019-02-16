@@ -1,8 +1,8 @@
 #include <iostream>
-#include "mtao/levelset/levelset_example.h"
-#include "mtao/levelset/levelset.h"
-#include "mtao/levelset/discrete.h"
-#include "mtao/levelset/discrete/print.h"
+#include "mtao/geometry/levelset/levelset_example.h"
+#include "mtao/geometry/levelset/levelset.h"
+#include "mtao/geometry/levelset/discrete.h"
+#include "mtao/geometry/levelset/discrete/print.h"
 
 void unionTest() {
     auto sphere = levelset::sphere<2>();

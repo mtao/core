@@ -1,8 +1,13 @@
 #include "mtao/geometry/mesh/halfedge.hpp"
+#include "mtao/data_structures/disjoint_set.hpp"
+
 #include <map>
 #include <tuple>
 #include <set>
+#include <algorithm>
+#include <iterator>
 #include "mtao/logging/logger.hpp"
+#include <mtao/iterator/enumerate.hpp>
 using namespace mtao::logging;
 
 namespace mtao { namespace geometry { namespace mesh {
@@ -11,13 +16,37 @@ using HalfEdge = HalfEdgeMesh::HalfEdge;
 HalfEdgeMesh::HalfEdgeMesh(const std::string& str) {
 }
 
-HalfEdgeMesh::HalfEdgeMesh(const Cells& F) {
-    construct(F);
+HalfEdgeMesh HalfEdgeMesh::from_cells(const Cells& F) {
+    HalfEdgeMesh hem;
+    hem.construct(F);
+    return hem;
+}
+HalfEdgeMesh::HalfEdgeMesh(const Edges& E): m_edges(E) {}
+
+HalfEdgeMesh HalfEdgeMesh::from_edges(const mtao::ColVectors<int,2>& E) {
+    HalfEdgeMesh hem;
+    hem.clear(2*E.cols());
+
+    auto vi = hem.vertex_indices();
+    auto di = hem.dual_indices();
+    for(int i = 0; i < E.cols(); ++i) {
+        auto e = E.col(i);
+        vi(2*i) = e(0);
+        vi(2*i+1) = e(1);
+        di(2*i) = 2*i+1;
+        di(2*i+1) = 2*i;
+    }
+    return hem;
 }
 
+
+void HalfEdgeMesh::clear(size_t new_size) {
+    m_edges = Edges::Constant(int(Index::IndexEnd),int(new_size),-1);
+}
 void HalfEdgeMesh::construct(const Cells& F) {
     using Edge = std::tuple<int,int>;
 
+    //Cell is the row until its first -1 entry
     auto cell_size = [](auto& f) -> int{
         for(int j = 0; j < f.rows(); ++j) {
             if(f(j) == -1) {
@@ -29,12 +58,13 @@ void HalfEdgeMesh::construct(const Cells& F) {
 
     int size = 0;
 
+    //total number of halfedges is the number of internal edges
     for(int i = 0; i < F.cols(); ++i) {
         auto f = F.col(i);
         size += cell_size(f);
     }
 
-    m_edges = Edges::Constant(int(Index::IndexEnd),size,-1);
+    clear(size);
 
     std::map<Edge,int> ei_map;
 
@@ -63,6 +93,27 @@ void HalfEdgeMesh::construct(const Cells& F) {
         }
     }
 
+}
+void HalfEdgeMesh::make_cells() {
+    auto ci = cell_indices();
+    mtao::data_structures::DisjointSet<int> ds;
+    for(int i = 0; i < size(); ++i) {
+        ci(i) = i;
+        ds.add_node(i);
+    }
+    for(int i = 0; i < size(); ++i) {
+        ds.join(i,next_index(i));
+    }
+    ds.reduce_all();
+
+    std::map<int,int> reindexer;
+    for(auto&& i: ds.root_indices()) {
+        reindexer[ds.node(i).data] = reindexer.size();
+    }
+
+    for(int i = 0; i < size(); ++i) {
+        ci(i) = reindexer[ds.get_root(i).data];
+    }
 }
 
 std::vector<int> HalfEdgeMesh::cells() const {
@@ -111,30 +162,47 @@ HalfEdge HalfEdgeMesh::edge(int i) const {
 }
 
 HalfEdge HalfEdgeMesh::cell_edge(int idx) const {
-    for(int i = 0; i < size(); ++i) {
-        if(cell_index(i) == idx) {
-            return edge(i);
-        }
+    auto ce =  cell_edges(idx);
+    if(ce.empty()) {
+        return HalfEdge(this);
+    } else {
+        return *ce.begin();
     }
-    return HalfEdge(this);
 }
 
 HalfEdge HalfEdgeMesh::vertex_edge(int idx) const {
-    int ret = -1;
+    auto ve =  vertex_edges(idx);
+    if(ve.empty()) {
+        return HalfEdge(this);
+    } else {
+        return *ve.begin();
+    }
+}
+std::set<HalfEdge> HalfEdgeMesh::cell_edges(int idx) const {
+    std::set<HalfEdge> he;
+    for(int i = 0; i < size(); ++i) {
+        if(cell_index(i) == idx) {
+            he.emplace(this,i);
+        }
+    }
+    return he;
+}
+std::set<HalfEdge> HalfEdgeMesh::vertex_edges(int idx) const {
+    std::set<HalfEdge> he;
     int dual = 0;
     for(int i = 0; i < size(); ++i) {
         auto vi = vertex_index(i);
         if(vi == idx) {
             if( dual != -1) {
-                ret = i;
-                dual = dual_index(ret);
+                dual = dual_index(i);
                 if(dual == -1) {
-                    trace() << "Finding edge for vertex " <<  idx<< " and found a boundary"<<ret<<"!";
+                    trace() << "Finding edge for vertex " <<  idx<< " and found a boundary"<<i<<"!";
                 }
+                he.emplace(this,i);
             }
         }
     }
-    return HalfEdge(this,ret);
+    return he;
 }
 
 HalfEdge::HalfEdge(const MeshType* cc, int idx): m_cc(cc), m_index(idx) {}
@@ -161,6 +229,15 @@ HalfEdge HalfEdge::get_dual() const {
 }
 
 
+std::map<int,std::set<int>> HalfEdgeMesh::vertex_edges_no_topology() const {
+    std::map<int,std::set<int>> map;
+    for(int i = 0; i < size(); ++i) {
+        map[vertex_index(i)].insert(i);
+    }
+
+
+    return map;
+}
 
 
 
@@ -173,7 +250,7 @@ void vertex_iterator::increment(HalfEdge& he) {
 }
 void boundary_iterator::increment(HalfEdge& he) {
     //Test that this works!
-    if(he.dual() != -1) {
+    if(he.dual()) {
         return;
     }
     he.next();
@@ -205,7 +282,7 @@ bool HalfEdgeMesh::is_boundary_vertex(int index) const {
     bool has_boundary_edge = false;
 
     vertex_iterator(vertex_edge(index)).run_earlyout([this,&has_boundary_edge](const HalfEdge& e) {
-            if(is_boundary(e)) {
+            if(is_boundary(int(e))) {
             has_boundary_edge = true;
             return false;
             }
@@ -218,7 +295,7 @@ bool HalfEdgeMesh::is_boundary_cell(int index) const {
     bool has_boundary_edge = false;
 
     cell_iterator(cell_edge(index)).run_earlyout([this,&has_boundary_edge](const HalfEdge& e) {
-            if(is_boundary(e)) {
+            if(is_boundary(int(e))) {
             has_boundary_edge = true;
             return false;
             }
@@ -265,5 +342,102 @@ std::vector<int> HalfEdgeMesh::dual_cell(int i) const {
             });
     return ret;
 }
+HalfEdgeMesh HalfEdgeMesh::submesh_from_vertices(const std::set<int>& vertex_indices) const {
+    std::set<int> edge_indices;
+    for(int i = 0; i < size(); ++i) {
+        if(auto it = vertex_indices.find(vertex_index(i)); it != vertex_indices.end()) {
+            edge_indices.insert(i);
+        }
+    }
+    return submesh_from_edges(edge_indices);
+}
+HalfEdgeMesh HalfEdgeMesh::submesh_from_cells(const std::set<int>& cell_indices) const {
+    std::set<int> edge_indices;
+    for(int i = 0; i < size(); ++i) {
+        if(auto it = cell_indices.find(cell_index(i)); it != cell_indices.end()) {
+            edge_indices.insert(i);
+        }
+    }
+    return submesh_from_edges(edge_indices);
+}
+HalfEdgeMesh HalfEdgeMesh::submesh_from_edges(const std::set<int>& edge_indices) const {
+    Edges new_edges(int(Index::IndexEnd),edge_indices.size());
+    std::map<int,int> edge_reindexer;
+    edge_reindexer[-1] = -1;
+    for(auto [a,b]: mtao::iterator::enumerate(edge_indices)) {
+        edge_reindexer[b] = a;
+        new_edges.col(a) = edges().col(b);
+        if(auto it = edge_indices.find(b); it == edge_indices.end()) {
+            new_edges.col(a)(int(Index::DualIndex)) = -1;
+        }
+    }
+    auto reindex = [&](int& idx) {
+            idx = edge_reindexer[idx];
+    };
+    for(int i = 0; i < new_edges.cols(); ++i) {
+            reindex(new_edges.col(i)(int(Index::DualIndex)));
+            reindex(new_edges.col(i)(int(Index::NextIndex)));
+    }
+    return HalfEdgeMesh(new_edges);
+}
+
+void HalfEdgeMesh::complete_boundary_cells() {
+    /*
+    std::vector<int> duals;
+    for(int i = 0; i < size(); ++i) {
+        if(dual_index(i) == -1) {
+            duals.push_back(i);
+        }
+    }
+    int oldsize = size();
+    //get the reverse arrows for each edge
+    std::map<int,int> reverse_arrows;
+    for(int i = 0; i < oldsize; ++i) {
+        auto ni = next_index(i);
+        if(ni == -1) continue;
+        if(dual_index(ni) == -1) {
+        reverse_arrows[ni] = i;
+        }
+    }
+
+    m_edges.conservativeResize(m_edges.rows(),oldsize+duals.size());
+    for(int i = 0; i < duals.size(); ++i) {
+        int myind = i+oldsize;
+        int dualind = duals[i];
+        dual_indices()(dualind) = myind;
+        dual_indices()(myind) = dualind;
+        cell_indices()(dualind) = -1;
+
+
+    }
+
+    std::set<int> no_vertex_edges;
+    for(int i = 0; i < duals.size(); ++i) {
+        int myind = i+oldsize;
+        no_vertex_edges.insert(myind);
+    }
+    while(!no_vertex_edges.empty()) {
+        size_t s = no_vertex_edges.size();
+        bool found = false;
+        for(auto it = no_vertex_edges.begin(); it != no_vertex_edges.end();
+                found?no_vertex_edges.erase(it++):++it
+           ) {
+            found = false;
+            int myind = *it;
+            int dualind = dual_index(myind);
+            if(auto it = reverse_arrows.find(dualind); it != reverse_arrows.end()) {
+                vertex_indices()(myind) = vertex_index(it->second);
+                found = true;
+            }
+        }
+        //no changes, maybe something is unrecoverable
+        if( no_vertex_edges.size() == s) {
+            break;
+        }
+    }
+    */
+
+}
+
 
 }}}

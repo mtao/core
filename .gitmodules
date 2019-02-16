@@ -1,3 +1,9 @@
 [submodule "extern/imgui"]
 	path = extern/imgui
-	url = git@github.com:ocornut/imgui.git
+	url = https://github.com:ocornut/imgui.git
+[submodule "extern/eltopo"]
+	path = extern/eltopo
+	url = https://github.com/mtao/eltopo.git
+[submodule "extern/triangle"]
+	path = extern/triangle
+	url = https://github.com/libigl/triangle

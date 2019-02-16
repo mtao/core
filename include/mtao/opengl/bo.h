@@ -1,7 +1,12 @@
 #ifndef BUFFER_H
 #define BUFFER_H
 
-#include <glad/glad.h>
+#if defined(__APPLE__)
+#include <OpenGL/gl3.h>
+#define __gl_h_
+#else
+#include <GL/gl.h>
+#endif
 namespace mtao { namespace opengl {
 
 
