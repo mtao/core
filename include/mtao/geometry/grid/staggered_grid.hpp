@@ -179,6 +179,22 @@ namespace mtao {
 
                             return vertex_grid().coord(v);
                         }
+                        /*
+                        template <int D>
+                        Eigen::SparseMatrix<T> boundary() const {
+                            int rows = form_size<D-1>();
+                            int cols = form_size<D>();
+                            std::vector<Eigen::Triplet<T>> trips;
+                            for(auto&& [i,grids]: mtao::iterator::enumerate(std::get<D>(m_grids))) {
+
+                            }
+                                    
+
+                            Eigen::SparseMatrix<T> A(rows,cols);
+                            A.setFromTriplets(trips.begin(),trips.end());
+                            return A;
+                        }
+                        */
 
                     private:
                         void resize_grids() {
