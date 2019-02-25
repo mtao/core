@@ -24,4 +24,18 @@ int main(int argc, char * argv[]) {
             std::copy(idx.begin(),idx.end(),std::ostream_iterator<int>(std::cout," "));
             std::cout << std::endl;
             });
+    std::cout << "Masked: " << std::endl;
+    mtao::geometry::grid::utils::masked_multi_loop<2>(std::array<int,2>{{2,3}},[](auto&& idx) {
+            std::cout << "[";
+            std::copy(idx.begin(),idx.end(),std::ostream_iterator<int>(std::cout," "));
+            std::cout << "]";
+            std::cout << std::endl;
+            });
+    std::cout << std::endl;
+    mtao::geometry::grid::utils::masked_multi_loop<1>(std::array<int,2>{{2,3}},[](auto&& idx) {
+            std::cout << "[";
+            std::copy(idx.begin(),idx.end(),std::ostream_iterator<int>(std::cout," "));
+            std::cout << "]";
+            std::cout << std::endl;
+            });
 }

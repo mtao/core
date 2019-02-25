@@ -9,48 +9,58 @@ namespace mtao {
         namespace grid {
             namespace utils {
                 namespace internal {
-                    template <int N, int M, typename coord_type, typename Func, bool Reverse = false>
-                        struct multi_looper {
+                    template <int N, int M, int Mask, typename coord_type, typename Func, bool Reverse = false>
+                        struct masked_multi_looper {
+                            constexpr static bool Masked(int idx) {
+                                return !bool(Mask & (1 << idx));
+                            }
                             constexpr static int MyN = Reverse?M-N-1:N;
                             static void run(const coord_type& bounds, coord_type& idx, const Func& f) {
-                                if constexpr(M >= N+2) {
+                                if constexpr(Masked(N)) {
+                                    masked_multi_looper<N+1,M,Mask,coord_type,Func,Reverse>::run(bounds,idx,f);
+
+                                } else if constexpr(false && M >= N+2 && !Masked(N+1)) {
 
 
                                     constexpr static int NN = N+1;
                                     constexpr static int MyNN = Reverse?M-NN-1:NN;
                                     for(auto& i = idx[MyN] = 0; i < bounds[MyN]; ++i) {
                                         for(auto& j = idx[MyNN] = 0; j < bounds[MyNN]; ++j) {
-                                            multi_looper<N+2,M,coord_type,Func,Reverse>::run(bounds,idx,f);
+                                            masked_multi_looper<N+2,M,Mask,coord_type,Func,Reverse>::run(bounds,idx,f);
                                         }
                                     }
                                     idx[MyNN] = 0;
                                 } else {
+                                std::cout << "("<< N << ":"<< int(Masked(N)) << ")";
                                     for(auto&& i = idx[MyN] = 0; i < bounds[MyN]; ++i) {
-                                        multi_looper<N+1,M,coord_type,Func,Reverse>::run(bounds,idx,f);
+                                        masked_multi_looper<N+1,M,Mask,coord_type,Func,Reverse>::run(bounds,idx,f);
                                     }
                                 }
                                 idx[MyN] = 0;
                             }
                             static void run(const coord_type& begin, const coord_type& end, coord_type& idx, const Func& f) {
-                                if constexpr(M >= N+2) {
+                                if constexpr(Masked(N)) {
+                                    masked_multi_looper<N+1,M,Mask,coord_type,Func,Reverse>::run(begin,end,idx,f);
+                                } else if constexpr(false && M >= N+2 && !Masked(N+1)) {
                                     constexpr static int NN = N+1;
                                     constexpr static int MyNN = Reverse?M-NN-1:NN;
                                     for(auto& i = idx[MyN] = begin[MyN]; i < end[MyN]; ++i) {
                                         for(auto& j = idx[MyNN] = begin[MyNN]; j < end[MyNN]; ++j) {
-                                            multi_looper<N+2,M,coord_type,Func,Reverse>::run(begin,end,idx,f);
+                                            masked_multi_looper<N+2,M,Mask,coord_type,Func,Reverse>::run(begin,end,idx,f);
                                         }
                                     }
                                     idx[MyNN] = begin[MyNN];
                                 } else {
                                     for(auto&& i = idx[MyN] = begin[MyN]; i < end[MyN]; ++i) {
-                                        multi_looper<N+1,M,coord_type,Func,Reverse>::run(begin,end,idx,f);
+                                        masked_multi_looper<N+1,M,Mask,coord_type,Func,Reverse>::run(begin,end,idx,f);
                                     }
                                 }
                                 idx[MyN] = begin[MyN];
                             }
                         };
-                    template <int N, typename coord_type, typename Func, bool Reverse>
-                        struct multi_looper<N,N,coord_type,Func,Reverse> {
+
+                    template <int N, int Mask, typename coord_type, typename Func, bool Reverse>
+                        struct masked_multi_looper<N,N, Mask,coord_type,Func,Reverse> {
                             static void run(const coord_type& bounds, coord_type& idx, const Func& f) {
                                 f(idx);
                             }
@@ -58,7 +68,15 @@ namespace mtao {
                                 f(idx);
                             }
                         };
+                    template <int N, int M, typename coord_type, typename Func, bool Reverse = false>
+                        using multi_looper = masked_multi_looper<N,M,((1<<M) - 1),coord_type, Func, Reverse>;
                 }
+                template <int Mask, typename coord_type, typename Func>
+                    void masked_multi_loop(const coord_type& index, const Func& f) {
+                        coord_type idx;
+                        internal::masked_multi_looper<0,std::tuple_size<coord_type>::value,Mask,coord_type,Func,false>::run(index,idx,f);
+                        std::cout << std::endl;
+                    }
                 template <typename coord_type, typename Func>
                     void multi_loop(const coord_type& index, const Func& f) {
                         coord_type idx;
