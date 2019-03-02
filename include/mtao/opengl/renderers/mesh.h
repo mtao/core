@@ -118,6 +118,7 @@ class MeshRenderer: public Renderer {
 
 
 
+        MTAO_ACCESSORS(bool,visible,m_visible)
 
         MTAO_ACCESSORS(glm::vec4,face_color,m_face_color)
         MTAO_ACCESSORS(glm::vec4,edge_color,m_edge_color)

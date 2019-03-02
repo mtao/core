@@ -31,7 +31,6 @@ namespace mtao {
                                     }
                                     idx[MyNN] = 0;
                                 } else {
-                                std::cout << "("<< N << ":"<< int(Masked(N)) << ")";
                                     for(auto&& i = idx[MyN] = 0; i < bounds[MyN]; ++i) {
                                         masked_multi_looper<N+1,M,Mask,coord_type,Func,Reverse>::run(bounds,idx,f);
                                     }
