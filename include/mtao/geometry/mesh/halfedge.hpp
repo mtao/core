@@ -61,6 +61,15 @@ class HalfEdgeMesh {
         std::vector<int> vertices() const;
         std::vector<int> boundary() const;
 
+        cell_iterator get_cell_iterator(const HalfEdge& he) const;
+        vertex_iterator get_vertex_iterator(const HalfEdge& he) const;
+        boundary_iterator get_boundary_iterator(const HalfEdge& he) const;
+        cell_iterator get_cell_iterator(int he_idx) const;
+        vertex_iterator get_vertex_iterator(int he_idx) const;
+        boundary_iterator get_boundary_iterator(int he_idx) const;
+
+        std::vector<int> cell_vertices(int he_in_cell) const;
+        std::vector<int> one_ring(int he_pointing_to_vertex) const;
 
         HalfEdge edge(int i) const;
         HalfEdge cell_edge(int i) const;
@@ -420,6 +429,7 @@ std::set<std::tuple<S,int>> EmbeddedHalfEdgeMesh<S,D>::get_edge_angles(int eidx)
     */
     return edge_angles;
 }
+
 
 }}}
 #endif//HALFEDGE_CELLCOMPLEX_H

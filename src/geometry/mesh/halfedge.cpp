@@ -39,6 +39,28 @@ HalfEdgeMesh HalfEdgeMesh::from_edges(const mtao::ColVectors<int,2>& E) {
     return hem;
 }
 
+std::vector<int> HalfEdgeMesh::cell_vertices(int he_in_cell) const {
+    std::vector<int> vertices;
+    get_cell_iterator(he_in_cell)([&vertices](const HalfEdge& e) {
+            vertices.emplace_back(e.vertex());
+            });
+    return vertices;
+}
+std::vector<int> HalfEdgeMesh::dual_cell(int he_pointing_to_vertex) const {
+    std::vector<int> vertices;
+    get_vertex_iterator(he_pointing_to_vertex)([&vertices](const HalfEdge& e) {
+            vertices.emplace_back(e.cell());
+            });
+    return vertices;
+}
+std::vector<int> HalfEdgeMesh::one_ring(int he_pointing_to_vertex) const {
+    std::vector<int> vertices;
+    get_vertex_iterator(he_pointing_to_vertex)([&vertices](const HalfEdge& e) {
+            vertices.emplace_back(e.get_dual().vertex());
+            });
+    return vertices;
+}
+
 
 void HalfEdgeMesh::clear(size_t new_size) {
     m_edges = Edges::Constant(int(Index::IndexEnd),int(new_size),-1);
@@ -331,17 +353,6 @@ std::vector<int> HalfEdgeMesh::cell(int i) const {
             });
     return ret;
 }
-std::vector<int> HalfEdgeMesh::dual_cell(int i) const {
-    std::vector<int> ret;
-
-    auto ve = vertex_edge(i);
-    vertex_iterator iter(ve);
-    //if(ve.dual_index() == -1) { return ret; }
-    iter([&ret](const HalfEdge& e) {
-            ret.push_back(e.cell());
-            });
-    return ret;
-}
 HalfEdgeMesh HalfEdgeMesh::submesh_from_vertices(const std::set<int>& vertex_indices) const {
     std::set<int> edge_indices;
     for(int i = 0; i < size(); ++i) {
@@ -440,4 +451,22 @@ void HalfEdgeMesh::complete_boundary_cells() {
 }
 
 
+cell_iterator HalfEdgeMesh::get_cell_iterator(const HalfEdge& he) const{
+    return cell_iterator(he);
+}
+vertex_iterator HalfEdgeMesh::get_vertex_iterator(const HalfEdge& he) const{
+    return vertex_iterator(he);
+}
+boundary_iterator HalfEdgeMesh::get_boundary_iterator(const HalfEdge& he) const{
+    return boundary_iterator(he);
+}
+cell_iterator HalfEdgeMesh::get_cell_iterator(int he_idx) const{
+    return cell_iterator(HalfEdge(this,he_idx));
+}
+vertex_iterator HalfEdgeMesh::get_vertex_iterator(int he_idx) const{
+    return vertex_iterator(HalfEdge(this,he_idx));
+}
+boundary_iterator HalfEdgeMesh::get_boundary_iterator(int he_idx) const{
+    return boundary_iterator(HalfEdge(this,he_idx));
+}
 }}}
