@@ -39,23 +39,41 @@ HalfEdgeMesh HalfEdgeMesh::from_edges(const mtao::ColVectors<int,2>& E) {
     return hem;
 }
 
-std::vector<int> HalfEdgeMesh::cell_vertices(int he_in_cell) const {
+std::vector<int> HalfEdgeMesh::cell(int i) const {
+    return cell(cell_edge(i));
+}
+std::vector<int> HalfEdgeMesh::dual_cell(int i) const {
+    return cell(vertex_edge(i));
+}
+std::vector<int> HalfEdgeMesh::one_ring(int i) const {
+    return one_ring(vertex_edge(i));
+}
+std::vector<int> HalfEdgeMesh::cell_he(int he_in_cell) const {
+    return cell(edge(he_in_cell));
+}
+std::vector<int> HalfEdgeMesh::dual_cell_he(int he_pointing_to_vertex) const {
+    return dual_cell(edge(he_pointing_to_vertex));
+}
+std::vector<int> HalfEdgeMesh::one_ring_he(int he_pointing_to_vertex) const {
+    return dual_cell(edge(he_pointing_to_vertex));
+}
+std::vector<int> HalfEdgeMesh::cell(const HalfEdge& e) const {
     std::vector<int> vertices;
-    get_cell_iterator(he_in_cell)([&vertices](const HalfEdge& e) {
+    cell_iterator{e}([&vertices](const HalfEdge& e) {
+            vertices.push_back(e.vertex());
+            });
+    return vertices;
+}
+std::vector<int> HalfEdgeMesh::dual_cell(const HalfEdge& e) const {
+    std::vector<int> vertices;
+    cell_iterator{e}([&vertices](const HalfEdge& e) {
             vertices.emplace_back(e.vertex());
             });
     return vertices;
 }
-std::vector<int> HalfEdgeMesh::dual_cell(int he_pointing_to_vertex) const {
+std::vector<int> HalfEdgeMesh::one_ring(const HalfEdge& e) const {
     std::vector<int> vertices;
-    get_vertex_iterator(he_pointing_to_vertex)([&vertices](const HalfEdge& e) {
-            vertices.emplace_back(e.cell());
-            });
-    return vertices;
-}
-std::vector<int> HalfEdgeMesh::one_ring(int he_pointing_to_vertex) const {
-    std::vector<int> vertices;
-    get_vertex_iterator(he_pointing_to_vertex)([&vertices](const HalfEdge& e) {
+    vertex_iterator{e}([&vertices](const HalfEdge& e) {
             vertices.emplace_back(e.get_dual().vertex());
             });
     return vertices;
@@ -346,13 +364,6 @@ int HalfEdgeMesh::num_vertices() const {
 }
 
 
-std::vector<int> HalfEdgeMesh::cell(int i) const {
-    std::vector<int> ret;
-    cell_iterator(cell_edge(i))([&ret](const HalfEdge& e) {
-            ret.push_back(e.vertex());
-            });
-    return ret;
-}
 HalfEdgeMesh HalfEdgeMesh::submesh_from_vertices(const std::set<int>& vertex_indices) const {
     std::set<int> edge_indices;
     for(int i = 0; i < size(); ++i) {

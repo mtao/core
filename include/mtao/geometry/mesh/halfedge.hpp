@@ -68,8 +68,17 @@ class HalfEdgeMesh {
         vertex_iterator get_vertex_iterator(int he_idx) const;
         boundary_iterator get_boundary_iterator(int he_idx) const;
 
-        std::vector<int> cell_vertices(int he_in_cell) const;
-        std::vector<int> one_ring(int he_pointing_to_vertex) const;
+        std::vector<int> cell(int cell_index) const;
+        std::vector<int> cell(const HalfEdge& e) const;
+        std::vector<int> cell_he(int he_in_cell) const;
+
+        std::vector<int> dual_cell(int vertex_index) const;
+        std::vector<int> dual_cell(const HalfEdge& e) const;
+        std::vector<int> dual_cell_he(int he_in_cell) const;
+
+        std::vector<int> one_ring(int vertex_idx) const;
+        std::vector<int> one_ring(const HalfEdge& e) const;
+        std::vector<int> one_ring_he(int he_pointing_to_vertex) const;
 
         HalfEdge edge(int i) const;
         HalfEdge cell_edge(int i) const;
@@ -77,8 +86,6 @@ class HalfEdgeMesh {
         std::set<HalfEdge> cell_edges(int i) const;
         std::set<HalfEdge> vertex_edges(int i) const;
 
-        std::vector<int> cell(int i) const;
-        std::vector<int> dual_cell(int i) const;
 
         int size() const { return m_edges.cols(); }
         int boundary_size() const;

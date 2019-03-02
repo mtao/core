@@ -38,19 +38,26 @@ int main(int argc, char * argv[]) {
     for(size_t i = 0; i < C.size(); ++i) {
         std::cout << F.col(i).transpose() << std::endl;
         std::cout << "=============" << std::endl;
-                cell_iterator(&hem,C[i])([&](auto&& e) {
-            std::cout << e.vertex() << " ";
-                        });
+        cell_iterator(&hem,C[i])([&](auto&& e) {
+                std::cout << e.vertex() << " ";
+                });
+        std::cout << std::endl;
+        std::cout << "=============" << std::endl;
+        auto c = hem.cell_he(C[i]);
+        for(auto&& v: c) {
+            std::cout << v << " ";
+        }
         std::cout << std::endl;
         std::cout << std::endl << std::endl;
     }
     auto D = hem.vertices();
 
-    for(size_t i = 0; i < C.size(); ++i) {
+    for(size_t i = 0; i <D.size(); ++i) {
         std::cout << "dual cell: " << i << ") ";
-                vertex_iterator(&hem,C[i])([&](auto&& e) {
-                        std::cout << e.cell() << " ";
-                        });
+        auto dc = hem.dual_cell_he(D[i]);
+        for(auto&& v: dc) {
+            std::cout << v << " ";
+        }
         std::cout << std::endl;
     }
 
