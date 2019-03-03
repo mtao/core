@@ -4,6 +4,7 @@ namespace mtao {
     namespace iterator {
         namespace detail {
 
+            template <typename Index>
             struct range_iterator {
                 public:
                     range_iterator(int val, int inc): m_val(val), m_inc(inc) {}
@@ -15,13 +16,14 @@ namespace mtao {
 
                     range_iterator& operator++() {m_val += m_inc; return *this;}
 
-                    int operator*() const {return m_val;}
+                    Index operator*() const {return m_val;}
 
                 private:
-                    int m_val,m_inc;
+                    Index m_val,m_inc;
             };
 
 
+            template <typename Index>
             struct range_container {
 
 
@@ -31,11 +33,11 @@ namespace mtao {
                 range_container& operator=(range_container&&) = default;
                 range_container& operator=(const range_container&) = default;
 
-                using iterator = range_iterator;
+                using iterator = range_iterator<Index>;
 
                 iterator begin() const { return iterator(m_start,m_inc);}
                 iterator end() const { 
-                    int range = m_end - m_start;
+                    Index range = m_end - m_start;
                     auto dr = std::lldiv(range,m_inc);
                     if(dr.rem == 0) {
                         return iterator(m_end,m_inc);
@@ -44,20 +46,23 @@ namespace mtao {
                     }
                 }
 
-                range_container(int a, int b, int c): m_start(a), m_end(b), m_inc(c) {}
+                range_container(Index a, Index b, Index c): m_start(a), m_end(b), m_inc(c) {}
 
 
                 private:
-                int m_start, m_end, m_inc;
+                Index m_start, m_end, m_inc;
 
             };
 
         } 
-        inline auto range(int N = std::numeric_limits<int>::has_infinity?std::numeric_limits<int>::infinity():std::numeric_limits<int>::max()) {
-            return detail::range_container(0,N,1);
+        template <typename Index = int>
+        inline auto range(Index N = std::numeric_limits<Index>::has_infinity?std::numeric_limits<Index>::infinity():std::numeric_limits<Index>::max()) {
+            return detail::range_container<Index>(0,N,1);
         }
-        inline auto range(int a, int b, int inc = 1) {
-            return detail::range_container(a,b,inc);
+        template <typename Index = int>
+        inline auto range(Index a, Index b, Index inc = 1) {
+            return detail::range_container<Index>(a,b,inc);
         }
+
     }
 }
