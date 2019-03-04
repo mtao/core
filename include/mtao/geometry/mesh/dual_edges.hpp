@@ -19,6 +19,7 @@ namespace mtao::geometry::mesh {
                     ret[j] = col(idx);
                 }
                 std::sort(ret.begin(),ret.end());
+                return ret;
             };
             for(int i = 0; i < F.cols(); ++i) {
                 index[get_bsimplex(0,F.col(i))] = i;
@@ -30,9 +31,9 @@ namespace mtao::geometry::mesh {
             }
             mtao::ColVectors<int,2> E = mtao::ColVectors<int,2>::Constant(2,C.cols(),-1);
             for(int i = 0; i < DE.size(); ++i) {
-                auto& e = E.col(i);
+                auto e = E.col(i);
                 auto& de = DE[i];
-                for(auto [idx,val]: de) {
+                for(auto [idx,val]: mtao::iterator::enumerate(de)) {
                     e(idx) = val;
                 }
 
