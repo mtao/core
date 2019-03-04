@@ -6,7 +6,7 @@
 
 
 namespace mtao {
-    template <typename IndexType>
+    template <typename IndexType=int>
         struct ReIndexer {
             IndexType add_index(IndexType idx) {
                 if(auto it = m_forward.find(idx); it != m_forward.end()) {
@@ -15,6 +15,9 @@ namespace mtao {
                     IndexType new_idx = m_forward.size();
                     return m_forward[idx] = new_idx;
                 }
+            }
+            IndexType set(IndexType idx, IndexType target) {
+                return m_forward[idx] = target;
             }
 
             IndexType operator()(IndexType idx) {
@@ -38,12 +41,28 @@ namespace mtao {
             private:
             std::map<IndexType,IndexType> m_forward;
         };
-    template <typename IndexType, size_t Size>
+    template <size_t Size, typename IndexType=int>
         struct StackedReIndexer {
             using RET = ReIndexer<IndexType>;
             template <size_t D>
-            void add_index(IndexType idx) {
+                void add_index(IndexType idx) {
+                    indexers[D].add_index(idx);
+                    update_offsets(D);
+                }
+            template <size_t D>
+                IndexType set(IndexType idx, IndexType target) {
+                    indexers[D].set(idx,target);
+                    update_offsets(D);
+                }
+            void add_index(IndexType idx, size_t D) {
                 indexers[D].add_index(idx);
+                update_offsets(D);
+            }
+            IndexType set(IndexType idx, IndexType target, size_t D) {
+                indexers[D].set(idx,target);
+                update_offsets(D);
+            }
+            void update_offsets(size_t D) {
                 for(size_t i = D; i < Size; ++i) {
                     offsets[i+1] = offsets[i] + indexers[i].size();
                 }
@@ -52,9 +71,9 @@ namespace mtao {
                 return offsets[Size];
             }
             template <int D>
-            bool has_index(IndexType idx) const {
-                return indexers[D].has_index(idx);
-            }
+                bool has_index(IndexType idx) const {
+                    return indexers[D].has_index(idx);
+                }
             std::vector<IndexType> inverse() const {
                 std::vector<IndexType> ret(size());
                 for(auto&& [i,o]: mtao::iterator::zip(indexers,offsets)) {
