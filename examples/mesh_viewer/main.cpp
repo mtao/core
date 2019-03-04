@@ -42,21 +42,12 @@ void prepare_mesh(const ColVectors3f& V, const ColVectors3i&F) {
 
     float scale = bb.sizes().maxCoeff();
 
-    ColVectors3f VV = V /  scale;
-
-    renderer->setMesh(VV,F,true);
-    {
-    using BBox = renderers::BBoxRenderer3::BBox;
-    BBox bb;
-    for(int i = 0; i < VV.cols(); ++i) {
-        bb.extend(VV.col(i));
-    }
-    //Artifact of how i normalize in my meshrenderer. should just delete that functionality
+    renderer->setMesh(V,F,false);
     auto m = ((bb.min() + bb.max())/2).eval();
-    bb.min() -= m;
-    bb.max() -= m;
+    cam.target_pos() = glm::vec3(m.x(),m.y(),m.z());
+    cam.camera_pos() = glm::vec3(m.x(),m.y(),m.z() + 5);
+    cam.update();
     bbox_renderer->set(bb);
-    }
 
     renderers::MeshRenderer::MatrixXgf C = renderer->computeNormals(V,F).array();
     renderer->setColor(C);
@@ -98,6 +89,7 @@ void render(int width, int height) {
     renderer->set_mvp(cam.mvp());
     renderer->set_mvp(cam.mv(),cam.p());
     bbox_renderer->set_mvp(cam.mvp());
+    bbox_renderer->set_mvp(cam.mv(),cam.p());
 
     renderer->render();
     bbox_renderer->render();
