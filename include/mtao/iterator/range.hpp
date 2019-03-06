@@ -56,6 +56,10 @@ namespace mtao {
 
         } 
         template <typename Index = int>
+        inline auto inf_range(Index a = 0) {
+            return detail::range_container<Index>(a,std::numeric_limits<Index>::has_infinity?std::numeric_limits<Index>::infinity():std::numeric_limits<Index>::max(),1);
+        }
+        template <typename Index = int>
         inline auto range(Index N = std::numeric_limits<Index>::has_infinity?std::numeric_limits<Index>::infinity():std::numeric_limits<Index>::max()) {
             return detail::range_container<Index>(0,N,1);
         }
