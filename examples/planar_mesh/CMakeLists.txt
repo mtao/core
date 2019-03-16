@@ -8,4 +8,4 @@ ADD_EXECUTABLE(tw
     include/example_boundaries.h
     )
 
-TARGET_LINK_LIBRARIES(tw mtao_opengl mtao_geometry)
+TARGET_LINK_LIBRARIES(planar_mesh mtao_opengl mtao_geometry)
