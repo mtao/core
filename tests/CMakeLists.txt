@@ -29,6 +29,7 @@ ADD_EXECUTABLE(vertex_pruning_test vertex_pruning_test.cpp)
 ADD_EXECUTABLE(opposite_volumes_test opposite_volumes_test.cpp)
 ADD_EXECUTABLE(cot_laplacian_test cot_laplacian_test.cpp)
 
+ADD_EXECUTABLE(winding_plus_earclipping_test winding_plus_earclipping_test.cpp)
 ADD_EXECUTABLE(colvector_loop_test colvector_loop_test.cpp)
 ADD_EXECUTABLE(reindexer_test reindexer_test.cpp)
 
