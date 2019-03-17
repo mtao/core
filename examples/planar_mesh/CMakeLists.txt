@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.7)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)
-ADD_EXECUTABLE(tw
+ADD_EXECUTABLE(planar_mesh
     src/main.cpp
     src/geometry.cpp
     src/example_boundaries.cpp
