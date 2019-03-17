@@ -6,6 +6,7 @@
 #include <utility>
 #include "mtao/types.h"
 #include <Eigen/Geometry>
+#include "mtao/geometry/mesh/earclipping.hpp"
 #include <iostream>
 #include <array>
 
@@ -57,9 +58,9 @@ class HalfEdgeMesh {
         const Edges& edges() const { return m_edges; }
 
         //Returns a unique halfedge to access a particular element type
-        std::vector<int> cells() const;
-        std::vector<int> vertices() const;
-        std::vector<int> boundary() const;
+        std::vector<int> cell_halfedges() const;
+        std::vector<int> vertex_halfedges() const;
+        std::vector<int> boundary_halfedges() const;
 
         cell_iterator get_cell_iterator(const HalfEdge& he) const;
         vertex_iterator get_vertex_iterator(const HalfEdge& he) const;
@@ -68,6 +69,7 @@ class HalfEdgeMesh {
         vertex_iterator get_vertex_iterator(int he_idx) const;
         boundary_iterator get_boundary_iterator(int he_idx) const;
 
+        std::vector<std::vector<int>> cells() const;
         std::vector<int> cell(int cell_index) const;
         std::vector<int> cell(const HalfEdge& e) const;
         std::vector<int> cell_he(int he_in_cell) const;
@@ -166,6 +168,7 @@ class EmbeddedHalfEdgeMesh: public HalfEdgeMesh {
 }
 
 
+        mtao::ColVectors<int,3> cells_triangulated() const;
         auto V(int i) { return m_vertices.col(i); }
         auto V(int i) const { return m_vertices.col(i); }
         void make_topology();
@@ -359,10 +362,14 @@ bool EmbeddedHalfEdgeMesh<S,D>::is_inside(const HalfEdge& cell_edge, const Eigen
     return inside;
 }
 template <typename S, int D>
+mtao::ColVectors<int,3> EmbeddedHalfEdgeMesh<S,D>::cells_triangulated() const {
+    return mtao::geometry::mesh::earclipping(m_vertices,cells());
+}
+template <typename S, int D>
 template <typename Derived>
 int EmbeddedHalfEdgeMesh<S,D>::get_cell(const Eigen::MatrixBase<Derived>& p) const {
     static_assert(D == 2);
-    auto C = cells();
+    auto C = cell_halfedges();
 
 
     for(size_t i = 0; i < C.size(); ++i) {
@@ -374,7 +381,7 @@ int EmbeddedHalfEdgeMesh<S,D>::get_cell(const Eigen::MatrixBase<Derived>& p) con
 }
 template <typename S, int D>
 mtao::VectorX<int> EmbeddedHalfEdgeMesh<S,D>::get_cells(const mtao::ColVectors<S,D>& P) const {
-    auto C = cells();
+    auto C = cell_halfedges();
     mtao::VectorX<int> indices(P.cols());
 
     auto edge = [](HalfEdge he) -> std::array<int,3> {

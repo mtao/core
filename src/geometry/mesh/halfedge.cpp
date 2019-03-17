@@ -38,6 +38,14 @@ HalfEdgeMesh HalfEdgeMesh::from_edges(const mtao::ColVectors<int,2>& E) {
     }
     return hem;
 }
+std::vector<std::vector<int>> HalfEdgeMesh::cells() const {
+    auto hes = cell_halfedges();
+    std::vector<std::vector<int>> C(hes.size());
+    std::transform(hes.begin(),hes.end(), C.begin(), [&](int he_in_cell) -> std::vector<int> {
+            return cell_he(he_in_cell);
+            });
+    return C;
+}
 
 std::vector<int> HalfEdgeMesh::cell(int i) const {
     return cell(cell_edge(i));
@@ -156,7 +164,7 @@ void HalfEdgeMesh::make_cells() {
     }
 }
 
-std::vector<int> HalfEdgeMesh::cells() const {
+std::vector<int> HalfEdgeMesh::cell_halfedges() const {
     std::map<int,int> cell_edge;
     for(int i = 0; i < size(); ++i) {
         cell_edge[cell_index(i)] = i;
@@ -168,7 +176,7 @@ std::vector<int> HalfEdgeMesh::cells() const {
     return ret;
 }
 
-std::vector<int> HalfEdgeMesh::vertices() const {
+std::vector<int> HalfEdgeMesh::vertex_halfedges() const {
     //TODO: make sure every vertex gets expressed!
     std::map<int,int> cell_edge;
     for(int i = 0; i < size(); ++i) {
@@ -187,7 +195,7 @@ std::vector<int> HalfEdgeMesh::vertices() const {
             });
     return ret;
 }
-std::vector<int> HalfEdgeMesh::boundary() const {
+std::vector<int> HalfEdgeMesh::boundary_halfedges() const {
     std::vector<int> ret;
     for(int i = 0; i < size(); ++i) {
         if(dual_index(i) == -1) {

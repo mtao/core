@@ -1,4 +1,4 @@
-#include "mtao/geometry/earclipping.hpp"
+#include "mtao/geometry/mesh/earclipping.hpp"
 #include "mtao/geometry/winding_number.hpp"
 #include <iostream>
 

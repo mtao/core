@@ -15,7 +15,6 @@ namespace mtao::geometry::mesh {
         std::vector<Face> stlF;
         if constexpr(std::is_integral_v<mtao::types::remove_cvref_t<decltype(*beginit)>>) {
             stlF.reserve(std::distance(beginit,endit) - 2);
-            using Scalar = typename VDerived::Scalar;
             std::list<int> CL(beginit,endit);
             while(CL.size() > 3) {
                 for(auto it = CL.begin(); it != CL.end(); ++it) {
