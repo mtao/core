@@ -50,6 +50,11 @@ namespace mtao {
                         Grid(const coord_type& a, const Eigen::MatrixBase<Derived>& dx, const Vec& origin = Vec::Zero()): Indexer(a), m_origin(origin), m_dx(dx) {}
                         Grid(const coord_type& a): Grid(a,(1.0 / (CIVecMap(a.data()).template cast<T>().array()-UseVertexGrid)).matrix()) {}
                         Grid() {}
+                        static Grid from_bbox(BBox bb, const coord_type& shape) {
+                            auto o = bb.min();
+                        auto dx = bb.sizes().array() / (CIVecMap(shape.data()).template cast<T>().array()-UseVertexGrid);
+                        return Grid(shape,o,dx);
+                        }
                         Grid(const Grid& other) = default;
                         Grid(Grid&& other) = default;
                         Grid& operator=(const Grid& other) = default;
@@ -60,7 +65,7 @@ namespace mtao {
 
                         BBox bbox() const {
                             if constexpr(UseVertexGrid) {
-                            return BBox(origin(), vertex(shapeAsIVec() - IVec::Ones()));
+                                return BBox(origin(), vertex(shapeAsIVec() - IVec::Ones()));
                             } else {
                             return BBox(origin(), vertex(shapeAsIVec()));
                             }
