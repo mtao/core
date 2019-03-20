@@ -53,7 +53,7 @@ namespace mtao {
                         static Grid from_bbox(BBox bb, const coord_type& shape) {
                             auto o = bb.min();
                         auto dx = bb.sizes().array() / (CIVecMap(shape.data()).template cast<T>().array()-UseVertexGrid);
-                        return Grid(shape,o,dx);
+                        return Grid(shape,dx.matrix(),o);
                         }
                         Grid(const Grid& other) = default;
                         Grid(Grid&& other) = default;
