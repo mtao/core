@@ -34,7 +34,7 @@ int main(int argc, char * argv[]) {
     HalfEdgeMesh hem = HalfEdgeMesh::from_cells(F);
 
     debug() << "boundary size: " << hem.boundary_size();
-    auto C = hem.cells();
+    auto C = hem.cell_halfedges();
     for(size_t i = 0; i < C.size(); ++i) {
         std::cout << F.col(i).transpose() << std::endl;
         std::cout << "=============" << std::endl;
@@ -50,7 +50,7 @@ int main(int argc, char * argv[]) {
         std::cout << std::endl;
         std::cout << std::endl << std::endl;
     }
-    auto D = hem.vertices();
+    auto D = hem.vertex_halfedges();
 
     for(size_t i = 0; i <D.size(); ++i) {
         std::cout << "dual cell: " << i << ") ";

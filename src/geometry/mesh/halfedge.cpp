@@ -410,6 +410,16 @@ HalfEdgeMesh HalfEdgeMesh::submesh_from_edges(const std::set<int>& edge_indices)
     }
     return HalfEdgeMesh(new_edges);
 }
+std::map<std::array<int,2>,int> HalfEdgeMesh::edge_to_halfedge() const {
+    using E = std::array<int,2>;
+    std::map<E,int> ret;
+    for(int i = 0; i < size(); ++i) {
+        int di = dual_index(i);
+        E e{{vertex_index(di),vertex_index(i)}};
+        ret[e] = i;
+    }
+    return ret;
+}
 
 void HalfEdgeMesh::complete_boundary_cells() {
     /*

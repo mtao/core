@@ -39,7 +39,7 @@ void test0() {
     hem.make_topology();
     std::cout << hem.edges() << std::endl << std::endl;
 
-    auto C = hem.cells();
+    auto C = hem.cell_halfedges();
     for(size_t i = 0; i < C.size(); ++i) {
         std::cout << hem.edge(C[i]).cell() << ": ";
         cell_iterator(&hem,C[i])([&](auto&& e) {
@@ -80,7 +80,7 @@ void test1() {
     hem.make_topology();
     std::cout << hem.edges() << std::endl << std::endl;
 
-    auto C = hem.cells();
+    auto C = hem.cell_halfedges();
     for(size_t i = 0; i < C.size(); ++i) {
         std::cout << hem.edge(C[i]).cell() << ": ";
         cell_iterator(&hem,C[i])([&](auto&& e) {
@@ -120,7 +120,7 @@ void test2() {
     hem.make_topology();
     std::cout << hem.edges() << std::endl << std::endl;
 
-    for(auto&& c: hem.cells()) {
+    for(auto&& c: hem.cell_halfedges()) {
         std::cout << hem.edge(c).cell() << ": ";
         cell_iterator(&hem,c)([&](auto&& e) {
                 std::cout << e.vertex() << " ";

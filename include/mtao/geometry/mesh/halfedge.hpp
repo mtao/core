@@ -88,6 +88,8 @@ class HalfEdgeMesh {
         std::set<HalfEdge> cell_edges(int i) const;
         std::set<HalfEdge> vertex_edges(int i) const;
 
+        //Edge {i,j} => halfedge pointing to j, where i is the dual
+        std::map<std::array<int,2>,int> edge_to_halfedge() const;
 
         int size() const { return m_edges.cols(); }
         int boundary_size() const;
@@ -172,6 +174,10 @@ class EmbeddedHalfEdgeMesh: public HalfEdgeMesh {
         auto V(int i) { return m_vertices.col(i); }
         auto V(int i) const { return m_vertices.col(i); }
         void make_topology();
+
+        template <typename Derived>
+        void set_one_ring_adjacencies(const Eigen::MatrixBase<Derived>& central_vertex, const std::set<int>& outward_facing_halfedges);
+
         template <typename Derived>
         bool is_inside(int cell_edge, const Eigen::MatrixBase<Derived>& p) const ;
         template <typename Derived>
@@ -258,42 +264,42 @@ struct boundary_iterator: public edge_iterator_base<boundary_iterator> {
 template <typename S, int D>
 void EmbeddedHalfEdgeMesh<S,D>::make_topology() {
 
-    if constexpr(D == 2) {
-        //MAke edge connectivity
-        auto ni = next_indices();
-        auto di = dual_indices();
-        auto e2v = vertex_edges_no_topology();
-        for(auto&& [vidx,edges]: e2v) {
-            if(edges.size() == 1) {
-                int eidx = *edges.begin();
-                ni(eidx) = di(eidx);
-            } else {
-                auto o = V(vidx);
-                std::map<S,int> edge_angles;
+    static_assert(D == 2);
+    //MAke edge connectivity
+    auto e2v = vertex_edges_no_topology();
+    for(auto&& [vidx,edges]: e2v) {
+        set_one_ring_adjacencies(V(vidx),edges);
+    }
 
-                std::transform(edges.begin(),edges.end(),std::inserter(edge_angles,edge_angles.end()), [&](int eidx) {
-                        HalfEdge e = edge(eidx);
-                        auto p = V(e.get_dual().vertex()) - o;
-                        S ang = std::atan2(p.y(),p.x());
-                        return std::make_pair(ang,eidx);
-                        });
-                auto nit = edge_angles.begin();
-                auto it = nit++;
-                for(; nit != edge_angles.end(); ++it, ++nit) {
-                    int nidx = nit->second;
-                    int idx = it->second;
-                    ni(idx) = di(nidx);
-                }
-                int idx = it->second;
-                ni(idx) = di(edge_angles.begin()->second);
-            }
-
-
-        }
-
-        make_cells();
+    make_cells();
+}
+template <typename S, int D>
+template <typename Derived>
+void EmbeddedHalfEdgeMesh<S,D>::set_one_ring_adjacencies(const Eigen::MatrixBase<Derived>& o, const std::set<int>& edges) {
+    static_assert(D == 2);
+    auto ni = next_indices();
+    auto di = dual_indices();
+    if(edges.size() == 1) {
+        int eidx = *edges.begin();
+        ni(eidx) = di(eidx);
     } else {
-        static_assert(D == 2);
+        std::map<S,int> edge_angles;
+
+        std::transform(edges.begin(),edges.end(),std::inserter(edge_angles,edge_angles.end()), [&](int eidx) {
+                HalfEdge e = edge(eidx);
+                auto p = V(e.get_dual().vertex()) - o;
+                S ang = std::atan2(p.y(),p.x());
+                return std::make_pair(ang,eidx);
+                });
+        auto nit = edge_angles.begin();
+        auto it = nit++;
+        for(; nit != edge_angles.end(); ++it, ++nit) {
+            int nidx = nit->second;
+            int idx = it->second;
+            ni(idx) = di(nidx);
+        }
+        int idx = it->second;
+        ni(idx) = di(edge_angles.begin()->second);
     }
 }
 template <typename S, int D>
@@ -317,22 +323,22 @@ bool EmbeddedHalfEdgeMesh<S,D>::is_inside(const HalfEdge& cell_edge, const Eigen
 
         auto winding_number = [&](auto&& p) -> S{
             S value = 0;
-        cell_iterator(this,cell_edge.index())([&](auto&& e){
-                auto [i,j] = edge(e);
-                auto a = V(i) - p;
-                auto b = V(j) - p;
-                S aa = std::atan2(a.y(),a.x());
-                S ba = std::atan2(b.y(),b.x());
-                S ang = ba - aa;
-                if(ang > M_PI) {
-                ang -= 2 * M_PI;
-                } else if(ang <= -M_PI) {
-                ang += 2*M_PI;
-                }
-                value += ang;
+            cell_iterator(this,cell_edge.index())([&](auto&& e){
+                    auto [i,j] = edge(e);
+                    auto a = V(i) - p;
+                    auto b = V(j) - p;
+                    S aa = std::atan2(a.y(),a.x());
+                    S ba = std::atan2(b.y(),b.x());
+                    S ang = ba - aa;
+                    if(ang > M_PI) {
+                    ang -= 2 * M_PI;
+                    } else if(ang <= -M_PI) {
+                    ang += 2*M_PI;
+                    }
+                    value += ang;
 
-                });
-        return value;
+                    });
+            return value;
 
         };
         return std::abs(winding_number(p)) > 1;//1 is ok, looking for multiples of 2pi right?
@@ -434,13 +440,13 @@ std::set<std::tuple<S,int>> EmbeddedHalfEdgeMesh<S,D>::get_edge_angles(int eidx)
             edge_angles.emplace({ang,e.index()});
             });
     /*
-    std::transform(edges.begin(),edges.end(),std::inserter(edge_angles,edge_angles.end()), [&](int eidx) {
-            HalfEdge e = edge(eidx);
-            auto p = V(e.get_dual().vertex()) - o;
-            T ang = std::atan2(p.y(),p.x());
-            return std::make_pair(ang,eidx);
-            });
-    */
+       std::transform(edges.begin(),edges.end(),std::inserter(edge_angles,edge_angles.end()), [&](int eidx) {
+       HalfEdge e = edge(eidx);
+       auto p = V(e.get_dual().vertex()) - o;
+       T ang = std::atan2(p.y(),p.x());
+       return std::make_pair(ang,eidx);
+       });
+       */
     return edge_angles;
 }
 
