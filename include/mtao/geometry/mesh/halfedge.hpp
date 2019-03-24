@@ -104,6 +104,10 @@ class HalfEdgeMesh {
         HalfEdgeMesh submesh_from_edges(const std::set<int>& edge_indices) const;
         HalfEdgeMesh submesh_from_vertices(const std::set<int>& edge_indices) const;
         std::map<int,std::set<int>> vertex_edges_no_topology() const;
+        template <typename Derived>
+            void set_one_ring_adjacencies(const Eigen::MatrixBase<Derived>& V, const std::vector<int>& edges, bool stitch_ends = true);
+        template <typename T>
+            void set_one_ring_adjacencies(const std::map<T,int>& ordered_edge_indices, bool stitch_ends = true);
 
         void make_cells();//assumes duals and cells nexts are set up, makes every element part of some cell
     private:
@@ -273,6 +277,48 @@ void EmbeddedHalfEdgeMesh<S,D>::make_topology() {
 
     make_cells();
 }
+template <typename T>
+void HalfEdgeMesh::set_one_ring_adjacencies(const std::map<T,int>& ordered_edges, bool stitch_ends) {
+
+    auto ni = next_indices();
+    auto di = dual_indices();
+    auto nit = ordered_edges.begin();
+    if(ordered_edges.size() == 1) {
+        int eidx = nit->second;
+        ni(eidx) = di(eidx);
+    } else {
+        auto it = nit++;
+        for(; nit != ordered_edges.end(); ++it, ++nit) {
+            int nidx = nit->second;
+            int idx = it->second;
+            ni(idx) = di(nidx);
+        }
+        if(stitch_ends) {
+            int idx = it->second;
+            ni(idx) = di(ordered_edges.begin()->second);
+        }
+    }
+}
+template <typename Derived>
+void HalfEdgeMesh::set_one_ring_adjacencies(const Eigen::MatrixBase<Derived>& V, const std::vector<int>& edges, bool stitch_ends) {
+    assert(V.rows() == 2);
+    using S = typename Derived::Scalar;
+    std::map<S,int> edge_angles;
+    if(edges.size() == 1) {
+
+        int eidx = *edges.begin();
+        edge_angles[0] = eidx;
+    } else {
+
+        for(auto [i,eidx]: mtao::iterator::enumerate(edges)) {
+            HalfEdge e = edge(eidx);
+            auto p = V(i);
+            S ang = std::atan2(p.y(),p.x());
+            edge_angles[ang] = eidx;
+        }
+    }
+    set_one_ring_adjacencies(edge_angles,stitch_ends);
+}
 template <typename S, int D>
 template <typename Derived>
 void EmbeddedHalfEdgeMesh<S,D>::set_one_ring_adjacencies(const Eigen::MatrixBase<Derived>& o, const std::set<int>& edges) {
@@ -291,15 +337,7 @@ void EmbeddedHalfEdgeMesh<S,D>::set_one_ring_adjacencies(const Eigen::MatrixBase
                 S ang = std::atan2(p.y(),p.x());
                 return std::make_pair(ang,eidx);
                 });
-        auto nit = edge_angles.begin();
-        auto it = nit++;
-        for(; nit != edge_angles.end(); ++it, ++nit) {
-            int nidx = nit->second;
-            int idx = it->second;
-            ni(idx) = di(nidx);
-        }
-        int idx = it->second;
-        ni(idx) = di(edge_angles.begin()->second);
+        HalfEdgeMesh::set_one_ring_adjacencies(edge_angles);
     }
 }
 template <typename S, int D>
