@@ -19,6 +19,17 @@ namespace mtao {
                                 return {{(shape[N]+(1-offsets[N]))...}};
                             }
                         }
+
+                        template <size_t D, typename Func>
+                            void bitmask_looper(const std::bitset<D>& mask, Func&& f) {
+                                for(int i = 0; i < (2 << (D-1)); ++i) {
+                                    std::bitset<D> bs(i);
+                                    if((bs & mask) == bs) {//if not in the span
+                                        f(bs);
+                                    }
+
+                                }
+                            }
                     template <size_t E, size_t... N, typename UseVertexTag=std::false_type>
                         constexpr std::array<int,E> offset_shape(std::integer_sequence<size_t,N...>, size_t K, size_t L, const std::array<int,E>& shape, UseVertexTag={}) {
                             constexpr auto offsets = combinatorial::nCr_mask<E>(K,L,UseVertexTag());

@@ -195,6 +195,41 @@ namespace mtao {
                             return A;
                         }
                         */
+                        template <int N, typename Func>
+                            static void cell_vertex_looper(int K, const coord_type& c, Func&& f) {
+                                staggered_grid::internal::bitmask_looper(combinatorial::nCr_mask<D>(N,K),[&](const std::bitset<D>& bs) {
+                                        coord_type cc = c;
+                                        for(int j = 0; j < D; ++j) {
+                                        cc[j] += bs[j];
+                                        }
+                                        f(cc);
+
+                                        });
+
+                            }
+
+                        template <int N>
+                            auto form_vertices(int K, const coord_type& c) const {
+
+                                std::array<int,1<<N> ret;
+                                auto it = ret.begin();
+                                cell_vertex_looper<N>(K,c,[&](const coord_type& c) {
+                                        *(it++) = vertex_index(c);
+                                        });
+                                return ret;
+                            }
+                        template <int D>
+                            auto form_vertices(int idx) const {
+                                int K = form_type<D>(idx);
+                                auto coord = staggered_unindex<D>(idx,K);
+                                return form_vertices<D>(K,coord);
+                            }
+                        auto edge(int K, const coord_type& c) const -> std::array<int,2> {
+                            return form_vertices<1>(K,c);
+                        }
+                        auto edge(int idx) const {
+                            return form_vertices<1>(idx);
+                        }
 
                     private:
                         void resize_grids() {
