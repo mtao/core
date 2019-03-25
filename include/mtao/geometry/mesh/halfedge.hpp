@@ -89,7 +89,7 @@ class HalfEdgeMesh {
         std::set<HalfEdge> vertex_edges(int i) const;
 
         //Edge {i,j} => halfedge pointing to j, where i is the dual
-        std::map<std::array<int,2>,int> edge_to_halfedge() const;
+        std::map<std::array<int,2>,int> edge_to_halfedge(bool use_next = false) const;
 
         int size() const { return m_edges.cols(); }
         int boundary_size() const;
@@ -312,7 +312,7 @@ void HalfEdgeMesh::set_one_ring_adjacencies(const Eigen::MatrixBase<Derived>& V,
 
         for(auto [i,eidx]: mtao::iterator::enumerate(edges)) {
             HalfEdge e = edge(eidx);
-            auto p = V(i);
+            auto p = V.col(i);
             S ang = std::atan2(p.y(),p.x());
             edge_angles[ang] = eidx;
         }

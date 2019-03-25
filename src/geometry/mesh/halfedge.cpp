@@ -410,13 +410,19 @@ HalfEdgeMesh HalfEdgeMesh::submesh_from_edges(const std::set<int>& edge_indices)
     }
     return HalfEdgeMesh(new_edges);
 }
-std::map<std::array<int,2>,int> HalfEdgeMesh::edge_to_halfedge() const {
+std::map<std::array<int,2>,int> HalfEdgeMesh::edge_to_halfedge(bool use_next) const {
     using E = std::array<int,2>;
     std::map<E,int> ret;
     for(int i = 0; i < size(); ++i) {
-        int di = dual_index(i);
-        E e{{vertex_index(di),vertex_index(i)}};
-        ret[e] = i;
+        if(use_next) {
+            int ni = next_index(i);
+            E e{{vertex_index(i),vertex_index(ni)}};
+            ret[e] = ni;
+        } else {
+            int di = dual_index(i);
+            E e{{vertex_index(di),vertex_index(i)}};
+            ret[e] = i;
+        }
     }
     return ret;
 }
