@@ -40,8 +40,11 @@ struct DisjointSet{
         for(;!nodes[idx].root(); idx=*nodes[idx].parent);
         return idx;
     }
-    const Node& get_root(size_t idx) const {
+    const Node& get_root_from_idx(size_t idx) const {
         return node(get_root_idx(idx));
+    }
+    const Node& get_root(Data data) const {
+        return get_root_from_idx(data_map.at(data));
     }
     const Node& node(size_t idx) const {
         return nodes[idx];

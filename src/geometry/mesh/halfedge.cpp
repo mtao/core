@@ -120,13 +120,28 @@ void HalfEdgeMesh::construct(const Cells& F) {
     for(int i = 0; i < F.cols(); ++i) {
         auto f = F.col(i);
         int size = cell_size(f);
+        bool reverse = false;
+        for(int j = 0; j < size-1; ++j) {
+            if(ei_map.find({f(j),f(j+1)}) != ei_map.end()) {
+                reverse = true;
+            }
+        }
         int counter_start = counter;
         for(int j = 0; j < size-1; ++j) {
-            m_edges.col(counter) = DatVec(f(j),i,counter+1,-1);
-            ei_map[{f(j),f(j+1)}] = counter++;
+            int a = f(j),b = f(j+1);
+            if(reverse) {
+                std::swap(a,b);
+            }
+
+            m_edges.col(counter) = DatVec(a,i,counter+1,-1);
+            ei_map[{a,b}] = counter++;
         }
-        m_edges.col(counter) = DatVec(f(size-1),i,counter_start,-1);
-        ei_map[{f(size-1),f(0)}] = counter++;
+        int a = f(size-1),b = f(0);
+        if(reverse) {
+            std::swap(a,b);
+        }
+        m_edges.col(counter) = DatVec(a,i,counter_start,-1);
+        ei_map[{a,b}] = counter++;
     }
 
     for(int i = 0; i < this->size(); ++i) {
@@ -144,30 +159,42 @@ void HalfEdgeMesh::construct(const Cells& F) {
 }
 void HalfEdgeMesh::make_cells() {
     auto ci = cell_indices();
+    auto ni = next_indices();
     mtao::data_structures::DisjointSet<int> ds;
+    ds.add_node(-1);
+    //write unique cell indices for each he
     for(int i = 0; i < size(); ++i) {
-        ci(i) = i;
         ds.add_node(i);
+        ci(i) = i;
     }
+    //converge them according to their next pointers
     for(int i = 0; i < size(); ++i) {
-        ds.join(i,next_index(i));
+        int nidx = ni(i);
+        ds.join(i,nidx);
     }
-    ds.reduce_all();
 
+    ds.reduce_all();
+    int null_end = ds.get_root(-1).data;
     std::map<int,int> reindexer;
     for(auto&& i: ds.root_indices()) {
-        reindexer[ds.node(i).data] = reindexer.size();
+            reindexer[ds.node(i).data] = reindexer.size();
     }
+    reindexer[null_end] = -1;
 
     for(int i = 0; i < size(); ++i) {
-        ci(i) = reindexer[ds.get_root(i).data];
+        int root = ds.get_root(i).data;
+        ci(i) = reindexer[root];
     }
 }
 
 std::vector<int> HalfEdgeMesh::cell_halfedges() const {
     std::map<int,int> cell_edge;
     for(int i = 0; i < size(); ++i) {
-        cell_edge[cell_index(i)] = i;
+        int index = cell_index(i);
+
+        if(index >= 0) {
+            cell_edge[index] = i;
+        }
     }
     std::vector<int> ret;
     std::transform(cell_edge.begin(),cell_edge.end(), std::back_inserter(ret), [](const std::pair<const int, int>& fe) -> int {
