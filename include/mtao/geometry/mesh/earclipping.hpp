@@ -1,7 +1,6 @@
 #pragma once
 #include "mtao/types.hpp"
 #include "mtao/type_utils.h"
-#include "mtao/iterator/enumerate.hpp"
 #include "mtao/geometry/winding_number.hpp"
 #include "mtao/eigen/stl2eigen.hpp"
 #include "mtao/iterator/shell.hpp"
@@ -15,7 +14,15 @@ namespace mtao::geometry::mesh {
         std::vector<Face> stlF;
         if constexpr(std::is_integral_v<mtao::types::remove_cvref_t<decltype(*beginit)>>) {
             stlF.reserve(std::distance(beginit,endit) - 2);
-            std::list<int> CL(beginit,endit);
+                for(auto it = beginit; it != endit; ++it) {
+                    auto it1 = it;
+                    it1++;
+                    if(it1 == endit) { it1 = beginit; }
+                    auto it2 = it1;
+                    it2++;
+                    if(it2 == endit) { it2 = beginit; }
+                    const Face f{{*it,*it1,*it2}};
+                }
             while(CL.size() > 3) {
                 for(auto it = CL.begin(); it != CL.end(); ++it) {
                     auto it1 = it;
@@ -26,7 +33,8 @@ namespace mtao::geometry::mesh {
                     if(it2 == CL.end()) { it2 = CL.begin(); }
                     const Face f{{*it,*it1,*it2}};
                     bool is_earclip = true;
-                    for(auto mit = beginit; mit != endit; ++mit) {
+
+                    for(auto mit = beginit; is_earclip && mit != endit; ++mit) {
                         int i = *mit;
                         if( i == f[0] || i == f[1] || i == f[2] ) {
                             continue;
@@ -34,7 +42,6 @@ namespace mtao::geometry::mesh {
                         auto v = V.col(i);
                         if(interior_winding_number(V,f,v)) {
                             is_earclip = false;
-                            break;
                         }
                     }
                     if(is_earclip) {
