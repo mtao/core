@@ -108,6 +108,10 @@ class HalfEdgeMesh {
             void set_one_ring_adjacencies(const Eigen::MatrixBase<Derived>& V, const std::vector<int>& edges, bool stitch_ends = true);
         template <typename T>
             void set_one_ring_adjacencies(const std::map<T,int>& ordered_edge_indices, bool stitch_ends = true);
+        template <typename Derived, typename Derived2>
+            bool is_inside(const Eigen::MatrixBase<Derived>& V, int cell_edge, const Eigen::MatrixBase<Derived2>& p) const;
+        template <typename Derived, typename Derived2>
+            bool is_inside(const Eigen::MatrixBase<Derived>& V, const HalfEdge& cell_edge, const Eigen::MatrixBase<Derived2>& p) const;
 
         void make_cells();//assumes duals and cells nexts are set up, makes every element part of some cell
     private:
@@ -340,15 +344,15 @@ void EmbeddedHalfEdgeMesh<S,D>::set_one_ring_adjacencies(const Eigen::MatrixBase
         HalfEdgeMesh::set_one_ring_adjacencies(edge_angles);
     }
 }
-template <typename S, int D>
-template <typename Derived>
-bool EmbeddedHalfEdgeMesh<S,D>::is_inside(int cell_edge, const Eigen::MatrixBase<Derived>& p) const {
-    return is_inside(edge(cell_edge),p);
+
+template <typename Derived, typename Derived2>
+bool HalfEdgeMesh::is_inside(const Eigen::MatrixBase<Derived>& V, int cell_edge, const Eigen::MatrixBase<Derived2>& p) const {
+    return is_inside(V,edge(cell_edge),p);
 }
-template <typename S, int D>
-template <typename Derived>
-bool EmbeddedHalfEdgeMesh<S,D>::is_inside(const HalfEdge& cell_edge, const Eigen::MatrixBase<Derived>& p) const {
-    static_assert(D == 2);
+template <typename Derived, typename Derived2>
+bool HalfEdgeMesh::is_inside(const Eigen::MatrixBase<Derived>& V, const HalfEdge& cell_edge, const Eigen::MatrixBase<Derived2>& p) const {
+    using S = typename Derived::Scalar;
+    using Vec = mtao::Vector<S,2>;
 
     bool inside = true;
     if constexpr(true) {
@@ -363,8 +367,8 @@ bool EmbeddedHalfEdgeMesh<S,D>::is_inside(const HalfEdge& cell_edge, const Eigen
             S value = 0;
             cell_iterator(this,cell_edge.index())([&](auto&& e){
                     auto [i,j] = edge(e);
-                    auto a = V(i) - p;
-                    auto b = V(j) - p;
+                    auto a = V.col(i) - p;
+                    auto b = V.col(j) - p;
                     S aa = std::atan2(a.y(),a.x());
                     S ba = std::atan2(b.y(),b.x());
                     S ang = ba - aa;
@@ -391,9 +395,9 @@ bool EmbeddedHalfEdgeMesh<S,D>::is_inside(const HalfEdge& cell_edge, const Eigen
 
         cell_iterator(this,cell_edge.index()).run_earlyout([&](auto&& e) -> bool{
                 auto [i,j,k] = edge(e);
-                auto a = V(i);
-                auto b = V(j);
-                auto c = V(k);
+                auto a = V.col(i);
+                auto b = V.col(j);
+                auto c = V.col(k);
                 auto ba = b-a;
                 auto cb = c-b;
                 auto pb = p-b;
@@ -406,7 +410,25 @@ bool EmbeddedHalfEdgeMesh<S,D>::is_inside(const HalfEdge& cell_edge, const Eigen
     return inside;
 }
 template <typename S, int D>
+template <typename Derived>
+bool EmbeddedHalfEdgeMesh<S,D>::is_inside(int cell_edge, const Eigen::MatrixBase<Derived>& p) const {
+    return is_inside(m_vertices,edge(cell_edge),p);
+}
+template <typename S, int D>
+template <typename Derived>
+bool EmbeddedHalfEdgeMesh<S,D>::is_inside(const HalfEdge& cell_edge, const Eigen::MatrixBase<Derived>& p) const {
+    return cell_edge(m_vertices, cell_edge, p);
+}
+template <typename S, int D>
 mtao::ColVectors<int,3> EmbeddedHalfEdgeMesh<S,D>::cells_triangulated() const {
+    std::cout << "Cells: " << std::endl;
+    for(auto&& c: cells()) {
+        for(auto&& i: c) {
+            std::cout << i << ",";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << "^^^^^" << std::endl;
     return mtao::geometry::mesh::earclipping(m_vertices,cells());
 }
 template <typename S, int D>
