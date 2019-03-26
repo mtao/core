@@ -1,4 +1,5 @@
 #pragma once
+#include "mtao/geometry/trigonometry.hpp"
 namespace mtao::geometry {
     template <typename PDerived, typename VDerived, typename BeginIt, typename EndIt>
     typename VDerived::Scalar winding_number(const Eigen::MatrixBase<VDerived>& V, const BeginIt& beginit, const EndIt& endit, const Eigen::MatrixBase<PDerived>& p) {

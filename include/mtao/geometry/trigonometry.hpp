@@ -5,7 +5,7 @@
 namespace mtao::geometry::trigonometry {
 
     template <typename S>
-    S positive_angle_clamp(S ang) {
+    S angle_clamp_positive(S ang) {
         while(ang > 2* M_PI) {
             ang -= 2 * M_PI;
         } 
@@ -15,8 +15,18 @@ namespace mtao::geometry::trigonometry {
         return ang;
     }
     template <typename S>
+    S angle_clamp_pi(S ang) {
+        while(ang > M_PI) {
+            ang -= 2 * M_PI;
+        } 
+        while(ang < -M_PI) {
+            ang += 2*M_PI;
+        }
+        return ang;
+    }
+    template <typename S>
         S angle_scalar(S x, S y) {
-            return positive_angle_clamp(std::atan2(y,x));
+            return angle_clamp_positive(std::atan2(y,x));
         }
 
     template <typename Derived>
@@ -31,7 +41,7 @@ namespace mtao::geometry::trigonometry {
         auto angle(const Eigen::MatrixBase<Derived>& A, const Eigen::MatrixBase<Derived1>& B) {
             using S = typename Derived::Scalar;
             auto R = (angle(B) - angle(A)).eval();
-            R.noalias() = R.unaryExpr(std::ptr_fun(positive_angle_clamp<S>));
+            R.noalias() = R.unaryExpr(std::ptr_fun(angle_clamp_positive<S>));
             return R;
         }
 

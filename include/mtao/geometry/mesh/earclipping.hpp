@@ -1,5 +1,6 @@
 #pragma once
 #include "mtao/types.hpp"
+#include <iostream>
 #include "mtao/type_utils.h"
 #include "mtao/geometry/winding_number.hpp"
 #include "mtao/eigen/stl2eigen.hpp"
@@ -13,18 +14,35 @@ namespace mtao::geometry::mesh {
         using Face = std::array<int,3>;
         std::vector<Face> stlF;
         if constexpr(std::is_integral_v<mtao::types::remove_cvref_t<decltype(*beginit)>>) {
-            stlF.reserve(std::distance(beginit,endit) - 2);
-                for(auto it = beginit; it != endit; ++it) {
-                    auto it1 = it;
-                    it1++;
-                    if(it1 == endit) { it1 = beginit; }
-                    auto it2 = it1;
-                    it2++;
-                    if(it2 == endit) { it2 = beginit; }
-                    const Face f{{*it,*it1,*it2}};
-                }
+            size_t size = std::distance(beginit,endit);
+            stlF.reserve(size - 2);
+            double ang_sum = 0;
+            for(auto it = beginit; it != endit; ++it) {
+                auto it1 = it;
+                it1++;
+                if(it1 == endit) { it1 = beginit; }
+                auto it2 = it1;
+                it2++;
+                if(it2 == endit) { it2 = beginit; }
+                auto a = V.col(*it);
+                auto b = V.col(*it1);
+                auto c = V.col(*it2);
+                double ang = mtao::geometry::trigonometry::angle(c-b,a-b)(0);
+                ang_sum += ang;
+            }
+
+            double expected_total_ang = M_PI * ( size - 2);
+            bool reverse_orientation = std::abs(expected_total_ang - ang_sum) > 1e-2;
+            if(reverse_orientation) {
+            }
+
+            std::list<int> CL(beginit,endit);
+
+
             while(CL.size() > 3) {
+                bool earclipped = true;
                 for(auto it = CL.begin(); it != CL.end(); ++it) {
+                    earclipped = true;
                     auto it1 = it;
                     it1++;
                     if(it1 == CL.end()) { it1 = CL.begin(); }
@@ -32,23 +50,47 @@ namespace mtao::geometry::mesh {
                     it2++;
                     if(it2 == CL.end()) { it2 = CL.begin(); }
                     const Face f{{*it,*it1,*it2}};
-                    bool is_earclip = true;
+                    auto a = V.col(f[0]);
+                    auto b = V.col(f[1]);
+                    auto c = V.col(f[2]);
+                    double ang = mtao::geometry::trigonometry::angle(c-b,a-b)(0);
+                    if(reverse_orientation) {
+                        ang = 2*M_PI - ang;
+                    }
 
-                    for(auto mit = beginit; is_earclip && mit != endit; ++mit) {
+                    if(ang > M_PI/2) {
+                        earclipped = false;
+                        continue;
+                    }
+
+                    for(auto mit = beginit; earclipped && mit != endit; ++mit) {
                         int i = *mit;
                         if( i == f[0] || i == f[1] || i == f[2] ) {
                             continue;
                         }
                         auto v = V.col(i);
                         if(interior_winding_number(V,f,v)) {
-                            is_earclip = false;
+                            earclipped = false;
+                        } else {
                         }
                     }
-                    if(is_earclip) {
+                    if(earclipped) {
                         stlF.push_back(f);
                         CL.erase(it1);
+                        earclipped = true;
                         break;
                     }
+
+                }
+                if(!earclipped) {
+                    auto it = CL.begin();
+                    auto it1 = it;
+                    it1++;
+                    auto it2 = it1;
+                    it2++;
+                    const Face f{{*it,*it1,*it2}};
+                    stlF.push_back(f);
+                    CL.erase(it1);
 
                 }
             }

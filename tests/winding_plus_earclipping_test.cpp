@@ -23,6 +23,7 @@ int main() {
     }
     std::cout << mtao::geometry::mesh::earclipping(V,F) << std::endl;
     std::cout << mtao::geometry::mesh::earclipping(V,{0,1,2,3}) << std::endl;
+    std::cout << mtao::geometry::mesh::earclipping(V,{4,3,2,1,0}) << std::endl;
     std::cout << mtao::geometry::mesh::earclipping(V,{F,F}) << std::endl;
     return 0;
 }
