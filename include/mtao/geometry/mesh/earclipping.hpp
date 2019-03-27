@@ -106,8 +106,10 @@ namespace mtao::geometry::mesh {
             stlF.reserve(size);
 
             for(auto&& c: mtao::iterator::shell(beginit,endit)) {
-                auto F = earclipping_stl(V,c.begin(),c.end());
-                stlF.insert(stlF.end(),F.begin(),F.end());
+                if(c.size() >= 3) {
+                    auto F = earclipping_stl(V,c.begin(),c.end());
+                    stlF.insert(stlF.end(),F.begin(),F.end());
+                }
             }
         }
         return stlF;

@@ -302,6 +302,16 @@ void HalfEdgeMesh::set_one_ring_adjacencies(const std::map<T,int>& ordered_edges
             ni(idx) = di(ordered_edges.begin()->second);
         }
     }
+    /*
+    std::cout << ordered_edges.size() << ": ";
+    if(!stitch_ends) {
+        std::cout << "No stitching!";
+    }
+    std::cout << std::endl;
+    for(auto&& [ang,idx]: ordered_edges) {
+        std::cout << ang << ": " << idx << "=>" << ni(idx) << std::endl;
+    }
+    */
 }
 template <typename Derived>
 void HalfEdgeMesh::set_one_ring_adjacencies(const Eigen::MatrixBase<Derived>& V, const std::vector<int>& edges, bool stitch_ends) {
