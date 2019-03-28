@@ -70,6 +70,7 @@ class HalfEdgeMesh {
         boundary_iterator get_boundary_iterator(int he_idx) const;
 
         std::vector<std::vector<int>> cells() const;
+        std::map<int,std::vector<int>> cells_map() const;
         std::vector<int> cell(int cell_index) const;
         std::vector<int> cell(const HalfEdge& e) const;
         std::vector<int> cell_he(int he_in_cell) const;
@@ -318,9 +319,15 @@ void HalfEdgeMesh::set_one_ring_adjacencies(const Eigen::MatrixBase<Derived>& V,
     assert(V.rows() == 2);
     using S = typename Derived::Scalar;
     std::map<S,int> edge_angles;
-    if(edges.size() == 1) {
+    if(edges.size() == 0) {
+        return;
+    } if(edges.size() == 1) {
 
         int eidx = *edges.begin();
+        auto ni = next_indices();
+        auto di = dual_indices();
+        ni(eidx) = di(eidx);
+        return;
         edge_angles[0] = eidx;
     } else {
 
@@ -331,6 +338,12 @@ void HalfEdgeMesh::set_one_ring_adjacencies(const Eigen::MatrixBase<Derived>& V,
             edge_angles[ang] = eidx;
         }
     }
+    /*
+    for(auto&& [t,i]: edge_angles) {
+        std::cout << i << "(" << t << ") ";
+    } 
+    std::cout << std::endl;
+    */
     set_one_ring_adjacencies(edge_angles,stitch_ends);
 }
 template <typename S, int D>
@@ -431,6 +444,7 @@ bool EmbeddedHalfEdgeMesh<S,D>::is_inside(const HalfEdge& cell_edge, const Eigen
 }
 template <typename S, int D>
 mtao::ColVectors<int,3> EmbeddedHalfEdgeMesh<S,D>::cells_triangulated() const {
+    /*
     std::cout << "Cells: " << std::endl;
     for(auto&& c: cells()) {
         for(auto&& i: c) {
@@ -439,6 +453,7 @@ mtao::ColVectors<int,3> EmbeddedHalfEdgeMesh<S,D>::cells_triangulated() const {
         std::cout << std::endl;
     }
     std::cout << "^^^^^" << std::endl;
+    */
     return mtao::geometry::mesh::earclipping(m_vertices,cells());
 }
 template <typename S, int D>

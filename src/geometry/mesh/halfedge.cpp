@@ -46,6 +46,14 @@ std::vector<std::vector<int>> HalfEdgeMesh::cells() const {
             });
     return C;
 }
+std::map<int,std::vector<int>> HalfEdgeMesh::cells_map() const {
+    auto hes = cell_halfedges();
+    std::map<int,std::vector<int>> C;
+    for(int he_in_cell: hes) {
+        C[cell_index(he_in_cell)] = cell_he(he_in_cell);
+    }
+    return C;
+}
 
 std::vector<int> HalfEdgeMesh::cell(int i) const {
     return cell(cell_edge(i));

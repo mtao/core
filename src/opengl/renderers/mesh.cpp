@@ -61,11 +61,11 @@ namespace mtao { namespace opengl { namespace renderers {
 
     void MeshRenderer::setMesh(const MatrixXgfCRef& V, const MatrixXuiCRef& F, bool normalize) {
         if(V.size() == 0) {
-            warn() << "No vertices sent to setMesh, igoring";
+            //warn() << "No vertices sent to setMesh, igoring";
             return;
         }
         if(F.size() == 0) {
-            warn() << "No faces sent to setMesh, igoring";
+            //warn() << "No faces sent to setMesh, igoring";
             return;
         }
         assert(F.minCoeff() >= 0);
@@ -461,14 +461,14 @@ namespace mtao { namespace opengl { namespace renderers {
                 buffs.vertices->drawArraysStride(m_dim);
 
             } else {
-                mtao::logging::warn() << "vertex velocities not set, can't render vfield" ;
+                //mtao::logging::warn() << "vertex velocities not set, can't render vfield" ;
             }
         }
 
     void MeshRenderer::render_points(const MeshRenderBuffers& buffs, VertexStyle style) const {
         glPointSize(point_size());
         if(!buffs.vertices) {
-            mtao::logging::warn() << "vertex positions not set, can't render points" ;
+            //mtao::logging::warn() << "vertex positions not set, can't render points" ;
             return;
         }
         if(style == VertexStyle::Flat) {
@@ -479,7 +479,7 @@ namespace mtao { namespace opengl { namespace renderers {
             buffs.vertices->drawArraysStride(m_dim);
         } else if(style == VertexStyle::Color) {
             if(!buffs.colors) {
-                mtao::logging::warn() << "vertex colors not set, can't render vertices" ;
+                //mtao::logging::warn() << "vertex colors not set, can't render vertices" ;
                 return;
             }
             auto active = vert_color_program()->useRAII();
@@ -496,7 +496,7 @@ namespace mtao { namespace opengl { namespace renderers {
         auto s = glEnable_scoped(GL_POLYGON_OFFSET_LINE);
         if(m_edge_draw_elements) {
             if(!buffs.edges) {
-                mtao::logging::warn() << "Face mesh not set, can't render edges with barycentric";
+                //mtao::logging::warn() << "Face mesh not set, can't render edges with barycentric";
                 return;
             }
             buffs.edges->drawElements();
@@ -507,7 +507,7 @@ namespace mtao { namespace opengl { namespace renderers {
     void MeshRenderer::drawFaces(const MeshRenderBuffers& buffs) const {
         if(m_face_draw_elements) {
             if(!buffs.faces) {
-                mtao::logging::warn() << "Face mesh not set, can't render faces" ;
+                //mtao::logging::warn() << "Face mesh not set, can't render faces" ;
                 return;
             }
             buffs.faces->drawElements();
@@ -541,7 +541,7 @@ namespace mtao { namespace opengl { namespace renderers {
             drawEdges(buffs);
         } else if(style == EdgeStyle::Color) {
             if(!buffs.colors) {
-                mtao::logging::warn() << "vertex colors not set, can't render edges" ;
+                //mtao::logging::warn() << "vertex colors not set, can't render edges" ;
                 return;
             }
             auto active = vert_color_program()->useRAII();
@@ -581,7 +581,7 @@ namespace mtao { namespace opengl { namespace renderers {
             drawFaces(buffs);
         } else if(style == FaceStyle::Color) {
             if(!buffs.colors) {
-                mtao::logging::warn() << "vertex colors not set, can't render faces" ;
+                //mtao::logging::warn() << "vertex colors not set, can't render faces" ;
                 return;
             }
             auto active = vert_color_program()->useRAII();
