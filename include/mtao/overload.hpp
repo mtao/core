@@ -1,5 +1,4 @@
-#ifndef OVERLOAD_HPP
-#define OVERLOAD_HPP
+#pragma once
 
 
 //Code to be used wwith std::visit

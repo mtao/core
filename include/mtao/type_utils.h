@@ -76,6 +76,6 @@ constexpr int check_size(T&& t) {
         constexpr static bool is_initializer_list_v = is_initializer_list<T>::value;
 
     template <typename T>
-        using remove_cvref_t = std::remove_reference_t<std::remove_cv_t<T>>;
+        using remove_cvref_t = std::remove_cv_t<std::remove_reference_t<T>>;
 }}
 #endif//TYPE_UTILS_H
