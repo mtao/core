@@ -34,7 +34,7 @@ class HalfEdgeMesh {
 
         HalfEdgeMesh(const std::string& str);
         HalfEdgeMesh(const Edges& E);
-        static HalfEdgeMesh from_cells(const Cells& F);
+        static HalfEdgeMesh from_cells(const Cells& F, bool use_open_halfedges = false);
         static HalfEdgeMesh from_edges(const mtao::ColVectors<int,2>& E);//From non-dual edges
         HalfEdgeMesh() = default;
         HalfEdgeMesh(const HalfEdgeMesh&) = default;
@@ -75,6 +75,8 @@ class HalfEdgeMesh {
         std::vector<int> cell(const HalfEdge& e) const;
         std::vector<int> cell_he(int he_in_cell) const;
 
+        std::vector<std::vector<int>> dual_cells() const;
+        std::map<int,std::vector<int>> dual_cells_map() const;
         std::vector<int> dual_cell(int vertex_index) const;
         std::vector<int> dual_cell(const HalfEdge& e) const;
         std::vector<int> dual_cell_he(int he_in_cell) const;
@@ -115,8 +117,12 @@ class HalfEdgeMesh {
             bool is_inside(const Eigen::MatrixBase<Derived>& V, const HalfEdge& cell_edge, const Eigen::MatrixBase<Derived2>& p) const;
 
         void make_cells();//assumes duals and cells nexts are set up, makes every element part of some cell
+
+        bool check_cell_validity() const;
+        bool check_vertex_validity() const;
     private:
         void construct(const Cells& F);
+        void construct_open_halfedges(const Cells& F);
         void clear(size_t new_size = 0);
         void complete_boundary_cells();
     private:
@@ -171,8 +177,8 @@ class EmbeddedHalfEdgeMesh: public HalfEdgeMesh {
         template <typename... Args>
         EmbeddedHalfEdgeMesh(const mtao::ColVectors<S,D>& V, Args&&... args): HalfEdgeMesh(std::forward<Args>(args)...), m_vertices(V) {}
 
-        static EmbeddedHalfEdgeMesh from_cells(const mtao::ColVectors<S,D>& V, const Cells& F) {
-            return EmbeddedHalfEdgeMesh(V,HalfEdgeMesh::from_cells(F)); 
+        static EmbeddedHalfEdgeMesh from_cells(const mtao::ColVectors<S,D>& V, const Cells& F, bool use_open_halfedges = false) {
+            return EmbeddedHalfEdgeMesh(V,HalfEdgeMesh::from_cells(F, use_open_halfedges)); 
         }
         static EmbeddedHalfEdgeMesh from_edges(const mtao::ColVectors<S,D>& V, const mtao::ColVectors<int,2>& E) {
             return EmbeddedHalfEdgeMesh(V,HalfEdgeMesh::from_edges(E));

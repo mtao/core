@@ -16,9 +16,13 @@ using HalfEdge = HalfEdgeMesh::HalfEdge;
 HalfEdgeMesh::HalfEdgeMesh(const std::string& str) {
 }
 
-HalfEdgeMesh HalfEdgeMesh::from_cells(const Cells& F) {
+HalfEdgeMesh HalfEdgeMesh::from_cells(const Cells& F, bool use_open_halfedges) {
     HalfEdgeMesh hem;
-    hem.construct(F);
+    if(use_open_halfedges) {
+        hem.construct_open_halfedges(F);
+    } else {
+        hem.construct(F);
+    }
     return hem;
 }
 HalfEdgeMesh::HalfEdgeMesh(const Edges& E): m_edges(E) {}
@@ -37,6 +41,22 @@ HalfEdgeMesh HalfEdgeMesh::from_edges(const mtao::ColVectors<int,2>& E) {
         di(2*i+1) = 2*i;
     }
     return hem;
+}
+std::vector<std::vector<int>> HalfEdgeMesh::dual_cells() const {
+    auto hes = cell_halfedges();
+    std::vector<std::vector<int>> C(hes.size());
+    std::transform(hes.begin(),hes.end(), C.begin(), [&](int he_in_cell) -> std::vector<int> {
+            return dual_cell_he(he_in_cell);
+            });
+    return C;
+}
+std::map<int,std::vector<int>> HalfEdgeMesh::dual_cells_map() const {
+    auto hes = cell_halfedges();
+    std::map<int,std::vector<int>> C;
+    for(int he_in_cell: hes) {
+        C[vertex_index(he_in_cell)] = dual_cell_he(he_in_cell);
+    }
+    return C;
 }
 std::vector<std::vector<int>> HalfEdgeMesh::cells() const {
     auto hes = cell_halfedges();
@@ -98,6 +118,110 @@ std::vector<int> HalfEdgeMesh::one_ring(const HalfEdge& e) const {
 
 void HalfEdgeMesh::clear(size_t new_size) {
     m_edges = Edges::Constant(int(Index::IndexEnd),int(new_size),-1);
+}
+void HalfEdgeMesh::construct_open_halfedges(const Cells& F) {
+    using Edge = std::tuple<int,int>;
+
+    std::set<Edge> directed_edges;
+
+    //Cell is the row until its first -1 entry
+    auto cell_size = [](auto& f) -> int{
+        for(int j = 0; j < f.rows(); ++j) {
+            if(f(j) == -1) {
+                return j;
+            }
+        }
+        return f.rows();
+    };
+
+    auto add_both = [&](Edge e) {
+        directed_edges.emplace(e);
+        std::swap(std::get<0>(e),std::get<1>(e));
+        directed_edges.emplace(e);
+    };
+
+    //total number of halfedges is the number of internal edges
+    for(int i = 0; i < F.cols(); ++i) {
+        auto f = F.col(i);
+        int size = cell_size(f);
+        if(size < 3) {
+            continue;
+        }
+        Edge e{f(size-1),f(0)};
+        add_both(e);
+        for(int j = 0; j < f.rows(); ++j) {
+            std::get<0>(e) = std::get<1>(e);
+            if(f(j) == -1) {
+                std::get<1>(e) = f(0);
+                add_both(e);
+                break;
+            } else {
+                std::get<1>(e) = f(j);
+                add_both(e);
+            }
+        }
+    }
+    mtao::ColVectors<int,2> E(2,directed_edges.size()/2);
+    {
+        int counter = 0;
+        for(auto&& [a,b]: directed_edges) {
+            if(a < b) {
+                auto e = E.col(counter++);
+                e(0) = a; e(1) = b;
+            }
+        }
+    }
+    *this = from_edges(E);
+
+    auto e2he = edge_to_halfedge();
+
+    auto ci = cell_indices();
+    auto ni = next_indices();
+    std::set<std::array<int,2>> used_edges;
+    for(int i = 0; i < F.cols(); ++i) {
+        auto f = F.col(i);
+        int size = cell_size(f);
+        bool reverse = false;
+        for(int j = 0; j < size; ++j) {
+            if(used_edges.find({{f(j),f((j+1)%size)}}) != used_edges.end()) {
+                reverse = true;
+            }
+        }
+        std::array<int,2> terminal_edge{{f(size-1),f(0)}};
+        if(reverse) {
+            std::swap(terminal_edge[0],terminal_edge[1]);
+        }
+        int last = e2he.at(terminal_edge);
+        int last_for_later = last;
+        used_edges.emplace(terminal_edge);
+        ci(last) = i;
+        for(int j = 0; j < size-1; ++j) {
+            std::array<int,2> edge{{f(j),f(j+1)}};
+            if(reverse) {
+                std::swap(edge[0],edge[1]);
+            }
+
+            used_edges.emplace(edge);
+            int he = e2he.at(edge);
+            ci(he) = i;
+            if(reverse) {
+                ni(he) = last;
+            } else {
+                ni(last) = he;
+            }
+
+            last = he;
+
+        }
+        int he = last_for_later;
+            if(reverse) {
+                ni(he) = last;
+            } else {
+                ni(last) = he;
+            }
+    }
+
+
 }
 void HalfEdgeMesh::construct(const Cells& F) {
     using Edge = std::tuple<int,int>;
@@ -539,4 +663,38 @@ vertex_iterator HalfEdgeMesh::get_vertex_iterator(int he_idx) const{
 boundary_iterator HalfEdgeMesh::get_boundary_iterator(int he_idx) const{
     return boundary_iterator(HalfEdge(this,he_idx));
 }
+
+bool HalfEdgeMesh::check_cell_validity() const {
+    auto hes = cell_halfedges();
+
+    bool valid = true;
+    for(auto&& he: hes) {
+        int cell = cell_index(he);
+        get_cell_iterator(he).run_earlyout([&](const HalfEdge& e) {
+                valid = e.cell() == cell;
+                return valid;
+                });
+        if(!valid) {
+            break;
+        }
+    }
+    return valid;
+}
+bool HalfEdgeMesh::check_vertex_validity() const {
+    auto hes = vertex_halfedges();
+
+    bool valid = true;
+    for(auto&& he: hes) {
+        int vertex = vertex_index(he);
+        get_vertex_iterator(he).run_earlyout([&](const HalfEdge& e) {
+                valid = e.vertex() == vertex;
+                return valid;
+                });
+        if(!valid) {
+            break;
+        }
+    }
+    return valid;
+}
 }}}
+
