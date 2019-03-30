@@ -11,9 +11,10 @@ namespace mtao {
         namespace grid {
 
             //NOTE: The UseVertexGrid flag is mainly for compabitibility with deriving staggered grids from this class
-            template <typename T, typename Indexer, bool UseVertexGrid_=true>
-                class Grid: public Indexer {
+            template <typename T, typename Indexer_, bool UseVertexGrid_=true>
+                class Grid: public Indexer_ {
                     public:
+                        using Indexer = Indexer_;
                         EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
                         using value_type = T;
                         using Scalar = T;//for eigen compat
@@ -84,14 +85,19 @@ namespace mtao {
                             return vertex(unindex(idx));
                         }
 
+                        template <typename Func>
+                            void loop(Func&& f) const {
+                                utils::multi_loop(shape(),f);
+                            }
 
                         ColVecs vertices() const {
                             ColVecs V(D,size());
-                            utils::multi_loop(shape(),[&](auto&& a) {
+                            loop([&](auto&& a) {
                                     V.col(this->index(a)) = vertex(a);
                                     });
                             return V;
                         }
+
 
                         auto shapeAsIVec() const {
                             return idx2ivec(shape());

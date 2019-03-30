@@ -1,6 +1,7 @@
 #pragma once
 #include "mtao/algebra/combinatorial.hpp"
 #include "staggered_grid_utils.hpp"
+#include <Eigen/Sparse>
 #include "mtao/iterator/enumerate.hpp"
 #include "grid.h"
 #include <tuple>
@@ -21,6 +22,7 @@ namespace mtao {
                         using Base::size;
                         using Base::index;
                         using Base::unindex;
+                        using Indexer= typename Base::Indexer;
                         using coord_type = typename Base::coord_type;
                         using Vec = typename Base::Vec;
                         using VecMap = typename Base::VecMap;
@@ -179,22 +181,85 @@ namespace mtao {
 
                             return vertex_grid().coord(v);
                         }
-                        /*
-                        template <int D>
+                        template <int N>
                         Eigen::SparseMatrix<T> boundary() const {
-                            int rows = form_size<D-1>();
-                            int cols = form_size<D>();
+                            int rows = form_size<N-1>();
+                            int cols = form_size<N>();
                             std::vector<Eigen::Triplet<T>> trips;
-                            for(auto&& [i,grids]: mtao::iterator::enumerate(std::get<D>(m_grids))) {
+                            for(auto&& [K,grids]: iterator::enumerate(std::get<N>(m_grids))) {
+                                std::bitset<D> difference_mask = combinatorial::nCr_mask<D>(N,K);
+                                grid<N>(K).loop([&](const coord_type& c) {
+                                        int col = staggered_index<D>(c,K);
+                                                auto s = staggered_shape<N>(K);
+                                        masked_difference_looper(difference_mask,c,
+                                                [&](const coord_type& l, const coord_type& u, int d) {
+                                                std::bitset mybs = difference_mask;
+                                                if constexpr(D == 2 & N == 1) {
+                                                mybs[1-d] = 0;
+                                                } else {
+                                                mybs[d] = 0;
+                                                }
+                                                int dim = combinatorial::nCr_unmask<D>(N-1,mybs);
 
+                                                auto s = staggered_shape<N-1>(dim);
+                                                int lrow = static_cast<int>(staggered_index<N-1>(l,dim));
+                                                int urow = static_cast<int>(staggered_index<N-1>(u,dim));
+                                                trips.emplace_back(lrow,col,T{-1});
+                                                trips.emplace_back(urow,col,T{1});
+                                                });
+                                        });
                             }
-                                    
 
                             Eigen::SparseMatrix<T> A(rows,cols);
                             A.setFromTriplets(trips.begin(),trips.end());
                             return A;
                         }
-                        */
+                        template <int N>
+                        Eigen::SparseMatrix<T> boundary() const {
+                            int rows = form_size<N-1>();
+                            int cols = form_size<N>();
+                            std::cout << rows << ":" << cols << std::endl;
+                            std::vector<Eigen::Triplet<T>> trips;
+                            for(auto&& [K,grids]: iterator::enumerate(std::get<N>(m_grids))) {
+                                std::bitset<D> difference_mask = combinatorial::nCr_mask<D>(N,K);
+
+                                std::cout << "Grid : " << K << std::endl;
+                                std::cout << "=======" <<std::endl;
+                                grid<N>(K).loop([&](const coord_type& c) {
+                                        int col = staggered_index<D>(c,K);
+                                        std::cout << c[0] << ":" << c[1]  << " => " << col << std::endl;
+                                                auto s = staggered_shape<N>(K);
+                                        std::cout << "Col shape: " << s[0] << "," << s[1] << std::endl;
+                                        std::cout << "Mask: " << difference_mask << std::endl;
+                                        masked_difference_looper(difference_mask,c,
+                                                [&](const coord_type& l, const coord_type& u, int d) {
+                                                std::bitset mybs = difference_mask;
+                                                if constexpr(D == 2 & N == 1) {
+                                                mybs[1-d] = 0;
+                                                } else {
+                                                mybs[d] = 0;
+                                                }
+                                                int dim = combinatorial::nCr_unmask<D>(N-1,mybs);
+                                                std::cout << "Dim: " << d<< std::endl;
+
+                                                auto s = staggered_shape<N-1>(dim);
+                                                std::cout << "Row shape: " << s[0] << "," << s[1] << std::endl;
+                                                int lrow = static_cast<int>(staggered_index<N-1>(l,dim));
+                                                int urow = static_cast<int>(staggered_index<N-1>(u,dim));
+                                                std::cout << ")))" << l[0] << ":" << l[1]  << " => " << lrow << std::endl;
+                                                std::cout << ")))" << u[0] << ":" << u[1]  << " => " << urow << std::endl;
+
+
+                                                trips.emplace_back(lrow,col,T{-1});
+                                                trips.emplace_back(urow,col,T{1});
+                                                });
+                                        });
+                            }
+
+                            Eigen::SparseMatrix<T> A(rows,cols);
+                            A.setFromTriplets(trips.begin(),trips.end());
+                            return A;
+                        }
                         template <int N, typename Func>
                             static void cell_vertex_looper(int K, const coord_type& c, Func&& f) {
                                 staggered_grid::internal::bitmask_looper(combinatorial::nCr_mask<D>(N,K),[&](const std::bitset<D>& bs) {
@@ -206,6 +271,59 @@ namespace mtao {
 
                                         });
 
+                            }
+                        template <int N, typename Func>
+                            static void cell_dual_vertex_looper(int K, const coord_type& c, Func&& f) {
+                                staggered_grid::internal::bitmask_looper(!combinatorial::nCr_mask<D>(N,K),[&](const std::bitset<D>& bs) {
+                                        coord_type cc = c;
+                                        for(int j = 0; j < D; ++j) {
+                                        cc[j] -= bs[j];
+                                        }
+                                        f(cc);
+
+                                        });
+
+                            }
+
+                        template <typename Func>
+                            static void masked_difference_looper(const std::bitset<D>& mask, const coord_type& c, Func&& f) {
+                                coord_type cc = c;
+                                for(int j = 0; j < D; ++j) {
+
+                                    if(mask[j]) {
+                                        cc[j]++;
+                                        const coord_type& ccc = cc;
+                                        f(c,ccc, j);
+                                        cc[j]--;
+                                    }
+                                }
+                            }
+                        //f( lower_index_boundary, higher_index_boundary, index) as a centered difference stencil
+                        //for <1>::instance boundary_cell_looper<1>(0,{N+.5},f) calls
+                        //          f({N},{N+1},0)
+                        //for <2>::instance boundary_cell_looper<2>(1,{N+.5,M+.5},f) calls
+                        //          f({N,M+.5},{N+1,M+.5},0)
+                        //          f({N+.5,M},{N+.5,M+1},1)
+                        template <int N, typename Func>
+                            static void cell_boundary_looper(int K, const coord_type& c, Func&& f) {
+                                auto comb = combinatorial::nCr_mask<D>(N,K);
+                                masked_difference_looper(comb,c,f);
+                            }
+
+                        //opposite of the above
+                        template <int N, typename Func>
+                            static void dual_cell_boundary_looper(int K, const coord_type& c, Func&& f) {
+
+                                coord_type cc = c;
+                                auto comb = !combinatorial::nCr_mask<D>(N,K);
+                                for(int j = 0; j < D; ++j) {
+                                    if(comb[j]) {
+                                        cc[j]--;
+                                        const coord_type& ccc = cc;
+                                        f(ccc,c, j);
+                                        cc[j]++;
+                                    }
+                                }
                             }
 
                         template <int N>
@@ -238,7 +356,6 @@ namespace mtao {
                         }
                         StaggeredGrids m_grids;
                         decltype(staggered_grid::staggered_grid_offsets(std::declval<coord_type>())) m_offsets;
-                        
 
                 };
 

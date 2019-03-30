@@ -43,11 +43,41 @@ namespace mtao {
                 }
                 return 0;
             }
+        template <size_t N>
+            constexpr size_t nCr_unmask(size_t R, const std::bitset<N>& bs) {
+                assert(R <= N);
+                static_assert(N <= 3, "We can't handle more than N=3 right now");
+                if(R == 0) { return 0; }
+                if(R == N) { return 0; }
+                if(R == 1) { 
+                    assert(bs.count() == 1);
+                    for(size_t i = 0; i < N; ++i) {
+                        if(bs[i]) {
+                            return i;
+                        }
+                    }
+                }
+                if constexpr(N == 3) {
+                    if(R == 2) {
+                        assert(bs.count() == N-1);
+                        for(size_t i = 0; i < N; ++i) {
+                            if(!bs[i]) return i;
+                        }
+                    }
+                }
+                return 0;
+            }
         template <size_t N, size_t R>
             constexpr auto nCr_mask(size_t L) {
                 static_assert(R <= N);
                 static_assert(N <= 3, "We can't handle more than N=3 right now");
                 return nCr_mask<N>(R,L);
+            }
+        template <size_t N, size_t R>
+            constexpr auto nCr_unmask(const std::bitset<N> L) {
+                static_assert(R <= N);
+                static_assert(N <= 3, "We can't handle more than N=3 right now");
+                return nCr_unmask<N>(R,L);
             }
         template <size_t N, size_t R, size_t L>
             constexpr auto nCr_mask() {
