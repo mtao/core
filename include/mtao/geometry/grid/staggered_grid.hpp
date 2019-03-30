@@ -189,67 +189,17 @@ namespace mtao {
                             for(auto&& [K,grids]: iterator::enumerate(std::get<N>(m_grids))) {
                                 std::bitset<D> difference_mask = combinatorial::nCr_mask<D>(N,K);
                                 grid<N>(K).loop([&](const coord_type& c) {
-                                        int col = staggered_index<D>(c,K);
-                                                auto s = staggered_shape<N>(K);
+                                        int col = staggered_index<N>(c,K);
+                                        auto s = staggered_shape<N>(K);
                                         masked_difference_looper(difference_mask,c,
                                                 [&](const coord_type& l, const coord_type& u, int d) {
                                                 std::bitset mybs = difference_mask;
-                                                if constexpr(D == 2 & N == 1) {
-                                                mybs[1-d] = 0;
-                                                } else {
                                                 mybs[d] = 0;
-                                                }
                                                 int dim = combinatorial::nCr_unmask<D>(N-1,mybs);
 
                                                 auto s = staggered_shape<N-1>(dim);
                                                 int lrow = static_cast<int>(staggered_index<N-1>(l,dim));
                                                 int urow = static_cast<int>(staggered_index<N-1>(u,dim));
-                                                trips.emplace_back(lrow,col,T{-1});
-                                                trips.emplace_back(urow,col,T{1});
-                                                });
-                                        });
-                            }
-
-                            Eigen::SparseMatrix<T> A(rows,cols);
-                            A.setFromTriplets(trips.begin(),trips.end());
-                            return A;
-                        }
-                        template <int N>
-                        Eigen::SparseMatrix<T> boundary() const {
-                            int rows = form_size<N-1>();
-                            int cols = form_size<N>();
-                            std::cout << rows << ":" << cols << std::endl;
-                            std::vector<Eigen::Triplet<T>> trips;
-                            for(auto&& [K,grids]: iterator::enumerate(std::get<N>(m_grids))) {
-                                std::bitset<D> difference_mask = combinatorial::nCr_mask<D>(N,K);
-
-                                std::cout << "Grid : " << K << std::endl;
-                                std::cout << "=======" <<std::endl;
-                                grid<N>(K).loop([&](const coord_type& c) {
-                                        int col = staggered_index<D>(c,K);
-                                        std::cout << c[0] << ":" << c[1]  << " => " << col << std::endl;
-                                                auto s = staggered_shape<N>(K);
-                                        std::cout << "Col shape: " << s[0] << "," << s[1] << std::endl;
-                                        std::cout << "Mask: " << difference_mask << std::endl;
-                                        masked_difference_looper(difference_mask,c,
-                                                [&](const coord_type& l, const coord_type& u, int d) {
-                                                std::bitset mybs = difference_mask;
-                                                if constexpr(D == 2 & N == 1) {
-                                                mybs[1-d] = 0;
-                                                } else {
-                                                mybs[d] = 0;
-                                                }
-                                                int dim = combinatorial::nCr_unmask<D>(N-1,mybs);
-                                                std::cout << "Dim: " << d<< std::endl;
-
-                                                auto s = staggered_shape<N-1>(dim);
-                                                std::cout << "Row shape: " << s[0] << "," << s[1] << std::endl;
-                                                int lrow = static_cast<int>(staggered_index<N-1>(l,dim));
-                                                int urow = static_cast<int>(staggered_index<N-1>(u,dim));
-                                                std::cout << ")))" << l[0] << ":" << l[1]  << " => " << lrow << std::endl;
-                                                std::cout << ")))" << u[0] << ":" << u[1]  << " => " << urow << std::endl;
-
-
                                                 trips.emplace_back(lrow,col,T{-1});
                                                 trips.emplace_back(urow,col,T{1});
                                                 });
