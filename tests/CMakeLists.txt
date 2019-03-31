@@ -1,6 +1,7 @@
 ADD_DEFINITIONS(-g)
 ADD_EXECUTABLE(grid_test grid_test.cpp)
 ADD_EXECUTABLE(grid_data_test grid_data_test.cpp)
+ADD_EXECUTABLE(angle_test angle_test.cpp)
 ADD_EXECUTABLE(levelset_test levelset_test.cpp)
 ADD_EXECUTABLE(multi_loop_test multi_loop_test.cpp)
 ADD_EXECUTABLE(static_type_iteration_test static_type_iteration_test.cpp)
