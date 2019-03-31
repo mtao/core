@@ -8,6 +8,7 @@
 #include <iterator>
 #include "mtao/logging/logger.hpp"
 #include <mtao/iterator/enumerate.hpp>
+#include <iostream>
 using namespace mtao::logging;
 
 namespace mtao { namespace geometry { namespace mesh {
@@ -135,6 +136,7 @@ void HalfEdgeMesh::construct_open_halfedges(const Cells& F) {
     };
 
     auto add_both = [&](Edge e) {
+        assert(std::get<0>(e) != std::get<1>(e));
         directed_edges.emplace(e);
         std::swap(std::get<0>(e),std::get<1>(e));
         directed_edges.emplace(e);
@@ -147,8 +149,7 @@ void HalfEdgeMesh::construct_open_halfedges(const Cells& F) {
         if(size < 3) {
             continue;
         }
-        Edge e{f(size-1),f(0)};
-        add_both(e);
+        Edge e{f(0),f(size-1)};
         for(int j = 0; j < f.rows(); ++j) {
             std::get<0>(e) = std::get<1>(e);
             if(f(j) == -1) {
