@@ -118,6 +118,14 @@ namespace mtao {
                         size_t uv_index(const coord_type& idx) const { return staggered_index<2,2>(idx);}
                         size_t vertex_index(const coord_type& idx) const { return staggered_index<0,0>(idx);}
                         size_t cell_index(const coord_type& idx) const { return staggered_index<D,0>(idx);}
+                        coord_type u_unindex(size_t idx) const { return staggered_unindex<1,0>(idx);}
+                        coord_type v_unindex(size_t idx) const { return staggered_unindex<1,1>(idx);}
+                        coord_type w_unindex(size_t idx) const { return staggered_unindex<1,2>(idx);}
+                        coord_type vw_unindex(size_t idx) const { return staggered_unindex<2,0>(idx);}
+                        coord_type uw_unindex(size_t idx) const { return staggered_unindex<2,1>(idx);}
+                        coord_type uv_unindex(size_t idx) const { return staggered_unindex<2,2>(idx);}
+                        coord_type vertex_unindex(size_t idx) const { return staggered_unindex<0,0>(idx);}
+                        coord_type cell_unindex(size_t idx) const { return staggered_unindex<D,0>(idx);}
 
                         const coord_type& u_shape() const { return staggered_shape<1,0>();}
                         const coord_type& v_shape() const { return staggered_shape<1,1>();}

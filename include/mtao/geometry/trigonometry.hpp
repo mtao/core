@@ -1,7 +1,6 @@
 #pragma once
 
 #include <mtao/types.hpp>
-#include <iostream>
 
 namespace mtao::geometry::trigonometry {
 
@@ -89,6 +88,20 @@ namespace mtao::geometry::trigonometry {
             using S = typename Derived::Scalar;
             int size =  std::distance(beginit,endit);
             S ang = angle_sum(V,beginit,endit);
+
+            //counteract size when we have degenerate cells
+            for(auto it = beginit; it != endit; ++it) {
+                auto it1 = it;
+                it1++;
+                if(it1 == endit) { it1 = beginit; }
+                auto it2 = it1;
+                it2++;
+                if(it2 == endit) { it2 = beginit; }
+                    auto a = V.col(*it);
+                    auto b = V.col(*it1);
+                    auto c = V.col(*it2);
+                    double ang = angle(c-b,a-b)(0);
+            }
             S expected=  interior_angle_sum<S>(size);
             bool ret = std::abs(ang - expected) < 1e-5;
             
