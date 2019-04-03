@@ -161,7 +161,7 @@ namespace mtao { namespace opengl {
 
         
         if(io.KeyShift) {
-            m_distance += .5 * io.MouseWheel;
+            m_distance += .1 * io.MouseWheel;
             m_distance = std::max<float>(1e-5,m_distance);
             set_distance(m_distance);
             if(!io.WantCaptureMouse) {

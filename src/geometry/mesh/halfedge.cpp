@@ -1,5 +1,6 @@
 #include "mtao/geometry/mesh/halfedge.hpp"
 #include "mtao/data_structures/disjoint_set.hpp"
+//#define NAIVE_BAD_CELL_CHECK
 
 #include <map>
 #include <tuple>
@@ -96,21 +97,49 @@ std::vector<int> HalfEdgeMesh::one_ring_he(int he_pointing_to_vertex) const {
 }
 std::vector<int> HalfEdgeMesh::cell(const HalfEdge& e) const {
     std::vector<int> vertices;
-    cell_iterator{e}([&vertices](const HalfEdge& e) {
+
+    int cell = e.cell();
+#ifndef NAIVE_BAD_CELL_CHECK
+    cell_iterator{e}([&vertices,cell](const HalfEdge& e) {
+            assert(e.cell() == cell);
             vertices.push_back(e.vertex());
             });
+#else//NAIVE_BAD_CELL_CHECK
+    int count = 0;
+    cell_iterator{e}.run_earlyout([&](const HalfEdge& e) {
+            assert(e.cell() == cell);
+            vertices.push_back(e.vertex());
+            return count++ <= 1000;
+            });
+            if(count  >= 400) {
+                std::set<int> V;
+                std::copy(vertices.begin(),vertices.end(),std::inserter(V,V.end()));
+                for(int i = 0; i < size(); ++i) {
+                    if(V.find(vertex_index(i)) != V.end()) {
+                        std::cout << vertex_index(i) << ":" << vertex_index(dual_index(i)) << std::endl;
+                        std::cout << m_edges.col(i).transpose() << "=====";
+                        std::cout << m_edges.col(dual_index(i)).transpose() << std::endl;
+                    }
+                }
+            std::cout << "Cell: " << cell << "(" << count << ")" << std::endl;
+            }
+#endif//NAIVE_BAD_CELL_CHECK
     return vertices;
 }
 std::vector<int> HalfEdgeMesh::dual_cell(const HalfEdge& e) const {
     std::vector<int> vertices;
-    cell_iterator{e}([&vertices](const HalfEdge& e) {
-            vertices.emplace_back(e.vertex());
+    int vertex = e.vertex();
+    vertex_iterator{e}([&vertices,vertex](const HalfEdge& e) {
+            assert(e.vertex() == vertex);
+            vertices.emplace_back(e.cell());
             });
     return vertices;
 }
 std::vector<int> HalfEdgeMesh::one_ring(const HalfEdge& e) const {
     std::vector<int> vertices;
-    vertex_iterator{e}([&vertices](const HalfEdge& e) {
+    int vertex = e.vertex();
+    vertex_iterator{e}([&vertices,vertex](const HalfEdge& e) {
+            assert(e.vertex() == vertex);
             vertices.emplace_back(e.get_dual().vertex());
             });
     return vertices;

@@ -60,6 +60,14 @@ int main(int argc, char * argv[]) {
         }
         std::cout << std::endl;
     }
+    for(size_t i = 0; i <D.size(); ++i) {
+        std::cout << "one ring: " << i << ") ";
+        auto dc = hem.one_ring_he(D[i]);
+        for(auto&& v: dc) {
+            std::cout << v << " ";
+        }
+        std::cout << std::endl;
+    }
 
 
     std::cout << "dual cell count: " << D.size() << " / " << V.cols() << std::endl;
