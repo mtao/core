@@ -20,9 +20,7 @@ int main() {
         for(int j = 0; j < NJ; ++j) {
             mtao::Vec2d p(double(i)/(NI-1),double(j)/(NJ-1));
             D[i][j] =  mtao::geometry::interior_winding_number(V,F,p);
-             std::cout <<  mtao::geometry::winding_number(V,F,p) << " ";
         }
-        std::cout << std::endl;
     }
     auto print_g = [&](auto&& g) {
         for(auto&& vj: g) {
@@ -32,9 +30,11 @@ int main() {
             std::cout << std::endl;
         }
     };
-    print_g(D);
+    //print_g(D);
+
 
     auto print = [&](auto&& Fin) {
+        /*
         std::cout << "================================" << std::endl;
         std::cout << "================================" << std::endl;
 
@@ -47,8 +47,10 @@ int main() {
             std::cout << std::endl;
         }
         print_g(D);
+        */
         auto Fs = mtao::geometry::mesh::earclipping(V,Fin);
         
+        /*
         for(int i = 0; i < V.cols(); ++i) {
             auto f = V.col(i);
             std::cout << "v " << f.transpose() << std::endl;
@@ -72,6 +74,7 @@ int main() {
             }
             print_g(D);
         }
+        */
     };
 
 

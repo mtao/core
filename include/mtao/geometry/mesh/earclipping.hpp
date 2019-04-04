@@ -44,11 +44,8 @@ namespace mtao::geometry::mesh {
                 auto c = V.col(f[2]);
                 auto cb = c-b;
                 auto ab = a-b;
-                if(cb.y() * ab.x() -  cb.x() * ab.y() < 1e-10 ) {
-                    return false;
-                }
                 /*
-                if(cb.y() * ab.x() -  cb.x() * ab.y() < 1e-10 ) {
+                if(cb.x() * ab.y() -  cb.y() * ab.x() < 1e-10 ) {
                     return false;
                 }
                 */
@@ -84,6 +81,12 @@ namespace mtao::geometry::mesh {
                         std::swap(f[0],f[2]);
                     }
                     if(is_earclip(f)) {
+                        auto a = V.col(f[0]);
+                        auto b = V.col(f[1]);
+                        auto c = V.col(f[2]);
+                        auto cb = c-b;
+                        auto ab = a-b;
+                        std::cout << cb.x() * ab.y() -  cb.y() * ab.x() << std::endl;
                         stlF.push_back(f);
                         CL.erase(it1);
                         earclipped = true;
