@@ -16,7 +16,8 @@ namespace mtao::geometry::mesh {
         if constexpr(std::is_integral_v<mtao::types::remove_cvref_t<decltype(*beginit)>>) {
             size_t size = std::distance(beginit,endit);
             stlF.reserve(size - 2);
-            double ang_sum = 0;
+            double inner_ang_sum = 0;
+            double outer_ang_sum = 0;
             for(auto it = beginit; it != endit; ++it) {
                 auto it1 = it;
                 it1++;
@@ -28,12 +29,11 @@ namespace mtao::geometry::mesh {
                 auto b = V.col(*it1);
                 auto c = V.col(*it2);
                 double ang = mtao::geometry::trigonometry::angle(c-b,a-b)(0);
-                ang_sum += ang;
+                inner_ang_sum += ang;
+                outer_ang_sum += 2*M_PI - ang;
             }
 
-            double expected_total_ang = mtao::geometry::trigonometry::interior_angle_sum(size);
-            //double unexpected_total_ang = mtao::geometry::trigonometry::exterior_angle_sum(size);
-            bool reverse_orientation = std::abs(expected_total_ang - ang_sum) > 1e-2;
+            bool reverse_orientation = outer_ang_sum < inner_ang_sum;
 
             std::list<int> CL(beginit,endit);
 
@@ -44,16 +44,22 @@ namespace mtao::geometry::mesh {
                 auto c = V.col(f[2]);
                 auto cb = c-b;
                 auto ab = a-b;
+                auto ac = a-c;
+                mtao::Vec2d n(-ac.y(),ac.x());
+                /*
+                if(cb.x() * ab.y() -  cb.y() * ab.x() < 1e-12) {
+                    return false;
+                }
+                */
                 /*
                 if(cb.x() * ab.y() -  cb.y() * ab.x() < 1e-10 ) {
                     return false;
                 }
                 */
-                double ang = mtao::geometry::trigonometry::angle(cb,ab)(0);
-                if(ang >= M_PI) {
+                double ang = mtao::geometry::trigonometry::angle(b-a,c-a)(0);
+                if(ang > M_PI || ang < 0) {
                     return false;
                 }
-
                 for(auto mit = beginit; mit != endit; ++mit) {
                     int i = *mit;
                     if( i == f[0] || i == f[1] || i == f[2] ) {
