@@ -50,7 +50,6 @@ int main() {
         */
         auto Fs = mtao::geometry::mesh::earclipping(V,Fin);
         
-        /*
         for(int i = 0; i < V.cols(); ++i) {
             auto f = V.col(i);
             std::cout << "v " << f.transpose() << std::endl;
@@ -74,7 +73,6 @@ int main() {
             }
             print_g(D);
         }
-        */
     };
 
 
