@@ -31,7 +31,8 @@ namespace mtao::geometry::mesh {
                 ang_sum += ang;
             }
 
-            double expected_total_ang = M_PI * ( size - 2);
+            double expected_total_ang = mtao::geometry::trigonometry::interior_angle_sum(size);
+            //double unexpected_total_ang = mtao::geometry::trigonometry::exterior_angle_sum(size);
             bool reverse_orientation = std::abs(expected_total_ang - ang_sum) > 1e-2;
 
             std::list<int> CL(beginit,endit);
@@ -43,15 +44,15 @@ namespace mtao::geometry::mesh {
                 auto c = V.col(f[2]);
                 auto cb = c-b;
                 auto ab = a-b;
-                if(std::abs(cb.y() * ab.x() -  cb.x() * ab.y() < 1e-10) ) {
-                    return false;
-                }
-                double ang = mtao::geometry::trigonometry::angle(c-b,a-b)(0);
                 /*
-                if(ang >= M_PI) {
+                if(cb.y() * ab.x() -  cb.x() * ab.y() < 1e-10 ) {
                     return false;
                 }
                 */
+                double ang = mtao::geometry::trigonometry::angle(cb,ab)(0);
+                if(ang >= M_PI) {
+                    return false;
+                }
 
                 for(auto mit = beginit; mit != endit; ++mit) {
                     int i = *mit;
@@ -79,7 +80,7 @@ namespace mtao::geometry::mesh {
                     if(reverse_orientation) {
                         std::swap(f[0],f[2]);
                     }
-                    if(!is_earclip(f)) {
+                    if(is_earclip(f)) {
                         stlF.push_back(f);
                         CL.erase(it1);
                         earclipped = true;
@@ -88,6 +89,7 @@ namespace mtao::geometry::mesh {
 
                 }
                 if(!earclipped) {
+                    std::cerr << "Earclipping failed!" << std::endl;
                     auto it = CL.begin();
                     auto it1 = it;
                     it1++;
