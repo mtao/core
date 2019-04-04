@@ -46,11 +46,14 @@ namespace mtao::geometry::mesh {
                 auto ab = a-b;
                 /*
                 if(cb.x() * ab.y() -  cb.y() * ab.x() < 1e-10 ) {
+                    std::cout << "Volume fail: " << (cb.x() * ab.y() -  cb.y() * ab.x()) << std::endl;
+                
                     return false;
                 }
                 */
                 double ang = mtao::geometry::trigonometry::angle(cb,ab)(0);
                 if(ang >= M_PI) {
+                    std::cout << "Angle fail: " << ang << std::endl;
                     return false;
                 }
 
@@ -61,6 +64,7 @@ namespace mtao::geometry::mesh {
                     }
                     auto v = V.col(i);
                     if(interior_winding_number(V,f,v)) {
+                        std::cout << "Intersection fail: " << i << std::endl;
                         return false;
                     }
                 }
@@ -81,12 +85,6 @@ namespace mtao::geometry::mesh {
                         std::swap(f[0],f[2]);
                     }
                     if(is_earclip(f)) {
-                        auto a = V.col(f[0]);
-                        auto b = V.col(f[1]);
-                        auto c = V.col(f[2]);
-                        auto cb = c-b;
-                        auto ab = a-b;
-                        std::cout << cb.x() * ab.y() -  cb.y() * ab.x() << std::endl;
                         stlF.push_back(f);
                         CL.erase(it1);
                         earclipped = true;
