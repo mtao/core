@@ -51,15 +51,13 @@ namespace mtao::geometry::mesh {
                     return false;
                 }
                 */
-                /*
                 if(cb.x() * ab.y() -  cb.y() * ab.x() < 1e-10 ) {
                     std::cout << "Volume fail: " << (cb.x() * ab.y() -  cb.y() * ab.x()) << std::endl;
                 
                     return false;
                 }
-                */
                 //double ang = mtao::geometry::trigonometry::angle(cb,ab)(0);
-                double ang = mtao::geometry::trigonometry::angle(b-a,c-a)(0);
+                double ang = mtao::geometry::trigonometry::angle(c-b,a-b)(0);
                 if(ang > M_PI || ang < 0) {
                     std::cout << "Angle fail: " << ang << std::endl;
                     return false;
