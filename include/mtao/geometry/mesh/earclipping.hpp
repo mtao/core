@@ -44,6 +44,9 @@ namespace mtao::geometry::mesh {
                 auto c = V.col(f[2]);
                 auto cb = c-b;
                 auto ab = a-b;
+                if(cb.y() * ab.x() -  cb.x() * ab.y() < 1e-10 ) {
+                    return false;
+                }
                 /*
                 if(cb.y() * ab.x() -  cb.x() * ab.y() < 1e-10 ) {
                     return false;
