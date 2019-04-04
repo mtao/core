@@ -33,48 +33,53 @@ namespace mtao::geometry::mesh {
 
             double expected_total_ang = M_PI * ( size - 2);
             bool reverse_orientation = std::abs(expected_total_ang - ang_sum) > 1e-2;
-            if(reverse_orientation) {
-            }
 
             std::list<int> CL(beginit,endit);
 
+            auto is_earclip = [&](const Face &f) -> bool {
+
+                auto a = V.col(f[0]);
+                auto b = V.col(f[1]);
+                auto c = V.col(f[2]);
+                auto cb = c-b;
+                auto ab = a-b;
+                if(std::abs(cb.y() * ab.x() -  cb.x() * ab.y() < 1e-10) ) {
+                    return false;
+                }
+                double ang = mtao::geometry::trigonometry::angle(c-b,a-b)(0);
+                /*
+                if(ang >= M_PI) {
+                    return false;
+                }
+                */
+
+                for(auto mit = beginit; mit != endit; ++mit) {
+                    int i = *mit;
+                    if( i == f[0] || i == f[1] || i == f[2] ) {
+                        continue;
+                    }
+                    auto v = V.col(i);
+                    if(interior_winding_number(V,f,v)) {
+                        return false;
+                    }
+                }
+                return true;
+            };
 
             while(CL.size() > 3) {
-                bool earclipped = true;
+                bool earclipped = false;
                 for(auto it = CL.begin(); it != CL.end(); ++it) {
-                    earclipped = true;
                     auto it1 = it;
                     it1++;
                     if(it1 == CL.end()) { it1 = CL.begin(); }
                     auto it2 = it1;
                     it2++;
                     if(it2 == CL.end()) { it2 = CL.begin(); }
-                    const Face f{{*it,*it1,*it2}};
-                    auto a = V.col(f[0]);
-                    auto b = V.col(f[1]);
-                    auto c = V.col(f[2]);
-                    double ang = mtao::geometry::trigonometry::angle(c-b,a-b)(0);
+                    Face f{{*it,*it1,*it2}};
                     if(reverse_orientation) {
-                        ang = 2*M_PI - ang;
+                        std::swap(f[0],f[2]);
                     }
-
-                    if(ang > M_PI/2) {
-                        earclipped = false;
-                        continue;
-                    }
-
-                    for(auto mit = beginit; earclipped && mit != endit; ++mit) {
-                        int i = *mit;
-                        if( i == f[0] || i == f[1] || i == f[2] ) {
-                            continue;
-                        }
-                        auto v = V.col(i);
-                        if(interior_winding_number(V,f,v)) {
-                            earclipped = false;
-                        } else {
-                        }
-                    }
-                    if(earclipped) {
+                    if(!is_earclip(f)) {
                         stlF.push_back(f);
                         CL.erase(it1);
                         earclipped = true;

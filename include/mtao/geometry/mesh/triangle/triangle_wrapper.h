@@ -9,6 +9,7 @@ namespace mtao::geometry::mesh::triangle {
         operator std::string() const;
         triangle_opts() = default;
         triangle_opts(const std::string_view& sv);
+        triangle_opts(const char* c): triangle_opts(std::string_view(c)) {}
         void imgui_interface();
         void parse_options(const std::string_view& sv);
         void clear();
