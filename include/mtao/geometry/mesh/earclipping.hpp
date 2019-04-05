@@ -58,7 +58,7 @@ namespace mtao::geometry::mesh {
                     return false;
                 }
                 //double ang = mtao::geometry::trigonometry::angle(cb,ab)(0);
-                double ang = mtao::geometry::trigonometry::angle(b-a,c-a)(0);
+                double ang = mtao::geometry::trigonometry::angle(c-b,a-b)(0);
                 if(ang > M_PI || ang < 0) {
                     return false;
                 }
