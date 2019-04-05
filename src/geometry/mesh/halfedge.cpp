@@ -726,5 +726,23 @@ bool HalfEdgeMesh::check_vertex_validity() const {
     }
     return valid;
 }
+bool HalfEdgeMesh::check_halfedge_reachability() const {
+    std::vector<int> reverse_nexts(size(),-1);
+    auto ni = next_indices();
+    for(int i = 0; i < size(); ++i) {
+        if(ni(i) >= 0) {
+            reverse_nexts[ni(i)] = i;
+        }
+    }
+    for(int i = 0; i < size(); ++i) {
+            if(reverse_nexts[i] == -1) {
+                if(cell_index(i) != -1) {
+                    return false;
+                }
+            }
+    }
+    return true;
+
+}
 }}}
 

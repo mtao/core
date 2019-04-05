@@ -1,10 +1,10 @@
 #pragma once
 #include "mtao/types.hpp"
-#include <iostream>
 #include "mtao/type_utils.h"
 #include "mtao/geometry/winding_number.hpp"
 #include "mtao/eigen/stl2eigen.hpp"
 #include "mtao/iterator/shell.hpp"
+#include "mtao/logging/logger.hpp"
 #include <list>
 
 
@@ -34,6 +34,8 @@ namespace mtao::geometry::mesh {
             }
 
             bool reverse_orientation = outer_ang_sum < inner_ang_sum;
+            if(reverse_orientation) {
+            }
 
             std::list<int> CL(beginit,endit);
 
@@ -51,17 +53,13 @@ namespace mtao::geometry::mesh {
                     return false;
                 }
                 */
-                /*
                 if(cb.x() * ab.y() -  cb.y() * ab.x() < 1e-10 ) {
-                    std::cout << "Volume fail: " << (cb.x() * ab.y() -  cb.y() * ab.x()) << std::endl;
                 
                     return false;
                 }
-                */
                 //double ang = mtao::geometry::trigonometry::angle(cb,ab)(0);
                 double ang = mtao::geometry::trigonometry::angle(b-a,c-a)(0);
                 if(ang > M_PI || ang < 0) {
-                    std::cout << "Angle fail: " << ang << std::endl;
                     return false;
                 }
                 for(auto mit = beginit; mit != endit; ++mit) {
@@ -71,7 +69,6 @@ namespace mtao::geometry::mesh {
                     }
                     auto v = V.col(i);
                     if(interior_winding_number(V,f,v)) {
-                        std::cout << "Intersection fail: " << i << std::endl;
                         return false;
                     }
                 }
@@ -100,7 +97,7 @@ namespace mtao::geometry::mesh {
 
                 }
                 if(!earclipped) {
-                    std::cerr << "Earclipping failed!" << std::endl;
+                    logging::warn() << "Earclipping failed!";
                     auto it = CL.begin();
                     auto it1 = it;
                     it1++;
