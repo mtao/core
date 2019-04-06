@@ -170,6 +170,7 @@ class HalfEdgeMesh {
 
         bool check_cell_validity() const;
         bool check_vertex_validity() const;
+        bool check_halfedge_reachability() const;
     private:
         void construct(const Cells& F);
         void construct_open_halfedges(const Cells& F);
