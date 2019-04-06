@@ -7,6 +7,7 @@
 #include "mtao/types.h"
 #include <Eigen/Geometry>
 #include "mtao/geometry/mesh/earclipping.hpp"
+#include "mtao/data_structures/disjoint_set.hpp"
 #include <iostream>
 #include <array>
 
@@ -61,6 +62,11 @@ class HalfEdgeMesh {
         std::vector<int> cell_halfedges() const;
         std::vector<int> vertex_halfedges() const;
         std::vector<int> boundary_halfedges() const;
+        std::map<int,int> cell_halfedges_map() const;
+        std::map<int,int> vertex_halfedges_map() const;
+
+        std::vector<std::set<int>> cell_halfedges_multi_component() const;
+        std::map<int,std::set<int>> cell_halfedges_multi_component_map() const;
 
         cell_iterator get_cell_iterator(const HalfEdge& he) const;
         vertex_iterator get_vertex_iterator(const HalfEdge& he) const;
@@ -71,9 +77,14 @@ class HalfEdgeMesh {
 
         std::vector<std::vector<int>> cells() const;
         std::map<int,std::vector<int>> cells_map() const;
+        std::map<int,std::set<std::vector<int>>> cells_multi_component_map() const;
+        std::map<int,std::set<int>> halfedges_per_cell() const;
         std::vector<int> cell(int cell_index) const;
         std::vector<int> cell(const HalfEdge& e) const;
         std::vector<int> cell_he(int he_in_cell) const;
+
+
+        std::map<int,std::set<int>> vertices_per_cell() const;
 
         std::vector<std::vector<int>> dual_cells() const;
         std::map<int,std::vector<int>> dual_cells_map() const;
@@ -111,12 +122,51 @@ class HalfEdgeMesh {
             void set_one_ring_adjacencies(const Eigen::MatrixBase<Derived>& V, const std::vector<int>& edges, bool stitch_ends = true);
         template <typename T>
             void set_one_ring_adjacencies(const std::map<T,int>& ordered_edge_indices, bool stitch_ends = true);
+
+        template <typename Derived, typename Derived2>
+            typename Derived::Scalar winding_number(const Eigen::MatrixBase<Derived>& V, const HalfEdge& cell_edge, const Eigen::MatrixBase<Derived2>& p) const;
+        template <typename Derived, typename Derived2>
+            typename Derived::Scalar winding_number(const Eigen::MatrixBase<Derived>& V, const std::set<int>& cell_edge, const Eigen::MatrixBase<Derived2>& p) const;
+        template <typename Derived>
+            typename Derived::Scalar signed_area(const Eigen::MatrixBase<Derived>& V, const HalfEdge& cell_edge) const;
+        template <typename Derived>
+            typename Derived::Scalar signed_area(const Eigen::MatrixBase<Derived>& V, const std::set<int>& cell_edge) const;
+        template <typename Derived>
+            std::map<int,typename Derived::Scalar> signed_areas(const Eigen::MatrixBase<Derived>& V) const;
+        template <typename Derived>
+            typename Derived::Scalar area(const Eigen::MatrixBase<Derived>& V, const HalfEdge& cell_edge) const { return std::abs(signed_area(V,cell_edge)); }
+        template <typename Derived>
+            typename Derived::Scalar area(const Eigen::MatrixBase<Derived>& V, const std::set<int>& cell_edge) const { return std::abs(signed_area(V,cell_edge)); }
+
+
+
+        template <typename Derived, typename Derived2>
+            bool is_inside(const Eigen::MatrixBase<Derived>& V, const std::set<int>& cell_edge, const Eigen::MatrixBase<Derived2>& p) const;
+        template <typename Derived>
+            bool is_inside(const Eigen::MatrixBase<Derived>& V, const std::set<int>& cell_edge, const std::vector<int>& vertex_indices) const;
+
         template <typename Derived, typename Derived2>
             bool is_inside(const Eigen::MatrixBase<Derived>& V, int cell_edge, const Eigen::MatrixBase<Derived2>& p) const;
         template <typename Derived, typename Derived2>
             bool is_inside(const Eigen::MatrixBase<Derived>& V, const HalfEdge& cell_edge, const Eigen::MatrixBase<Derived2>& p) const;
+        template <typename Derived>
+            bool is_inside(const Eigen::MatrixBase<Derived>& V, int cell_edge, const std::vector<int>& vertex_indices) const;
+        template <typename Derived>
+            bool is_inside(const Eigen::MatrixBase<Derived>& V, const HalfEdge& cell_edge, const std::vector<int>& vertex_indices) const;
+
+        template <typename Derived>
+            void tie_nonsimple_cells(const Eigen::MatrixBase<Derived>& V, const std::set<int>& cell_halfedges) ;
+        template <typename Derived>
+            void tie_nonsimple_cells(const Eigen::MatrixBase<Derived>& V) {
+                std::vector<int> C = cell_halfedges();
+                return tie_nonsimple_cells(V,std::set<int>(C.begin(),C.end()));
+            }
 
         void make_cells();//assumes duals and cells nexts are set up, makes every element part of some cell
+
+        bool is_island(int cell_idx) const;
+        bool is_island(const HalfEdge& e) const;
+        bool is_island_he(int he_in_cell) const;
 
         bool check_cell_validity() const;
         bool check_vertex_validity() const;
@@ -189,14 +239,26 @@ class EmbeddedHalfEdgeMesh: public HalfEdgeMesh {
         auto V(int i) { return m_vertices.col(i); }
         auto V(int i) const { return m_vertices.col(i); }
         void make_topology();
+        void tie_nonsimple_cells(const std::set<int>& cell_halfedges) const { return HalfEdgeMesh::tie_nonsimple_cells(m_vertices,cell_halfedges); }
 
+        void tie_nonsimple_cells() {
+            std::vector<int> C = cell_halfedges();
+            return HalfEdgeMesh::tie_nonsimple_cells(m_vertices,std::set<int>(C.begin(),C.end()));
+        }
         template <typename Derived>
         void set_one_ring_adjacencies(const Eigen::MatrixBase<Derived>& central_vertex, const std::set<int>& outward_facing_halfedges);
 
         template <typename Derived>
+        bool is_inside(const std::set<int>&  cell_edge, const Eigen::MatrixBase<Derived>& p) const ;
+        bool is_inside(const std::set<int>&  cell_edge, const std::vector<int>& vertex_indices) const ;
+
+        template <typename Derived>
         bool is_inside(int cell_edge, const Eigen::MatrixBase<Derived>& p) const ;
+        bool is_inside(int cell_edge, const std::vector<int>& vertex_indices) const ;
+
         template <typename Derived>
         bool is_inside(const HalfEdge& cell_edge, const Eigen::MatrixBase<Derived>& p) const ;
+        bool is_inside(const HalfEdge& cell_edge, const std::vector<int>& vertex_indices) const ;
         template <typename Derived>
         int get_cell(const Eigen::MatrixBase<Derived>& p) const ;
         mtao::VectorX<int> get_cells(const mtao::ColVectors<S,D>& P) const;
@@ -206,13 +268,32 @@ class EmbeddedHalfEdgeMesh: public HalfEdgeMesh {
             int b = e.dual().vertex();
             return V(b) - V(a);
         }
+
+template <typename Derived>
+            S winding_number(const std::set<int>& cell_edge, const Eigen::MatrixBase<Derived>& p) const {
+                return HalfEdgeMesh::winding_number(m_vertices,cell_edge,p);
+            }
+        S signed_area(const std::set<int>& cell_edge) const { return HalfEdgeMesh::signed_area(m_vertices,cell_edge); }
+        S area(const std::set<int>& cell_edge) const { return HalfEdgeMesh::area(m_vertices,cell_edge); }
+template <typename Derived>
+            S winding_number(const HalfEdge& cell_edge, const Eigen::MatrixBase<Derived>& p) const {
+                return HalfEdgeMesh::winding_number(m_vertices,cell_edge,p);
+            }
+        S signed_area(const HalfEdge& cell_edge) const { return HalfEdgeMesh::signed_area(m_vertices,cell_edge); }
+        S area(const HalfEdge& cell_edge) const { return HalfEdgeMesh::area(m_vertices,cell_edge); }
+
+std::map<int,S> signed_areas() const { return HalfEdgeMesh::signed_areas(m_vertices); }
+
         std::set<std::tuple<S,int>> get_edge_angles(int eidx) const;
+
+        std::map<int,std::set<int>> cell_containment() const;
     private:
         //creates next arrows
         mtao::ColVectors<S,D> m_vertices;
 };
 namespace detail {
     void invalid_edge_warning();
+    void invalid_cell_warning();
 }
 
 template <typename Derived>
@@ -364,79 +445,167 @@ void EmbeddedHalfEdgeMesh<S,D>::set_one_ring_adjacencies(const Eigen::MatrixBase
     }
 }
 
+template <typename Derived>
+bool HalfEdgeMesh::is_inside(const Eigen::MatrixBase<Derived>& V, int cell_edge, const std::vector<int>& vertex_indices) const {
+    return is_inside(V,edge(cell_edge),vertex_indices);
+}
 template <typename Derived, typename Derived2>
 bool HalfEdgeMesh::is_inside(const Eigen::MatrixBase<Derived>& V, int cell_edge, const Eigen::MatrixBase<Derived2>& p) const {
     return is_inside(V,edge(cell_edge),p);
 }
+
+
+template <typename Derived, typename Derived2>
+auto HalfEdgeMesh::winding_number(const Eigen::MatrixBase<Derived>& V, const HalfEdge& cell_edge, const Eigen::MatrixBase<Derived2>& p) const -> typename Derived::Scalar {
+    using S = typename Derived::Scalar;
+
+    auto edge = [](HalfEdge he) -> std::array<int,2> {
+        int i = he.vertex(); he.next(); 
+        int j = he.vertex();
+        return {{i,j}};
+
+    };
+    S value = 0;
+    get_cell_iterator(cell_edge)([&](auto&& e){
+            auto [i,j] = edge(e);
+            auto a = V.col(i) - p;
+            auto b = V.col(j) - p;
+            S aa = std::atan2(a.y(),a.x());
+            S ba = std::atan2(b.y(),b.x());
+            S ang = ba - aa;
+            if(ang > M_PI) {
+            ang -= 2 * M_PI;
+            } else if(ang <= -M_PI) {
+            ang += 2*M_PI;
+            }
+            value += ang;
+
+            });
+    return value;
+
+}
+template <typename Derived, typename Derived2>
+auto HalfEdgeMesh::winding_number(const Eigen::MatrixBase<Derived>& V, const std::set<int>& cell_edge, const Eigen::MatrixBase<Derived2>& p) const -> typename Derived::Scalar {
+    using S = typename Derived::Scalar;
+
+    S ret = 0;
+    for(auto&& ce: cell_edge) {
+        ret += winding_number(V,edge(ce),p);
+    }
+    return ret;
+}
+template <typename Derived>
+std::map<int,typename Derived::Scalar> HalfEdgeMesh::signed_areas(const Eigen::MatrixBase<Derived>& V) const {
+    auto cem = cell_halfedges_multi_component_map();
+    std::map<int,typename Derived::Scalar> ret;
+    for(auto&& [c,hes]: cem) {
+        ret[c] = signed_area(V,hes);
+    }
+    return ret;
+}
+template <typename Derived>
+auto HalfEdgeMesh::signed_area(const Eigen::MatrixBase<Derived>& V, const HalfEdge& cell_edge) const -> typename Derived::Scalar {
+    using S = typename Derived::Scalar;
+
+    S ret = 0;
+    auto edge = [](HalfEdge he) -> std::array<int,2> {
+        int i = he.vertex(); he.next(); 
+        int j = he.vertex();
+        return {{i,j}};
+    };
+
+    get_cell_iterator(cell_edge)([&](auto&& e){
+            auto [i,j] = edge(e);
+            auto a = V.col(i);
+            auto b = V.col(j);
+            ret += a.x() * b.y() - a.y() * b.x();
+    });
+    return ret;
+}
+template <typename Derived>
+auto HalfEdgeMesh::signed_area(const Eigen::MatrixBase<Derived>& V, const std::set<int>& cell_edge) const -> typename Derived::Scalar {
+    using S = typename Derived::Scalar;
+
+    S ret = 0;
+    for(auto&& ce: cell_edge) {
+        ret += signed_area(V,edge(ce));
+    }
+    return ret;
+}
+
+template <typename Derived>
+bool HalfEdgeMesh::is_inside(const Eigen::MatrixBase<Derived>& V, const std::set<int>& cell_edge, const std::vector<int>& vertex_indices) const {
+    for(auto&& vi: vertex_indices) {
+        if(!is_inside(V,cell_edge,V.col(vi))) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template <typename Derived, typename Derived2>
+bool HalfEdgeMesh::is_inside(const Eigen::MatrixBase<Derived>& V, const std::set<int>& cell_edge, const Eigen::MatrixBase<Derived2>& p) const {
+    if constexpr(Derived2::ColsAtCompileTime == 1) {
+        return std::abs(HalfEdgeMesh::winding_number(V,cell_edge,p)) > 1;//1 is ok, looking for multiples of 2pi right?
+    } else {
+        for(int i = 0; i < p.cols(); ++i) {
+            if(!is_inside(V,cell_edge,p.col(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+template <typename Derived>
+bool HalfEdgeMesh::is_inside(const Eigen::MatrixBase<Derived>& V, const HalfEdge& cell_edge, const std::vector<int>& vertex_indices) const {
+    for(auto&& vi: vertex_indices) {
+        if(!is_inside(V,cell_edge,V.col(vi))) {
+            return false;
+        }
+    }
+    return true;
+}
+
 template <typename Derived, typename Derived2>
 bool HalfEdgeMesh::is_inside(const Eigen::MatrixBase<Derived>& V, const HalfEdge& cell_edge, const Eigen::MatrixBase<Derived2>& p) const {
-    using S = typename Derived::Scalar;
-    using Vec = mtao::Vector<S,2>;
-
-    bool inside = true;
-    if constexpr(true) {
-        auto edge = [](HalfEdge he) -> std::array<int,2> {
-            int i = he.vertex(); he.next(); 
-            int j = he.vertex();
-            return {{i,j}};
-
-        };
-
-        auto winding_number = [&](auto&& p) -> S{
-            S value = 0;
-            cell_iterator(this,cell_edge.index())([&](auto&& e){
-                    auto [i,j] = edge(e);
-                    auto a = V.col(i) - p;
-                    auto b = V.col(j) - p;
-                    S aa = std::atan2(a.y(),a.x());
-                    S ba = std::atan2(b.y(),b.x());
-                    S ang = ba - aa;
-                    if(ang > M_PI) {
-                    ang -= 2 * M_PI;
-                    } else if(ang <= -M_PI) {
-                    ang += 2*M_PI;
-                    }
-                    value += ang;
-
-                    });
-            return value;
-
-        };
-        return std::abs(winding_number(p)) > 1;//1 is ok, looking for multiples of 2pi right?
+    if constexpr(Derived2::ColsAtCompileTime == 1) {
+        return std::abs(HalfEdgeMesh::winding_number(V,cell_edge,p)) > 1;//1 is ok, looking for multiples of 2pi right?
     } else {
-        auto edge = [](HalfEdge he) -> std::array<int,3> {
-            int i = he.vertex(); he.next(); 
-            int j = he.vertex(); he.next(); 
-            int k = he.vertex(); he.next(); 
-            return {{i,j,k}};
-
-        };
-
-        cell_iterator(this,cell_edge.index()).run_earlyout([&](auto&& e) -> bool{
-                auto [i,j,k] = edge(e);
-                auto a = V.col(i);
-                auto b = V.col(j);
-                auto c = V.col(k);
-                auto ba = b-a;
-                auto cb = c-b;
-                auto pb = p-b;
-                Vec n(-ba.y(),ba.x());
-                inside = pb.dot(n) * cb.dot(n) >= 0;
-
-                return inside;
-                });
+        for(int i = 0; i < p.cols(); ++i) {
+            if(!is_inside(V,cell_edge,p.col(i))) {
+                return false;
+            }
+        }
+        return true;
     }
-    return inside;
 }
 template <typename S, int D>
 template <typename Derived>
+bool EmbeddedHalfEdgeMesh<S,D>::is_inside(const std::set<int>& cell_edge, const Eigen::MatrixBase<Derived>& p) const {
+    return HalfEdgeMesh::is_inside(m_vertices,cell_edge,p);
+}
+template <typename S, int D>
+bool EmbeddedHalfEdgeMesh<S,D>::is_inside(const std::set<int>& cell_edge, const std::vector<int>& vertex_indices) const {
+    return HalfEdgeMesh::is_inside(m_vertices,cell_edge,vertex_indices);
+}
+
+template <typename S, int D>
+template <typename Derived>
 bool EmbeddedHalfEdgeMesh<S,D>::is_inside(int cell_edge, const Eigen::MatrixBase<Derived>& p) const {
-    return is_inside(m_vertices,edge(cell_edge),p);
+    return is_inside(edge(cell_edge),p);
 }
 template <typename S, int D>
 template <typename Derived>
 bool EmbeddedHalfEdgeMesh<S,D>::is_inside(const HalfEdge& cell_edge, const Eigen::MatrixBase<Derived>& p) const {
-    return cell_edge(m_vertices, cell_edge, p);
+    return HalfEdgeMesh::is_inside(m_vertices, cell_edge, p);
+}
+template <typename S, int D>
+bool EmbeddedHalfEdgeMesh<S,D>::is_inside(int cell_edge, const std::vector<int>& vertex_indices) const {
+    return is_inside(edge(cell_edge),vertex_indices);
+}
+template <typename S, int D>
+bool EmbeddedHalfEdgeMesh<S,D>::is_inside(const HalfEdge& cell_edge, const std::vector<int>& vertex_indices) const {
+    return HalfEdgeMesh::is_inside(m_vertices, cell_edge, vertex_indices);
 }
 template <typename S, int D>
 mtao::ColVectors<int,3> EmbeddedHalfEdgeMesh<S,D>::cells_triangulated() const {
@@ -456,12 +625,12 @@ template <typename S, int D>
 template <typename Derived>
 int EmbeddedHalfEdgeMesh<S,D>::get_cell(const Eigen::MatrixBase<Derived>& p) const {
     static_assert(D == 2);
-    auto C = cell_halfedges();
+    auto C = cell_halfedges_multi_component_map();
 
 
-    for(size_t i = 0; i < C.size(); ++i) {
-        if(is_inside(i,p)) {
-            return i;
+    for(auto&& [c, hes]: C) {
+        if(is_inside(hes,p)) {
+            return c;
         }
     }
     return -1;
@@ -532,5 +701,74 @@ std::set<std::tuple<S,int>> EmbeddedHalfEdgeMesh<S,D>::get_edge_angles(int eidx)
 }
 
 
+template <typename Derived>
+void HalfEdgeMesh::tie_nonsimple_cells(const Eigen::MatrixBase<Derived>& V, const std::set<int>& cell_halfedges) {
+    auto vols = signed_areas(V);
+    std::map<int,std::set<int>> halfedge_partial_ordering;
+    auto cells_map = this->cells_map();
+
+    std::map<int,std::vector<int>> CM;
+    for(auto&& he: cell_halfedges) {
+        CM[he] = cell_he(he);
+    }
+
+    mtao::data_structures::DisjointSet<int> ds;
+    ds.add_node(-1);
+    for(auto&& he: cell_halfedges) {
+        int cell = cell_index(he);
+        ds.add_node(cell);
+        ds.add_node(dual_index(cell));
+        if(vols[cell] <= 0) {
+            continue;
+        }
+
+        for(auto&& he_m: cell_halfedges) {
+            int c = cell_index(he_m);
+            if(c == cell || vols[c] <= 0) {
+                continue;
+            } else {
+                if( is_inside(V,edge(he),CM[he_m])) {
+                    halfedge_partial_ordering[he].insert(he_m);
+                }
+            }
+
+        }
+
+    }
+    std::map<int,std::set<int>> ordered_partial_ordering;
+    std::set<int> seen_cells;
+    for(auto&& [h, hs]: halfedge_partial_ordering) {
+        ordered_partial_ordering[hs.size()].insert(h);
+    }
+    for(auto&& pr: ordered_partial_ordering) {
+        auto&& hs = std::get<1>(pr);
+        for(auto&& h: hs) {
+            int cell = cell_index(h);
+            auto&& children = halfedge_partial_ordering[h];
+
+            for(auto&& c: children) {
+                if(seen_cells.find(c) == seen_cells.end()) {
+                    int d = dual_index(c);
+                    if(d == -1) continue;
+                    int cell2 = cell_index(d);
+                    ds.join(cell,cell2);
+                    seen_cells.emplace(c);
+                }
+            }
+        }
+    }
+    ds.reduce_all();
+    {
+
+        auto ci = cell_indices();
+        for(int i = 0; i < size(); ++i) {
+            int c = ci(i);
+            if(ds.has_node(c)) {
+                int root = ds.get_root(ci(i)).data;
+                cell_indices()(i) = root;
+            }
+        }
+    }
+}
 }}}
 #endif//HALFEDGE_CELLCOMPLEX_H

@@ -49,6 +49,11 @@ struct DisjointSet{
     const Node& node(size_t idx) const {
         return nodes[idx];
     }
+
+    bool has_node(Data d) const {
+        return data_map.find(d) != data_map.end();
+    }
+
     void reduce_idx(size_t idx) {
         size_t r = get_root_idx(idx);
         while(!nodes[idx].root() ) {

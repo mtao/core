@@ -1,5 +1,4 @@
 #include "mtao/geometry/mesh/halfedge.hpp"
-#include "mtao/data_structures/disjoint_set.hpp"
 //#define NAIVE_BAD_CELL_CHECK
 
 #include <map>
@@ -75,6 +74,38 @@ std::map<int,std::vector<int>> HalfEdgeMesh::cells_map() const {
         C[cell_index(he_in_cell)] = cell_he(he_in_cell);
     }
     return C;
+}
+
+std::map<int,std::set<std::vector<int>>> HalfEdgeMesh::cells_multi_component_map() const {
+    auto hes = cell_halfedges_multi_component_map();
+    std::map<int,std::set<std::vector<int>>> C;
+    for(auto&& [cell, hes]: hes) {
+        std::set<std::vector<int>> cell_set;
+        for(auto&& he: hes) { 
+            cell_set.emplace(cell_he(he));
+        }
+        C[cell] = std::move(cell_set);
+    }
+    return C;
+}
+std::map<int,std::set<int>> HalfEdgeMesh::vertices_per_cell() const {
+    std::map<int,std::set<int>> ret;
+    auto ci = cell_indices();
+    auto vi = vertex_indices();
+    for(int i = 0; i < size(); ++i) {
+        ret[ci(i)].insert(vi(i));
+    }
+    return ret;
+
+}
+
+std::map<int,std::set<int>> HalfEdgeMesh::halfedges_per_cell() const {
+    std::map<int,std::set<int>> ret;
+    auto ci = cell_indices();
+    for(int i = 0; i < size(); ++i) {
+        ret[ci(i)].insert(i);
+    }
+    return ret;
 }
 
 std::vector<int> HalfEdgeMesh::cell(int i) const {
@@ -349,7 +380,35 @@ void HalfEdgeMesh::make_cells() {
     }
 }
 
-std::vector<int> HalfEdgeMesh::cell_halfedges() const {
+std::map<int,std::set<int>> HalfEdgeMesh::cell_halfedges_multi_component_map() const {
+    std::map<int,std::set<int>> ret;
+    mtao::data_structures::DisjointSet<int> ds;
+
+    for(int i = 0; i < size(); ++i) {
+        ds.add_node(i);
+    }
+    for(int i = 0; i < size(); ++i) {
+        int index = next_index(i);
+        if(index >= 0) {
+            ds.join(index,i);
+        }
+    }
+    for(auto&& i: ds.root_indices()) {
+        int root = ds.node(i).data;
+        int index = cell_index(i);
+        ret[index].insert(root);
+    }
+    return ret;
+}
+std::vector<std::set<int>> HalfEdgeMesh::cell_halfedges_multi_component() const {
+    auto cell_edge = cell_halfedges_multi_component_map();
+    std::vector<std::set<int>> ret;
+    std::transform(cell_edge.begin(),cell_edge.end(), std::back_inserter(ret), [](const std::pair<const int, std::set<int>>& fe) -> std::set<int> {
+            return fe.second;
+            });
+    return ret;
+}
+std::map<int,int> HalfEdgeMesh::cell_halfedges_map() const {
     std::map<int,int> cell_edge;
     for(int i = 0; i < size(); ++i) {
         int index = cell_index(i);
@@ -358,6 +417,10 @@ std::vector<int> HalfEdgeMesh::cell_halfedges() const {
             cell_edge[index] = i;
         }
     }
+    return cell_edge;
+}
+std::vector<int> HalfEdgeMesh::cell_halfedges() const {
+    auto cell_edge = cell_halfedges_map();
     std::vector<int> ret;
     std::transform(cell_edge.begin(),cell_edge.end(), std::back_inserter(ret), [](const std::pair<const int, int>& fe) -> int {
             return fe.second;
@@ -365,7 +428,7 @@ std::vector<int> HalfEdgeMesh::cell_halfedges() const {
     return ret;
 }
 
-std::vector<int> HalfEdgeMesh::vertex_halfedges() const {
+std::map<int,int> HalfEdgeMesh::vertex_halfedges_map() const { 
     //TODO: make sure every vertex gets expressed!
     std::map<int,int> cell_edge;
     for(int i = 0; i < size(); ++i) {
@@ -378,6 +441,12 @@ std::vector<int> HalfEdgeMesh::vertex_halfedges() const {
             cell_edge[vertex_index(i)] = i;
         }
     }
+    return cell_edge;
+
+}
+
+std::vector<int> HalfEdgeMesh::vertex_halfedges() const {
+    auto cell_edge = vertex_halfedges_map();
     std::vector<int> ret;
     std::transform(cell_edge.begin(),cell_edge.end(), std::back_inserter(ret), [](const std::pair<const int, int>& fe) -> int {
             return fe.second;
@@ -507,6 +576,9 @@ int HalfEdgeMesh::boundary_size() const {
 namespace detail {
     void invalid_edge_warning() {
         warn() << "Edge iteration ended in an invalid edge";
+    }
+    void invalid_cell_warning() {
+        warn() << "Cell contains an open mesh";
     }
 }
 
@@ -726,5 +798,32 @@ bool HalfEdgeMesh::check_vertex_validity() const {
     }
     return valid;
 }
+
+
+
+
+bool HalfEdgeMesh::is_island(int cell_idx) const {
+    return is_island(cell_edge(cell_idx));
+}
+bool HalfEdgeMesh::is_island(const HalfEdge& e) const {
+
+    auto de = e.get_dual();
+    int cell = (de.index() == -1)?-1:de.cell();
+    bool is = true;
+    cell_iterator{e}.run_earlyout([&](const HalfEdge& e) {
+            auto de = e.get_dual();
+            if(de.index() != -1 && de.cell() != cell) {
+            is = false;
+            }
+            return is;
+            });
+    return is;
+}
+bool HalfEdgeMesh::is_island_he(int he_in_cell) const {
+    return is_island(edge(he_in_cell));
+}
+
+
+
 }}}
 

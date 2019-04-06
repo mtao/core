@@ -52,6 +52,8 @@ ADD_EXECUTABLE(tuple_call_test tuple_call_test.cpp)
 
 ADD_EXECUTABLE(halfedge_test halfedge_test.cpp)
 TARGET_LINK_LIBRARIES(halfedge_test mtao_geometry)
+ADD_EXECUTABLE(halfedge_concentric_circle_test halfedge_concentric_circle_test.cpp)
+TARGET_LINK_LIBRARIES(halfedge_concentric_circle_test  mtao_geometry)
 ADD_EXECUTABLE(strand_test strand_test.cpp)
 TARGET_LINK_LIBRARIES(strand_test mtao_geometry)
 ADD_EXECUTABLE(halfedge_topology_test halfedge_topology_test.cpp)
