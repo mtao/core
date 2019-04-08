@@ -100,5 +100,30 @@ namespace mtao { namespace geometry {
                     }
                 }
         };
+    template <typename Derived, typename BeginIt, typename EndIt>
+        static auto curve_volume( const Eigen::MatrixBase<Derived> & V, const BeginIt& beginit, const EndIt& endit) -> typename Derived::Scalar {
+            auto it = beginit;
+            auto it1 = beginit;
+            it1++;
+            typename Derived::Scalar ret = 0;
+            static_assert(Derived::RowsAtCompileTime == 2 || Derived::RowsAtCompileTime == Eigen::Dynamic);
+            assert(V.rows() == 2);
+            for(; it != endit; ++it, ++it1) {
+                if(it1 == endit) {
+                    it1 = beginit;
+                }
+                auto a = V.col(*it);
+                auto b = V.col(*it1);
+                ret += a.x() * b.y() - a.y() * b.x();
+
+            }
+            return ret;
+
+
+        }
+    template <typename Derived, typename Container>
+        static auto curve_volume( const Eigen::MatrixBase<Derived> & V, const Container& C) -> typename Derived::Scalar {
+            return curve_volume(V,C.begin(),C.end());
+        }
 }}
 #endif//VOLUME_H
