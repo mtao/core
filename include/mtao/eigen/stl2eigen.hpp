@@ -22,6 +22,10 @@ namespace mtao { namespace eigen {
         auto stl2eigen(const Eigen::EigenBase<Derived>& vec) {
             return vec;
         }
+    template <typename Derived>
+        auto& stl2eigen(const Eigen::MatrixBase<Derived>& vec) {
+            return vec;
+        }
     template <typename T, typename Allocator, typename = std::enable_if_t<std::is_scalar_v<T>>>
         auto stl2eigen(const std::vector<T, Allocator>& vec) {
             return Eigen::Map<const mtao::VectorX<T>>(vec.data(),vec.size());
