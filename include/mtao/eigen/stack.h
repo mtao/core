@@ -3,6 +3,7 @@
 #include <Eigen/Dense>
 #include <tuple>
 #include <vector>
+#include <type_traits>
 #include <utility>
 #include <algorithm>
 
@@ -64,4 +65,29 @@ namespace mtao { namespace eigen {
             return _stack<false>(std::make_integer_sequence<int,sizeof...(Args)>(), std::forward<const Args&>(args)...);
         }
 
+
+    template <typename BeginIt, typename EndIt>
+        auto hstack_iter(BeginIt beginit, EndIt endit) {
+            using CDerived = typename std::decay_t<decltype(*beginit)>;
+
+            constexpr static int CRows = CDerived::RowsAtCompileTime;
+            using Index = typename CDerived::Scalar;
+            using RetCells = Eigen::Matrix<Index,CRows,Eigen::Dynamic>;
+            int ccols = 0;
+            int crows = 0;
+
+            for(auto it = beginit; it != endit; ++it) {
+                auto&& c = *it;
+                crows = std::max<int>(crows,c.rows());
+                ccols += c.cols();
+            }
+            RetCells mC(crows,ccols);
+            ccols = 0;
+            for(auto it = beginit; it != endit; ++it) {
+                auto&& c = *it;
+                mC.block(0,ccols,c.rows(),c.cols()) = c;
+                ccols += c.cols();
+            }
+            return mC;
+        }
 }}
