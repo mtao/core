@@ -97,7 +97,7 @@ namespace mtao::geometry::mesh {
 
                 }
                 if(!earclipped) {
-                    logging::warn() << "Earclipping failed!";
+                    //logging::warn() << "Earclipping failed!";
                     auto it = CL.begin();
                     auto it1 = it;
                     it1++;

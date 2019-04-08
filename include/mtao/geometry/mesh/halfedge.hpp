@@ -159,7 +159,7 @@ class HalfEdgeMesh {
         template <typename Derived>
             void tie_nonsimple_cells(const Eigen::MatrixBase<Derived>& V) {
                 std::vector<int> C = cell_halfedges();
-                return tie_nonsimple_cells(V,std::set<int>(C.begin(),C.end()));
+                tie_nonsimple_cells(V,std::set<int>(C.begin(),C.end()));
             }
 
         void make_cells();//assumes duals and cells nexts are set up, makes every element part of some cell
