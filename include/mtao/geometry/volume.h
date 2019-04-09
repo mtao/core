@@ -101,7 +101,7 @@ namespace mtao { namespace geometry {
                 }
         };
     template <typename Derived, typename BeginIt, typename EndIt>
-        static auto curve_volume( const Eigen::MatrixBase<Derived> & V, const BeginIt& beginit, const EndIt& endit) -> typename Derived::Scalar {
+        auto curve_volume( const Eigen::MatrixBase<Derived> & V, const BeginIt& beginit, const EndIt& endit) -> typename Derived::Scalar {
             auto it = beginit;
             auto it1 = beginit;
             it1++;
@@ -122,7 +122,7 @@ namespace mtao { namespace geometry {
 
         }
     template <typename Derived, typename Container>
-        static auto curve_volume( const Eigen::MatrixBase<Derived> & V, const Container& C) -> typename Derived::Scalar {
+        auto curve_volume( const Eigen::MatrixBase<Derived> & V, const Container& C) -> typename Derived::Scalar {
             return curve_volume(V,C.begin(),C.end());
         }
 }}
