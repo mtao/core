@@ -712,13 +712,26 @@ void HalfEdgeMesh::tie_nonsimple_cells(const Eigen::MatrixBase<Derived>& V, cons
     for(auto&& he: cell_halfedges) {
         CM[he] = cell_he(he);
     }
+    std::set<int> complex_dualed_cells;
+    for(auto&& he: cell_halfedges) {
+        std::set<int> dcells;
+
+        get_cell_iterator(he)([&](auto&& e){
+                int dc = e.get_dual().cell();
+                dcells.insert(dc);
+                });
+        if(dcells.size() > 1) {
+        int cell = cell_index(he);
+            complex_dualed_cells.insert(cell);
+        }
+    }
 
     mtao::data_structures::DisjointSet<int> ds;
     ds.add_node(-1);
     for(auto&& he: cell_halfedges) {
         int cell = cell_index(he);
         ds.add_node(cell);
-        ds.add_node(dual_index(cell));
+        ds.add_node(cell_index(dual_index(he)));
         if(vols[cell] <= 0) {
             continue;
         }
@@ -747,13 +760,16 @@ void HalfEdgeMesh::tie_nonsimple_cells(const Eigen::MatrixBase<Derived>& V, cons
             int cell = cell_index(h);
             auto&& children = halfedge_partial_ordering[h];
 
-            for(auto&& c: children) {
-                if(seen_cells.find(c) == seen_cells.end()) {
-                    int d = dual_index(c);
-                    if(d == -1) continue;
-                    int cell2 = cell_index(d);
-                    ds.join(cell,cell2);
-                    seen_cells.emplace(c);
+            for(auto&& che: children) {
+                if(seen_cells.find(che) == seen_cells.end()) {
+                    int ci = cell_index(che);
+                    if(complex_dualed_cells.find(ci) == complex_dualed_cells.end()) {
+                        int d = dual_index(che);
+                        if(d == -1) continue;
+                        int cell2 = cell_index(d);
+                        ds.join(cell,cell2);
+                        seen_cells.emplace(che);
+                    }
                 }
             }
         }
