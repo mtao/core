@@ -403,6 +403,7 @@ int main(int argc, char * argv[]) {
     } else {
         active_loggers["default"].set_level(Level::Debug);
         debug() << "Should show window!";
+        set_opengl_version_hints();
 
         window = std::make_unique<Window>();
         window->set_gui_func(gui_func);
