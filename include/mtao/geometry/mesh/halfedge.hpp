@@ -364,9 +364,22 @@ void EmbeddedHalfEdgeMesh<S,D>::make_topology() {
     static_assert(D == 2);
     //MAke edge connectivity
     auto e2v = vertex_edges_no_topology();
+#ifdef _OPENMP
+    std::vector<int> verts(e2v.size());
+    std::transform(e2v.begin(),e2v.end(),verts.begin(),[](auto&& pr) { return std::get<0>(pr); });
+
+    int idx = 0;
+#pragma omp parallel for
+    for(idx=0; idx < verts.size(); ++idx) {
+        int vidx = verts[idx];
+        set_one_ring_adjacencies(V(vidx),e2v.at(vidx));
+    }
+
+#else
     for(auto&& [vidx,edges]: e2v) {
         set_one_ring_adjacencies(V(vidx),edges);
     }
+#endif
 
     make_cells();
 }
