@@ -709,21 +709,10 @@ void HalfEdgeMesh::tie_nonsimple_cells(const Eigen::MatrixBase<Derived>& V, cons
     auto cells_map = this->cells_map();
 
     std::map<int,std::vector<int>> CM;
+    std::map<int,std::set<int>> CMs;
     for(auto&& he: cell_halfedges) {
-        CM[he] = cell_he(he);
-    }
-    std::set<int> complex_dualed_cells;
-    for(auto&& he: cell_halfedges) {
-        std::set<int> dcells;
-
-        get_cell_iterator(he)([&](auto&& e){
-                int dc = e.get_dual().cell();
-                dcells.insert(dc);
-                });
-        if(dcells.size() > 1) {
-        int cell = cell_index(he);
-            complex_dualed_cells.insert(cell);
-        }
+        auto&& v = CM[he] = cell_he(he);
+        CMs[he] = std::set<int>(v.begin(),v.end());
     }
 
     mtao::data_structures::DisjointSet<int> ds;
@@ -742,7 +731,11 @@ void HalfEdgeMesh::tie_nonsimple_cells(const Eigen::MatrixBase<Derived>& V, cons
                 continue;
             } else {
                 if( is_inside(V,edge(he),CM[he_m])) {
-                    halfedge_partial_ordering[he].insert(he_m);
+                    auto&& potential_parent = CMs[he];
+                    auto&& potential_child = CMs[he_m];
+                    if(!std::includes(potential_parent.begin(),potential_parent.end(),potential_child.begin(),potential_child.end())) {
+                        halfedge_partial_ordering[he].insert(he_m);
+                    }
                 }
             }
 
@@ -763,13 +756,11 @@ void HalfEdgeMesh::tie_nonsimple_cells(const Eigen::MatrixBase<Derived>& V, cons
             for(auto&& che: children) {
                 if(seen_cells.find(che) == seen_cells.end()) {
                     int ci = cell_index(che);
-                    if(complex_dualed_cells.find(ci) == complex_dualed_cells.end()) {
-                        int d = dual_index(che);
-                        if(d == -1) continue;
-                        int cell2 = cell_index(d);
-                        ds.join(cell,cell2);
-                        seen_cells.emplace(che);
-                    }
+                    int d = dual_index(che);
+                    if(d == -1) continue;
+                    int cell2 = cell_index(d);
+                    ds.join(cell,cell2);
+                    seen_cells.emplace(che);
                 }
             }
         }
