@@ -50,6 +50,9 @@ namespace mtao {
                         StaggeredGrid& operator=(const StaggeredGrid& other) = default;
                         StaggeredGrid& operator=(StaggeredGrid&& other) = default;
 
+                        auto bbox() const {
+                            return vertex_grid().bbox();
+                        }
                         auto&& origin() const { return vertex_grid().origin(); }
                         template <int N, int K>
                             const GridType& grid() const {
@@ -99,6 +102,8 @@ namespace mtao {
                         auto staggered_vertex(int idx) const {return staggered_vertex<N,K>(staggered_unindex<N,K>(idx));}
                         template <int N>
                         auto staggered_vertex(int idx, int K) const {return staggered_vertex<N>(staggered_unindex<N>(idx,K),K);}
+                        template <int N, int K> bool staggered_valid_index(const coord_type & idx) const {return grid<N,K>().valid_index(idx);}
+                        template <int N> bool staggered_valid_index(const coord_type & idx, int K) const {return grid<N>(K).valid_index(idx);}
 
 
 
@@ -144,6 +149,15 @@ namespace mtao {
                         size_t uv_size() const { return staggered_size<2,2>();}
                         size_t vertex_size() const { return staggered_size<0,0>();}
                         size_t cell_size() const { return staggered_size<D,0>();}
+
+                        bool u_valid_index(const coord_type& idx) const { return staggered_valid_index<1,0>(idx);}
+                        bool v_valid_index(const coord_type& idx) const { return staggered_valid_index<1,1>(idx);}
+                        bool w_valid_index(const coord_type& idx) const { return staggered_valid_index<1,2>(idx);}
+                        bool vw_valid_index(const coord_type& idx) const { return staggered_valid_index<2,0>(idx);}
+                        bool uw_valid_index(const coord_type& idx) const { return staggered_valid_index<2,1>(idx);}
+                        bool uv_valid_index(const coord_type& idx) const { return staggered_valid_index<2,2>(idx);}
+                        bool vertex_valid_index(const coord_type& idx) const { return staggered_valid_index<0,0>(idx);}
+                        bool cell_valid_index(const coord_type& idx) const { return staggered_valid_index<D,0>(idx);}
 
                         template <int D>
                         size_t form_size() const {
