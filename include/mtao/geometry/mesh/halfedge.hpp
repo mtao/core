@@ -707,6 +707,18 @@ void HalfEdgeMesh::tie_nonsimple_cells(const Eigen::MatrixBase<Derived>& V, cons
     auto vols = signed_areas(V);
     std::map<int,std::set<int>> halfedge_partial_ordering;
     auto cells_map = this->cells_map();
+    std::set<int> outer_hes;
+    std::set<int> interior_hes;
+    for(auto&& he: cell_halfedges) {
+        auto area = signed_area(V,edge(he));
+        if(area  > 0) {
+            outer_hes.insert(he);
+        } else if(area  < 0) {
+            interior_hes.insert(he);
+        } else {
+        assert(area != 0);
+        }
+    }
 
     std::map<int,std::vector<int>> CM;
     std::map<int,std::set<int>> CMs;
@@ -721,27 +733,53 @@ void HalfEdgeMesh::tie_nonsimple_cells(const Eigen::MatrixBase<Derived>& V, cons
         int cell = cell_index(he);
         ds.add_node(cell);
         ds.add_node(cell_index(dual_index(he)));
-        if(vols[cell] <= 0) {
-            continue;
-        }
-
-        for(auto&& he_m: cell_halfedges) {
-            int c = cell_index(he_m);
-            if(c == cell || vols[c] <= 0) {
+    }
+    for(auto&& ohe: outer_hes) {
+        int ocell = cell_index(ohe);
+        int docell = cell_index(dual_index(ohe));
+        for(auto&& ihe: interior_hes) {
+            int icell = cell_index(ihe);
+            int dicell = cell_index(dual_index(ihe));
+            if(ocell == icell || dicell == ocell) {
                 continue;
             } else {
-                if( is_inside(V,edge(he),CM[he_m])) {
-                    auto&& potential_parent = CMs[he];
-                    auto&& potential_child = CMs[he_m];
-                    if(!std::includes(potential_parent.begin(),potential_parent.end(),potential_child.begin(),potential_child.end())) {
-                        halfedge_partial_ordering[he].insert(he_m);
-                    }
+                if( is_inside(V,edge(ohe),CM[ihe])) {
+                       auto&& potential_parent = CMs[ohe];
+                       auto&& potential_child = CMs[ihe];
+                       //if there's some random edge connecting these two we need to find it
+                       if(std::includes(potential_parent.begin(),potential_parent.end(),potential_child.begin(),potential_child.end())) {
+                           auto&& child = CM[ihe];
+                           auto&& parent = CM[ohe];
+                           std::set<std::array<int,2>> edges;
+                           for(int i = 0; i < parent.size(); ++i) {
+                               std::array<int,2> e;
+                               e[0] = parent[i];
+                               e[1] = parent[(i+1)%parent.size()];
+                               std::sort(e.begin(),e.end());
+                               edges.emplace(e);
+                           }
+                           for(int i = 0; i < child.size(); ++i) {
+                               std::array<int,2> e;
+                               e[0] = child[i];
+                               e[1] = child[(i+1)%child.size()];
+                               std::sort(e.begin(),e.end());
+                               if(edges.find(e) == edges.end()) {
+                                   auto v = (V.col(e[0]) + V.col(e[1]))/2;
+                                   if(is_inside(V,edge(ohe),v)) {
+                                       halfedge_partial_ordering[ohe].insert(ihe);
+                                       break;
+                                   }
+                               }
+                           }
+                       } else {
+                           halfedge_partial_ordering[ohe].insert(ihe);
+                       }
                 }
             }
-
         }
 
     }
+
     std::map<int,std::set<int>> ordered_partial_ordering;
     std::set<int> seen_cells;
     for(auto&& [h, hs]: halfedge_partial_ordering) {
@@ -756,10 +794,7 @@ void HalfEdgeMesh::tie_nonsimple_cells(const Eigen::MatrixBase<Derived>& V, cons
             for(auto&& che: children) {
                 if(seen_cells.find(che) == seen_cells.end()) {
                     int ci = cell_index(che);
-                    int d = dual_index(che);
-                    if(d == -1) continue;
-                    int cell2 = cell_index(d);
-                    ds.join(cell,cell2);
+                    ds.join(cell,ci);
                     seen_cells.emplace(che);
                 }
             }

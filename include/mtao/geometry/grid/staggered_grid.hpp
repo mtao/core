@@ -50,6 +50,9 @@ namespace mtao {
                         StaggeredGrid& operator=(const StaggeredGrid& other) = default;
                         StaggeredGrid& operator=(StaggeredGrid&& other) = default;
 
+                        auto bbox() const {
+                            return vertex_grid().bbox();
+                        }
                         auto&& origin() const { return vertex_grid().origin(); }
                         template <int N, int K>
                             const GridType& grid() const {
