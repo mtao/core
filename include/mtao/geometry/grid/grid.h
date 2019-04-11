@@ -51,12 +51,25 @@ namespace mtao {
                         Grid(const coord_type& a, const Eigen::MatrixBase<Derived>& dx, const Vec& origin = Vec::Zero()): Indexer(a), m_origin(origin), m_dx(dx) {}
                         Grid(const coord_type& a): Grid(a,(1.0 / (CIVecMap(a.data()).template cast<T>().array()-UseVertexGrid)).matrix()) {}
                         Grid() {}
-                        static Grid from_bbox(BBox bb, const coord_type& shape, bool cubes = false) {
+                        static Grid old_bad_from_bbox(BBox bb, const coord_type& shape, bool cubes = false) {
                             auto o = bb.min();
                             auto dx = (bb.sizes().array() / (CIVecMap(shape.data()).template cast<T>().array()-UseVertexGrid)).eval();
                             if(cubes) {
                                 dx.setConstant(dx.maxCoeff());
                             }
+                            return Grid(shape,dx.matrix(),o);
+                        }
+                        static Grid from_bbox(BBox bb, const coord_type& shape, bool cubes = false) {
+                            Vec mid =(bb.min() + bb.max()) / 2;
+                            auto dx = (bb.sizes().array() / (CIVecMap(shape.data()).template cast<T>().array()-UseVertexGrid)).eval();
+                            if(cubes) {
+                                dx.setConstant(dx.maxCoeff());
+                                bb.max() = (dx.array() * (CIVecMap(shape.data()).template cast<T>().array()-UseVertexGrid)).eval() / 2;
+                                bb.min() = -bb.max(); 
+                                bb.min() += mid;
+                                bb.max() += mid;
+                            }
+                            auto o = bb.min();
                             return Grid(shape,dx.matrix(),o);
                         }
                         Grid(const Grid& other) = default;
