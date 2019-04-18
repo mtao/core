@@ -4,6 +4,7 @@
 #include <Eigen/Dense>
 #pragma GCC diagnostic pop
 #include <vector>
+#include <map>
 namespace mtao{ 
     template <typename T, int A, int B>
         using Matrix = Eigen::Matrix<T,A,B>;
@@ -128,6 +129,9 @@ namespace mtao{
 
     template <typename T, typename Allocator = mtao::allocator<T>>
         using vector = std::vector<T,Allocator>;
+
+    template <typename Key, typename T, typename Compare=std::less<Key>, typename Allocator = mtao::allocator<T>>
+        using map = std::map<Key,T,Compare,Allocator>;
 
     template <typename T>
         struct scalar_type {
