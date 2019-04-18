@@ -513,7 +513,9 @@ std::map<int,typename Derived::Scalar> HalfEdgeMesh::signed_areas(const Eigen::M
     auto cem = cell_halfedges_multi_component_map();
     std::map<int,typename Derived::Scalar> ret;
     for(auto&& [c,hes]: cem) {
-        ret[c] = signed_area(V,hes);
+        if(c >= 0) {
+            ret[c] = signed_area(V,hes);
+        }
     }
     return ret;
 }
