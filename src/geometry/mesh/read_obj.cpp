@@ -58,6 +58,16 @@ struct MeshReader {
         std::vector<Vec> vecs;
         std::vector<Tri> tris;
 
+        auto add_valid_triangle = [&](const Tri& t) {
+            if(
+                    (t[0] != t[1])
+                    && (t[0] != t[2])
+                    && (t[1] != t[2])
+                    ) {
+            tris.emplace_back(t);
+            }
+        };
+
         std::ifstream ifs(filename);
 
         for(std::string line; std::getline(ifs,line);) {
@@ -78,11 +88,11 @@ struct MeshReader {
                     }
                 }
                 if(front[0] == 'f') {
-                    tris.emplace_back(process_triangle(tokens.begin()+1,tokens.end()));
+                    add_valid_triangle(process_triangle(tokens.begin()+1,tokens.end()));
                     if(tokens.size() == 5) {
                         int last = get_slash_token<0>(tokens.back());
                         auto&& p = tris.back();
-                        tris.emplace_back(Tri{{p[0],p[2],last}});
+                        add_valid_triangle(Tri{{p[0],p[2],last}});
                     }
                 }
             }
