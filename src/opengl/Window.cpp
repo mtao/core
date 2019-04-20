@@ -196,6 +196,7 @@ void Window::save_frame() {
 }
 void Window::save_frame(const std::string& filename) {
 
+#ifdef MTAO_HAS_LIBPNGPP
     auto [w,h] = getSize();
     std::vector<unsigned char> data(4*w*h);
     mtao::logging::info() << "Saving frame to disk(" << filename << "): " << w << "x" << h;
@@ -219,6 +220,9 @@ void Window::save_frame(const std::string& filename) {
     }
 
     image.write(filename);
+#else
+    logging::warn() << "No libpng++ so no screenshots!";
+#endif
 }
 std::string Window::get_frame_filename(int frame) const {
     std::stringstream ss;
