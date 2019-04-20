@@ -724,6 +724,8 @@ void HalfEdgeMesh::tie_nonsimple_cells(const Eigen::MatrixBase<Derived>& V, cons
     auto cells_map = this->cells_map();
     std::set<int> outer_hes;
     std::set<int> interior_hes;
+    mtao::data_structures::DisjointSet<int> ds;
+    ds.add_node(-1);
     for(auto&& he: cell_halfedges) {
         auto area = signed_area(V,edge(he));
         if(area  > 0) {
@@ -731,7 +733,12 @@ void HalfEdgeMesh::tie_nonsimple_cells(const Eigen::MatrixBase<Derived>& V, cons
         } else if(area  < 0) {
             interior_hes.insert(he);
         } else {
-        assert(area != 0);
+
+            //assert(area != 0);
+            int ci = cell_index(he);
+            ds.add_node(ci);
+            ds.join(-1,ci);
+
         }
     }
 
@@ -742,8 +749,6 @@ void HalfEdgeMesh::tie_nonsimple_cells(const Eigen::MatrixBase<Derived>& V, cons
         CMs[he] = std::set<int>(v.begin(),v.end());
     }
 
-    mtao::data_structures::DisjointSet<int> ds;
-    ds.add_node(-1);
     for(auto&& he: cell_halfedges) {
         int cell = cell_index(he);
         ds.add_node(cell);

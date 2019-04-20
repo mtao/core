@@ -13,8 +13,10 @@ struct DisjointSet{
 
     DisjointSet() {}
     void add_node(const Data& d) {
-        data_map[d] = nodes.size();
-        nodes.emplace_back(d);
+        if(data_map.find(d) == data_map.end()) {
+            data_map[d] = nodes.size();
+            nodes.emplace_back(d);
+        }
     }
     struct Node {
         Node(const Data& d): data(d) {}
