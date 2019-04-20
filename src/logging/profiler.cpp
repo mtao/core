@@ -9,7 +9,7 @@ namespace mtao { namespace logging {
         auto d = duration();
 
         auto s = std::scoped_lock(s_mutex);
-        write(d);
+        //write(d);
 
         if(auto it = s_durations.find(logger().info()); it != s_durations.end()) {
             auto& dm = it->second;
