@@ -6,7 +6,7 @@
 
 int main() {
     std::cout << getenv("_") << std::endl;
-    mtao::logging::make_logger("A", "a.log", mtao::logging::Level::All);
+    mtao::logging::make_logger("A", mtao::logging::Level::All);
 
     auto log = mtao::logging::get_logger("A",mtao::logging::Level::Fatal);
     log.write("welp",3,4);
