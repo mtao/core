@@ -27,7 +27,7 @@ namespace mtao { namespace logging {
     void profiler::log_all() {
         auto s = std::scoped_lock(s_mutex);
         for(auto&& pr: s_durations) {
-            auto&& lc = get_logger(pr.first);
+            auto&& lc = get_logger(pr.first.first,mtao::logging::Level::Info);
 
             for(auto&& dp: pr.second) {
                 auto dms = std::chrono::duration_cast<std::chrono::milliseconds>(dp.second.first);
