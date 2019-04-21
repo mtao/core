@@ -1,8 +1,8 @@
 #pragma once
 #include "mtao/geometry/kdtree.hpp"
-#include <iostream>
 #include <map>
 #include "mtao/iterator/enumerate.hpp"
+#include "mtao/eigen/stl2eigen.hpp"
 
 namespace mtao { namespace geometry {
     //expects a mtao::vector<mtao::Vector<T,D>>
@@ -13,14 +13,43 @@ namespace mtao { namespace geometry {
             using Vec = typename Container::value_type;
             constexpr static int D = Vec::RowsAtCompileTime;
             using Scalar = typename Vec::Scalar;
+            std::map<int,int> remap;
             Container ret_vec;
-            KDTree<Scalar,D> tree;
-            tree.reserve(V.size());
-            std::map<size_t,size_t> remap;
-            for(size_t i=0; i<V.size(); ++i) {
-                remap[i] = tree.pruning_insertion(V[i],eps);
+            if(eps == 0 && V.size() > 0) {
+                constexpr static bool static_size = D != Eigen::Dynamic;
+                using StlVec= std::conditional_t<static_size,std::array<Scalar,D>,std::vector<Scalar>>;
+                ret_vec.reserve(V.size());
+                int rows = V[0].rows();
+                std::map<StlVec,int> vmap;
+                StlVec tmp;
+                if constexpr(!static_size) {
+                    tmp.resize(rows);
+                }
+                for(size_t i=0; i<V.size(); ++i) {
+                    mtao::eigen::stl2eigen(tmp) = V[i];
+                    if(auto it = vmap.find(tmp); it == vmap.end()) {
+                        remap[i] = vmap.size();
+                        vmap[tmp] = vmap.size();
+                    } else {
+                        remap[i] = it->second;
+                    }
+                }
+                ret_vec.resize(vmap.size());
+                for(auto&& [v,i]: vmap) {
+                    ret_vec[i] = mtao::eigen::stl2eigen(v);
+                }
+
+            } else {
+                KDTree<Scalar,D> tree;
+                tree.reserve(V.size());
+                std::map<size_t,size_t> remap;
+                for(size_t i=0; i<V.size(); ++i) {
+                    remap[i] = tree.pruning_insertion(V[i],eps);
+                }
+                ret_vec = tree.points();
+
             }
-            return std::make_tuple(tree.points(),remap);
+            return std::make_tuple(ret_vec,remap);
         }
     template <typename DerivedV, typename DerivedF, typename T
         >
