@@ -202,6 +202,7 @@ namespace mtao { namespace geometry {
                     }
                     return *this;
                 }
+                void reserve(size_t size) { m_points.reserve(size); }
                 KDTree(const mtao::vector<Vec>& points): m_points(points) {
                     rebalance();
                 }
@@ -219,7 +220,12 @@ namespace mtao { namespace geometry {
 
                     if(m_node) {
                         auto [ni,d] = nearest(p);
-                        if(d < eps) {
+                        if(eps == 0) {
+                            if(point(ni) == p) {
+                                return ni;
+                            }
+                        }
+                        else if(d < eps) {
                             return ni;
                         }
                     }
