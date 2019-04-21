@@ -5,7 +5,9 @@
 #include <stdexcept>
 #include <imgui.h>
 #include <vector>
+#ifdef MTAO_HAS_LIBPNGPP
 #include <png++/png.hpp>
+#endif
 #include <iomanip>
 #include <mtao/logging/logger.hpp>
 #include "examples/imgui_impl_glfw.h"
