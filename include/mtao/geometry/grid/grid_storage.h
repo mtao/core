@@ -56,6 +56,7 @@ namespace mtao {
                                 allocator_type a;
                                 a.deallocate(m_data,size());
                             }
+                            bool empty() const { return m_data == nullptr; }
                             T& at(size_t idx) {
                                 if(!(idx < size())) {
                                     std::stringstream ss;
@@ -82,9 +83,14 @@ namespace mtao {
                             }
 
                             void resize(size_t size) {
+                                if(size == 0) {
+                                    m_size = 0;
+                                    m_data = nullptr;
+                                    return;
+                                }
                                 allocator_type a;
                                 value_type* new_data = a.allocate(size);
-                                if(m_data != nullptr) {
+                                if(!empty()) {
                                     if(CopyOnResize) {
                                         size_t copy_size = std::min(size,this->size());
                                         std::copy(m_data,m_data+copy_size,new_data);

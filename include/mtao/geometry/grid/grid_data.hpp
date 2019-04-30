@@ -66,6 +66,7 @@ namespace mtao {
                         auto as_eigen_vector() const { return Eigen::Map<const VectorX<T>>(data(),size()); }
 
                         size_t size() const {return m_storage.size();}
+                        bool empty() const {return m_storage.empty();}
 
                         template <typename... Args>
                             void set_constant(Args... args) {
