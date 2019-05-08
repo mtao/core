@@ -114,6 +114,9 @@ namespace mtao {
                                 return g;
                                 //return cwiseUnaryOp([&v](auto&& a) {return a/v;});
                             }
+                            GridData operator!() const {
+                                return cwiseUnaryOp([](auto&& b) { return !b; });
+                            }
                         ////read only just over indices
                         //void loop(const std::function<void(const coord_type&)>& f) const {
                         //    utils::multi_loop(m_shape,[&](auto&& v) {

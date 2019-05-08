@@ -428,6 +428,17 @@ std::vector<int> HalfEdgeMesh::cell_halfedges() const {
     return ret;
 }
 
+std::map<int,std::set<int>> HalfEdgeMesh::cell_collect_all_halfedges() const {
+    std::map<int,std::set<int>> hes;
+    for(int i = 0; i < size(); ++i) {
+        int index = cell_index(i);
+
+        if(index >= 0) {
+            hes[index].insert(i);
+        }
+    }
+    return hes;
+}
 std::map<int,int> HalfEdgeMesh::vertex_halfedges_map() const { 
     //TODO: make sure every vertex gets expressed!
     std::map<int,int> cell_edge;
