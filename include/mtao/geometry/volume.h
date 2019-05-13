@@ -52,6 +52,27 @@ namespace mtao { namespace geometry {
         }
 
     template <typename VertexDerived, typename SimplexDerived> 
+        auto brep_volume( const Eigen::MatrixBase<VertexDerived>& V, const Eigen::MatrixBase<SimplexDerived>& S) {
+            constexpr static int E = VertexDerived::RowsAtCompileTime;//embed dim
+            constexpr static int N = SimplexDerived::ColsAtCompileTime;//number of elements
+            constexpr static int D = SimplexDerived::RowsAtCompileTime;//simplex dim
+            using Scalar = typename VertexDerived::Scalar;
+
+
+            mtao::Matrix<Scalar,E,D+1> v(V.rows(),S.rows());
+            v.col(D).setZero();
+            Scalar myvol = 0;
+            for(int i = 0; i < S.cols(); ++i) {
+                auto s = S.col(i);
+                for(int j = 0; j < s.rows(); ++j) {
+                    v.col(j) = V.col(s(j));
+                }
+                myvol +=volume(v);
+            }
+            return myvol;
+        }
+
+    template <typename VertexDerived, typename SimplexDerived> 
         auto dual_volumes( const Eigen::MatrixBase<VertexDerived>& V, const Eigen::MatrixBase<SimplexDerived>& S) {
             auto PV = volumes(V,S);
             int elementsPerCell = S.rows();
@@ -100,6 +121,21 @@ namespace mtao { namespace geometry {
                     }
                 }
         };
+    template <typename Derived>
+        auto curve_volume( const Eigen::MatrixBase<Derived> & V) -> typename Derived::Scalar {
+            typename Derived::Scalar ret = 0;
+            static_assert(Derived::RowsAtCompileTime == 2 || Derived::RowsAtCompileTime == Eigen::Dynamic);
+            assert(V.rows() == 2);
+            for(int i = 0; i < V.cols(); ++i) {
+                auto a = V.col(i);
+                auto b = V.col((i+1)%V.cols());
+                ret += a.x() * b.y() - a.y() * b.x();
+
+            }
+            return .5 * ret;
+
+
+        }
     template <typename Derived, typename BeginIt, typename EndIt>
         auto curve_volume( const Eigen::MatrixBase<Derived> & V, const BeginIt& beginit, const EndIt& endit) -> typename Derived::Scalar {
             auto it = beginit;
@@ -117,7 +153,7 @@ namespace mtao { namespace geometry {
                 ret += a.x() * b.y() - a.y() * b.x();
 
             }
-            return ret;
+            return .5 * ret;
 
 
         }
