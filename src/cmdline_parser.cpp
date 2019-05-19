@@ -150,6 +150,14 @@ namespace mtao {
         std::string name = dealias(name_raw);
         m_aliases[alias] = name;
     }
+    void CommandLineParser::set_option(const std::string& optname, const OptVar& opt) {
+
+        if(auto it = m_opts.find(optname); it != m_opts.end()) {
+            it->second.OptVar::operator=(opt);
+        } else {
+            add_option(optname,opt);
+        }
+    }
 
     std::string CommandLineParser::dealias(const std::string& str) const {
         if(auto it = m_aliases.find(str); it != m_aliases.end()) {

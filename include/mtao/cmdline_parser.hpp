@@ -41,6 +41,8 @@ namespace mtao {
 
             //add_option explicitly doesnt overwrite oexisting options
             void add_option(const std::string& optname, const OptVar& default_value = false, const std::string& hint = "");
+            void set_option(const std::string& optname, const OptVar& default_value = true);
+
             const std::map<std::string,Option>& opts() const {return m_opts;} 
             const OptVar& opt(const std::string&) const;
             std::string opt_str(const std::string&) const;
