@@ -237,8 +237,10 @@ class EmbeddedHalfEdgeMesh: public HalfEdgeMesh {
 
 
         mtao::ColVectors<int,3> cells_triangulated() const;
-        auto V(int i) { return m_vertices.col(i); }
-        auto V(int i) const { return m_vertices.col(i); }
+        auto V(int i) { assert(i >= 0); assert(i < nV()); return m_vertices.col(i); }
+        auto V(int i) const { assert(i >= 0); assert(i < nV()); return m_vertices.col(i); }
+        auto&& V() const { return m_vertices; }
+        int nV() const { return m_vertices.cols(); }
         void make_topology();
         void tie_nonsimple_cells(const std::set<int>& cell_halfedges) const { return HalfEdgeMesh::tie_nonsimple_cells(m_vertices,cell_halfedges); }
 
@@ -429,12 +431,6 @@ void HalfEdgeMesh::set_one_ring_adjacencies(const Eigen::MatrixBase<Derived>& V,
             edge_angles[ang] = eidx;
         }
     }
-    /*
-    for(auto&& [t,i]: edge_angles) {
-        std::cout << i << "(" << t << ") ";
-    } 
-    std::cout << std::endl;
-    */
     set_one_ring_adjacencies(edge_angles,stitch_ends);
 }
 template <typename S, int D>
@@ -451,7 +447,8 @@ void EmbeddedHalfEdgeMesh<S,D>::set_one_ring_adjacencies(const Eigen::MatrixBase
 
         std::transform(edges.begin(),edges.end(),std::inserter(edge_angles,edge_angles.end()), [&](int eidx) {
                 HalfEdge e = edge(eidx);
-                auto p = V(e.get_dual().vertex()) - o;
+                int vertex = e.get_dual().vertex();
+                auto p = (V(e.get_dual().vertex()) - o);
                 S ang = std::atan2(p.y(),p.x());
                 return std::make_pair(ang,eidx);
                 });
