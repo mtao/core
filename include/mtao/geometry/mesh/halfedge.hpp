@@ -64,6 +64,7 @@ class HalfEdgeMesh {
         std::vector<int> boundary_halfedges() const;
         std::map<int,int> cell_halfedges_map() const;
         std::map<int,int> vertex_halfedges_map() const;
+        std::map<int,std::set<int>> cell_collect_all_halfedges() const;
 
         std::vector<std::set<int>> cell_halfedges_multi_component() const;
         std::map<int,std::set<int>> cell_halfedges_multi_component_map() const;
@@ -533,7 +534,7 @@ auto HalfEdgeMesh::signed_area(const Eigen::MatrixBase<Derived>& V, const HalfEd
             auto b = V.col(j);
             ret += a.x() * b.y() - a.y() * b.x();
     });
-    return ret;
+    return .5 * ret;
 }
 template <typename Derived>
 auto HalfEdgeMesh::signed_area(const Eigen::MatrixBase<Derived>& V, const std::set<int>& cell_edge) const -> typename Derived::Scalar {

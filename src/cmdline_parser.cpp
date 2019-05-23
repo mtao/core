@@ -3,6 +3,8 @@
 #include <type_traits>
 #include <stdexcept>
 #include <iostream>
+#include <set>
+#include <iterator>
 #include <cstdlib>
 #include <sstream>
 #include "mtao/type_utils.h"
@@ -39,9 +41,10 @@ namespace mtao {
     }
 
     CommandLineParser::CommandLineParser() {
+        m_opts["help"] = Option(false,"Print help");
     }
 
-    void CommandLineParser::parse(int argc, char * argv[]) {
+    bool CommandLineParser::parse(int argc, char * argv[]) {
 
         std::vector<std::string> toks(argc);
         std::copy(argv,argv+argc,toks.begin());
@@ -62,6 +65,23 @@ namespace mtao {
 #ifndef NDEBUG
         clp_internal::clp_inline_test(*this);
 #endif
+        if(optT<bool>("help")) {
+            std::map<std::string,std::set<std::string>> aliased_values;
+            for(auto&& [a,b]: m_aliases) {
+                aliased_values[b].insert(a);
+            }
+            for(auto&& [a,_]: m_opts) {
+                aliased_values[a].insert(a);
+            }
+            for(auto&& [oc,opt]: m_opts) {
+                auto&& av = aliased_values[oc];
+                std::copy(av.begin(),av.end(), std::ostream_iterator<std::string>(std::cout, ","));
+                std::cout << "(" << opt_type(oc)  << "): " << opt.hint << std::endl;
+            }
+            return false;
+        } else {
+            return true;
+        }
     }
 
     void CommandLineParser::parse_arg(std::vector<std::string>::const_iterator& it, int prefix) {
@@ -91,7 +111,7 @@ namespace mtao {
                             error() << "Invalid argument: " << argit->first << "("<< opt_type(argit->first) <<"): [" << value <<"]";
                         }
                     }
-                    },argit->second);
+                    },static_cast<OptVar&>(argit->second));
         } else {
             //TODO: Throw error
             throw std::invalid_argument( "Option " + optname + " not recognized." );
@@ -109,20 +129,34 @@ namespace mtao {
                 }, opt(optname));
     }
 
-    void CommandLineParser::add_option(const std::string& optname, const Option& opt) {
-        debug() << "Adding option: " << optname;
+    void CommandLineParser::add_option(const std::string& optname, const OptVar& opt, const std::string& hint) {
+        if(hint.empty()) {
+            debug() << "Adding option: " << optname;
+        } else {
+            debug() << "Adding option: " << optname << ": " << hint;
+        }
         if(auto it = m_opts.find(optname); it == m_opts.end()) {
-            m_opts[optname] = opt;
+            m_opts[optname] = Option(opt,hint);
+
             std::visit([&](auto&& v) {
                     using T = std::decay_t<decltype(v)>;
                     if constexpr (std::is_same_v<T,bool>) {
-                add_option(std::string("no-")+optname,AntiBool{optname});
-                }},opt);
+                    add_option(std::string("no-")+optname,AntiBool{optname},hint.empty()?("No " + hint):"");
+                    }
+                    },opt);
         }
     }
     void CommandLineParser::add_alias(const std::string& name_raw, const std::string& alias) {
         std::string name = dealias(name_raw);
         m_aliases[alias] = name;
+    }
+    void CommandLineParser::set_option(const std::string& optname, const OptVar& opt) {
+
+        if(auto it = m_opts.find(optname); it != m_opts.end()) {
+            it->second.OptVar::operator=(opt);
+        } else {
+            add_option(optname,opt);
+        }
     }
 
     std::string CommandLineParser::dealias(const std::string& str) const {
@@ -135,7 +169,7 @@ namespace mtao {
 
 
 
-    auto CommandLineParser::opt(const std::string& optname_raw) const -> const Option & {
+    auto CommandLineParser::opt(const std::string& optname_raw) const -> const OptVar & {
         std::string optname = dealias(optname_raw);
         if(auto argit = m_opts.find(optname); argit == m_opts.end()) {
             throw std::invalid_argument( "Option " + optname + " not recognized." );

@@ -164,8 +164,11 @@ namespace mtao { namespace logging {
                 it != active_loggers.end()) {
             return LoggerContext(&it->second,level);
         } else {
+
+
+            std::cerr << "Error: Logger " << alias << " not found! Making it" << std::endl;
+            return LoggerContext(&make_logger(alias),level);
             return LoggerContext();
-            std::cerr << "Error: Logger " << alias << " not found!" << std::endl;
         }
     }
     Logger::Instance fatal(){ return log(Level::Fatal); }

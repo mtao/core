@@ -12,7 +12,7 @@ namespace mtao {
     class CommandLineParser {
         public:
             CommandLineParser();
-            void parse(int argc, char * argv[]);
+            bool parse(int argc, char * argv[]);
             const std::vector<std::string>& args() const {return m_args;}
             const std::string& arg(size_t idx) const {return m_args[idx];}
 
@@ -20,44 +20,31 @@ namespace mtao {
                 std::string target_name;
             };
 
-            using Option = std::variant<bool,int,double,std::string,AntiBool>;
+            using OptVar = std::variant<bool,int,double,std::string,AntiBool>;
+            struct Option: public OptVar {
+                Option() = default;
+                Option(const Option&) = default;
+                Option(Option&&) = default;
+                Option& operator=(const Option&) = default;
+                Option& operator=(Option&&) = default;
+                Option& operator=(OptVar&& v) {
+                    OptVar::operator=(v);
+                    return *this;
+                }
+                Option(const OptVar& ov, const std::string& hint): OptVar(ov), hint(hint) {}
 
-            /*
-            class Option {
-                public:
-                    enum class ValueType {Flag, Integer, Float, String};
-                    Option(ValueType t = ValueType::Integer): m_type(t) {}
-                    const std::string& value() const {return m_value;}
-                    template <typename T>
-                        struct type_to_vt {};
-                    template <typename T>
-                        T valueT() const {
-                            assert(type_to_vt<T>::value == m_type);
-                            std::stringstream ss(m_value);
-                            T v;
-                            ss >> v;
-                            return v;
-                        }
-                    bool active() const {return m_active;}
-                    void activate() {m_active = true;}
-                    void set_value(const std::string& str) {
-                        m_active = true;
-                        md_value = str;
-                    }
-                    ValueType type() const {return m_type;}
-                private:
-                    bool m_active = false;
-                    ValueType m_type = ValueType::Integer;
-                    std::string m_value = "";
+                std::string hint = "";
             };
-            */
+
             template <typename T>
                 const T& optT(const std::string& optname) const;
 
             //add_option explicitly doesnt overwrite oexisting options
-            void add_option(const std::string& optname, const Option& default_value = false);
+            void add_option(const std::string& optname, const OptVar& default_value = false, const std::string& hint = "");
+            void set_option(const std::string& optname, const OptVar& default_value = true);
+
             const std::map<std::string,Option>& opts() const {return m_opts;} 
-            const Option& opt(const std::string&) const;
+            const OptVar& opt(const std::string&) const;
             std::string opt_str(const std::string&) const;
             std::string opt_type(const std::string&) const;
             std::string dealias(const std::string& str) const;

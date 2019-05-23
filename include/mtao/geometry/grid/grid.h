@@ -122,8 +122,19 @@ namespace mtao {
                         auto&& dx() const { return m_dx; }
 
                         template <typename Derived>
+                            auto local_coord(const Eigen::MatrixBase<Derived>& v) const -> Vec {
+
+                                return (v - origin()).cwiseQuotient( dx());
+                            }
+                        template <typename Derived>
+                            auto world_coord(const Eigen::MatrixBase<Derived>& v) const -> Vec {
+
+                                return dx().asDiagonal() * v + origin();
+                            }
+
+                        template <typename Derived>
                             auto coord(const Eigen::MatrixBase<Derived>& v) const {
-                                Vec p = (v - origin()).cwiseQuotient( dx());
+                                auto p = local_coord(v);
                                 std::array<int,D> coord;
                                 std::array<T,D> quot;
                                 IVecMap(coord.data()) = p.template cast<int>();

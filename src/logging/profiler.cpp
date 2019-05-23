@@ -24,6 +24,10 @@ namespace mtao { namespace logging {
             s_durations[logger().info()][name()] = {d,1};
         }
     }
+    void profiler::clear() {
+        auto s = std::scoped_lock(s_mutex);
+        s_durations.clear();
+    }
     void profiler::log_all() {
         auto s = std::scoped_lock(s_mutex);
         for(auto&& pr: s_durations) {

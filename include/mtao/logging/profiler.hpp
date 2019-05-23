@@ -14,6 +14,7 @@ namespace mtao { namespace logging {
 
             static void log_all();
             ~profiler() override;
+            static void clear();
 
             static const auto& durations() { return s_durations; }
         private:
