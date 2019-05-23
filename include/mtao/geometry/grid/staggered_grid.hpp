@@ -22,6 +22,7 @@ namespace mtao {
                         using Base::size;
                         using Base::index;
                         using Base::unindex;
+                        using BBox = typename Base::BBox;
                         using Indexer= typename Base::Indexer;
                         using coord_type = typename Base::coord_type;
                         using Vec = typename Base::Vec;
@@ -52,6 +53,20 @@ namespace mtao {
 
                         auto bbox() const {
                             return vertex_grid().bbox();
+                        }
+                        static StaggeredGrid from_bbox(BBox bb, const coord_type& shape, bool cubes = false) {
+
+                            Vec mid =(bb.min() + bb.max()) / 2;
+                            auto dx = (bb.sizes().array() / (CIVecMap(shape.data()).template cast<T>().array())).eval();
+                            if(cubes) {
+                                dx.setConstant(dx.maxCoeff());
+                                bb.max() = (dx.array() * (CIVecMap(shape.data()).template cast<T>().array())).eval() / 2;
+                                bb.min() = -bb.max(); 
+                                bb.min() += mid;
+                                bb.max() += mid;
+                            }
+                            auto o = bb.min();
+                            return StaggeredGrid(shape,dx.matrix(),o);
                         }
                         auto&& origin() const { return vertex_grid().origin(); }
                         template <int N, int K>
