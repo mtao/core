@@ -9,7 +9,9 @@ namespace mtao::geometry {
             using Scalar = typename Derived::Scalar;
 
             mtao::Matrix<Scalar,3,3> uv;
-            if(eigen::shape_check<3,1>(N)) {
+            if(N.norm() < 1e-10) {
+                uv = mtao::Mat3d::Identity();
+            } else if(eigen::shape_check<3,1>(N)) {
                 auto u = uv.col(0);
                 auto v = uv.col(1);
                 for(int i = 0; i < 3; ++i) {
