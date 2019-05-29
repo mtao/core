@@ -346,6 +346,10 @@ namespace mtao {
 
                 };
 
+            using StaggeredGrid2f = StaggeredGrid<float,3>;
+            using StaggeredGrid3f = StaggeredGrid<float,3>;
+            using StaggeredGrid2d = StaggeredGrid<double,2>;
+            using StaggeredGrid3d = StaggeredGrid<double,3>;
         }
     }
 }
