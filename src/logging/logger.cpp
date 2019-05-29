@@ -5,7 +5,7 @@
 
 namespace mtao { namespace logging {
     std::map<std::string,Logger> active_loggers;
-    Logger* default_logger = &make_logger("default",Level::All,true);//Making this continue because multiple files might log to it over time 
+    Logger* default_logger = &make_logger("default",Level::All);//Making this continue because multiple files might log to it over time 
     //Logger* default_logger = &make_file_logger("default","default.log",Level::All,true);//Making this continue because multiple files might log to it over time 
 
     const std::string level_strings[int(Level::All)+1] = {
