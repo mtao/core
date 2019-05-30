@@ -1,7 +1,9 @@
-#include "opengl/bo.h"
+#include "mtao/opengl/opengl_loader.hpp"
+#include "mtao/opengl/bo.h"
 #include <cassert>
 #include <GLFW/glfw3.h>
-#include <iostream>
+#include "mtao/logging/logger.hpp"
+using namespace mtao::logging;
 
 namespace mtao { namespace opengl {
 
@@ -23,7 +25,7 @@ BO::BO(GLenum target, GLenum usage, GLenum type): m_target(target), m_usage(usag
     glGenBuffers(1, &m_id);
 }
 
-void BO::bind() {
+void BO::bind() const {
         glBindBuffer(m_target, m_id);
 }
 
@@ -34,6 +36,7 @@ void BO::setData(const GLvoid* data, GLsizeiptr size) {
 }
 
 GLint BO::size() const {
+    bind();
     int s;  glGetBufferParameteriv(target(), GL_BUFFER_SIZE, &s);
     s = s/sizeof_glenum(type());
     return s;
@@ -42,13 +45,17 @@ GLint BO::size() const {
 VBO::VBO(GLenum mode , GLenum usage , GLenum type ): BO(GL_ARRAY_BUFFER,usage,type), m_mode(mode) {
 }
 
-void VBO::drawArrays(GLenum mode) {
+void VBO::drawArraysStride(GLint stride, GLenum mode) {
+    drawArrays(size() / stride, mode);
+}
+
+void VBO::drawArrays(GLint count, GLenum mode) {
     if(mode == GL_INVALID_ENUM) {
         mode = m_mode;
     }
     bind();
     assert(target() == GL_ARRAY_BUFFER);
-    glDrawArrays(mode,first, size());
+    glDrawArrays(mode,first, count );
 }
 
 

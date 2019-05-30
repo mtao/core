@@ -1,4 +1,4 @@
-#include "opengl/shaders.h"
+#include "mtao/opengl/shaders.h"
 #include <sstream>
 
 
@@ -19,7 +19,7 @@ namespace mtao {namespace opengl {namespace shaders {
         ss << "out vec3 fNormal;\n";
         ss << "out vec3 fPos;\n";
         ss << "out vec4 gPos;\n";
-        ss << "out vec3 fColor;\n";
+        ss << "out vec4 fColor;\n";
         ss <<  "void main()\n"
             "{\n";
         if(dim == 2) {
@@ -34,8 +34,8 @@ namespace mtao {namespace opengl {namespace shaders {
         } else {
             ss << "    fPos = vPos;\n";
             ss << "    fNormal = vNormal;\n";
-            ss << "    fColor = vColor;\n";
         }
+        ss << "    fColor = vec4(vColor,1.0);\n";
         ss << "}\n";
         return prepareShader(ss.str().c_str(), GL_VERTEX_SHADER);
     }
@@ -52,16 +52,16 @@ namespace mtao {namespace opengl {namespace shaders {
         ss <<  "#version 330\n";
         ss << "out vec4 out_color;\n";
         if(per_vertex) {
-            ss << "in vec3 fColor;\n";
+            ss << "in vec4 fColor;\n";
         } else {
-            ss << "uniform vec3 color;\n";
+            ss << "uniform vec4 color;\n";
         }
         ss <<  "void main()\n";
             ss << "{\n";
         if(per_vertex) {
-            ss << "    out_color= vec4(fColor,1.0);\n";
+            ss << "    out_color= fColor;\n";
         } else {
-            ss << "    out_color= vec4(color,1.0);\n";
+            ss << "    out_color= color;\n";
         }
         ss << "}\n";
         return prepareShader(ss.str().c_str(), GL_FRAGMENT_SHADER);

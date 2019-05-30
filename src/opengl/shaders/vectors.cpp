@@ -1,4 +1,4 @@
-#include "opengl/shaders.h"
+#include "mtao/opengl/shaders.h"
 #include <sstream>
 
 
@@ -45,16 +45,16 @@ namespace mtao {namespace opengl {namespace shaders {
             "out float fBary;\n"
             "uniform vec3 tip_color;\n"
             "uniform vec3 base_color;\n"
-            "out vec3 fColor;\n"
+            "out vec4 fColor;\n"
             "void main()\n"
             "{\n"
             "   fMagnitude = length(gVec[0]);\n"
             "   fBary = 0;\n"
-            "   fColor = base_color;\n"
+            "   fColor = vec4(base_color,1);\n"
             "   gl_Position = MVP * vec4(gPos[0],1);\n"
             "   EmitVertex();\n"
             "   fBary = 1;\n"
-            "   fColor = fMagnitude * tip_color;\n"
+            "   fColor = vec4(fMagnitude * tip_color,1);\n"
             "   gl_Position = MVP * vec4(gPos[0] + vector_scale * gVec[0],1);\n"
             "   EmitVertex();\n"
             "   EndPrimitive();\n"

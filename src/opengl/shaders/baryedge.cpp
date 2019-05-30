@@ -1,4 +1,4 @@
-#include "opengl/shaders.h"
+#include "mtao/opengl/shaders.h"
 #include <sstream>
 
 
@@ -38,14 +38,14 @@ namespace mtao {namespace opengl {namespace shaders {
     Shader barycentric_edge_fragment_shader() {
         static const char* text =
             "#version 330\n"
-            "uniform vec3 color;\n"
+            "uniform vec4 color;\n"
             "uniform float thresh;\n"
             "in vec3 bary;\n"
             "out vec4 out_color;\n"
             "void main()\n"
             "{\n"
             "   if(min(bary.x,min(bary.y,bary.z)) < thresh){\n"
-            "       out_color= vec4(color,1.0);\n"
+            "       out_color= color;\n"
             "   } else {\n"
             "       discard;\n"
             "   }\n"

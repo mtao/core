@@ -1,4 +1,4 @@
-#include "opengl/shaders.h"
+#include "mtao/opengl/shaders.h"
 #include <sstream>
 
 
@@ -23,9 +23,8 @@ namespace mtao {namespace opengl {namespace shaders {
         "{\n"
         "   vec3 ambient = ambientMaterial.xyz;\n"
         "   vec3 eyeDir = normalize(fPos);\n"
-        "   vec4 mvpos = MV * vec4(fPos,1);\n"
-        "   mvpos = vec4(fPos,1);\n"
-        "   vec3 lightDir = normalize(lightPos - mvpos.xyz/mvpos.w);\n"
+        "   vec4 ldir = MV * vec4(lightPos - fPos,1);\n"
+        "   vec3 lightDir = normalize(ldir.xyz/ldir.w);\n"
 
         "   float lightAng = max(0.0,dot(lightDir,fNormal));\n"
         "   if(lightAng == 0) {\n"

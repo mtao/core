@@ -1,4 +1,5 @@
-#include "opengl/shader.h"
+#include "mtao/opengl/opengl_loader.hpp"
+#include "mtao/opengl/shader.h"
 #include <vector>
 #include <iostream>
 
@@ -21,21 +22,21 @@ bool Shader::compilation_check() {
         glGetShaderiv(m_id, GL_INFO_LOG_LENGTH, &logSize);
         switch(m_shader_type) {
             case GL_VERTEX_SHADER: 
-                std::cout << "Vertex"; break;
+                logging::error() << "Vertex"; break;
             case GL_FRAGMENT_SHADER: 
-                std::cout << "Fragment"; break;
+                logging::error() << "Fragment"; break;
             case GL_GEOMETRY_SHADER: 
-                std::cout << "Geometry"; break;
+                logging::error() << "Geometry"; break;
             default:
-                std::cout << "Unknown"; break;
+                logging::error() << "Unknown"; break;
 
         }
-        std::cout << " shader error:" << std::endl;
+        logging::error() << " shader error:";
 
 
         std::vector<GLchar> log(logSize);
         glGetShaderInfoLog(m_id, logSize, &logSize, log.data());
-        std::cout << log.data() << std::endl;
+        logging::error() << log.data();
         return false;
     }
     return true;
@@ -104,7 +105,7 @@ bool ShaderProgram::compilation_check() {
 
         std::vector<GLchar> log(logSize);
         glGetProgramInfoLog(m_id, logSize, &logSize, log.data());
-        std::cout << log.data() << std::endl;
+        logging::error() << log.data();
         return false;
         return false;
     }

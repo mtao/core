@@ -1,4 +1,4 @@
-#include "opengl/renderers/renderer.h"
+#include "mtao/opengl/renderers/renderer.h"
 
 namespace mtao { namespace opengl { namespace renderers {
 
@@ -6,7 +6,7 @@ namespace mtao { namespace opengl { namespace renderers {
 
         m_vertex_attributes = std::make_unique<VAO>();
     }
-    void Renderer::imgui_interface() {
+    void Renderer::imgui_interface(const std::string& name) {
 
     }
     void Renderer::set_mvp(const glm::mat4& mv, const glm::mat4&p) {
@@ -31,5 +31,6 @@ namespace mtao { namespace opengl { namespace renderers {
             }
         }
     }
+
 
 }}}

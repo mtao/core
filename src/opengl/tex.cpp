@@ -1,4 +1,4 @@
-#include "opengl/tex.h"
+#include "mtao/opengl/tex.h"
 namespace mtao { namespace opengl {
     Texture::Texture( GLint internalFormat, GLsizei w, GLsizei h, GLsizei d)
         : w(w)

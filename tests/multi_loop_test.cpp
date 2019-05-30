@@ -1,12 +1,12 @@
 #include <iostream>
 #include <iterator>
 #include <array>
-#include "grid/grid_utils.h"
+#include <mtao/geometry/grid/grid_utils.h>
 
 
 
 int main(int argc, char * argv[]) {
-    mtao::compat::array<int,3> begin,end;
+    std::array<int,3> begin,end;
     std::fill(begin.begin(),begin.end(),5);
     end[0] = 10;
     end[1] = 11;
@@ -16,8 +16,26 @@ int main(int argc, char * argv[]) {
     //        std::copy(idx.begin(),idx.end(),std::ostream_iterator<int>(std::cout," "));
     //        std::cout << std::endl;
     //        });
-    mtao::multi_loop(begin,end,[](auto&& idx) {
+    mtao::geometry::grid::utils::multi_loop(begin,end,[](auto&& idx) {
             std::copy(idx.begin(),idx.end(),std::ostream_iterator<int>(std::cout," "));
+            std::cout << std::endl;
+            });
+    mtao::geometry::grid::utils::multi_loop(std::array<int,2>{{2,3}},[](auto&& idx) {
+            std::copy(idx.begin(),idx.end(),std::ostream_iterator<int>(std::cout," "));
+            std::cout << std::endl;
+            });
+    std::cout << "Masked: " << std::endl;
+    mtao::geometry::grid::utils::masked_multi_loop<2>(std::array<int,2>{{2,3}},[](auto&& idx) {
+            std::cout << "[";
+            std::copy(idx.begin(),idx.end(),std::ostream_iterator<int>(std::cout," "));
+            std::cout << "]";
+            std::cout << std::endl;
+            });
+    std::cout << std::endl;
+    mtao::geometry::grid::utils::masked_multi_loop<1>(std::array<int,2>{{2,3}},[](auto&& idx) {
+            std::cout << "[";
+            std::copy(idx.begin(),idx.end(),std::ostream_iterator<int>(std::cout," "));
+            std::cout << "]";
             std::cout << std::endl;
             });
 }

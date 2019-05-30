@@ -30,3 +30,14 @@
 #Vim temporaries
 *~
 *.*.sw?
+
+#Backup files
+*.bak
+
+#build
+build
+build-debug
+build-release
+*/build
+*/build-debug
+*/build-release

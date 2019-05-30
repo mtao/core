@@ -1,12 +1,18 @@
-#include "opengl/renderers/mesh.h"
+#include "mtao/opengl/opengl_loader.hpp"
+#include "mtao/opengl/renderers/mesh.h"
 #include <exception>
 #include <stdexcept>
 #include <sstream>
+#include <array>
 #include <list>
-#include <glad/glad.h>
-#include "imgui.h"
+#include <imgui.h>
 #include <glm/gtc/type_ptr.hpp>
-#include "opengl/shaders.h"
+#include "mtao/opengl/shaders.h"
+#include "mtao/logging/logger.hpp"
+#include "mtao/geometry/bounding_box.hpp"
+#include "mtao/geometry/mesh/vertex_normals.hpp"
+using namespace mtao::logging;
+
 #define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
 
 namespace mtao { namespace opengl { namespace renderers {
@@ -17,159 +23,108 @@ namespace mtao { namespace opengl { namespace renderers {
     std::unique_ptr<ShaderProgram> MeshRenderer::s_phong_program[2];
     std::unique_ptr<ShaderProgram> MeshRenderer::s_baryedge_program[2];
     std::unique_ptr<ShaderProgram> MeshRenderer::s_vert_color_program[2];
+    std::unique_ptr<ShaderProgram> MeshRenderer::s_vector_field_program[2];
+
+    MeshRenderer::~MeshRenderer() {}
     MeshRenderer::MeshRenderer(int dim): m_dim(dim) {
         if(dim == 2 || dim == 3) {
             if(!shaders_enabled()) {
-                loadShaders(dim);
+                loadShaders(m_dim);
             }
             update_edge_threshold();
             update_phong_shading();
         } else {
             throw std::invalid_argument("Meshes have to be dim 2 or 3");
         }
+        m_buffers = std::make_shared<MeshRenderBuffers>();
     }
 
-    
-    auto MeshRenderer::computeNormals(const MatrixXgf& V, const MatrixXui& F) -> MatrixXgf {
+    void MeshRenderer::update_vertex_scale(const MatrixXgfCRef& V) {
+        auto minPos = V.rowwise().minCoeff();
+        auto maxPos = V.rowwise().maxCoeff();
+        auto range = maxPos - minPos;
+
+        float r = range.maxCoeff();;
+        for(int i = 0; i < range.cols(); ++i) {
+            if(range(i) > 1e-5) {
+                r = std::min(r,range(i));
+            }
+        }
+
+    }
+
+    auto MeshRenderer::computeNormals(const MatrixXgfCRef& V, const MatrixXuiCRef& F) -> MatrixXgf {
+        return mtao::geometry::mesh::vertex_normals(V,F);
+
+
+    }
+
+    void MeshRenderBuffers::setMesh(const MatrixXgfCRef& V, const MatrixXuiCRef& F) {
+        if(V.size() == 0) {
+            //warn() << "No vertices sent to setMesh, igoring";
+            return;
+        }
+        if(F.size() == 0) {
+            //warn() << "No faces sent to setMesh, igoring";
+            return;
+        }
+        assert(F.minCoeff() >= 0);
+        assert(F.maxCoeff() < V.cols());
         MatrixXgf N;
-        if(m_dim == 2) {
-            return N;
+        if(V.rows() == 3) {
+            N = mtao::geometry::mesh::vertex_normals(V,F);
         }
-        N.resizeLike(V);
-        N.setZero();
-        //Eigen::VectorXf areas(V.cols());
-        //areas.setZero();
-        for(int i = 0; i < F.cols(); ++i) {
-            auto f = F.col(i);
-            auto a = V.col(f(0));
-            auto b = V.col(f(1));
-            auto c = V.col(f(2));
-
-            Eigen::Vector3f ba = b-a;
-            Eigen::Vector3f ca = c-a;
-            Eigen::Vector3f n = ba.cross(ca);
-            //float area = n.norm();
-            for(int j = 0; j < 3; ++j) {
-                N.col(f(j)) += n;
-                //areas(f(j)) += area;
-            }
+        setMesh(V,F,N);
+    }
+    void MeshRenderBuffers::setMesh(const MatrixXgfCRef& V, const MatrixXuiCRef& F, const MatrixXgfCRef& N) {
+        assert(F.rows() > 0);
+        assert(F.cols() > 0);
+        assert(F.minCoeff() >= 0);
+        assert(F.maxCoeff() < V.cols());
+        setVertices(V);
+        setFaces(F);
+        setNormals(N);
+    }
+    void MeshRenderBuffers::setVertices(const MatrixXgfCRef& V) {
+        if(V.size() == 0) {
+            vertices = nullptr;
         }
-        //N.array().rowwise() /= areas.transpose().array();
-        N.colwise().normalize();
 
-        return N;
-
-
+        if(!vertices) {
+            vertices = std::make_unique<VBO>(GL_POINTS);
+        }
+        vertices->bind();
+        buffers()->vertices->setData(V.data(),sizeof(float) * V.size());
+    }
+    void MeshRenderBuffers::setVField(const MatrixXgfCRef& V) {
+        if(!vectors) {
+            vectors = std::make_unique<BO>();
+        }
+        vectors->bind();
+        vectors->setData(V.data(),sizeof(float) * V.size());
     }
 
-    void MeshRenderer::setMesh(const MatrixXgf& V, const MatrixXui& F, bool normalize) {
-        auto N = computeNormals(V,F);
-        setMesh(V,F,N,normalize);
-    }
-    void MeshRenderer::setMesh(const MatrixXgf& V, const MatrixXui& F, const MatrixXgf& N, bool normalize) {
-
-        auto compute_mean_edge_length = [&](const MatrixXgf& V) -> float {
-            float ret = 0;
-            for(int i = 0; i < F.cols(); ++i) {
-                for(int j = 0; j < 3; ++j) {
-                    int a = F(j,i);
-                    int b = (F(j,i)+1)%3;
-                    ret += (V.col(a) - V.col(b)).norm();
-                }
-            }
-            ret /= F.size();
-
-            return ret;
-        };
-
-        float mean_edge_length = 0;//technically we want the mean dual edge length
-
-        if(!m_vertex_buffer) {
-            m_vertex_buffer = std::make_unique<VBO>(GL_POINTS);
+    void MeshRenderBuffers::setFaces(const MatrixXuiCRef& F) {
+        if(!faces) {
+            faces = std::make_unique<IBO>(GL_TRIANGLES);
         }
-        if(!m_index_buffer) {
-            m_index_buffer = std::make_unique<IBO>(GL_TRIANGLES);
-        }
-        m_vertex_buffer->bind();
-        if(normalize) {
-            auto minPos = V.rowwise().minCoeff();
-            auto maxPos = V.rowwise().maxCoeff();
-            auto range = maxPos - minPos;
-
-            float r = range.maxCoeff();;
-            for(int i = 0; i < range.cols(); ++i) {
-                if(range(i) > 1e-5) {
-                    r = std::min(r,range(i));
-                }
-            }
-
-            MatrixXgf V2 = (V.colwise() - (minPos+maxPos)/2) / r;
-            m_vertex_buffer->setData(V2.data(),sizeof(float) * V2.size());
-            mean_edge_length = compute_mean_edge_length(V2);
-        } else {
-            m_vertex_buffer->setData(V.data(),sizeof(float) * V.size());
-            mean_edge_length = compute_mean_edge_length(V);
-        }
-        m_index_buffer->bind();
-        m_index_buffer->setData(F.data(),sizeof(int) * F.size());
-
-        if(m_dim == 3) {
-
-            if(!m_normal_buffer) {
-                m_normal_buffer = std::make_unique<BO>();
-            }
-            m_normal_buffer->bind();
-            m_normal_buffer->setData(N.data(),sizeof(float) * N.size());
-        }
-
-
-
-        auto m_vaoraii = vao().enableRAII();
-
-        std::list<ShaderProgram*> shaders({flat_program().get(), baryedge_program().get()});
-        for(auto&& p: shaders) {
-
-            auto active = p->useRAII();
-
-            m_vertex_buffer->bind();
-            p->getAttrib("vPos").setPointer(m_dim, GL_FLOAT, GL_FALSE, sizeof(float) * m_dim, (void*) 0);
-            /*
-               program->getUniform("minPos").set3f(minPos.x(),minPos.y(),minPos.z());
-               program->getUniform("range").set3f(range.x(),range.y(),range.z());
-               */
-        }
-        if(m_dim == 3) {
-            auto p = phong_program()->useRAII();
-            m_normal_buffer->bind();
-            phong_program()->getAttrib("vNormal").setPointer(3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*) 0);
-        }
-
-
-        {auto p = baryedge_program()->useRAII();
-            baryedge_program()->getUniform("mean_edge_length").set(mean_edge_length);
-        }
+        faces->bind();
+        faces->setData(F.data(),sizeof(int) * F.size());
         setEdgesFromFaces(F);
-
     }
-        void MeshRenderer::setColor(const MatrixXgf& C) {
-            if(!m_color_buffer) {
-                m_color_buffer = std::make_unique<BO>();
-            }
-            m_color_buffer->bind();
-            vert_color_program()->getAttrib("vColor").setPointer(3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*) 0);
-            m_color_buffer->setData(C.data(),sizeof(float) * C.size());
+    void MeshRenderBuffers::setEdges(const MatrixXuiCRef& E) {
+        if(E.size() == 0) {
+            edges= nullptr;
         }
-    void MeshRenderer::setEdges(const MatrixXui& E) {
 
-        if(!m_edge_index_buffer) {
-            m_edge_index_buffer = std::make_unique<IBO>(GL_LINES);
+        if(!edges) {
+            edges = std::make_unique<IBO>(GL_LINES);
         }
-        m_edge_index_buffer->bind();
-        m_edge_index_buffer->setData(E.data(),sizeof(GLuint) * E.size());
+        edges->bind();
+        edges->setData(E.data(),sizeof(GLuint) * E.size());
     }
-    void MeshRenderer::setEdgesFromFaces(const MatrixXui& F) {
-        Eigen::Matrix<GLuint,Eigen::Dynamic,Eigen::Dynamic> E;
-        E.resize(2,3*F.cols());
+    void MeshRenderBuffers::setEdgesFromFaces(const MatrixXuiCRef& F) {
+        MatrixXui  E(2,3*F.cols());
 
         E.leftCols(F.cols()) = F.topRows(2);
         E.block(0,F.cols(),1,F.cols()) = F.row(0);
@@ -179,13 +134,214 @@ namespace mtao { namespace opengl { namespace renderers {
 
     }
 
+    void MeshRenderBuffers::setColor(const MatrixXgfCRef& C) {
+        if(C.size() == 0) {
+            colors= nullptr;
+            return;
+        }
+        if(!colors) {
+            colors = std::make_unique<BO>();
+        }
+
+
+        auto a = vert_color_program()->useRAII();
+        colors->bind();
+        colors->setData(C.data(),sizeof(float) * C.size());
+        vert_color_program()->getAttrib("vColor").setPointer(3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*) 0);
+    }
+    void MeshRenderBuffers::setNormals(const MatrixXgfCRef& N) {
+        if(N.size() == 0) {
+            normals= nullptr;
+            return;
+        }
+
+        if(!normals) {
+            normals = std::make_unique<BO>();
+        }
+        normals->bind();
+        normals->setData(N.data(),sizeof(float) * N.size());
+
+    }
+    void MeshRenderer::setMesh(const MatrixXgfCRef& V, const MatrixXuiCRef& F, bool normalize) {
+        if(V.size() == 0) {
+            //warn() << "No vertices sent to setMesh, igoring";
+            return;
+        }
+        if(F.size() == 0) {
+            //warn() << "No faces sent to setMesh, igoring";
+            return;
+        }
+        assert(F.minCoeff() >= 0);
+        assert(F.maxCoeff() < V.cols());
+        MatrixXgf N;
+        if(V.rows() == 3) {
+            N = computeNormals(V,F);
+        }
+        setMesh(V,F,N,normalize);
+    }
+    void MeshRenderer::setMesh(const MatrixXgfCRef& V, const MatrixXuiCRef& F, const MatrixXgfCRef& N, bool normalize) {
+        assert(F.rows() > 0);
+        assert(F.cols() > 0);
+        assert(F.minCoeff() >= 0);
+        assert(F.maxCoeff() < V.cols());
+        setVertices(V,normalize);
+        setFaces(F);
+        setMeanEdgeLength(V,F,normalize);
+        setNormals(N);
+    }
+    void MeshRenderer::setVertices(const MatrixXgfCRef& V, bool normalize) {
+        if(!m_buffers) {
+            m_buffers = std::make_shared<MeshRenderBuffers>();
+        }
+
+        if(V.size() == 0) {
+            buffers()->vertices = nullptr;
+        }
+
+
+
+        if(!buffers()->vertices) {
+            buffers()->vertices = std::make_unique<VBO>(GL_POINTS);
+            buffers()->vertices->bind();
+        }
+        if(normalize) {
+            update_vertex_scale(V);
+            auto m = V.rowwise().minCoeff();
+            auto M = V.rowwise().maxCoeff();
+            auto c = (m + M)/2.0;
+            MatrixXgf V2 = (V.colwise() - c) / m_vertex_scale;
+            buffers()->vertices->setData(V2.data(),sizeof(float) * V2.size());
+        } else {
+            m_vertex_scale = 1;
+            buffers()->vertices->setData(V.data(),sizeof(float) * V.size());
+        }
+        std::list<ShaderProgram*> shaders({flat_program().get(), baryedge_program().get()});
+        auto m_vaoraii = vao().enableRAII();
+        for(auto&& p: shaders) {
+
+            auto active = p->useRAII();
+
+            buffers()->vertices->bind();
+            p->getAttrib("vPos").setPointer(m_dim, GL_FLOAT, GL_FALSE, sizeof(float) * m_dim, (void*) 0);
+            /*
+               program->getUniform("minPos").set3f(minPos.x(),minPos.y(),minPos.z());
+               program->getUniform("range").set3f(range.x(),range.y(),range.z());
+               */
+        }
+    }
+    void MeshRenderer::setVField(const MatrixXgfCRef& V) {
+        if(!m_buffers) {
+            m_buffers = std::make_shared<MeshRenderBuffers>();
+        }
+        if(!buffers()->vectors) {
+            buffers()->vectors = std::make_unique<BO>();
+        }
+        buffers()->vectors->bind();
+        buffers()->vectors->setData(V.data(),sizeof(float) * V.size());
+        auto vaoraii = vao().enableRAII();
+
+
+        buffers()->vectors->bind();
+        vector_field_program()->getAttrib("vVec").setPointer(m_dim, GL_FLOAT, GL_FALSE, sizeof(float) * m_dim, (void*) 0);
+    }
+
+    void MeshRenderer::setFaces(const MatrixXuiCRef& F) {
+        if(!m_buffers) {
+            m_buffers = std::make_shared<MeshRenderBuffers>();
+        }
+        if(!buffers()->faces) {
+            buffers()->faces = std::make_unique<IBO>(GL_TRIANGLES);
+        }
+        buffers()->faces->bind();
+        buffers()->faces->setData(F.data(),sizeof(int) * F.size());
+        setEdgesFromFaces(F);
+        m_face_draw_elements = true;
+    }
+    void MeshRenderer::setEdges(const MatrixXuiCRef& E) {
+        if(!m_buffers) {
+            m_buffers = std::make_shared<MeshRenderBuffers>();
+        }
+        if(E.size() == 0) {
+            buffers()->edges= nullptr;
+        }
+
+        if(!buffers()->edges) {
+            buffers()->edges = std::make_unique<IBO>(GL_LINES);
+        }
+        buffers()->edges->bind();
+        buffers()->edges->setData(E.data(),sizeof(GLuint) * E.size());
+        m_edge_draw_elements = true;
+    }
+    void MeshRenderer::setEdgesFromFaces(const MatrixXuiCRef& F) {
+        MatrixXui  E(2,3*F.cols());
+
+        E.leftCols(F.cols()) = F.topRows(2);
+        E.block(0,F.cols(),1,F.cols()) = F.row(0);
+        E.block(1,F.cols(),1,F.cols()) = F.row(2);
+        E.rightCols(F.cols()) = F.bottomRows(2);
+        setEdges(E);
+
+    }
+
+    void MeshRenderer::setColor(const MatrixXgfCRef& C) {
+        if(!m_buffers) {
+            m_buffers = std::make_shared<MeshRenderBuffers>();
+        }
+        if(C.size() == 0) {
+            buffers()->colors= nullptr;
+            return;
+        }
+        auto m_vaoraii = vao().enableRAII();
+        if(!buffers()->colors) {
+            buffers()->colors = std::make_unique<BO>();
+        }
+
+
+        auto a = vert_color_program()->useRAII();
+        buffers()->colors->bind();
+        buffers()->colors->setData(C.data(),sizeof(float) * C.size());
+        vert_color_program()->getAttrib("vColor").setPointer(3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*) 0);
+    }
+    void MeshRenderer::setNormals(const MatrixXgfCRef& N) {
+        if(!m_buffers) {
+            m_buffers = std::make_shared<MeshRenderBuffers>();
+        }
+        if(N.size() == 0) {
+            buffers()->normals= nullptr;
+            return;
+        }
+        if(m_dim == 3) {
+
+            if(!buffers()->normals) {
+                buffers()->normals = std::make_unique<BO>();
+            }
+            buffers()->normals->bind();
+            buffers()->normals->setData(N.data(),sizeof(float) * N.size());
+
+
+
+        auto m_vaoraii = vao().enableRAII();
+
+        if(m_dim == 3) {
+            auto p = phong_program()->useRAII();
+            buffers()->normals->bind();
+            phong_program()->getAttrib("vNormal").setPointer(3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*) 0);
+        }
+
+
+        }
+
+    }
+    void MeshRenderer::bindBuffers(const MeshRenderBuffers& buff) {
+    }
+
     void MeshRenderer::loadShaders(int dim) {
 
 
 
 
 
-        auto vertex_shader = shaders::simple_vertex_shader(dim);
+        auto vertex_shader = shaders::simple_vertex_shader(m_dim);
         auto flat_fragment_shader = shaders::single_color_fragment_shader();
         auto baryedge_fragment_shader = shaders::barycentric_edge_fragment_shader();
         auto baryedge_geometry_shader = shaders::barycentric_edge_geometry_shader();
@@ -196,12 +352,15 @@ namespace mtao { namespace opengl { namespace renderers {
         baryedge_program() = std::make_unique<ShaderProgram>(linkShaderProgram(vertex_shader, baryedge_fragment_shader, baryedge_geometry_shader));
         phong_program() = std::make_unique<ShaderProgram>(linkShaderProgram(vertex_shader, phong_fragment_shader));
         vert_color_program() = std::make_unique<ShaderProgram>(linkShaderProgram(vertex_shader,vertex_color_fragment_shader));
+        vector_field_program() = std::make_unique<ShaderProgram>(shaders::vector_shader_program(dim, true));
 
         shaders_enabled() = true;
     }
 
-    void MeshRenderer::imgui_interface() {
-        if(ImGui::TreeNode("Mesh Renderer")) {
+    void MeshRenderer::imgui_interface(const std::string& name) {
+        ImGui::Checkbox(name.c_str(), &m_visible);
+        if(m_visible) {
+        if(ImGui::TreeNode((name + " options").c_str())) {
 
             static const char* shading_names[] = {
                 "Disabled",
@@ -216,14 +375,42 @@ namespace mtao { namespace opengl { namespace renderers {
             static const char* edge_types[] = {
                 "Disabled",
                 "BaryEdge",
-                "Mesh"
+                "Mesh",
+                "Color"
             };
             int et = static_cast<int>(m_edge_type);
             ImGui::Combo("Edge Type", &et, edge_types,IM_ARRAYSIZE(edge_types));
-            m_edge_type = static_cast<EdgeType>(et);
-            ImGui::Checkbox("Show Vertices", & m_draw_points);
+            m_edge_type = static_cast<EdgeStyle>(et);
 
-if(m_face_style == FaceStyle::Phong && ImGui::TreeNode("Phong Shading Parameters")) {
+            static const char* vertex_names[] = {
+                "Disabled",
+                "Flat",
+                "Color",
+            };
+            int vs = static_cast<int>(m_vertex_type);
+            ImGui::Combo("Vertex Type", &vs, vertex_names,IM_ARRAYSIZE(vertex_names));
+            m_vertex_type = static_cast<VertexStyle>(vs);
+
+            ImGui::Checkbox("Show vfield: ", &m_show_vector_field);
+
+            if(m_edge_type != EdgeStyle::Disabled && m_edge_type != EdgeStyle::BaryEdge) {
+                static std::array<float,2> range = get_line_width_range();
+                {
+                    bool tmp = m_use_line_smooth;
+                    ImGui::Checkbox("Use Antialiasing: ", &tmp);
+                    if(tmp != m_use_line_smooth) {
+                        m_use_line_smooth = tmp;
+                        range = get_line_width_range();
+                    }
+                }
+                ImGui::SliderFloat("Line Width",&m_line_width, range[0],range[1]);
+            }
+            if(m_vertex_type != VertexStyle::Disabled) {
+                static std::array<float,2> range = get_point_size_range();
+                ImGui::SliderFloat("Point Size",&m_point_size,range[0],range[1]);
+            }
+
+            if(m_face_style == FaceStyle::Phong && ImGui::TreeNode("Phong Shading Parameters")) {
                 ImGui::ColorEdit3("ambient", glm::value_ptr(m_ambientMat));
                 ImGui::ColorEdit3("diffuse", glm::value_ptr(m_diffuseMat));
                 ImGui::ColorEdit3("specular", glm::value_ptr(m_specularMat));
@@ -232,103 +419,267 @@ if(m_face_style == FaceStyle::Phong && ImGui::TreeNode("Phong Shading Parameters
                 update_phong_shading();
                 ImGui::TreePop();
             }
-            if(m_face_style == FaceStyle::Flat || m_draw_points || m_edge_type != EdgeType::Disabled) {
+            if(m_face_style == FaceStyle::Flat || m_vertex_type == VertexStyle::Flat || m_edge_type != EdgeStyle::Disabled) {
                 if(ImGui::TreeNode("Flat Shading Parameters")) {
-                    if(m_draw_points) {
-                        ImGui::ColorEdit3("vertex color", glm::value_ptr(m_vertex_color));
+                    if(m_vertex_type == VertexStyle::Flat) {
+                        ImGui::ColorEdit4("vertex color", glm::value_ptr(m_vertex_color));
                     }
-                    if(m_edge_type != EdgeType::Disabled) {
-                        ImGui::ColorEdit3("edge color", glm::value_ptr(m_edge_color));
+                    if(m_edge_type != EdgeStyle::Disabled && m_edge_type != EdgeStyle::Color) {
+                        ImGui::ColorEdit4("edge color", glm::value_ptr(m_edge_color));
                     }
                     if(m_face_style ==FaceStyle::Flat) {
-                        ImGui::ColorEdit3("face color", glm::value_ptr(m_face_color));
+                        ImGui::ColorEdit4("face color", glm::value_ptr(m_face_color));
                     }
-                ImGui::TreePop();
+                    ImGui::TreePop();
                 }
             }
 
-            if(m_edge_type == EdgeType::BaryEdge) {
+            if(m_edge_type == EdgeStyle::BaryEdge) {
                 ImGui::SliderFloat("edge_threshold", &m_edge_threshold, 0.0f, 0.01f,"%.5f");
                 update_edge_threshold();
+            }
+            if(m_show_vector_field) {
+                ImGui::SliderFloat("Vector Scaling", &m_vector_scale,1e-5,1e0,"%.5f");
+                ImGui::ColorEdit4("vector tip color", glm::value_ptr(m_vector_tip_color));
+                ImGui::ColorEdit4("vector base color", glm::value_ptr(m_vector_base_color));
+                ImGui::SliderFloat("Vector Color Scaling", &m_vector_color_scale,1e-3,1e1);
+
             }
 
             ImGui::TreePop();
         }
+        }
     }
 
     void MeshRenderer::render() const {
-        auto m_vaoraii = vao().enableRAII();
+        if(m_visible && m_buffers) {
+            auto vao_a = vao().enableRAII();
+            render(*m_buffers);
+        }
+    }
+    void MeshRenderer::render_points() const {
+        glEnable(GL_POLYGON_OFFSET_POINT);
+        glPolygonOffset(3,1);
+        if(m_buffers) {
+            auto vao_a = vao().enableRAII();
+            if(m_vertex_type != VertexStyle::Disabled) {
+                render_points(*m_buffers,m_vertex_type);
+            }
+        }
+    }
+    void MeshRenderer::render_edges() const {
+        glEnable(GL_POLYGON_OFFSET_LINE);
+        glEnable(GL_POLYGON_OFFSET_FILL);
+        glPolygonOffset(1,1);
+        if(m_buffers) {
+            auto vao_a = vao().enableRAII();
+            if(m_edge_type != EdgeStyle::Disabled) {
+                render_edges(*m_buffers, m_edge_type);
+            }
+        }
+    }
+    void MeshRenderer::render_faces() const {
+        if(m_buffers) {
+            glPolygonOffset(0,0);
+            auto vao_a = vao().enableRAII();
+            if(m_face_style != FaceStyle::Disabled) {
+                render_faces(*m_buffers, m_face_style);
+            }
+        }
+    }
+    void MeshRenderer::render_vfield() const {
+        glEnable(GL_POLYGON_OFFSET_LINE);
+        glPolygonOffset(2,1);
+        if(m_buffers) {
+            auto vao_a = vao().enableRAII();
+            if(m_show_vector_field) {
+                render_vfield(*m_buffers);
+            }
+        }
+    }
+    void MeshRenderer::render(const MeshRenderBuffers& buffs) const {
 
-        if(!m_vertex_buffer) {
+        if(!buffs.vertices) {
             return;
         }
-        if(m_draw_points) {
+        if(m_face_style != FaceStyle::Disabled) {
+            render_faces(buffs, m_face_style);
+        }
+        if(m_edge_type != EdgeStyle::Disabled) {
+            render_edges(buffs, m_edge_type);
+        }
+        if(m_vertex_type != VertexStyle::Disabled) {
+            render_points(buffs,m_vertex_type);
+        }
+        if(m_show_vector_field) {
+            render_vfield(buffs);
+        }
+    }
+        void MeshRenderer::render_vfield(const MeshRenderBuffers& buffs) const {
+            auto vao_a = vao().enableRAII();
+
+            if(buffs.vectors) {
+                glLineWidth(line_width());
+                if(m_use_line_smooth) {
+                    glEnable(GL_LINE_SMOOTH);
+                } else {
+                    glDisable(GL_LINE_SMOOTH);
+                }
+                buffers()->vectors->bind();
+                vector_field_program()->getAttrib("vVec").setPointer(m_dim, GL_FLOAT, GL_FALSE, sizeof(float) * m_dim, (void*) 0);
+                auto active = vector_field_program()->useRAII();
+                vector_field_program()->getUniform("tip_color").setVector(m_vector_tip_color);
+                vector_field_program()->getUniform("base_color").setVector(m_vector_base_color);
+                vector_field_program()->getUniform("vector_scale").set(m_vector_scale);
+                auto vpos_active = vector_field_program()->getAttrib("vPos").enableRAII();
+                auto vvel_active = vector_field_program()->getAttrib("vVec").enableRAII();
+                buffs.vertices->drawArraysStride(m_dim);
+
+            } else {
+                //mtao::logging::warn() << "vertex velocities not set, can't render vfield" ;
+            }
+        }
+
+    void MeshRenderer::render_points(const MeshRenderBuffers& buffs, VertexStyle style) const {
+        glPointSize(point_size());
+        if(!buffs.vertices) {
+            //mtao::logging::warn() << "vertex positions not set, can't render points" ;
+            return;
+        }
+        if(style == VertexStyle::Flat) {
             auto active = flat_program()->useRAII();
             flat_program()->getUniform("color").setVector(m_vertex_color);
 
-            m_vertex_buffer->bind();
             auto vpos_active = flat_program()->getAttrib("vPos").enableRAII();
-            m_vertex_buffer->bind();
-            m_vertex_buffer->drawArrays();
+            buffs.vertices->drawArraysStride(m_dim);
+        } else if(style == VertexStyle::Color) {
+            if(!buffs.colors) {
+                //mtao::logging::warn() << "vertex colors not set, can't render vertices" ;
+                return;
+            }
+            buffs.colors->bind();
+            vert_color_program()->getAttrib("vColor").setPointer(3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*) 0);
+            auto active = vert_color_program()->useRAII();
 
+            auto vcol_active = phong_program()->getAttrib("vColor").enableRAII();
+
+            auto vpos_active = vert_color_program()->getAttrib("vPos").enableRAII();
+            buffs.vertices->drawArraysStride(m_dim);
         }
-        if(m_edge_type == EdgeType::BaryEdge && m_index_buffer) {
+
+
+    }
+    void MeshRenderer::drawEdges(const MeshRenderBuffers& buffs) const {
+        auto s = glEnable_scoped(GL_POLYGON_OFFSET_LINE);
+        if(m_edge_draw_elements) {
+            if(!buffs.edges) {
+                //mtao::logging::warn() << "Face mesh not set, can't render edges with barycentric";
+                return;
+            }
+            buffs.edges->drawElements();
+        } else {
+            buffs.vertices->drawArraysStride(m_dim, GL_LINES);
+        }
+    }
+    void MeshRenderer::drawFaces(const MeshRenderBuffers& buffs) const {
+        if(m_face_draw_elements) {
+            if(!buffs.faces) {
+                //mtao::logging::warn() << "Face mesh not set, can't render faces" ;
+                return;
+            }
+            buffs.faces->drawElements();
+        } else {
+            buffs.vertices->drawArraysStride(m_dim, GL_TRIANGLES);
+        }
+    }
+    void MeshRenderer::render_edges(const MeshRenderBuffers& buffs, EdgeStyle style) const {
+        glLineWidth(line_width());
+        if(m_use_line_smooth) {
+            glEnable(GL_LINE_SMOOTH);
+        } else {
+            glDisable(GL_LINE_SMOOTH);
+        }
+        if(!buffs.vertices) {
+            return;
+        }
+
+        if(style == EdgeStyle::BaryEdge) {
             auto active = baryedge_program()->useRAII();
 
             baryedge_program()->getUniform("color").setVector(m_edge_color);
             auto vpos_active = baryedge_program()->getAttrib("vPos").enableRAII();
-            m_vertex_buffer->bind();
-            m_index_buffer->drawElements();
+            drawFaces(buffs);
 
-        } else if(m_edge_type == EdgeType::Mesh  && m_edge_index_buffer) {
+        } else if(style == EdgeStyle::Mesh) {
             auto active = flat_program()->useRAII();
             flat_program()->getUniform("color").setVector(m_edge_color);
 
             auto vpos_active = flat_program()->getAttrib("vPos").enableRAII();
-            m_vertex_buffer->bind();
-            m_edge_index_buffer->drawElements();
-        }
-        if(m_index_buffer) {
-            if(m_face_style == FaceStyle::Phong) {
-                auto active = phong_program()->useRAII();
-                phong_program()->getUniform("color").setVector(m_face_color);
-
-                m_vertex_buffer->bind();
-                auto vpos_active = phong_program()->getAttrib("vPos").enableRAII();
-
-                if(m_normal_buffer) {
-                    m_normal_buffer->bind();
-                    auto vnor_active = phong_program()->getAttrib("vNormal").enableRAII();
-
-                    m_index_buffer->drawElements();
-                } else {
-
-                    m_index_buffer->drawElements();
-                }
-
-
-            } else if(m_face_style == FaceStyle::Flat){
-                auto active = flat_program()->useRAII();
-                flat_program()->getUniform("color").setVector(m_face_color);
-
-                auto vpos_active = flat_program()->getAttrib("vPos").enableRAII();
-                m_vertex_buffer->bind();
-                m_index_buffer->drawElements();
-            } else if(m_face_style == FaceStyle::Color && m_color_buffer) {
-                auto active = vert_color_program()->useRAII();
-
-                auto vcol_active = phong_program()->getAttrib("vColor").enableRAII();
-                m_color_buffer->bind();
-
-                auto vpos_active = vert_color_program()->getAttrib("vPos").enableRAII();
-                m_vertex_buffer->bind();
-                m_index_buffer->drawElements();
+            drawEdges(buffs);
+        } else if(style == EdgeStyle::Color) {
+            if(!buffs.colors) {
+                //mtao::logging::warn() << "vertex colors not set, can't render edges" ;
+                return;
             }
+            buffs.colors->bind();
+            vert_color_program()->getAttrib("vColor").setPointer(3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*) 0);
+            auto active = vert_color_program()->useRAII();
+
+            auto vcol_active = phong_program()->getAttrib("vColor").enableRAII();
+
+            auto vpos_active = vert_color_program()->getAttrib("vPos").enableRAII();
+            drawEdges(buffs);
         }
     }
+    void MeshRenderer::render_faces(const MeshRenderBuffers& buffs, FaceStyle style) const {
+        if(!buffs.vertices) {
+            return;
+        }
+
+        if(style == FaceStyle::Phong) {
+            auto active = phong_program()->useRAII();
+            phong_program()->getUniform("color").setVector(m_face_color);
+
+            auto vpos_active = phong_program()->getAttrib("vPos").enableRAII();
+
+            if(buffs.normals) {
+                normals->bind();
+                MeshRenderer::phong_program()->getAttrib("vNormal").setPointer(3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*) 0);
+                auto vnor_active = phong_program()->getAttrib("vNormal").enableRAII();
+
+                drawFaces(buffs);
+            } else {
+
+                drawFaces(buffs);
+            }
+
+
+        } else if(style == FaceStyle::Flat){
+            auto active = flat_program()->useRAII();
+            flat_program()->getUniform("color").setVector(m_face_color);
+
+            auto vpos_active = flat_program()->getAttrib("vPos").enableRAII();
+            drawFaces(buffs);
+        } else if(style == FaceStyle::Color) {
+            if(!buffs.colors) {
+                //mtao::logging::warn() << "vertex colors not set, can't render faces" ;
+                return;
+            }
+            auto active = vert_color_program()->useRAII();
+
+            auto vcol_active = phong_program()->getAttrib("vColor").enableRAII();
+
+            auto vpos_active = vert_color_program()->getAttrib("vPos").enableRAII();
+            drawFaces(buffs);
+        }
+    }
+
+
+
+
     void MeshRenderer::update_edge_threshold() {
-            auto active = baryedge_program()->useRAII();
-            baryedge_program()->getUniform("thresh").set(m_edge_threshold);
+        auto active = baryedge_program()->useRAII();
+        baryedge_program()->getUniform("thresh").set(m_edge_threshold);
     }
     void MeshRenderer::update_phong_shading() {
         auto a = phong_program()->useRAII();
@@ -341,8 +692,26 @@ if(m_face_style == FaceStyle::Phong && ImGui::TreeNode("Phong Shading Parameters
     }
 
     std::list<ShaderProgram*> MeshRenderer::mvp_programs() const {
-        std::list<ShaderProgram*> ret({flat_program().get(), baryedge_program().get(), phong_program().get(), vert_color_program().get()});
+        std::list<ShaderProgram*> ret({flat_program().get(), baryedge_program().get(), phong_program().get(), vert_color_program().get(), vector_field_program().get()});
         ret.splice(ret.end(),Renderer::mvp_programs());
+        return ret;
+    }
+    void MeshRenderer::unset_all() {
+        set_face_style(FaceStyle::Disabled);
+        set_edge_style(EdgeStyle::Disabled);
+        set_vertex_style(VertexStyle::Disabled);
+        show_vector_field(false);
+    }
+
+    std::array<float,2> MeshRenderer::get_line_width_range() const {
+        std::array<float,2> ret;
+        GLenum pname = m_use_line_smooth?GL_SMOOTH_LINE_WIDTH_RANGE:GL_ALIASED_LINE_WIDTH_RANGE;
+        glGetFloatv(pname,&ret[0]);
+        return ret;
+    }
+    std::array<float,2> MeshRenderer::get_point_size_range() const {
+        std::array<float,2> ret;
+        glGetFloatv(GL_POINT_SIZE_RANGE,&ret[0]);
         return ret;
     }
 }}}

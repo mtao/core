@@ -1,4 +1,5 @@
-#include "opengl/vao.h"
+#include "mtao/opengl/opengl_loader.hpp"
+#include "mtao/opengl/vao.h"
 #include <glm/gtc/type_ptr.hpp> // glm::value_ptr
 
 
