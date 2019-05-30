@@ -14,6 +14,8 @@
 #include <memory>
 namespace mtao { namespace opengl { namespace renderers {
 
+        using MatrixXgfCRef = Eigen::Ref<const MatrixXgf>;
+        using MatrixXuiCRef = Eigen::Ref<const MatrixXui>;
 
     struct MeshRenderBuffers {
         std::unique_ptr<IBO> faces;
@@ -22,6 +24,16 @@ namespace mtao { namespace opengl { namespace renderers {
         std::unique_ptr<BO> vectors;
         std::unique_ptr<BO> normals;
         std::unique_ptr<BO> colors;
+
+        void setMesh(const MatrixXgfCRef& V, const MatrixXuiCRef& F);
+        void setMesh(const MatrixXgfCRef& V, const MatrixXuiCRef& F, const MatrixXgfCRef& N);
+        void setVertices(const MatrixXgfCRef& V);
+        void setVField(const MatrixXgfCRef& V);
+        void setFaces(const MatrixXuiCRef& F);
+        void setEdges(const MatrixXuiCRef& E);
+        void setEdgesFromFaces(const MatrixXuiCRef& F);
+        void setColor(const MatrixXgfCRef& C);
+        void setNormals(const MatrixXgfCRef& N);
     };
 
 class MeshRenderer: public Renderer {
@@ -69,6 +81,8 @@ class MeshRenderer: public Renderer {
         void setNormals(const MatrixXgfCRef& N);
         void setEdgesFromFaces(const MatrixXuiCRef& F);
         void setMeanEdgeLength(const MatrixXgfCRef& V, const MatrixXuiCRef& F, bool normalize=false);
+
+        void bindBuffers(const MeshRenderBuffers& buff);
 
         //Area weighted normal
         MatrixXgf computeNormals(const MatrixXgfCRef& V, const MatrixXuiCRef& F);

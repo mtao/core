@@ -2,6 +2,27 @@
 #include "geometry.h"
 #include <utility>
 using namespace mtao::geometry::mesh::triangle;
+
+
+
+
+mtao::geometry::mesh::triangle::Mesh make_freehand(const std::string& filename) {
+    Freehand F(filename);
+
+
+    return combine({F.boundary_geometry()});
+    //return combine({F});
+}
+mtao::geometry::mesh::triangle::Mesh make_freehand(const mtao::ColVecs2d& V, const mtao::ColVecs2i& E, const mtao::ColVecs2d& H) {
+
+
+    Freehand F(V,E,H);
+    return combine({F.boundary_geometry()});
+    //return combine({F});
+}
+
+
+
 Mesh make_box(int square_side, int square_aspect) {
     int ax = square_aspect * square_side;
     int ay = square_side;

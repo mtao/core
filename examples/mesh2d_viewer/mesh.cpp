@@ -101,6 +101,7 @@ Mesh::Mesh(const std::string& filename) {
 
     for(int i = 0; i < F.cols(); ++i) {
         F.col(i) = Eigen::Map<Eigen::Array<GLuint,3,1>>(&tris[i].front()) - 1; //OBJ uses 1 indexing!
+        F.col(i) = Eigen::Map<Eigen::Array<GLuint,3,1>>(&tris[i].front()) ; //OBJ uses 1 indexing!
     }
 
 

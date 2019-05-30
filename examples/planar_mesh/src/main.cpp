@@ -302,6 +302,8 @@ void render(int width, int height) {
 void triangulate() {
 
     debug() << "Triangulating!";
+
+    std::cout << std::string(tri_opts) << std::endl;
     triangulated = triangle_wrapper(original, tri_opts);
     debug() << bool(triangulated);
     auto&& m = *triangulated;
@@ -338,6 +340,7 @@ void set_original(int idx) {
         case 1: original = make_circle_circle(circle_side); break;
         case 2: original = make_box(square_side,square_aspect); break;
         case 3: original = make_circle(circle_side); break;
+        case 4: original = make_freehand("input.obj"); break;
     }
     prepare_mesh();
 }
@@ -349,6 +352,7 @@ void set_keys() {
     h.add([&](){set_original(1);},"Use box circle", GLFW_KEY_2);
     h.add([&](){set_original(2);},"Use box", GLFW_KEY_3);
     h.add([&](){set_original(3);},"Use circle", GLFW_KEY_4);
+    h.add([&](){set_original(4);},"Use freehand", GLFW_KEY_5);
     h.add([&]() {
             triangulate();
             triangulated_active = true;

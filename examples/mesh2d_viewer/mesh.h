@@ -1,8 +1,10 @@
 #ifndef MESH_H
 #define MESH_H
 #include <Eigen/Dense>
-#include <glad/glad.h>
 
+
+using GLfloat = float;
+using GLuint = unsigned int;
 
 class Mesh {
     public:

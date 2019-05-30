@@ -1,6 +1,8 @@
 #include "geometry.h"
 #include <mtao/geometry/mesh/sphere.hpp>
 #include <mtao/logging/timer.hpp>
+#include <fstream>
+#include <iterator>
 using namespace mtao::logging;
 using namespace mtao::geometry::mesh::triangle;
 Shape::~Shape() {}
@@ -124,3 +126,101 @@ Mesh Square::boundary_geometry() {
     return m;
 }
 
+template <typename T>
+struct EdgeMeshReader {
+
+    using Vec = std::array<T,2>;
+    using Edge = std::array<int,2>;
+    using TokIt = std::vector<std::string>::const_iterator;
+
+
+
+    static Vec process_vertex(TokIt begin, const TokIt& end) {
+        Vec v = {{0,0}};
+        std::transform(begin,end,v.begin(),[](const std::string& s) {
+                return std::stof(s);});
+        return v;
+    }
+
+
+        static Edge process_edge(TokIt begin, const TokIt& end) {
+            Edge v = {{0,0}};
+            std::transform(begin,end,v.begin(),[](const std::string& s) {
+                    return std::stof(s);});
+            return v;
+        }
+
+
+    static std::tuple<mtao::ColVectors<T,2>,mtao::ColVectors<int,2>,mtao::ColVectors<T,2>> read_obj(const std::string& filename) {
+        std::vector<Vec> vecs;
+        std::vector<Vec> holes;
+        std::vector<Edge> edges;
+
+        std::ifstream ifs(filename);
+
+        for(std::string line; std::getline(ifs,line);) {
+            std::istringstream iss(line);
+            std::vector<std::string> tokens;
+            std::copy(std::istream_iterator<std::string>(iss)
+                    , std::istream_iterator<std::string>()
+                    , std::back_insert_iterator<std::vector<std::string> >(tokens));
+
+
+            if(tokens.empty()) {
+                continue;
+            } else {
+                auto&& front = tokens.front();
+                if(front[0] == 'v') {
+                    if(front.size() == 1) {//cover for texture coordinates
+                        vecs.emplace_back(process_vertex(tokens.begin()+1,tokens.end()));
+                    }
+                }
+                if(front[0] == 'h') {
+                    if(front.size() == 1) {//cover for texture coordinates
+                        holes.emplace_back(process_vertex(tokens.begin()+1,tokens.end()));
+                    }
+                }
+                if(front[0] == 'e') {
+                    edges.emplace_back(process_edge(tokens.begin()+1,tokens.end()));
+                }
+            }
+        }
+
+        mtao::ColVectors<T,2> V(2,vecs.size());
+        mtao::ColVectors<T,2> H(2,holes.size());
+        mtao::ColVectors<int,2> F(2,edges.size());
+
+        using Vec2 = Eigen::Matrix<T,2,1>;
+
+        for(int i = 0; i < V.cols(); ++i) {
+            V.col(i) = Eigen::Map<Vec2>(&vecs[i].front());
+        }
+        for(int i = 0; i < H.cols(); ++i) {
+            H.col(i) = Eigen::Map<Vec2>(&holes[i].front());
+        }
+
+        for(int i = 0; i < F.cols(); ++i) {
+            F.col(i) = Eigen::Map<Eigen::Array<int,2,1>>(&edges[i].front()) - 1; //OBJ uses 1 indexing!
+        }
+        return {V,F,H};
+    }
+};
+
+std::tuple<mtao::ColVectors<double,2>,mtao::ColVectors<int,2>,mtao::ColVectors<double,2>> read_objD(const std::string& filename) {
+    return EdgeMeshReader<double>::read_obj(filename);
+}
+Freehand::Freehand(const std::string& filename) {
+    std::cout << "Reading file: " << filename << std::endl;
+    std::tie(V,E,H) = read_objD(filename);
+
+}
+Freehand::Freehand(const mtao::ColVecs2d& V, const mtao::ColVecs2i& E, const mtao::ColVecs2d& H): V(V),E(E),H(H) {}
+Mesh Freehand::boundary_geometry() {
+    Mesh m(V,E);
+    m.H = H;
+    m.VA.setConstant(1);
+    m.EA.setConstant(1);
+    apply_vert_markers(m.VA);
+    apply_edge_markers(m.EA);
+    return m;
+}

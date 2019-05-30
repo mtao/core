@@ -85,3 +85,20 @@ class Sphere: public Shape {
         REAL radius = 1;
         int vertcount = 10;
 };
+class Freehand: public Shape {
+        //vert marker: interior: 0, boundary: 1
+        //edge marker: interior: 0, boundary: 1
+    public:
+        Mesh boundary_geometry() override;
+        Freehand() = default;
+        Freehand(const mtao::ColVecs2d& V, const mtao::ColVecs2i& E, const mtao::ColVecs2d& H = {});
+        Freehand(const std::string& filename);
+        Freehand(const Freehand&) = default;
+        Freehand(Freehand&&) = default;
+        Freehand& operator=(const Freehand&) = default;
+        Freehand& operator=(Freehand&&) = default;
+    private:
+        mtao::ColVecs2d V;
+        mtao::ColVecs2i E;
+        mtao::ColVecs2d H;
+};

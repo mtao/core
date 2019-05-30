@@ -115,7 +115,6 @@ int main(int argc, char * argv[]) {
         std::cout << "Need an obj input!" << std::endl;
         return 1;
     }
-    set_opengl_version_hint();
     window = std::make_unique<Window>();
     window->set_gui_func(gui_func);
     window->set_render_func(render);
