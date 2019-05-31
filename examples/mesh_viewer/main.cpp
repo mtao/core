@@ -11,11 +11,24 @@
 #include "mtao/geometry/mesh/sphere.hpp"
 #include "mtao/geometry/mesh/read_obj.hpp"
 #include "mtao/geometry/bounding_box.hpp"
+#include "mtao/geometry/mesh/vertex_normals.hpp"
 #include "mtao/opengl/camera.hpp"
 #include <mtao/types.h>
+#include <Magnum/MeshTools/CompressIndices.h>
+#include <Corrade/Containers/Array.h>
+#include <Corrade/Containers/ArrayView.h>
+
+#include <Magnum/GL/Mesh.h>
+#include <Magnum/Shaders/VertexColor.h>
+#include <Magnum/Shaders/Phong.h>
+#include <Corrade/Utility/Arguments.h>
 
 #include <glm/gtc/matrix_transform.hpp> 
+bool animate = false;
+bool save_frame = false;
+ImVec4 clear_color = ImColor(114, 144, 154);
 
+/*
 using namespace mtao::opengl;
 Camera3D cam;
 
@@ -24,12 +37,9 @@ using ColVectors3f = mtao::ColVectors<GLfloat,3>;
 using ColVectors3i = mtao::ColVectors<GLuint,3>;
 
 
-bool animate = false;
-bool save_frame = false;
 std::unique_ptr<Window> window;
 std::unique_ptr<renderers::MeshRenderer> renderer;
 std::unique_ptr<renderers::BBoxRenderer3> bbox_renderer;
-ImVec4 clear_color = ImColor(114, 144, 154);
 
 void prepare_mesh(const ColVectors3f& V, const ColVectors3i&F) {
     mtao::logging::debug() << "preparing mesh. f range: " << F.minCoeff() << " << " << F.maxCoeff();
@@ -58,6 +68,7 @@ void set_mvp(int w, int h) {
     cam.update();
 }
 
+*/
 void gui_func() {
     {
 
@@ -66,15 +77,17 @@ void gui_func() {
         ImGui::Checkbox("Animate",&animate);
         ImGui::Checkbox("Store",&save_frame);
 
-        renderer->imgui_interface();
+        //renderer->imgui_interface();
     }
     if(ImGui::Button("Reset  Camera?")) {
-        cam.reset();
+        //cam.reset();
     }
 
 }
 
 void render(int width, int height) {
+    
+    /*
     // Rendering
     glViewport(0, 0, width, height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -97,13 +110,95 @@ void render(int width, int height) {
         window->save_frame("frame.png");
         save_frame = false;
     }
+    */
 
 
 
 }
 
+using namespace Magnum;
+using namespace Math::Literals;
 
 
+class ColoredDrawable: public SceneGraph::Drawable3D {
+    public:
+        using Object3D = mtao::opengl::Window3::Object3D;
+          explicit ColoredDrawable(Object3D& object, Shaders::Phong& shader, GL::Mesh& mesh, const Color4& color, SceneGraph::DrawableGroup3D& group): SceneGraph::Drawable3D{object, &group}, _shader(shader), _mesh(mesh), _color{color} {}
+
+    private:
+        void draw(const Matrix4& transformationMatrix, SceneGraph::Camera3D& camera) override;
+
+        Shaders::Phong& _shader;
+        GL::Mesh& _mesh;
+        Color4 _color;
+};
+
+void ColoredDrawable::draw(const Matrix4& transformationMatrix, SceneGraph::Camera3D& camera) {
+    _shader
+        .setDiffuseColor(_color)
+        .setLightPosition(camera.cameraMatrix().transformPoint({-3.0f, 10.0f, 10.0f}))
+        .setTransformationMatrix(transformationMatrix)
+        .setNormalMatrix(transformationMatrix.rotationScaling())
+        .setProjectionMatrix(camera.projectionMatrix());
+
+    _mesh.draw(_shader);
+}
+
+class MeshViewer: public mtao::opengl::Window3 {
+    public:
+
+    MeshViewer(const Arguments& args): Window3(args) {
+        Utility::Arguments myargs;
+        myargs.addArgument("filename").parse(args.argc,args.argv);
+        std::string filename = myargs.value("filename");
+        auto [V,F] = mtao::geometry::mesh::read_objF(filename);
+        auto bb = mtao::geometry::bounding_box(V);
+        mtao::Vec3f mean = (bb.min() + bb.max())/2;
+        V.colwise() -= mean;
+
+        mtao::ColVectors<float,6> VN(6,V.cols());
+        VN.topRows<3>() = V;
+        VN.bottomRows<3>() = mtao::geometry::mesh::vertex_normals(V,F);
+        vbuffer.setData(Containers::ArrayView<const float>{VN.data(),VN.size()});
+        Containers::Array<char> indexData;
+        MeshIndexType indexType;
+        UnsignedInt indexStart, indexEnd;
+        std::vector<unsigned int> inds(F.data(),F.data()+F.size());
+
+        std::tie(indexData, indexType, indexStart, indexEnd) =
+            MeshTools::compressIndices(inds);
+        ibuffer.setData(indexData);
+
+        _coloredShader
+            .setAmbientColor(0x111111_rgbf)
+            .setSpecularColor(0xffffff_rgbf)
+            .setShininess(80.0f);
+
+        mesh.setPrimitive(GL::MeshPrimitive::Triangles)
+            .setCount(inds.size())
+            .addVertexBuffer(vbuffer, 0,
+                Shaders::Phong::Position{}, Shaders::Phong::Normal{})
+            .setIndexBuffer(ibuffer,0,indexType,indexStart,indexEnd);
+
+
+        new ColoredDrawable{manipulator(), _coloredShader, mesh, 0xffffff_rgbf, drawables()};
+
+    }
+    void gui() override {
+        gui_func();
+    }
+    void draw() override {
+        Window3::draw();
+    }
+    private:
+    GL::Buffer vbuffer, ibuffer;
+    GL::Mesh mesh;
+    Shaders::Phong _coloredShader;
+
+};
+
+
+/*
 int main(int argc, char * argv[]) {
 
     set_opengl_version_hints();
@@ -124,14 +219,18 @@ int main(int argc, char * argv[]) {
     prepare_mesh(V,F.cast<GLuint>());
 
     animate = true;
+    */
     /*
     window->record([&](int frame) -> bool {
             return frame < 20;
             }, "frame");
             */
+/*
     window->run();
 
     exit(EXIT_SUCCESS);
 }
+*/
 
 
+MAGNUM_APPLICATION_MAIN(MeshViewer)

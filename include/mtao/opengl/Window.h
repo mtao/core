@@ -1,75 +1,77 @@
 #ifndef WINDOW_H
 #define WINDOW_H
-#include <GLFW/glfw3.h>
+#include <Magnum/Platform/GlfwApplication.h>
+#include <Magnum/ImGuiIntegration/Context.hpp>
 #include <functional>
-#include "imgui_impl.h"
 #include "mtao/hotkey_manager.hpp"
 #include <array>
 
-namespace mtao { namespace opengl {
+#include <Magnum/Mesh.h>
+#include <Magnum/SceneGraph/Camera.h>
+#include <Magnum/SceneGraph/MatrixTransformation3D.h>
+#include <Magnum/SceneGraph/Scene.h>
+#include <Magnum/SceneGraph/Drawable.h>
 
-class Window {
+namespace mtao::opengl {
+
+class Window: public Magnum::Platform::Application {
     public:
-        Window(const std::string& name = "Name", int width = 640, int height = 480);
-        ~Window();
 
+        explicit Window(const Arguments& arguments);
 
-        void draw(bool show_gui = true);
-        void run();
-        //int key, int scancode, int action, int mods
-        void setKeyCallback(GLFWkeyfun f);
-        void setMouseButtonCallback(GLFWkeyfun f);
-        void setScrollCallback(GLFWscrollfun f);
-        void setErrorCallback(GLFWerrorfun f);
-        void makeCurrent();
-        std::array<int,2> getSize() const;
-        void setSize(int w, int h);
-        void resize(int w, int h) { setSize(w,h); }
+        void drawEvent() override;
 
+        virtual void draw() = 0;
+        virtual void gui() = 0;
 
-        void save_frame();
-        void save_frame(const std::string& filename);
-        void record(const std::function<bool(int)>& f, const std::string& prefix, bool show_gui = false);
+        virtual void viewportEvent(ViewportEvent& event) override;
 
-        void set_render_func(const std::function<void(int,int)>& f) {m_render_func = f;}
-        void set_gui_func(const std::function<void()>& f) {m_gui_func = f;}
-        GLFWwindow* glfwWindow() {return window; }
+        virtual void keyPressEvent(KeyEvent& event) override;
+        virtual void keyReleaseEvent(KeyEvent& event) override;
 
-        operator bool() const { return window; }
-        ImGuiImpl& gui() { return m_gui; }
-        const ImGuiImpl& gui() const { return m_gui; }
-        static void keyCallback(GLFWwindow*,int key, int scancode, int action, int mods);
-        HotkeyManager& hotkeys();
-        const HotkeyManager& hotkeys() const;
-
-        void start_recording();
-        void stop_recording();
-        bool is_recording() const { return m_is_recording; }
-        void set_recording_prefix(const std::string& str);
-        void reset_frame_number() { m_frame_number = 0; }
-
-    private:
-        std::string get_frame_filename(int frame) const;
+        virtual void mousePressEvent(MouseEvent& event) override;
+        virtual void mouseReleaseEvent(MouseEvent& event) override;
+        virtual void mouseMoveEvent(MouseMoveEvent& event) override;
+        virtual void mouseScrollEvent(MouseScrollEvent& event) override;
+        virtual void textInputEvent(TextInputEvent& event) override;
 
 
     private:
-        GLFWwindow* window = nullptr;
-        std::function<void()> m_gui_func;
-        std::function<void(int,int)> m_render_func;
-        ImGuiImpl m_gui;
+        Magnum::ImGuiIntegration::Context _imgui{Magnum::NoCreate};
 
-        bool m_is_recording = false;
-        std::string m_recording_prefix = "frame";
-        int m_frame_number = 0;
-
-
-
-        static std::map<GLFWwindow*,HotkeyManager> s_hotkeys;
-
-        static size_t s_window_count;
 };
-void set_opengl_version_hints(int major=4, int minor=5, int profile=GLFW_OPENGL_CORE_PROFILE);
 
-}}
+class Window3: public Window {
+    public:
+        explicit Window3(const Arguments& arguments);
+        virtual void draw() override;
+        virtual void gui() = 0;
+        
+        using MatTransform3D = Magnum::SceneGraph::MatrixTransformation3D;
+        using Object3D = Magnum::SceneGraph::Object<MatTransform3D>;
+        using Scene3D = Magnum::SceneGraph::Scene<MatTransform3D>;
+        virtual void viewportEvent(ViewportEvent& event) override;
+        virtual void mousePressEvent(MouseEvent& event) override;
+        virtual void mouseReleaseEvent(MouseEvent& event) override;
+        virtual void mouseMoveEvent(MouseMoveEvent& event) override;
+        virtual void mouseScrollEvent(MouseScrollEvent& event) override;
+        Magnum::Vector3 positionOnSphere(const Magnum::Vector2i& position) const;
+
+
+        Object3D& manipulator() { return _manipulator; }
+        Object3D& scene() { return _scene; }
+        Magnum::SceneGraph::Camera3D& camera() { return _camera; }
+        Magnum::SceneGraph::DrawableGroup3D& drawables() { return _drawables; }
+
+    private:
+        Scene3D _scene;
+        Object3D _manipulator, _cameraObject;
+        Magnum::SceneGraph::Camera3D _camera;
+        Magnum::SceneGraph::DrawableGroup3D _drawables;
+        Magnum::Vector3 _previousPosition;
+
+
+};
+}
 
 #endif//WINDOW_H

@@ -1,4 +1,3 @@
-#include "mtao/opengl/opengl_loader.hpp"
 #include "mtao/opengl/Window.h"
 #include <iostream>
 #include <sstream>
@@ -10,92 +9,285 @@
 #endif
 #include <iomanip>
 #include <mtao/logging/logger.hpp>
-#include "examples/imgui_impl_glfw.h"
-#include "examples/imgui_impl_opengl3.h"
+#include <Magnum/GL/DefaultFramebuffer.h>
+#include <Magnum/GL/Renderer.h>
+#include <Magnum/Math/Color.h>
 
-#if !defined(USE_IMGUI_IMPL)
-static void glfw_error_callback(int error, const char* description)
-{
-    fprintf(stderr, "Glfw Error %d: %s\n", error, description);
-}
-#endif
 
-namespace mtao {namespace opengl {
-size_t Window::s_window_count = 0;
-std::map<GLFWwindow*,HotkeyManager> Window::s_hotkeys;
+using namespace Magnum;
+using namespace Math::Literals;
 
-static void error_callback(int error, const char* description)
-{
-    std::stringstream ss;
-    ss << "Error: " << description << std::endl;
-    throw std::runtime_error(ss.str());
-}
+namespace mtao::opengl {
+    Window::Window(const Arguments& arguments): 
+        GlfwApplication{arguments, Configuration{}.setTitle("Window").setWindowFlags(Configuration::WindowFlag::Resizable)},
+        _imgui{Vector2(windowSize())/dpiScaling(), windowSize(), framebufferSize()}
+    {
+        GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
+        GL::Renderer::enable(GL::Renderer::Feature::FaceCulling);
+        setSwapInterval(1);
+        //setMinimalLoopPeriod(16);
+    }
+    Window3::Window3(const Arguments& args): Window(args), _cameraObject(&_scene), _camera(_cameraObject) {
+        _cameraObject.setParent(&_scene)
+            .translate(Vector3::zAxis(5.0f));
+        _camera.setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
+            .setProjectionMatrix(Matrix4::perspectiveProjection(35.0_degf, 1.0f, 0.01f, 1000.0f))
+            .setViewport(GL::defaultFramebuffer.viewport().size());
 
-/*
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-}
-*/
+        _manipulator.setParent(&_scene);
+    }
+    void Window::drawEvent() {
 
-void printGLInfo() {
-    logging::info() << "OpenGL Version: " << glGetString(GL_VERSION);
 
-    logging::info() << "OpenGL Vendor: " << glGetString(GL_VENDOR);
+        {//ImGui
+            _imgui.newFrame();
+            if(ImGui::GetIO().WantTextInput && !isTextInputActive())
+                startTextInput();
+            else if(!ImGui::GetIO().WantTextInput && isTextInputActive())
+                stopTextInput();
 
-    logging::info() << "OpenGL Renderer: " <<  glGetString(GL_RENDERER);
-}
+            gui();
 
-Window::Window( const std::string& name, int width, int height) {
+        }
+        {
+            GL::defaultFramebuffer.clear(GL::FramebufferClear::Color | GL::FramebufferClear::Depth);
+            draw();
 
-    if (s_window_count++ == 0 && !glfwInit()) {
-        std::cerr <<" GLFWInit faillure!" << std::endl;
-        exit(EXIT_FAILURE);
+            //setup
+            GL::Renderer::setBlendEquation(GL::Renderer::BlendEquation::Add,
+                    GL::Renderer::BlendEquation::Add);
+            GL::Renderer::setBlendFunction(GL::Renderer::BlendFunction::SourceAlpha,
+                    GL::Renderer::BlendFunction::OneMinusSourceAlpha);
+            GL::Renderer::enable(GL::Renderer::Feature::Blending);
+            GL::Renderer::disable(GL::Renderer::Feature::FaceCulling);
+            GL::Renderer::disable(GL::Renderer::Feature::DepthTest);
+            GL::Renderer::enable(GL::Renderer::Feature::ScissorTest);
+
+
+            _imgui.drawFrame();
+
+            //Cleanup
+            GL::Renderer::disable(GL::Renderer::Feature::ScissorTest);
+            GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
+            GL::Renderer::enable(GL::Renderer::Feature::FaceCulling);
+            GL::Renderer::disable(GL::Renderer::Feature::Blending);
+        }
+
+        swapBuffers();
+        redraw();
+    }
+
+        void Window3::draw() {
+            _camera.draw(_drawables);
+        }
+
+
+
+
+
+
+    void Window::viewportEvent(ViewportEvent& event) {
+        GL::defaultFramebuffer.setViewport({{}, event.framebufferSize()});
+
+        _imgui.relayout(Vector2{event.windowSize()}/event.dpiScaling(),
+                event.windowSize(), event.framebufferSize());
+    }
+    void Window3::viewportEvent(ViewportEvent& event) {
+        Window::viewportEvent(event);
+        _camera.setViewport(event.windowSize());
+    }
+
+    void Window::keyPressEvent(KeyEvent& event) {
+        if(_imgui.handleKeyPressEvent(event)) {
+            redraw();
+            return;
+        }
+    }
+
+    void Window::keyReleaseEvent(KeyEvent& event) {
+        if(_imgui.handleKeyReleaseEvent(event)) {
+            redraw();
+            return;
+        }
+    }
+
+    void Window::mousePressEvent(MouseEvent& event) {
+        if(_imgui.handleMousePressEvent(event)) {
+            redraw();
+            return;
+        }
+    }
+
+    void Window::mouseReleaseEvent(MouseEvent& event) {
+        if(_imgui.handleMouseReleaseEvent(event)) {
+            redraw();
+            return;
+        }
+    }
+
+    void Window::mouseMoveEvent(MouseMoveEvent& event) {
+        if(_imgui.handleMouseMoveEvent(event)) {
+            redraw();
+            return;
+        }
+    }
+
+    void Window::mouseScrollEvent(MouseScrollEvent& event) {
+        if(_imgui.handleMouseScrollEvent(event)) {
+            redraw();
+            return;
+        }
+    }
+
+    void Window::textInputEvent(TextInputEvent& event) {
+        if(_imgui.handleTextInputEvent(event)) {
+            redraw();
+            return;
+        }
+    }
+    Vector3 Window3::positionOnSphere(const Vector2i& position) const {
+        const Vector2 positionNormalized = Vector2{position}/Vector2{_camera.viewport()} - Vector2{0.5f};
+        const Float length = positionNormalized.length();
+        const Vector3 result(length > 1.0f ? Vector3(positionNormalized, 0.0f) : Vector3(positionNormalized, 1.0f - length));
+        return (result*Vector3::yScale(-1.0f)).normalized();
     }
 
 
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT,GL_TRUE);
-    glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
+    void Window3::mousePressEvent(MouseEvent& event) {
+        Window::mousePressEvent(event);
+        if(!ImGui::GetIO().WantCaptureMouse) {
+            if(event.button() == MouseEvent::Button::Left)
+                _previousPosition = positionOnSphere(event.position());
+        }
+    }
+
+    void Window3::mouseReleaseEvent(MouseEvent& event) {
+        Window::mouseReleaseEvent(event);
+        if(event.button() == MouseEvent::Button::Left)
+            _previousPosition = Vector3();
+    }
+
+    void Window3::mouseScrollEvent(MouseScrollEvent& event) {
+        Window::mouseScrollEvent(event);
+        if(!ImGui::GetIO().WantCaptureMouse) {
+            if(!event.offset().y()) return;
+
+            /* Distance to origin */
+            const Float distance = _cameraObject.transformation().translation().z();
+
+            /* Move 15% of the distance back or forward */
+            _cameraObject.translate(Vector3::zAxis(
+                        distance*(1.0f - (event.offset().y() > 0 ? 1/0.85f : 0.85f))));
+
+            redraw();
+        }
+    }
+
+
+    void Window3::mouseMoveEvent(MouseMoveEvent& event) {
+        Window::mouseMoveEvent(event);
+        if(!(event.buttons() & MouseMoveEvent::Button::Left)) return;
+
+        const Vector3 currentPosition = positionOnSphere(event.position());
+        const Vector3 axis = Math::cross(_previousPosition, currentPosition);
+
+        if(_previousPosition.length() < 0.001f || axis.length() < 0.001f) return;
+
+        _manipulator.rotate(Math::angle(_previousPosition, currentPosition), axis.normalized());
+        _previousPosition = currentPosition;
+
+        redraw();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /*
+       size_t Window::s_window_count = 0;
+       std::map<GLFWwindow*,HotkeyManager> Window::s_hotkeys;
+
+       static void error_callback(int error, const char* description)
+       {
+       std::stringstream ss;
+       ss << "Error: " << description << std::endl;
+       throw std::runtime_error(ss.str());
+       }
+
+
+       void printGLInfo() {
+       logging::info() << "OpenGL Version: " << glGetString(GL_VERSION);
+
+       logging::info() << "OpenGL Vendor: " << glGetString(GL_VENDOR);
+
+       logging::info() << "OpenGL Renderer: " <<  glGetString(GL_RENDERER);
+       }
+
+       Window::Window( const std::string& name, int width, int height) {
+
+       if (s_window_count++ == 0 && !glfwInit()) {
+       std::cerr <<" GLFWInit faillure!" << std::endl;
+       exit(EXIT_FAILURE);
+       }
+
+
+       glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT,GL_TRUE);
+       glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
 #if defined(__APPLE__)
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 #endif
 
-    window = glfwCreateWindow(width, height, name.c_str(), NULL, NULL);
-    setErrorCallback(error_callback);
-    if (!window) {
-        glfwTerminate();
-        throw std::runtime_error("GLFW window creation failed!");
-    }
-    s_hotkeys[window];
-    makeCurrent();
+window = glfwCreateWindow(width, height, name.c_str(), NULL, NULL);
+setErrorCallback(error_callback);
+if (!window) {
+glfwTerminate();
+throw std::runtime_error("GLFW window creation failed!");
+}
+s_hotkeys[window];
+makeCurrent();
 
 
-    // Initialize OpenGL loader
+// Initialize OpenGL loader
 #if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
-    bool err = gl3wInit() != 0;
+bool err = gl3wInit() != 0;
 #elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
-    bool err = glewInit() != GLEW_OK;
+bool err = glewInit() != GLEW_OK;
 #elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
-    bool err = gladLoadGL() == 0;
+bool err = gladLoadGL() == 0;
 #else
-    bool err = false; // If you use IMGUI_IMPL_OPENGL_LOADER_CUSTOM, your loader is likely to requires some form of initialization.
+bool err = false; // If you use IMGUI_IMPL_OPENGL_LOADER_CUSTOM, your loader is likely to requires some form of initialization.
 #endif
-    if(err) {
-        logging::fatal() << "OpenGL loader/wrangler failed to load!";
-    }
-    printGLInfo();
-    m_gui.setWindow(window);
+if(err) {
+logging::fatal() << "OpenGL loader/wrangler failed to load!";
+}
+printGLInfo();
+m_gui.setWindow(window);
 
 
-    glfwSetMouseButtonCallback(window, ImGuiImpl::mouseButtonCallback);
-    glfwSetScrollCallback(window, ImGuiImpl::scrollCallback);
-    glfwSetKeyCallback(window,    Window::keyCallback);
-    glfwSetCharCallback(window,   ImGuiImpl::charCallback);
+glfwSetMouseButtonCallback(window, ImGuiImpl::mouseButtonCallback);
+glfwSetScrollCallback(window, ImGuiImpl::scrollCallback);
+glfwSetKeyCallback(window,    Window::keyCallback);
+glfwSetCharCallback(window,   ImGuiImpl::charCallback);
 
 
-    glfwSwapInterval(1);
+glfwSwapInterval(1);
 }
 
 Window::~Window() {
@@ -179,7 +371,7 @@ void Window::keyCallback(GLFWwindow* w,int key, int scancode, int action, int mo
     if(!io.WantCaptureKeyboard) {
         s_hotkeys.at(w).press(key,mods,action);
     }
-        ImGuiImpl::keyCallback(w,key,scancode,action,mods);
+    ImGuiImpl::keyCallback(w,key,scancode,action,mods);
 }
 
 
@@ -249,12 +441,13 @@ void set_opengl_version_hints(int major, int minor, int profile) {
         std::cerr <<" GLFWInit faillure!" << std::endl;
         exit(EXIT_FAILURE);
     }
-   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, major);
-   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor);
-   //glfwWindowHint(GLFW_OPENGL_PROFILE, profile);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, major);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor);
+    //glfwWindowHint(GLFW_OPENGL_PROFILE, profile);
 }
 
-}}
+*/
+}
 
 
 

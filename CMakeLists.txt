@@ -2,6 +2,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.8)
 PROJECT(MtaoCore)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
+
 SET(CMAKE_RUNTIME_OUTPUT_DIR ${PROJECT_BINARY_DIR}/bin)
 SET(CMAKE_LIBRARY_OUTPUT_DIR ${PROJECT_BINARY_DIR}/lib)
 SET(CMAKE_ARCHIVE_OUTPUT_DIR ${PROJECT_BINARY_DIR}/lib)
@@ -82,8 +83,22 @@ FIND_PACKAGE(OpenMP)
 
 
 
+SET(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui)
+
 
 FIND_PACKAGE(OpenGL REQUIRED)
+FIND_PACKAGE(glfw3 REQUIRED)
+
+
+FIND_PACKAGE(PkgConfig REQUIRED)
+PKG_SEARCH_MODULE(GLFW REQUIRED glfw3)
+include_directories(${GLFW_INCLUDE_DIRS})
+
+
+find_package(Corrade REQUIRED)
+find_package(Magnum REQUIRED GL Shaders GlxContext GlfwApplication SceneGraph MeshTools)
+find_package(MagnumIntegration REQUIRED ImGui)
+
 FIND_PACKAGE(png++)
 IF(png++_FOUND)
     ADD_DEFINITIONS(-DMTAO_HAS_LIBPNGPP)
@@ -94,9 +109,6 @@ if(OPENGL_FOUND)
     INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
 endif(OPENGL_FOUND)
 
-FIND_PACKAGE(PkgConfig REQUIRED)
-PKG_SEARCH_MODULE(GLFW REQUIRED glfw3)
-include_directories(${GLFW_INCLUDE_DIRS})
 
 PKG_SEARCH_MODULE(GLM REQUIRED glm)
 include_directories(${GLM_INCLUDE_DIRS})
@@ -210,7 +222,15 @@ ADD_LIBRARY(mtao_opengl
     )
 
 
-TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl mtao_core ${png++_LIBRARIES} ${OPENGL_LOADER_LIBRARIES})
+TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl mtao_core ${png++_LIBRARIES} ${OPENGL_LOADER_LIBRARIES}
+    Magnum::GL
+    Magnum::GLContext
+    Magnum::Magnum
+    Magnum::Shaders
+    Magnum::SceneGraph
+    Magnum::GlfwApplication
+    MagnumIntegration::ImGui
+    )
 
 
 ADD_DEFINITIONS(-O2)
