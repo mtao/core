@@ -11,17 +11,15 @@
 #include "mtao/geometry/mesh/sphere.hpp"
 #include "mtao/geometry/mesh/read_obj.hpp"
 #include "mtao/geometry/bounding_box.hpp"
-#include "mtao/geometry/mesh/vertex_normals.hpp"
 #include "mtao/opengl/camera.hpp"
 #include <mtao/types.h>
-#include <Magnum/MeshTools/CompressIndices.h>
 #include <Corrade/Containers/Array.h>
 #include <Corrade/Containers/ArrayView.h>
 
-#include <Magnum/GL/Mesh.h>
 #include <Magnum/Shaders/VertexColor.h>
 #include <Magnum/Shaders/Phong.h>
 #include <Corrade/Utility/Arguments.h>
+#include "mtao/opengl/objects/mesh.h"
 
 #include <glm/gtc/matrix_transform.hpp> 
 bool animate = false;
@@ -122,7 +120,7 @@ using namespace Math::Literals;
 
 class ColoredDrawable: public SceneGraph::Drawable3D {
     public:
-        using Object3D = mtao::opengl::Window3::Object3D;
+        using Object3D = mtao::opengl::Object3D;
           explicit ColoredDrawable(Object3D& object, Shaders::Phong& shader, GL::Mesh& mesh, const Color4& color, SceneGraph::DrawableGroup3D& group): SceneGraph::Drawable3D{object, &group}, _shader(shader), _mesh(mesh), _color{color} {}
 
     private:
@@ -155,33 +153,18 @@ class MeshViewer: public mtao::opengl::Window3 {
         auto bb = mtao::geometry::bounding_box(V);
         mtao::Vec3f mean = (bb.min() + bb.max())/2;
         V.colwise() -= mean;
+        mesh.setData(V,F.cast<unsigned int>());
 
-        mtao::ColVectors<float,6> VN(6,V.cols());
-        VN.topRows<3>() = V;
-        VN.bottomRows<3>() = mtao::geometry::mesh::vertex_normals(V,F);
-        vbuffer.setData(Containers::ArrayView<const float>{VN.data(),VN.size()});
-        Containers::Array<char> indexData;
-        MeshIndexType indexType;
-        UnsignedInt indexStart, indexEnd;
-        std::vector<unsigned int> inds(F.data(),F.data()+F.size());
-
-        std::tie(indexData, indexType, indexStart, indexEnd) =
-            MeshTools::compressIndices(inds);
-        ibuffer.setData(indexData);
 
         _coloredShader
             .setAmbientColor(0x111111_rgbf)
             .setSpecularColor(0xffffff_rgbf)
             .setShininess(80.0f);
 
-        mesh.setPrimitive(GL::MeshPrimitive::Triangles)
-            .setCount(inds.size())
-            .addVertexBuffer(vbuffer, 0,
-                Shaders::Phong::Position{}, Shaders::Phong::Normal{})
-            .setIndexBuffer(ibuffer,0,indexType,indexStart,indexEnd);
 
 
-        new ColoredDrawable{manipulator(), _coloredShader, mesh, 0xffffff_rgbf, drawables()};
+        new ColoredDrawable{mesh, _coloredShader, mesh, 0xffffff_rgbf, drawables()};
+        mesh.setParent(&root());
 
     }
     void gui() override {
@@ -191,9 +174,8 @@ class MeshViewer: public mtao::opengl::Window3 {
         Window3::draw();
     }
     private:
-    GL::Buffer vbuffer, ibuffer;
-    GL::Mesh mesh;
     Shaders::Phong _coloredShader;
+    mtao::opengl::objects::Mesh mesh;
 
 };
 

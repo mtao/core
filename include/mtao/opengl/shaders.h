@@ -1,32 +1,30 @@
 #ifndef SHADERS_H
 #define SHADERS_H
-#include <string>
-#include "mtao/opengl/shader.h"
+#pragma once
+#include <Magnum/Shaders/VertexColor.h>
+#include <Magnum/Shaders/Phong.h>
+#include <Magnum/Shaders/MeshVisualizer.h>
+#include <Magnum/Shaders/Flat.h>
+namespace mtao::opengl {
 
-namespace mtao {namespace opengl {namespace shaders {
+    class ShaderPack2: public std::variant<Shaders::Flat2D,Shaders::VertexColor2D> {
+        std::optional<Shaders::Flat2D> flat;
+        std::optional<Shaders::VertexColor2D> vertex_color;
+        void activate_flat();
+        void activate_flat(const Shaders::Flat2D::Flags&);
+        void activate_vertex_color();
 
-    Shader simple_vertex_shader(int dim);
-
-    Shader single_color_fragment_shader();
-    Shader attribute_color_fragment_shader();
-    Shader color_fragment_shader(bool per_vertex);
-    ShaderProgram color_fragment_shader_program(bool per_vertex, int dim);
-
-    Shader barycentric_edge_geometry_shader();
-    Shader barycentric_edge_fragment_shader();
-    ShaderProgram barycentric_edge_shader_program(int dim);
-
-    Shader phong_fragment_shader();
-    ShaderProgram phong_shader_program(int dim);
-
-    Shader vector_vertex_shader(int dim);
-    Shader vector_geometry_shader();
-    ShaderProgram vector_shader_program(int dim, bool per_vertex);
-
-    Shader tube_vertex_shader(int dim);
-    Shader tube_geometry_shader();
-    ShaderProgram tube_shader_program();
-
-
-}}}
+        Shaders::Flat2D::Flags flat_flags;
+        Shaders::VertexColor::Flags flat_flags;
+    };
+    class ShaderPack3: public std::variant<Shaders::Flat3D,Shaders::VertexColor3D,Shaders::Phong,Shaders::MeshVisualizer> shader> {
+        void activate_flat(const Shaders::Flat3D::Flags&);
+        void activate_vertex_color();
+        void activate_phong(const Shaders::Phong::Flags&);
+        void activate_mesh_visualizer(const Shaders::MeshVisualizer::Flags&);
+        void activate_flat();
+        void activate_phong();
+        void activate_mesh_visualizer();
+    };
+}
 #endif//SHADERS_H

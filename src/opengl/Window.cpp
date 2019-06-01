@@ -34,7 +34,7 @@ namespace mtao::opengl {
             .setProjectionMatrix(Matrix4::perspectiveProjection(35.0_degf, 1.0f, 0.01f, 1000.0f))
             .setViewport(GL::defaultFramebuffer.viewport().size());
 
-        _manipulator.setParent(&_scene);
+        _root.setParent(&_scene);
     }
     void Window::drawEvent() {
 
@@ -193,7 +193,7 @@ namespace mtao::opengl {
 
         if(_previousPosition.length() < 0.001f || axis.length() < 0.001f) return;
 
-        _manipulator.rotate(Math::angle(_previousPosition, currentPosition), axis.normalized());
+        _root.rotate(Math::angle(_previousPosition, currentPosition), axis.normalized());
         _previousPosition = currentPosition;
 
         redraw();

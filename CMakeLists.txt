@@ -201,6 +201,7 @@ ADD_LIBRARY(mtao_opengl
     include/mtao/opengl/shaders.h
     include/mtao/opengl/camera.hpp
 
+    src/opengl/objects/mesh.cpp
     #Renderers
     src/opengl/renderers/renderer.cpp
     include/mtao/opengl/renderers/renderer.h
