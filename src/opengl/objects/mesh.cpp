@@ -8,23 +8,30 @@
 using namespace Magnum;
 using namespace Math::Literals;
 namespace mtao::opengl::objects {
-    
-    Mesh::Mesh(const mtao::ColVecs3f& V, const mtao::ColVectors<unsigned int, 3>& F) {
-        setData(V,F);
+    Mesh::Mesh(const mtao::ColVecs3f& V, const mtao::ColVectors<unsigned int, 2>& F) {
+        setEdgeData(V,F);
     }
-    void Mesh::setData(const mtao::ColVecs3f& V, const mtao::ColVectors<unsigned int, 3>& F) {
+    void Mesh::setEdgeData(const mtao::ColVecs3f& V, const mtao::ColVectors<unsigned int, 2>& E) {
 
-        set_index_buffer(F);
-        vertex_buffer.setData(Containers::ArrayView<const float>{V.data(),V.size()});
+        set_edge_index_buffer(E);
+        vertex_buffer.setData(Containers::ArrayView<const float>{V.data(),size_t(V.size())});
+    
+    }
+    Mesh::Mesh(const mtao::ColVecs3f& V, const mtao::ColVectors<unsigned int, 3>& F) {
+        setTriangleData(V,F);
+    }
+    void Mesh::setTriangleData(const mtao::ColVecs3f& V, const mtao::ColVectors<unsigned int, 3>& F) {
+
+        set_triangle_index_buffer(F);
+        vertex_buffer.setData(Containers::ArrayView<const float>{V.data(),size_t(V.size())});
         
         auto N = mtao::geometry::mesh::vertex_normals(V,F);
-        normal_buffer.setData(Containers::ArrayView<const float>{N.data(),N.size()});
-    setPrimitive(GL::MeshPrimitive::Triangles)
-        .setCount(F.size())
+        normal_buffer.setData(Containers::ArrayView<const float>{N.data(),size_t(N.size())});
+        setCount(F.size())
         .addVertexBuffer(vertex_buffer, 0,
                 Shaders::Phong::Position{})
         .addVertexBuffer(normal_buffer, 0, Shaders::Phong::Normal{})
-        .setIndexBuffer(index_buffer,0,indexType,indexStart,indexEnd);
+        .setIndexBuffer(triangle_index_buffer,0,triangle_indexType,triangle_indexStart,triangle_indexEnd);
 
         //mtao::ColVectors<float,6> VN(6,V.cols());
         //VN.topRows<3>() = V;
@@ -33,13 +40,23 @@ namespace mtao::opengl::objects {
     }
 
 
+    void Mesh::set_edge_index_buffer(const mtao::ColVectors<unsigned int, 2>& E) {
+        setPrimitive(GL::MeshPrimitive::Lines);
+        Containers::Array<char> indexData;
+        std::vector<unsigned int> inds(E.data(),E.data()+E.size());
 
-    void Mesh::set_index_buffer(const mtao::ColVectors<unsigned int, 3>& F) {
+        std::tie(indexData, edge_indexType, edge_indexStart, edge_indexEnd) =
+            MeshTools::compressIndices(inds);
+        edge_index_buffer.setData(indexData);
+    }
+
+    void Mesh::set_triangle_index_buffer(const mtao::ColVectors<unsigned int, 3>& F) {
+        setPrimitive(GL::MeshPrimitive::Triangles);
         Containers::Array<char> indexData;
         std::vector<unsigned int> inds(F.data(),F.data()+F.size());
 
-        std::tie(indexData, indexType, indexStart, indexEnd) =
+        std::tie(indexData, triangle_indexType, triangle_indexStart, triangle_indexEnd) =
             MeshTools::compressIndices(inds);
-        index_buffer.setData(indexData);
+        triangle_index_buffer.setData(indexData);
     }
 }

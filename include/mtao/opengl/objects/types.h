@@ -15,14 +15,4 @@ namespace mtao::opengl {
         using Scene3D = Magnum::SceneGraph::Scene<MatTransform3D>;
         using Object3D = Magnum::SceneGraph::Object<MatTransform3D>;
 
-        class ShaderPack2 {
-            std::optional<Shaders::Flat2D> flat;
-            std::optional<Shaders::VertexColor2D> vertex_color;
-        };
-        class ShaderPack3 {
-            std::optional<Shaders::Flat3D> flat;
-            std::optional<Shaders::VertexColor3D> vertex_color;
-            std::optional<Shaders::Phong> phong;
-            std::optional<Shaders::MeshVisualizer> mesh_visualizer;
-        };
 }

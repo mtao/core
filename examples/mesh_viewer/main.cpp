@@ -9,9 +9,11 @@
 #include "mtao/opengl/renderers/mesh.h"
 #include "mtao/opengl/renderers/bbox.h"
 #include "mtao/geometry/mesh/sphere.hpp"
+#include "mtao/geometry/mesh/boundary_facets.h"
 #include "mtao/geometry/mesh/read_obj.hpp"
 #include "mtao/geometry/bounding_box.hpp"
 #include "mtao/opengl/camera.hpp"
+#include "mtao/opengl/drawables.h"
 #include <mtao/types.h>
 #include <Corrade/Containers/Array.h>
 #include <Corrade/Containers/ArrayView.h>
@@ -114,68 +116,61 @@ void render(int width, int height) {
 
 }
 
-using namespace Magnum;
-using namespace Math::Literals;
 
-
-class ColoredDrawable: public SceneGraph::Drawable3D {
-    public:
-        using Object3D = mtao::opengl::Object3D;
-          explicit ColoredDrawable(Object3D& object, Shaders::Phong& shader, GL::Mesh& mesh, const Color4& color, SceneGraph::DrawableGroup3D& group): SceneGraph::Drawable3D{object, &group}, _shader(shader), _mesh(mesh), _color{color} {}
-
-    private:
-        void draw(const Matrix4& transformationMatrix, SceneGraph::Camera3D& camera) override;
-
-        Shaders::Phong& _shader;
-        GL::Mesh& _mesh;
-        Color4 _color;
-};
-
-void ColoredDrawable::draw(const Matrix4& transformationMatrix, SceneGraph::Camera3D& camera) {
-    _shader
-        .setDiffuseColor(_color)
-        .setLightPosition(camera.cameraMatrix().transformPoint({-3.0f, 10.0f, 10.0f}))
-        .setTransformationMatrix(transformationMatrix)
-        .setNormalMatrix(transformationMatrix.rotationScaling())
-        .setProjectionMatrix(camera.projectionMatrix());
-
-    _mesh.draw(_shader);
-}
 
 class MeshViewer: public mtao::opengl::Window3 {
     public:
 
-    MeshViewer(const Arguments& args): Window3(args) {
-        Utility::Arguments myargs;
+    MeshViewer(const Arguments& args): Window3(args), _wireframe_shader{Magnum::Shaders::MeshVisualizer::Flag::Wireframe} {
+        Corrade::Utility::Arguments myargs;
         myargs.addArgument("filename").parse(args.argc,args.argv);
         std::string filename = myargs.value("filename");
         auto [V,F] = mtao::geometry::mesh::read_objF(filename);
         auto bb = mtao::geometry::bounding_box(V);
         mtao::Vec3f mean = (bb.min() + bb.max())/2;
         V.colwise() -= mean;
-        mesh.setData(V,F.cast<unsigned int>());
+        mesh.setTriangleData(V,F.cast<unsigned int>());
+        auto E = mtao::geometry::mesh::boundary_facets(F);
 
-
-        _coloredShader
-            .setAmbientColor(0x111111_rgbf)
-            .setSpecularColor(0xffffff_rgbf)
-            .setShininess(80.0f);
+        mesh.set_edge_index_buffer(E.cast<unsigned int>());
 
 
 
-        new ColoredDrawable{mesh, _coloredShader, mesh, 0xffffff_rgbf, drawables()};
+        phong_drawable = new mtao::opengl::Drawable<Magnum::Shaders::Phong>{mesh,_shader, drawables()};
+        mv_drawable = new mtao::opengl::Drawable<Magnum::Shaders::MeshVisualizer>{mesh,_wireframe_shader, drawables()};
+
+
+        edge_drawable = new mtao::opengl::Drawable<Magnum::Shaders::Flat3D>{mesh,_flat_shader, drawables()};
+        edge_drawable->activate_triangles({});
+        edge_drawable->activate_edges();
         mesh.setParent(&root());
 
     }
     void gui() override {
         gui_func();
+        if(mv_drawable) {
+            mv_drawable->gui();
+        }
+        if(phong_drawable) {
+            phong_drawable->gui();
+        }
+        if(edge_drawable) {
+            edge_drawable->gui();
+        }
     }
     void draw() override {
         Window3::draw();
     }
     private:
-    Shaders::Phong _coloredShader;
+    Magnum::Shaders::Phong _shader;
+    Magnum::Shaders::MeshVisualizer _wireframe_shader;
+    Magnum::Shaders::Flat3D _flat_shader;
     mtao::opengl::objects::Mesh mesh;
+    mtao::opengl::objects::Mesh edge_mesh;
+    mtao::opengl::Drawable<Magnum::Shaders::Phong>* phong_drawable = nullptr;
+    mtao::opengl::Drawable<Magnum::Shaders::MeshVisualizer>* mv_drawable = nullptr;
+    mtao::opengl::Drawable<Magnum::Shaders::Flat3D>* edge_drawable = nullptr;
+
 
 };
 
