@@ -8,15 +8,17 @@
 #include "mtao/opengl/objects/types.h"
 
 #include <Magnum/Mesh.h>
+#include <Magnum/Math/Vector.h>
 #include <Magnum/SceneGraph/Camera.h>
 #include <Magnum/SceneGraph/Drawable.h>
 
 namespace mtao::opengl {
+    using namespace Magnum;
 
-class Window: public Magnum::Platform::Application {
+class WindowBase: public Magnum::Platform::Application {
     public:
 
-        explicit Window(const Arguments& arguments);
+        explicit WindowBase(const Arguments& arguments);
 
         void drawEvent() override;
 
@@ -39,8 +41,37 @@ class Window: public Magnum::Platform::Application {
         Magnum::ImGuiIntegration::Context _imgui{Magnum::NoCreate};
 
 };
+class Window2: public WindowBase {
+    public:
+        explicit Window2(const Arguments& arguments);
+        virtual void draw() override;
+        virtual void gui() = 0;
+        
+        virtual void viewportEvent(ViewportEvent& event) override;
+        virtual void mousePressEvent(MouseEvent& event) override;
+        virtual void mouseReleaseEvent(MouseEvent& event) override;
+        virtual void mouseMoveEvent(MouseMoveEvent& event) override;
+        virtual void mouseScrollEvent(MouseScrollEvent& event) override;
 
-class Window3: public Window {
+
+        Vector2 localPosition(const Vector2i& position) const;
+        Object2D& root() { return _root; }
+        Object2D& scene() { return _scene; }
+        Magnum::SceneGraph::Camera2D& camera() { return _camera; }
+        Magnum::SceneGraph::DrawableGroup2D& drawables() { return _drawables; }
+
+    private:
+        Scene2D _scene;
+        Object2D _root, _cameraObject;
+        Magnum::SceneGraph::Camera2D _camera;
+        Magnum::SceneGraph::DrawableGroup2D _drawables;
+        Magnum::Vector2 _previousPosition;
+        float scale = 1.0;
+
+
+};
+
+class Window3: public WindowBase {
     public:
         explicit Window3(const Arguments& arguments);
         virtual void draw() override;

@@ -4,6 +4,38 @@
 #include <iostream>
 
 namespace mtao::opengl {
+
+
+    template <>
+        void Drawable<Shaders::Flat2D>::gui() {
+            if(ImGui::TreeNode("Flat Shader")) {
+                ImGui::Checkbox("Visible", &visible);
+                ImGui::ColorEdit4("Color", data.color.data());
+                ImGui::TreePop();
+            }
+        }
+
+
+    template <>
+        void Drawable<Shaders::VertexColor2D>::gui() {
+            if(ImGui::TreeNode("Vertex Color Shader")) {
+                ImGui::Checkbox("Visible", &visible);
+                ImGui::TreePop();
+            }
+        }
+    template <>
+        void Drawable<Shaders::Flat2D>::set_buffers() {
+            _mesh.addVertexBuffer(_mesh.vertex_buffer, 0, Shaders::Flat2D::Position{});
+            _shader.setColor(data.color);
+            if(_shader.flags() & Shaders::Flat2D::Flag::AlphaMask) {
+                _shader.setAlphaMask(data.alpha_mask);
+            }
+        }
+    template <>
+        void Drawable<Shaders::VertexColor2D>::set_buffers() {
+            _mesh.addVertexBuffer(_mesh.vertex_buffer, 0, Shaders::VertexColor2D::Position{});
+        }
+
     template <>
         void Drawable<Shaders::Flat3D>::gui() {
             if(ImGui::TreeNode("Flat Shader")) {
@@ -76,6 +108,7 @@ namespace mtao::opengl {
     template <>
         void Drawable<Shaders::Phong>::set_buffers() {
             _mesh.addVertexBuffer(_mesh.vertex_buffer, 0, Shaders::Phong::Position{});
+            _mesh.addVertexBuffer(_mesh.normal_buffer, 0, Shaders::Phong::Normal{});
             _shader.setShininess(data.shininess)
                 .setDiffuseColor(data.diffuse_color)
                 .setAmbientColor(data.ambient_color)
