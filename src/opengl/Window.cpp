@@ -11,7 +11,9 @@
 #include <mtao/logging/logger.hpp>
 #include <Magnum/GL/DefaultFramebuffer.h>
 #include <Magnum/GL/Renderer.h>
+#include <Magnum/GL/DebugOutput.h>
 #include <Magnum/Math/Color.h>
+#include <iostream>
 
 
 using namespace Magnum;
@@ -22,6 +24,15 @@ namespace mtao::opengl {
         GlfwApplication{arguments, Configuration{}.setTitle("Window").setWindowFlags(Configuration::WindowFlag::Resizable)},
         _imgui{Vector2(windowSize())/dpiScaling(), windowSize(), framebufferSize()}
     {
+        //TODO: This is certainly not what I want, but isn't the imgui constructor supposed to do things for me?
+        ImGui::GetIO().FontGlobalScale =  1.0 / dpiScaling()[0] / dpiScaling()[1];
+
+
+        GL::Renderer::enable(GL::Renderer::Feature::DebugOutput);
+        GL::Renderer::enable(GL::Renderer::Feature::DebugOutputSynchronous);
+        GL::DebugOutput::setDefaultCallback();
+        GL::DebugOutput::setEnabled(
+                GL::DebugOutput::Source::Api, GL::DebugOutput::Type::Other, {131185}, false);
         GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
         GL::Renderer::enable(GL::Renderer::Feature::FaceCulling);
         setSwapInterval(1);
