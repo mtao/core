@@ -47,7 +47,7 @@ namespace mtao::opengl {
             using TransMat = internal::TransformMatrixType<ShaderType>;
             using MeshType = objects::Mesh<D>;
             explicit Drawable(MeshType& mesh, ShaderType& shader, DrawableGroup& group): internal::DrawableType<ShaderType>{mesh, &group},  _mesh(mesh),_shader(shader) {}
-            void gui();
+            void gui(const std::string& name = "");
 
             void activate_edges(const std::optional<GL::MeshPrimitive>& p = GL::MeshPrimitive::Lines) {
                 edge_primitive = p;
@@ -89,22 +89,22 @@ namespace mtao::opengl {
             void set_buffers();
         };
     template <>
-    void Drawable<Shaders::Flat2D>::gui();
+    void Drawable<Shaders::Flat2D>::gui(const std::string& name);
     template <>
-    void Drawable<Shaders::VertexColor2D>::gui();
+    void Drawable<Shaders::VertexColor2D>::gui(const std::string& name);
     template <>
     void Drawable<Shaders::Flat2D>::set_buffers();
     template <>
     void Drawable<Shaders::VertexColor2D>::set_buffers();
 
     template <>
-    void Drawable<Shaders::Flat3D>::gui();
+    void Drawable<Shaders::Flat3D>::gui(const std::string& name);
     template <>
-    void Drawable<Shaders::VertexColor3D>::gui();
+    void Drawable<Shaders::VertexColor3D>::gui(const std::string& name);
     template <>
-    void Drawable<Shaders::Phong>::gui();
+    void Drawable<Shaders::Phong>::gui(const std::string& name);
     template <>
-    void Drawable<Shaders::MeshVisualizer>::gui();
+    void Drawable<Shaders::MeshVisualizer>::gui(const std::string& name);
     template <>
     void Drawable<Shaders::Flat3D>::set_buffers();
     template <>

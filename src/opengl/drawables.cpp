@@ -7,8 +7,13 @@ namespace mtao::opengl {
 
 
     template <>
-        void Drawable<Shaders::Flat2D>::gui() {
-            if(ImGui::TreeNode("Flat Shader")) {
+        void Drawable<Shaders::Flat2D>::gui(const std::string& name_) {
+
+            std::string name = name_;
+            if(name.empty()) {
+                name = "Flat Shader";
+            }
+            if(ImGui::TreeNode(name.c_str())) {
                 ImGui::Checkbox("Visible", &visible);
                 ImGui::ColorEdit4("Color", data.color.data());
                 ImGui::TreePop();
@@ -17,8 +22,12 @@ namespace mtao::opengl {
 
 
     template <>
-        void Drawable<Shaders::VertexColor2D>::gui() {
-            if(ImGui::TreeNode("Vertex Color Shader")) {
+        void Drawable<Shaders::VertexColor2D>::gui(const std::string& name_) {
+            std::string name = name_;
+            if(name.empty()) {
+                name = "Vertex Color Shader";
+            }
+            if(ImGui::TreeNode(name.c_str())) {
                 ImGui::Checkbox("Visible", &visible);
                 ImGui::TreePop();
             }
@@ -37,23 +46,35 @@ namespace mtao::opengl {
         }
 
     template <>
-        void Drawable<Shaders::Flat3D>::gui() {
-            if(ImGui::TreeNode("Flat Shader")) {
+        void Drawable<Shaders::Flat3D>::gui(const std::string& name_) {
+            std::string name = name_;
+            if(name.empty()) {
+                name = "Flat Shader";
+            }
+            if(ImGui::TreeNode(name.c_str())) {
                 ImGui::Checkbox("Visible", &visible);
                 ImGui::ColorEdit4("Color", data.color.data());
                 ImGui::TreePop();
             }
         }
     template <>
-        void Drawable<Shaders::VertexColor3D>::gui() {
-            if(ImGui::TreeNode("Vertex Color Shader")) {
+        void Drawable<Shaders::VertexColor3D>::gui(const std::string& name_) {
+            std::string name = name_;
+            if(name.empty()) {
+                name = "Vertex Color Shader";
+            }
+            if(ImGui::TreeNode(name.c_str())) {
                 ImGui::Checkbox("Visible", &visible);
                 ImGui::TreePop();
             }
         }
     template <>
-        void Drawable<Shaders::Phong>::gui() {
-            if(ImGui::TreeNode("Phong Shader")) {
+        void Drawable<Shaders::Phong>::gui(const std::string& name_) {
+            std::string name = name_;
+            if(name.empty()) {
+                name = "Phong Shader";
+            }
+            if(ImGui::TreeNode(name.c_str())) {
                 ImGui::Checkbox("Visible", &visible);
                 ImGui::ColorEdit4("Ambient Color", data.ambient_color.data());
                 ImGui::ColorEdit4("Diffuse Color", data.diffuse_color.data());
@@ -83,8 +104,12 @@ namespace mtao::opengl {
             //}
         }
     template <>
-        void Drawable<Shaders::MeshVisualizer>::gui() {
-            if(ImGui::TreeNode("Mesh Visualizer Shader")) {
+        void Drawable<Shaders::MeshVisualizer>::gui(const std::string& name_) {
+            std::string name = name_;
+            if(name.empty()) {
+                name = "Mesh Visualizer Shader";
+            }
+            if(ImGui::TreeNode(name.c_str())) {
                 ImGui::Checkbox("Visible", &visible);
                 ImGui::ColorEdit4("Color", data.color.data());
                 ImGui::ColorEdit4("Wireframe Color", data.wireframe_color.data());
