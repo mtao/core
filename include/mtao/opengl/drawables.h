@@ -55,6 +55,7 @@ namespace mtao::opengl {
             void activate_triangles(const std::optional<GL::MeshPrimitive>& p = GL::MeshPrimitive::Triangles) {
                 triangle_primitive = p;
             }
+            ShaderData<ShaderType>&  data() { return _data; } 
 
         private:
             bool visible = true;
@@ -62,7 +63,7 @@ namespace mtao::opengl {
             std::optional<GL::MeshPrimitive> edge_primitive;// = GL::MeshPrimitive::Lines;
             MeshType& _mesh;
             ShaderType& _shader;
-            ShaderData<ShaderType> data;
+            ShaderData<ShaderType> _data;
 
             void set_matrices(const TransMat& transformationMatrix, Camera& camera)  {
                 _shader.setTransformationProjectionMatrix(camera.projectionMatrix()*transformationMatrix);

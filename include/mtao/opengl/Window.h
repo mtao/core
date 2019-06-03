@@ -54,7 +54,7 @@ class Window2: public WindowBase {
         virtual void mouseScrollEvent(MouseScrollEvent& event) override;
 
 
-        Vector2 localPosition(const Vector2i& position) const;
+        Magnum::Vector2 localPosition(const Vector2i& position) const;
         Object2D& root() { return _root; }
         Object2D& scene() { return _scene; }
         Magnum::SceneGraph::Camera2D& camera() { return _camera; }

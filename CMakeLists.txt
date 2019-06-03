@@ -231,6 +231,7 @@ TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl mtao_co
     Magnum::Magnum
     Magnum::Shaders
     Magnum::SceneGraph
+    Magnum::MeshTools
     Magnum::GlfwApplication
     MagnumIntegration::ImGui
     )
