@@ -23,6 +23,10 @@ namespace mtao::opengl::objects {
                 void setColorBuffer(const Eigen::PlainObjectBase<Derived>& V) {
                     color_buffer.setData(Containers::ArrayView<const float>{V.data(),size_t(V.size())});
                 }
+            template <typename Derived>
+                void setNormalBuffer(const Eigen::PlainObjectBase<Derived>& V) {
+                    normal_buffer.setData(Containers::ArrayView<const float>{V.data(),size_t(V.size())});
+                }
 
 
             Magnum::GL::Buffer vertex_buffer, edge_index_buffer, triangle_index_buffer, normal_buffer, vfield_buffer, color_buffer;
