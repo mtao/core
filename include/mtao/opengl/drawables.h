@@ -57,6 +57,8 @@ namespace mtao::opengl {
             }
             ShaderData<ShaderType>&  data() { return _data; } 
 
+            void set_visibility(bool val) { visible = val; }
+
         private:
             bool visible = true;
             std::optional<GL::MeshPrimitive> triangle_primitive = GL::MeshPrimitive::Triangles;
