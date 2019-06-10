@@ -2,6 +2,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.8)
 PROJECT(MtaoCore)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
+
 SET(CMAKE_RUNTIME_OUTPUT_DIR ${PROJECT_BINARY_DIR}/bin)
 SET(CMAKE_LIBRARY_OUTPUT_DIR ${PROJECT_BINARY_DIR}/lib)
 SET(CMAKE_ARCHIVE_OUTPUT_DIR ${PROJECT_BINARY_DIR}/lib)
@@ -63,7 +64,16 @@ IF(${USE_IMGUI_IMPL})
     ADD_DEFINITIONS(-DUSE_IMGUI_IMPL)
     ADD_DEFINITIONS(-DIMGUI_IMPL_OPENGL_LOADER_GLEW)
 ENDIF(${USE_IMGUI_IMPL})
-FIND_PACKAGE(OpenGL REQUIRED)
+
+FIND_PACKAGE(OpenGL )
+find_package(Corrade )
+find_package(Magnum GL Shaders GlxContext GlfwApplication SceneGraph MeshTools)
+find_package(MagnumIntegration ImGui)
+IF((NOT DEFINED OpenGL_FOUND) OR (NOT DEFINED Corrade_FOUND) OR (NOT DEFINED Magnum_FOUND) OR (NOT DEFINED MagnumIntegration_FOUND))
+    SET(USE_OPENGL OFF)
+ENDIF((NOT DEFINED OpenGL_FOUND) OR (NOT DEFINED Corrade_FOUND) OR (NOT DEFINED Magnum_FOUND) OR (NOT DEFINED MagnumIntegration_FOUND))
+
+
 FIND_PACKAGE(png++)
 IF(png++_FOUND)
     ADD_DEFINITIONS(-DMTAO_HAS_LIBPNGPP)
@@ -88,6 +98,9 @@ ADD_EXECUTABLE(imgui_demo
     ${IMGUI_PATH}/examples/example_glfw_opengl3/main.cpp
     )
 
+TARGET_LINK_LIBRARIES(imgui_demo ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} ${OPENGL_LOADER_LIBRARIES})
+TARGET_INCLUDE_DIRECTORIES(imgui_demo PRIVATE ${IMGUI_PATH}/examples)
+
 ENDIF(${USE_OPENGL})
 
 IF(${USE_ELTOPO})
@@ -111,14 +124,19 @@ FIND_PACKAGE(OpenMP)
 
 
 
+SET(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui)
+
+
+
+
+
+
 
 
 FIND_PACKAGE(Eigen3 3.3.3 REQUIRED)
 INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIR})
 
 
-TARGET_LINK_LIBRARIES(imgui_demo ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} ${OPENGL_LOADER_LIBRARIES})
-TARGET_INCLUDE_DIRECTORIES(imgui_demo PRIVATE ${IMGUI_PATH}/examples)
 
 SET(COMMON_HEADERS
     include/mtao/compat.h
@@ -196,28 +214,40 @@ ADD_LIBRARY(mtao_opengl
     include/mtao/opengl/shaders.h
     include/mtao/opengl/camera.hpp
 
+    src/opengl/objects/mesh.cpp
+    src/opengl/shaders.cpp
+    src/opengl/drawables.cpp
     #Renderers
-    src/opengl/renderers/renderer.cpp
-    include/mtao/opengl/renderers/renderer.h
-    src/opengl/renderers/mesh.cpp
-    include/mtao/opengl/renderers/mesh.h
-    src/opengl/renderers/bbox.cpp
-    include/mtao/opengl/renderers/bbox.h
-    src/opengl/renderers/axis.cpp
-    include/mtao/opengl/renderers/axis.h
-    src/opengl/renderers/tube.cpp
-    include/mtao/opengl/renderers/tube.h
+    #src/opengl/renderers/renderer.cpp
+    #include/mtao/opengl/renderers/renderer.h
+    #src/opengl/renderers/mesh.cpp
+    #include/mtao/opengl/renderers/mesh.h
+    #src/opengl/renderers/bbox.cpp
+    #include/mtao/opengl/renderers/bbox.h
+    #src/opengl/renderers/axis.cpp
+    #include/mtao/opengl/renderers/axis.h
+    #src/opengl/renderers/tube.cpp
+    #include/mtao/opengl/renderers/tube.h
 
     #Shaders
-    src/opengl/shaders/phong.cpp
-    src/opengl/shaders/baryedge.cpp
-    src/opengl/shaders/simple.cpp
-    src/opengl/shaders/vectors.cpp
-    src/opengl/shaders/tube.cpp
+    #src/opengl/shaders/phong.cpp
+    #src/opengl/shaders/baryedge.cpp
+    #src/opengl/shaders/simple.cpp
+    #src/opengl/shaders/vectors.cpp
+    #src/opengl/shaders/tube.cpp
     )
 
 
-TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl mtao_core ${png++_LIBRARIES} ${OPENGL_LOADER_LIBRARIES})
+TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl mtao_core ${png++_LIBRARIES} ${OPENGL_LOADER_LIBRARIES}
+    Magnum::GL
+    Magnum::GLContext
+    Magnum::Magnum
+    Magnum::Shaders
+    Magnum::SceneGraph
+    Magnum::MeshTools
+    Magnum::GlfwApplication
+    MagnumIntegration::ImGui
+    )
 ENDIF(${USE_OPENGL})
 
 
@@ -249,7 +279,9 @@ TARGET_LINK_LIBRARIES(mtao_geometry eltopo)
 ENDIF(USE_ELTOPO)
 IF(OpenMP_CXX_FOUND)
     TARGET_LINK_LIBRARIES(mtao_geometry OpenMP::OpenMP_CXX)
+IF(${USE_OPENGL})
     TARGET_LINK_LIBRARIES(mtao_opengl OpenMP::OpenMP_CXX)
+ENDIF(${USE_OPENGL})
 ENDIF(OpenMP_CXX_FOUND)
 
 

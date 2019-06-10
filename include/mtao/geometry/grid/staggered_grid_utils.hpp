@@ -96,9 +96,9 @@ namespace mtao {
                 template <typename SizeType, size_t...N>
                     auto partial_sum_per_size(std::integer_sequence<size_t,N...>, const SizeType& sizes) {
                         auto sum = [](auto&& sizes) {
-                            using T = types::remove_cvref_t<decltype(sizes)>;
+                            using T = std::decay_t<decltype(sizes)>;
                             constexpr size_t s = std::tuple_size<T>()+1;
-                            std::array<int,s> m;
+                            std::array<int,s> m{{}};
                             m[0] = 0;
                             std::partial_sum(sizes.begin(),sizes.end(),m.begin()+1);
                             return m;

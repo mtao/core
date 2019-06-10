@@ -1,19 +1,27 @@
 #include "mtao/opengl/Window.h"
+#include "mtao/geometry/volume.h"
 #include <iostream>
 #include "imgui.h"
-#include "mtao/opengl/shader.h"
-#include "mtao/opengl/vao.h"
-#include "mtao/opengl/bo.h"
-#include "mtao/geometry/volume.h"
 #include <memory>
 #include <algorithm>
+#include "mtao/geometry/mesh/boundary_facets.h"
+#include "mtao/geometry/mesh/read_obj.hpp"
+#include "mtao/geometry/bounding_box.hpp"
+#include "mtao/opengl/drawables.h"
+#include <mtao/types.h>
+#include <Corrade/Containers/Array.h>
+#include <Corrade/Containers/ArrayView.h>
 
-#include <mtao/cmdline_parser.hpp>
+#include <Magnum/Shaders/VertexColor.h>
+#include <Magnum/Shaders/Phong.h>
+#include <Corrade/Utility/Arguments.h>
+#include "mtao/opengl/objects/mesh.h"
+
+#include <glm/gtc/matrix_transform.hpp> 
+
 #include <glm/gtc/matrix_transform.hpp> 
 #include <glm/gtc/type_ptr.hpp> 
-#include "mtao/opengl/renderers/mesh.h"
 #include <mtao/type_utils.h>
-#include "mtao/opengl/camera.hpp"
 #include <mtao/geometry/mesh/triangle/triangle_wrapper.h>
 #include <set>
 #include <iterator>
@@ -28,9 +36,6 @@ using namespace mtao::logging;
 
 
 
-glm::mat4 mvp_it;
-float rotation_angle;
-glm::vec3 edge_color;
 static char filename[128] = "output.simobj";
 
 static char opt_cstr[128] = "zPa.01qepcDQ";
@@ -40,10 +45,7 @@ static triangle_opts tri_opts;
 static std::string_view filename_view(filename,mtao::types::container_size(filename));
 static std::string_view opt_view(opt_cstr,mtao::types::container_size(opt_cstr));
 
-std::unique_ptr<renderers::MeshRenderer> renderer;
-std::unique_ptr<renderers::MeshRenderer> voronoi_renderer;
 
-std::unique_ptr<Window> window;
 int square_side = 10;
 int square_aspect = 4;
 int circle_side = 20;
@@ -53,7 +55,6 @@ float min_edge_length = std::numeric_limits<REAL>::max();
 static bool show_delauney_failures = false;
 
 
-Camera2D cam;
 
 Mesh original;
 std::optional<Mesh> triangulated;
@@ -108,20 +109,6 @@ const Mesh& active_mesh() {
         return original;
     }
 }
-void set_mvp(int w, int h) {
-    cam.set_shape(w,h);
-    auto&& m = cam.m();
-    m = glm::mat4();
-    m = glm::rotate(m,(float) rotation_angle,glm::vec3(0,0,1));
-
-    //cam.v() = glm::lookAt(glm::vec3(1,0,0), glm::vec3(0,0,0), glm::vec3(0,1,0));
-
-    cam.pan();
-    cam.update();
-
-    mvp_it = glm::transpose(glm::inverse(cam.mvp()));
-
-}
 
 void reset_state() {
 
@@ -146,74 +133,18 @@ void marker_warning() {
 
 
 
-void prepare_mesh() {
-    auto& m = active_mesh();
-    if(m.F.cols() > 0) {
-        renderer->setMesh(m.V.cast<float>(),m.F.cast<unsigned int>(),false);
-    } else {
-        renderer->setVertices(m.V.cast<float>(),false);
-    }
-    auto&& C = *m.C;
-    voronoi_renderer->setVertices(C.cast<float>());
-
-    { auto t = mtao::logging::timer("Checking delauney");
-    auto del = m.verify_delauney();
-    int size = del.rows() - del.count();
-    if(size > 0) {
-        mtao::ColVectors<REAL,2> C2(2,size);
-        int c2 = 0;
-        for(int i = 0; i < del.size(); ++i) {
-            if(!del(i)) {
-                C2.col(c2++) = C.col(i);
-            }
-        }
-        voronoi_renderer->setVertices(C2.cast<float>());
-    }
-    }
-
-
-    auto&& E = m.E;
-    auto&& EA = m.EA;
-    if(active_edge_marker == -1) {
-        renderer->setEdges(m.E.cast<unsigned int>());
-    } else {
-        int size = (EA.array() == active_edge_marker).count();
-        if(size == 0) {
-            marker_warning();
-        } else {
-
-            mtao::ColVectors<int,2> E2(2,size);
-            int idx = 0;
-            for(int i = 0; i <  EA.rows(); ++i) {
-                if(EA(i) == active_edge_marker) {
-                    E2.col(idx++) = E.col(i);
-                }
-            }
-            renderer->setEdges(E2.cast<unsigned int>());
-        }
-    }
-}
 
 
 
 ImVec4 clear_color = ImColor(114, 144, 154);
 
 void gui_func() {
-    float look_min=0.0001f, look_max=100.0f;
-
-    ImGui::SliderFloat("angle", &rotation_angle,0,M_PI,"%.3f");
-    auto&& io = ImGui::GetIO();
-
-
-    renderer->imgui_interface();
 
 
 
-    int newidx = active_edge_marker;
-    ImGui::InputInt("Edge marker", &newidx);
-    if(newidx != active_edge_marker) {
-        active_edge_marker = newidx;
-        prepare_mesh();
+
+
+    if(ImGui::InputInt("Edge marker", &active_edge_marker)) {
     }
 
     ImGui::InputInt("Square side",&square_side);
@@ -221,11 +152,13 @@ void gui_func() {
     ImGui::InputInt("Circle side",&circle_side);
     std::string oldopts = std::string(opt_view);
     ImGui::InputText("Triangle options",opt_cstr,128);
+    /*
     if(oldopts != opt_view) {
         tri_opts.parse_options(opt_view);
     }
+    */
 
-    {
+    if(false) {
         static bool show = true;
         ImGui::Begin("Triangle opts",&show); 
         tri_opts.imgui_interface();
@@ -240,13 +173,13 @@ void gui_func() {
         if(!triangulated) {
             triangulated_active = false;
         }
-        prepare_mesh();
     }
 
     ImGui::InputText("Filename",filename,128);
     if(ImGui::Button("Save")) {
         write(filename);
     }
+    /*
     ImGui::Checkbox("Show Delauney Failures", &show_delauney_failures);
         if(show_delauney_failures) {
         voronoi_renderer->set_vertex_style(renderers::MeshRenderer::VertexStyle::Flat);
@@ -258,20 +191,16 @@ void gui_func() {
     } else {
         voronoi_renderer->set_vertex_style(renderers::MeshRenderer::VertexStyle::Disabled);
     }
+    */
 
 
     ImGui::ColorEdit3("clear color", (float*)&clear_color);
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
-    glm::vec2 mouse_pos;
-    mtao::Vector3<float> p;
-    p.setZero();
-    mouse_pos = cam.mouse_pos(ImGui::GetIO().MousePos);
-    p.x() = mouse_pos.x;
-    p.y() = mouse_pos.y;
 
 }
 
+/*
 void render(int width, int height) {
     // Rendering
     glViewport(0, 0, width, height);
@@ -297,11 +226,15 @@ void render(int width, int height) {
     mtao::logging::trace() << "Mouse coordinate: " << p.x << "," << p.y;
 
 }
+*/
 
 
 void triangulate() {
 
     debug() << "Triangulating!";
+    std::cout << "Triangle opts: " << std::string(opt_cstr) << std::endl;
+    tri_opts.parse_options(opt_view);
+    std::cout << "Triangle opts: " << std::string(tri_opts) << std::endl;
     triangulated = triangle_wrapper(original, tri_opts);
     debug() << bool(triangulated);
     auto&& m = *triangulated;
@@ -339,94 +272,159 @@ void set_original(int idx) {
         case 2: original = make_box(square_side,square_aspect); break;
         case 3: original = make_circle(circle_side); break;
     }
-    prepare_mesh();
 }
 
-void set_keys() {
-    auto&& h= window->hotkeys();
 
-    h.add([&](){set_original(0);},"Use box circle", GLFW_KEY_1);
-    h.add([&](){set_original(1);},"Use box circle", GLFW_KEY_2);
-    h.add([&](){set_original(2);},"Use box", GLFW_KEY_3);
-    h.add([&](){set_original(3);},"Use circle", GLFW_KEY_4);
-    h.add([&]() {
-            triangulate();
-            triangulated_active = true;
-            prepare_mesh();
-            },"Triangulate", GLFW_KEY_T);
-    h.add([&]() {
-            triangulated_active ^= true;
-            if(!triangulated) {
-                triangulated_active = false;
+
+class MeshViewer: public mtao::opengl::Window2 {
+    public:
+
+    MeshViewer(const Arguments& args): Window2(args) {
+    std::cout << "Triangle opts: " << std::string(opt_cstr) << std::endl;
+        Corrade::Utility::Arguments myargs;
+        myargs//.addArgument("filename")
+            .addBooleanOption("writeall")
+            //.addOption("tri_opts",std::string(opt_view))
+            .parse(args.argc,args.argv);
+
+        if(myargs.isSet("writeall")) {
+            debug() << "Writing all files!";
+            {
+                original = make_box_circle(square_aspect,square_side,circle_side); 
+                triangulate();
+                write("box_circle.obj");
             }
-            prepare_mesh();
-            },"Toggle Triangulation", GLFW_KEY_SPACE);
-
-}
-
-void print_hotkeys() {
-    std::cout << window->hotkeys().info() << std::endl;
-}
-
-int main(int argc, char * argv[]) {
-    tri_opts.parse_options(opt_view);
-
-    mtao::CommandLineParser clp;
-    clp.add_option("writeall");
-    clp.add_option("tri_opts",std::string(opt_view));
-    clp.parse(argc,argv);
-
-    if(clp.optT<bool>("writeall")) {
-        debug() << "Writing all files!";
-        {
-            original = make_box_circle(square_aspect,square_side,circle_side); 
-            triangulate();
-            write("box_circle.obj");
+            {
+                original = make_circle_circle(circle_side);
+                triangulate();
+                write("circle_circle.obj");
+            }
+            {
+                original = make_box(square_side,square_aspect);
+                triangulate();
+                write("box.obj");
+            }
+            {
+                original = make_circle(circle_side);
+                triangulate();
+                write("circle.obj");
+            }
+            exit(0);
+            return;
         }
-        {
-            original = make_circle_circle(circle_side);
-            triangulate();
-            write("circle_circle.obj");
-        }
-        {
-            original = make_box(square_side,square_aspect);
-            triangulate();
-            write("box.obj");
-        }
-        {
-            original = make_circle(circle_side);
-            triangulate();
-            write("circle.obj");
-        }
-
-        return 0;
-    } else {
-        active_loggers["default"].set_level(Level::Debug);
-        debug() << "Should show window!";
-        set_opengl_version_hints();
-
-        window = std::make_unique<Window>();
-        window->set_gui_func(gui_func);
-        window->set_render_func(render);
-        window->makeCurrent();
-        set_keys();
-
-
-
-        renderer = std::make_unique<renderers::MeshRenderer>(2);
-        voronoi_renderer = std::make_unique<renderers::MeshRenderer>(2);
-        renderer->unset_all();
-        voronoi_renderer->unset_all();
-        renderer->set_edge_style(renderers::MeshRenderer::EdgeStyle::Mesh);
-        //renderer->set_vertex_style(renderers::MeshRenderer::VertexStyle::Flat);
-        voronoi_renderer->set_vertex_style(renderers::MeshRenderer::VertexStyle::Flat);
+        //if(myargs.isSet("tri_opts")) {
+        //    std::cout << myargs.value("tri_opts") << std::endl;
+        //}
         original = make_box_circle(square_aspect,square_side,circle_side);
-        voronoi_renderer->vertex_color() = glm::vec4(1,0,0,1);
 
-        window->run();
+        set_keys();
+        prepare_mesh();
 
-        exit(EXIT_SUCCESS);
+
+
+    std::cout << "Triangle opts: " << std::string(opt_cstr) << std::endl;
+        drawable = new mtao::opengl::Drawable<Magnum::Shaders::Flat2D>{mesh,flat_shader, drawables()};
+        mesh.setParent(&root());
+
+        drawable->activate_triangles({});
+        drawable->activate_edges();
+    std::cout << "Triangle opts: " << std::string(opt_cstr)  << ":" << std::string(opt_view)<< std::endl;
     }
-}
+    void gui() override {
+        gui_func();
+        if(drawable) {
+            drawable->gui();
+        }
+    }
+    void draw() override {
+        Window2::draw();
+    }
+    void keyPressEvent(KeyEvent& event) override {
+
+        hotkeys.press(int(event.key()));
+    }
+    private:
+
+    mtao::HotkeyManager hotkeys;
+    Magnum::Shaders::Flat2D flat_shader;
+    mtao::opengl::objects::Mesh<2> mesh;
+    mtao::opengl::Drawable<Magnum::Shaders::Flat2D>* drawable = nullptr;
+
+    void prepare_mesh() {
+        auto& m = active_mesh();
+        if(m.F.cols() > 0) {
+            mesh.setTriangleBuffer(m.V.cast<float>(),m.F.cast<unsigned int>());
+        } else {
+            mesh.setVertexBuffer(m.V.cast<float>().eval());
+        }
+        auto&& C = *m.C;
+        //voronoi_renderer->setVertices(C.cast<float>());
+
+        { auto t = mtao::logging::timer("Checking delauney");
+            auto del = m.verify_delauney();
+            int size = del.rows() - del.count();
+            if(size > 0) {
+                mtao::ColVectors<REAL,2> C2(2,size);
+                int c2 = 0;
+                for(int i = 0; i < del.size(); ++i) {
+                    if(!del(i)) {
+                        C2.col(c2++) = C.col(i);
+                    }
+                }
+                //voronoi_renderer->setVertices(C2.cast<float>());
+            }
+        }
+
+
+        auto&& E = m.E;
+        auto&& EA = m.EA;
+        if(active_edge_marker == -1) {
+            mesh.setEdgeBuffer(m.E.cast<unsigned int>());
+        } else {
+            int size = (EA.array() == active_edge_marker).count();
+            if(size == 0) {
+                marker_warning();
+            } else {
+
+                mtao::ColVectors<int,2> E2(2,size);
+                int idx = 0;
+                for(int i = 0; i <  EA.rows(); ++i) {
+                    if(EA(i) == active_edge_marker) {
+                        E2.col(idx++) = E.col(i);
+                    }
+                }
+                mesh.setEdgeBuffer(E2.cast<unsigned int>());
+            }
+        }
+    }
+    void set_keys() {
+        auto&& h= hotkeys;
+
+        h.add([&](){set_original(0);},"Use box circle", GLFW_KEY_1);
+        h.add([&](){set_original(1);},"Use box circle", GLFW_KEY_2);
+        h.add([&](){set_original(2);},"Use box", GLFW_KEY_3);
+        h.add([&](){set_original(3);},"Use circle", GLFW_KEY_4);
+        h.add([&]() {
+                triangulate();
+                triangulated_active = true;
+                prepare_mesh();
+                std::cout << "Triangulating!" << std::endl;
+                },"Triangulate", GLFW_KEY_T);
+        h.add([&]() {
+                triangulated_active ^= true;
+                if(!triangulated) {
+                triangulated_active = false;
+                }
+                prepare_mesh();
+                },"Toggle Triangulation", GLFW_KEY_SPACE);
+
+    }
+
+};
+
+
+
+
+MAGNUM_APPLICATION_MAIN(MeshViewer)
 
 

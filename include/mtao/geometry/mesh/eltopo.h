@@ -6,7 +6,10 @@
 
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wint-in-bool-context"
 #include <Eigen/Dense>
+#pragma GCC diagnostic pop
 #include <memory>
 
 class SurfTrack;

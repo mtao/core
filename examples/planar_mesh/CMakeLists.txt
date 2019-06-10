@@ -8,4 +8,5 @@ ADD_EXECUTABLE(planar_mesh
     include/example_boundaries.h
     )
 
-TARGET_LINK_LIBRARIES(planar_mesh mtao_opengl mtao_geometry)
+ADD_DEFINITIONS(-g)
+TARGET_LINK_LIBRARIES(planar_mesh mtao_opengl mtao_geometry Magnum::MeshTools)
