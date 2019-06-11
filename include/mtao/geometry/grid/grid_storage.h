@@ -49,6 +49,7 @@ namespace mtao {
                                 m_data = other.m_data;
                                 other.m_data = nullptr;
                                 other.m_size = 0;
+                                return *this;
                             }
 
 
