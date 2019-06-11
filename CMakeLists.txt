@@ -16,10 +16,10 @@ ADD_DEFINITIONS(-Wall)
 #ADD_DEFINITIONS(-Wno-unused-variable)
 
 
-OPTION(USE_ELTOPO "Should we build the el topo submodule" ON)
-OPTION(USE_OPENGL "Build opengl stuff" ON)
+OPTION(USE_ELTOPO "Should we build the el topo submodule" OFF)
+OPTION(USE_OPENGL "Build opengl stuff" OFF)
 
-OPTION(USE_IMGUI_IMPL "Should the OpenGL Window use the imgui example impl or not" ON)
+OPTION(USE_IMGUI_IMPL "Should the OpenGL Window use the imgui example impl or not" OFF)
 set(OPENGL_LOADER "GLEW" CACHE STRING "Let us select which OpenGL loader to use")
 
 
