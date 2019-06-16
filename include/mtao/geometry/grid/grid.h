@@ -76,6 +76,26 @@ namespace mtao {
                         Grid(Grid&& other) = default;
                         Grid& operator=(const Grid& other) = default;
                         Grid& operator=(Grid&& other) = default;
+
+                    private:
+                        template <bool UseVertexGrid__>
+                        static coord_type cast_change_grid(const coord_type& c) {
+                            if(UseVertexGrid__ == UseVertexGrid) {
+                                return c;
+                            } else if(UseVertexGrid) {
+                                coord_type r = c;
+                                for(auto&& v: r) { v++; }
+                                return r;
+                            } else {
+                                coord_type r = c;
+                                for(auto&& v: r) { v--; }
+                                return r;
+                            }
+                        }
+                    public:
+                        template <typename U, typename Idxr, bool UseVertexGrid__>
+                        Grid(const Grid<U,Idxr,UseVertexGrid__>& o): Grid(cast_change_grid<UseVertexGrid__>(o.shape()), o.dx().template cast<T>(), o.origin().template cast<T>()) {}
+
                         void resize(const coord_type& idx) {
                             Indexer::resize(idx);
                         }
