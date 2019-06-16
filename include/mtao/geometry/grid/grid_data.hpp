@@ -129,6 +129,11 @@ namespace mtao {
                                     f(v,(*this)(v));
                                     });
                         }
+                        void loop_parallel(const std::function<void(const coord_type&, const Scalar&)>& f) const {
+                            utils::multi_loop_parallel(shape(),[&](auto&& v) {
+                                    f(v,(*this)(v));
+                                    });
+                        }
                         //write using index and current value
                         void loop_write(const std::function<Scalar(const coord_type&, const Scalar&)>& f) {
                             utils::multi_loop(shape(),[&](auto&& v) {
@@ -136,9 +141,20 @@ namespace mtao {
                                     p = f(v,p);
                                     });
                         }
+                        void loop_write_parallel(const std::function<Scalar(const coord_type&, const Scalar&)>& f) {
+                            utils::multi_loop_parallel(shape(),[&](auto&& v) {
+                                    auto&& p = (*this)(v);
+                                    p = f(v,p);
+                                    });
+                        }
                         //write using only index
                         void loop_write_idx(const std::function<Scalar(const coord_type&)>& f) {
                             utils::multi_loop(shape(),[&](auto&& v) {
+                                    (*this)(v) = f(v);
+                                    });
+                        }
+                        void loop_write_idx_parallel(const std::function<Scalar(const coord_type&)>& f) {
+                            utils::multi_loop_parallel(shape(),[&](auto&& v) {
                                     (*this)(v) = f(v);
                                     });
                         }

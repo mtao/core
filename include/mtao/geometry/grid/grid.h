@@ -106,9 +106,13 @@ namespace mtao {
                                 utils::multi_loop(shape(),f);
                             }
 
+                        template <typename Func>
+                            void loop_parallel(Func&& f) const {
+                                utils::multi_loop_parallel(shape(),f);
+                            }
                         ColVecs vertices() const {
                             ColVecs V(D,size());
-                            loop([&](auto&& a) {
+                            loop_parallel([&](auto&& a) {
                                     V.col(this->index(a)) = vertex(a);
                                     });
                             return V;
