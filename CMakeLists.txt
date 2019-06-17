@@ -16,9 +16,10 @@ ADD_DEFINITIONS(-Wall)
 #ADD_DEFINITIONS(-Wno-unused-variable)
 
 
-OPTION(USE_ELTOPO "Should we build the el topo submodule" ON)
+OPTION(USE_ELTOPO "Should we build the el topo submodule" OFF)
+OPTION(USE_OPENGL "Build opengl stuff" OFF)
 
-OPTION(USE_IMGUI_IMPL "Should the OpenGL Window use the imgui example impl or not" ON)
+OPTION(USE_IMGUI_IMPL "Should the OpenGL Window use the imgui example impl or not" OFF)
 set(OPENGL_LOADER "GLEW" CACHE STRING "Let us select which OpenGL loader to use")
 
 
@@ -42,6 +43,9 @@ SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/extern/triangle)
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/extern/triangle)
 
+
+IF(${USE_OPENGL})
+    ADD_DEFINITIONS(-DMTAO_USE_OPENGL)
 SET(IMGUI_PATH ${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui)
 INCLUDE_DIRECTORIES(${IMGUI_PATH})
 
@@ -61,6 +65,44 @@ IF(${USE_IMGUI_IMPL})
     ADD_DEFINITIONS(-DUSE_IMGUI_IMPL)
     ADD_DEFINITIONS(-DIMGUI_IMPL_OPENGL_LOADER_GLEW)
 ENDIF(${USE_IMGUI_IMPL})
+
+FIND_PACKAGE(OpenGL )
+find_package(Corrade )
+find_package(Magnum COMPONENTS GL Shaders GlxContext GlfwApplication SceneGraph MeshTools)
+find_package(MagnumIntegration COMPONENTS ImGui)
+IF((NOT DEFINED OpenGL_FOUND) OR (NOT DEFINED Corrade_FOUND) OR (NOT DEFINED Magnum_FOUND) OR (NOT DEFINED MagnumIntegration_FOUND))
+    SET(USE_OPENGL OFF)
+ENDIF((NOT DEFINED OpenGL_FOUND) OR (NOT DEFINED Corrade_FOUND) OR (NOT DEFINED Magnum_FOUND) OR (NOT DEFINED MagnumIntegration_FOUND))
+
+
+FIND_PACKAGE(png++)
+IF(png++_FOUND)
+    ADD_DEFINITIONS(-DMTAO_HAS_LIBPNGPP)
+    include_directories(${png++_INCLUDE_DIRS})
+ENDIF(png++_FOUND)
+if(OPENGL_FOUND)
+    LINK_DIRECTORIES(${OPENGL_LIBRARY_DIRS})
+    INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
+endif(OPENGL_FOUND)
+
+FIND_PACKAGE(PkgConfig REQUIRED)
+PKG_SEARCH_MODULE(GLFW REQUIRED glfw3)
+include_directories(${GLFW_INCLUDE_DIRS})
+
+PKG_SEARCH_MODULE(GLM REQUIRED glm)
+include_directories(${GLM_INCLUDE_DIRS})
+
+ADD_EXECUTABLE(imgui_demo
+    ${IMGUI_SOURCES}
+    ${IMGUI_IMPL_SOURCES}
+    ${IMGUI_PATH}/imgui_demo.cpp
+    ${IMGUI_PATH}/examples/example_glfw_opengl3/main.cpp
+    )
+
+TARGET_LINK_LIBRARIES(imgui_demo ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} ${OPENGL_LOADER_LIBRARIES})
+TARGET_INCLUDE_DIRECTORIES(imgui_demo PRIVATE ${IMGUI_PATH}/examples)
+
+ENDIF(${USE_OPENGL})
 
 IF(${USE_ELTOPO})
     ADD_SUBDIRECTORY(extern/eltopo)
@@ -86,45 +128,16 @@ FIND_PACKAGE(OpenMP)
 SET(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui)
 
 
-FIND_PACKAGE(OpenGL REQUIRED)
-FIND_PACKAGE(glfw3 REQUIRED)
 
 
-FIND_PACKAGE(PkgConfig REQUIRED)
-PKG_SEARCH_MODULE(GLFW REQUIRED glfw3)
-include_directories(${GLFW_INCLUDE_DIRS})
 
 
-find_package(Corrade REQUIRED)
-find_package(Magnum REQUIRED GL Shaders GlxContext GlfwApplication SceneGraph MeshTools)
-find_package(MagnumIntegration REQUIRED ImGui)
 
-FIND_PACKAGE(png++)
-IF(png++_FOUND)
-    ADD_DEFINITIONS(-DMTAO_HAS_LIBPNGPP)
-    include_directories(${png++_INCLUDE_DIRS})
-ENDIF(png++_FOUND)
-if(OPENGL_FOUND)
-    LINK_DIRECTORIES(${OPENGL_LIBRARY_DIRS})
-    INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
-endif(OPENGL_FOUND)
-
-
-PKG_SEARCH_MODULE(GLM REQUIRED glm)
-include_directories(${GLM_INCLUDE_DIRS})
 
 FIND_PACKAGE(Eigen3 3.3.3 REQUIRED)
 INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIR})
 
 
-ADD_EXECUTABLE(imgui_demo
-    ${IMGUI_SOURCES}
-    ${IMGUI_IMPL_SOURCES}
-    ${IMGUI_PATH}/imgui_demo.cpp
-    ${IMGUI_PATH}/examples/example_glfw_opengl3/main.cpp
-    )
-TARGET_LINK_LIBRARIES(imgui_demo ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} ${OPENGL_LOADER_LIBRARIES})
-TARGET_INCLUDE_DIRECTORIES(imgui_demo PRIVATE ${IMGUI_PATH}/examples)
 
 SET(COMMON_HEADERS
     include/mtao/compat.h
@@ -177,6 +190,7 @@ ADD_LIBRARY(mtao_core
     )
 
 
+IF(${USE_OPENGL})
 ADD_LIBRARY(mtao_opengl 
     ${COMMON_HEADERS}
     ${IMGUI_SOURCES}
@@ -235,6 +249,7 @@ TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl mtao_co
     Magnum::GlfwApplication
     MagnumIntegration::ImGui
     )
+ENDIF(${USE_OPENGL})
 
 
 ADD_DEFINITIONS(-O2)
@@ -265,7 +280,9 @@ TARGET_LINK_LIBRARIES(mtao_geometry eltopo)
 ENDIF(USE_ELTOPO)
 IF(OpenMP_CXX_FOUND)
     TARGET_LINK_LIBRARIES(mtao_geometry OpenMP::OpenMP_CXX)
+IF(${USE_OPENGL})
     TARGET_LINK_LIBRARIES(mtao_opengl OpenMP::OpenMP_CXX)
+ENDIF(${USE_OPENGL})
 ENDIF(OpenMP_CXX_FOUND)
 
 

@@ -1,4 +1,5 @@
 #include "mtao/geometry/mesh/triangle/triangle_wrapper.h"
+#ifdef MTAO_USE_OPENGL
 #include <imgui.h>
 #include <sstream>
 namespace mtao::geometry::mesh::triangle {
@@ -68,3 +69,4 @@ namespace mtao::geometry::mesh::triangle {
 
     }
 }
+#endif//MTAO_USE_OPENGL
