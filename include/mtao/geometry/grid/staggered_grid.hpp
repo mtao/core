@@ -57,10 +57,10 @@ namespace mtao {
                         static StaggeredGrid from_bbox(BBox bb, const coord_type& shape, bool cubes = false) {
 
                             Vec mid =(bb.min() + bb.max()) / 2;
-                            auto dx = (bb.sizes().array() / (CIVecMap(shape.data()).template cast<T>().array() + (UseVertexGrid?T(0):T(1)))).eval();
+                            auto dx = (bb.sizes().array() / (CIVecMap(shape.data()).template cast<T>().array() + (UseVertexGrid?T(1):T(0)))).eval();
                             if(cubes) {
                                 dx.setConstant(dx.maxCoeff());
-                                bb.max() = (dx.array() * (CIVecMap(shape.data()).template cast<T>().array()+(UseVertexGrid?T(0):T(1)))).eval() / 2;
+                                bb.max() = (dx.array() * (CIVecMap(shape.data()).template cast<T>().array()+(UseVertexGrid?T(1):T(0)))).eval() / 2;
                                 bb.min() = -bb.max(); 
                                 bb.min() += mid;
                                 bb.max() += mid;
