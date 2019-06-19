@@ -48,6 +48,7 @@ IF(${USE_OPENGL})
     ADD_DEFINITIONS(-DMTAO_USE_OPENGL)
 SET(IMGUI_PATH ${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui)
 INCLUDE_DIRECTORIES(${IMGUI_PATH})
+SET(ImGui_INCLUDE_DIR ${IMGUI_PATH})
 
 SET(IMGUI_IMPL_SOURCES
     ${IMGUI_PATH}/examples/imgui_impl_glfw.cpp
@@ -195,7 +196,8 @@ ADD_LIBRARY(mtao_opengl
     ${COMMON_HEADERS}
     ${IMGUI_SOURCES}
     ${OPENGL_LOADER_SOURCES}
-    src/opengl/imgui_impl.cpp
+    #src/opengl/imgui_impl.cpp
+    #include/mtao/opengl/imgui_impl.h
     src/opengl/Window.cpp
     src/opengl/Monitor.cpp
     src/opengl/bo.cpp
@@ -204,7 +206,6 @@ ADD_LIBRARY(mtao_opengl
     src/opengl/util.cpp
     src/opengl/tex.cpp
     src/opengl/camera.cpp
-    include/mtao/opengl/imgui_impl.h
     include/mtao/opengl/Window.h
     include/mtao/opengl/Monitor.h
     include/mtao/opengl/bo.h
