@@ -43,6 +43,7 @@ namespace mtao::opengl {
     template <>
         void Drawable<Shaders::VertexColor2D>::set_buffers() {
             _mesh.addVertexBuffer(_mesh.vertex_buffer, 0, Shaders::VertexColor2D::Position{});
+            _mesh.addVertexBuffer(_mesh.color_buffer, 0, Shaders::VertexColor2D::Color4{});
         }
 
     template <>
@@ -129,6 +130,7 @@ namespace mtao::opengl {
     template <>
         void Drawable<Shaders::VertexColor3D>::set_buffers() {
             _mesh.addVertexBuffer(_mesh.vertex_buffer, 0, Shaders::VertexColor3D::Position{});
+            _mesh.addVertexBuffer(_mesh.color_buffer, 0, Shaders::VertexColor3D::Color4{});
         }
     template <>
         void Drawable<Shaders::Phong>::set_buffers() {
