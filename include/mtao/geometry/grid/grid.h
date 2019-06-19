@@ -103,9 +103,9 @@ namespace mtao {
 
                         BBox bbox() const {
                             if constexpr(UseVertexGrid) {
-                                return BBox(origin(), vertex(shapeAsIVec() - IVec::Ones()));
-                            } else {
                             return BBox(origin(), vertex(shapeAsIVec()));
+                            } else {
+                                return BBox(origin(), vertex(shapeAsIVec() - IVec::Ones()));
                             }
                         }
 
