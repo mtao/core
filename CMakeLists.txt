@@ -16,10 +16,10 @@ ADD_DEFINITIONS(-Wall)
 #ADD_DEFINITIONS(-Wno-unused-variable)
 
 
-OPTION(USE_ELTOPO "Should we build the el topo submodule" ON)
-OPTION(USE_OPENGL "Build opengl stuff" ON)
+OPTION(USE_ELTOPO "Should we build the el topo submodule" OFF)
+OPTION(USE_OPENGL "Build opengl stuff" OFF)
 
-OPTION(USE_IMGUI_IMPL "Should the OpenGL Window use the imgui example impl or not" ON)
+OPTION(USE_IMGUI_IMPL "Should the OpenGL Window use the imgui example impl or not" OFF)
 set(OPENGL_LOADER "GLEW" CACHE STRING "Let us select which OpenGL loader to use")
 
 
@@ -48,6 +48,7 @@ IF(${USE_OPENGL})
     ADD_DEFINITIONS(-DMTAO_USE_OPENGL)
 SET(IMGUI_PATH ${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui)
 INCLUDE_DIRECTORIES(${IMGUI_PATH})
+SET(ImGui_INCLUDE_DIR ${IMGUI_PATH})
 
 SET(IMGUI_IMPL_SOURCES
     ${IMGUI_PATH}/examples/imgui_impl_glfw.cpp
@@ -68,8 +69,8 @@ ENDIF(${USE_IMGUI_IMPL})
 
 FIND_PACKAGE(OpenGL )
 find_package(Corrade )
-find_package(Magnum GL Shaders GlxContext GlfwApplication SceneGraph MeshTools)
-find_package(MagnumIntegration ImGui)
+find_package(Magnum COMPONENTS GL Shaders GlxContext GlfwApplication SceneGraph MeshTools)
+find_package(MagnumIntegration COMPONENTS ImGui)
 IF((NOT DEFINED OpenGL_FOUND) OR (NOT DEFINED Corrade_FOUND) OR (NOT DEFINED Magnum_FOUND) OR (NOT DEFINED MagnumIntegration_FOUND))
     SET(USE_OPENGL OFF)
 ENDIF((NOT DEFINED OpenGL_FOUND) OR (NOT DEFINED Corrade_FOUND) OR (NOT DEFINED Magnum_FOUND) OR (NOT DEFINED MagnumIntegration_FOUND))
@@ -195,7 +196,8 @@ ADD_LIBRARY(mtao_opengl
     ${COMMON_HEADERS}
     ${IMGUI_SOURCES}
     ${OPENGL_LOADER_SOURCES}
-    src/opengl/imgui_impl.cpp
+    #src/opengl/imgui_impl.cpp
+    #include/mtao/opengl/imgui_impl.h
     src/opengl/Window.cpp
     src/opengl/Monitor.cpp
     src/opengl/bo.cpp
@@ -204,7 +206,6 @@ ADD_LIBRARY(mtao_opengl
     src/opengl/util.cpp
     src/opengl/tex.cpp
     src/opengl/camera.cpp
-    include/mtao/opengl/imgui_impl.h
     include/mtao/opengl/Window.h
     include/mtao/opengl/Monitor.h
     include/mtao/opengl/bo.h

@@ -30,14 +30,14 @@ namespace mtao {
                         GridData(const coord_type& a): Indexer(a), m_storage(indexing::internal::size_from_shape(a)) {
                             init_data();
                         }
-                        template <typename... Args>
+                        template <typename... Args, typename = std::enable_if_t<sizeof...(Args) == D, void>>
                             GridData(Args... args): GridData(coord_type{{static_cast<int>(args)...}}) {
-                                static_assert(sizeof...(args)== D);
                             }
                         GridData() {}
                         GridData(const GridData& other) = default;
-                        //GridData(GridData&& other) = default;
+                        GridData(GridData&& other) = default;
                         GridData& operator=(const GridData& other) = default;
+                        GridData& operator=(GridData&& other) = default;
                         iterator_type begin() { return m_storage.begin(); }
                         iterator_type end() { return m_storage.end(); }
                         const_iterator_type begin() const { return m_storage.begin(); }
@@ -129,6 +129,11 @@ namespace mtao {
                                     f(v,(*this)(v));
                                     });
                         }
+                        void loop_parallel(const std::function<void(const coord_type&, const Scalar&)>& f) const {
+                            utils::multi_loop_parallel(shape(),[&](auto&& v) {
+                                    f(v,(*this)(v));
+                                    });
+                        }
                         //write using index and current value
                         void loop_write(const std::function<Scalar(const coord_type&, const Scalar&)>& f) {
                             utils::multi_loop(shape(),[&](auto&& v) {
@@ -136,9 +141,20 @@ namespace mtao {
                                     p = f(v,p);
                                     });
                         }
+                        void loop_write_parallel(const std::function<Scalar(const coord_type&, const Scalar&)>& f) {
+                            utils::multi_loop_parallel(shape(),[&](auto&& v) {
+                                    auto&& p = (*this)(v);
+                                    p = f(v,p);
+                                    });
+                        }
                         //write using only index
                         void loop_write_idx(const std::function<Scalar(const coord_type&)>& f) {
                             utils::multi_loop(shape(),[&](auto&& v) {
+                                    (*this)(v) = f(v);
+                                    });
+                        }
+                        void loop_write_idx_parallel(const std::function<Scalar(const coord_type&)>& f) {
+                            utils::multi_loop_parallel(shape(),[&](auto&& v) {
                                     (*this)(v) = f(v);
                                     });
                         }

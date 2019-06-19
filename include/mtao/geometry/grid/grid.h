@@ -4,6 +4,7 @@
 //#include "grid_storage.h"
 #include "indexers/ordered_indexer.hpp"
 #include <Eigen/Geometry>
+#include "mtao/eigen/stl2eigen.hpp"
 
 
 namespace mtao {
@@ -76,15 +77,35 @@ namespace mtao {
                         Grid(Grid&& other) = default;
                         Grid& operator=(const Grid& other) = default;
                         Grid& operator=(Grid&& other) = default;
+
+                    private:
+                        template <bool UseVertexGrid__>
+                        static coord_type cast_change_grid(const coord_type& c) {
+                            if(UseVertexGrid__ == UseVertexGrid) {
+                                return c;
+                            } else if(UseVertexGrid) {
+                                coord_type r = c;
+                                //for(auto&& v: r) { v++; }
+                                return r;
+                            } else {
+                                coord_type r = c;
+                                //for(auto&& v: r) { v--; }
+                                return r;
+                            }
+                        }
+                    public:
+                        template <typename U, typename Idxr, bool UseVertexGrid__>
+                        Grid(const Grid<U,Idxr,UseVertexGrid__>& o): Grid(cast_change_grid<UseVertexGrid__>(o.shape()), o.dx().template cast<T>(), o.origin().template cast<T>()) {}
+
                         void resize(const coord_type& idx) {
                             Indexer::resize(idx);
                         }
 
                         BBox bbox() const {
                             if constexpr(UseVertexGrid) {
-                                return BBox(origin(), vertex(shapeAsIVec() - IVec::Ones()));
-                            } else {
                             return BBox(origin(), vertex(shapeAsIVec()));
+                            } else {
+                                return BBox(origin(), vertex(shapeAsIVec() - IVec::Ones()));
                             }
                         }
 
@@ -106,9 +127,13 @@ namespace mtao {
                                 utils::multi_loop(shape(),f);
                             }
 
+                        template <typename Func>
+                            void loop_parallel(Func&& f) const {
+                                utils::multi_loop_parallel(shape(),f);
+                            }
                         ColVecs vertices() const {
                             ColVecs V(D,size());
-                            loop([&](auto&& a) {
+                            loop_parallel([&](auto&& a) {
                                     V.col(this->index(a)) = vertex(a);
                                     });
                             return V;
