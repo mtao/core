@@ -16,6 +16,20 @@ namespace mtao { namespace types {
     template < template <typename...> class Template, typename T >
         constexpr bool is_specialization_of_v = is_specialization_of<Template,T>::value;
 
+
+    namespace internal {
+        template <class T, std::size_t = sizeof(T)>
+            std::true_type is_derived_specialization_impl(T*);
+
+        std::false_type is_derived_specialization_impl(...);
+    }
+
+    template <class T>
+        using is_derived_specialization = decltype(internal::is_derived_specialization_impl(std::declval<T*>()));
+
+    template <class T>
+        bool is_derived_specialization_v = is_derived_specialization<T>::value;
+
     template <typename T>
         std::string getTypeName() {
 
