@@ -8,6 +8,7 @@
 #include <Magnum/SceneGraph/Drawable.h>
 #include <Magnum/SceneGraph/Camera.h>
 #include <Magnum/Shaders/Flat.h>
+#include <Magnum/GL/Buffer.h>
 #include "mtao/opengl/shaders.h"
 
 
@@ -49,6 +50,14 @@ namespace mtao::opengl {
             explicit Drawable(MeshType& mesh, ShaderType& shader, DrawableGroup& group): internal::DrawableType<ShaderType>{mesh, &group},  _mesh(mesh),_shader(shader) {}
             void gui(const std::string& name = "");
 
+            void deactivate() {
+                activate_points({});
+                activate_edges({});
+                activate_triangles({});
+            }
+            void activate_points(const std::optional<GL::MeshPrimitive>& p = GL::MeshPrimitive::Points) {
+                point_primitive = p;
+            }
             void activate_edges(const std::optional<GL::MeshPrimitive>& p = GL::MeshPrimitive::Lines) {
                 edge_primitive = p;
             }
@@ -63,6 +72,7 @@ namespace mtao::opengl {
             bool visible = true;
             std::optional<GL::MeshPrimitive> triangle_primitive = GL::MeshPrimitive::Triangles;
             std::optional<GL::MeshPrimitive> edge_primitive;// = GL::MeshPrimitive::Lines;
+            std::optional<GL::MeshPrimitive> point_primitive;// = GL::MeshPrimitive::Lines;
             MeshType& _mesh;
             ShaderType& _shader;
             ShaderData<ShaderType> _data;
@@ -86,6 +96,13 @@ namespace mtao::opengl {
                     _mesh.setCount(_mesh.edge_Count);
                     _mesh.setIndexBuffer(_mesh.edge_index_buffer,0,_mesh.edge_indexType,_mesh.edge_indexStart,_mesh.edge_indexEnd);
                     _mesh.setPrimitive(*edge_primitive);
+                    _mesh.draw(_shader);
+                }
+                if(point_primitive) {
+                    _mesh.setCount(_mesh.vertex_Count);
+                    //Magnum::GL::Buffer buf(Magnum::NoCreate);
+                    //_mesh.setIndexBuffer(buf,0, Magnum::MeshIndexType{});
+                    _mesh.setPrimitive(*point_primitive);
                     _mesh.draw(_shader);
                 }
             }

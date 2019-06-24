@@ -17,6 +17,7 @@ namespace mtao::opengl::objects {
 
             template <typename Derived>
                 void setVertexBuffer(const Eigen::PlainObjectBase<Derived>& V) {
+                    vertex_Count = V.size();
                     vertex_buffer.setData(Containers::ArrayView<const float>{V.data(),size_t(V.size())});
                 }
             template <typename Derived>
@@ -30,6 +31,7 @@ namespace mtao::opengl::objects {
 
 
             Magnum::GL::Buffer vertex_buffer, edge_index_buffer, triangle_index_buffer, normal_buffer, vfield_buffer, color_buffer;
+            Magnum::Int vertex_Count;
 
             Magnum::UnsignedInt edge_Count;
             Magnum::MeshIndexType edge_indexType;

@@ -58,12 +58,18 @@ class MeshViewer: public mtao::opengl::Window3 {
 
 
         phong_drawable = new mtao::opengl::Drawable<Magnum::Shaders::Phong>{mesh,_shader, drawables()};
+        /*
         mv_drawable = new mtao::opengl::Drawable<Magnum::Shaders::MeshVisualizer>{mesh,_wireframe_shader, drawables()};
 
 
         edge_drawable = new mtao::opengl::Drawable<Magnum::Shaders::Flat3D>{mesh,_flat_shader, drawables()};
-        edge_drawable->activate_triangles({});
+        edge_drawable->deactivate();
         edge_drawable->activate_edges();
+        */
+
+        point_drawable = new mtao::opengl::Drawable<Magnum::Shaders::Flat3D>{mesh,_flat_shader, drawables()};
+        point_drawable->deactivate();
+        point_drawable->activate_points();
         mesh.setParent(&root());
 
     }
@@ -76,7 +82,10 @@ class MeshViewer: public mtao::opengl::Window3 {
             phong_drawable->gui();
         }
         if(edge_drawable) {
-            edge_drawable->gui();
+            edge_drawable->gui("Edge");
+        }
+        if(point_drawable) {
+            point_drawable->gui("Point");
         }
     }
     void draw() override {
@@ -90,6 +99,7 @@ class MeshViewer: public mtao::opengl::Window3 {
     mtao::opengl::Drawable<Magnum::Shaders::Phong>* phong_drawable = nullptr;
     mtao::opengl::Drawable<Magnum::Shaders::MeshVisualizer>* mv_drawable = nullptr;
     mtao::opengl::Drawable<Magnum::Shaders::Flat3D>* edge_drawable = nullptr;
+    mtao::opengl::Drawable<Magnum::Shaders::Flat3D>* point_drawable = nullptr;
 
 
 };
