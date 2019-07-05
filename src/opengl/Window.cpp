@@ -173,14 +173,14 @@ namespace mtao::opengl {
     void Window3::mousePressEvent(MouseEvent& event) {
         WindowBase::mousePressEvent(event);
         if(!ImGui::GetIO().WantCaptureMouse) {
-            if(event.button() == MouseEvent::Button::Left)
+            if(event.button() == MouseEvent::Button::Right)
                 _previousPosition = positionOnSphere(event.position());
         }
     }
 
     void Window3::mouseReleaseEvent(MouseEvent& event) {
         WindowBase::mouseReleaseEvent(event);
-        if(event.button() == MouseEvent::Button::Left)
+        if(event.button() == MouseEvent::Button::Right)
             _previousPosition = Vector3();
     }
 
@@ -203,7 +203,7 @@ namespace mtao::opengl {
 
     void Window3::mouseMoveEvent(MouseMoveEvent& event) {
         WindowBase::mouseMoveEvent(event);
-        if(!(event.buttons() & MouseMoveEvent::Button::Left)) return;
+        if(!(event.buttons() & MouseMoveEvent::Button::Right)) return;
 
         const Vector3 currentPosition = positionOnSphere(event.position());
         const Vector3 axis = Math::cross(_previousPosition, currentPosition);
@@ -237,14 +237,14 @@ namespace mtao::opengl {
     void Window2::mousePressEvent(MouseEvent& event) {
         WindowBase::mousePressEvent(event);
         if(!ImGui::GetIO().WantCaptureMouse) {
-            if(event.button() == MouseEvent::Button::Left)
+            if(event.button() == MouseEvent::Button::Right)
                 _previousPosition = localPosition(event.position());
         }
     }
 
     void Window2::mouseReleaseEvent(MouseEvent& event) {
         WindowBase::mouseReleaseEvent(event);
-        if(event.button() == MouseEvent::Button::Left)
+        if(event.button() == MouseEvent::Button::Right)
             _previousPosition = Vector2();
     }
     Vector2 Window2::localPosition(const Vector2i& position) const {
@@ -258,8 +258,7 @@ namespace mtao::opengl {
             _camera.setProjectionMatrix(Matrix3::projection({20.0f/scale, 20.0f/scale}));
             float my_scale= (event.offset().y() > 0 ? 1/0.85f : 0.85f);
             scale *= my_scale;
-            _cameraObject.scaleLocal({my_scale,my_scale});
-            Utility::Debug{} << _cameraObject.transformation();
+            _root.scaleLocal({my_scale,my_scale});
             redraw();
         }
     }
@@ -267,13 +266,19 @@ namespace mtao::opengl {
 
     void Window2::mouseMoveEvent(MouseMoveEvent& event) {
         WindowBase::mouseMoveEvent(event);
-        if(!(event.buttons() & MouseMoveEvent::Button::Left)) return;
+        if(!(event.buttons() & MouseMoveEvent::Button::Right)) return;
 
         const Vector2 currentPosition = localPosition(event.position());
 
+        if(_previousPosition.length() < 0.001f) return;
 
         Vector2 diff = currentPosition - _previousPosition;
+        auto S = windowSize();
         diff.y() *= -1;
+        diff.x() /= float(S.y()) / float(S.x());
+        const auto& T = _root.transformation();
+        diff.x() *=  T[0][0];
+        diff.y() *=  T[1][1];
         _root.translate(diff);
         _previousPosition = currentPosition;
 
