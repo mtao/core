@@ -54,11 +54,20 @@ class Window2: public WindowBase {
         virtual void mouseScrollEvent(MouseScrollEvent& event) override;
 
 
+        Magnum::Vector2 cameraPosition(const Vector2i& position) const;//[0,1]^2 position of the camera
+        //position in 2D space with respect to the root node
         Magnum::Vector2 localPosition(const Vector2i& position) const;
         Object2D& root() { return _root; }
         Object2D& scene() { return _scene; }
+        Object2D& cameraObject() { return _cameraObject; }
         Magnum::SceneGraph::Camera2D& camera() { return _camera; }
         Magnum::SceneGraph::DrawableGroup2D& drawables() { return _drawables; }
+        const Object2D& root() const { return _root; }
+        const Object2D& scene() const { return _scene; }
+        const Object2D& cameraObject() const { return _cameraObject; }
+        const Magnum::SceneGraph::Camera2D& camera() const { return _camera; }
+        const Magnum::SceneGraph::DrawableGroup2D& drawables() const { return _drawables; }
+        void updateTransformation();
 
     private:
         Scene2D _scene;
@@ -66,6 +75,7 @@ class Window2: public WindowBase {
         Magnum::SceneGraph::Camera2D _camera;
         Magnum::SceneGraph::DrawableGroup2D _drawables;
         Magnum::Vector2 _previousPosition;
+        Magnum::Vector2 translation;
         float scale = 1.0;
 
 

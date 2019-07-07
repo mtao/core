@@ -166,4 +166,28 @@ namespace mtao::opengl {
                 .setNormalMatrix(transformationMatrix.rotationScaling())
                 .setProjectionMatrix(camera.projectionMatrix());
         }
+    template <>
+            bool Drawable<Shaders::VertexColor2D>::lint_buffers()  {
+                bool ret = lint_vertex();
+                if(edge_primitive) { ret &= lint_edge(); }
+                if(triangle_primitive) { ret &= lint_triangle(); }
+                ret &= lint_color();
+                return ret;
+            }
+    template <>
+            bool Drawable<Shaders::VertexColor3D>::lint_buffers()  {
+                bool ret = lint_vertex();
+                if(edge_primitive) { ret &= lint_edge(); }
+                if(triangle_primitive) { ret &= lint_triangle(); }
+                ret &= lint_color();
+                return ret;
+            }
+    template <>
+            bool Drawable<Shaders::Phong>::lint_buffers()  {
+                bool ret = lint_vertex();
+                if(edge_primitive) { ret &= lint_edge(); }
+                if(triangle_primitive) { ret &= lint_triangle(); }
+                ret &= lint_normal();
+                return ret;
+            }
 }

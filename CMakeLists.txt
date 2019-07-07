@@ -199,6 +199,8 @@ ADD_LIBRARY(mtao_opengl
     #src/opengl/imgui_impl.cpp
     #include/mtao/opengl/imgui_impl.h
     src/opengl/Window.cpp
+    src/opengl/Window2.cpp
+    src/opengl/Window3.cpp
     src/opengl/Monitor.cpp
     src/opengl/bo.cpp
     src/opengl/shader.cpp

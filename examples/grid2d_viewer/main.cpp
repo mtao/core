@@ -28,6 +28,8 @@
 
 #include <mtao/eigen_utils.h>
 #include<Eigen/IterativeLinearSolvers>
+#include <Magnum/EigenIntegration/Integration.h>
+using namespace Magnum::Math::Literals;
 
 //using namespace mtao::opengl;
 //
@@ -559,6 +561,8 @@ class MeshViewer: public mtao::opengl::Window2 {
         std::array<int,2> N{{20,20}};
         int& NI=N[0];
         int& NJ=N[1];
+        Vector2 cursor;
+        mtao::vector<mtao::Vec2f> points;
 
         Eigen::SimplicialLDLT<Eigen::SparseMatrix<float>> solver;
 
@@ -570,8 +574,14 @@ class MeshViewer: public mtao::opengl::Window2 {
             edge_drawable = new mtao::opengl::Drawable<Magnum::Shaders::Flat2D>{grid,_flat_shader, drawables()};
             edge_drawable->activate_triangles({});
             edge_drawable->activate_edges();
-            face_drawable = new mtao::opengl::Drawable<Magnum::Shaders::VertexColor2D>{grid,_vcolor_shader, drawables()};
+            //face_drawable = new mtao::opengl::Drawable<Magnum::Shaders::VertexColor2D>{grid,_vcolor_shader, drawables()};
             grid.setParent(&root());
+            cursor_mesh.setParent(&scene());
+            cursor_drawable = new mtao::opengl::Drawable<Magnum::Shaders::Flat2D>{cursor_mesh,_flat_shader, drawables()};
+            cursor_mesh.setVertexBuffer(mtao::Vec2f::Zero().eval());
+            cursor_drawable->data().color = 0xffffff_rgbf;
+            visible_grid.setParent(&scene());
+            visible_drawable = new mtao::opengl::Drawable<Magnum::Shaders::Flat2D>{visible_grid,_flat_shader, drawables()};
             update();
         }
         void update() {
@@ -589,6 +599,17 @@ class MeshViewer: public mtao::opengl::Window2 {
                         ,mtao::RowVectorX<float>::Ones(g.size())
                         ));
             grid.set(g);
+            cursor_drawable->deactivate();
+            cursor_drawable->activate_points();
+            {
+                auto g = mtao::geometry::grid::Grid2f(std::array<int,2>{{1,1}});
+
+                //auto V = g.vertices();
+                //mtao::RowVectorX<float> C = V.colwise()
+                visible_grid.set(g);
+                visible_drawable->deactivate();
+                visible_drawable->activate_edges();
+            }
 
 
         }
@@ -615,39 +636,50 @@ class MeshViewer: public mtao::opengl::Window2 {
             if(ImGui::Button("Step")) {
                 do_animation();
             }
+            ImGui::Text("Cursor Position: (%f,%f)", cursor.x(), cursor.y());
         }
         void draw() override {
             if(animate) {
                 do_animation();
             }
             Magnum::GL::Renderer::disable(Magnum::GL::Renderer::Feature::FaceCulling);
+            Magnum::GL::Renderer::setPointSize(10.);
             Window2::draw();
         }
-    void mousePressEvent(MouseEvent& event) override{
-        Window2::mousePressEvent(event);
-        if(!ImGui::GetIO().WantCaptureMouse) {
-            if(event.button() == MouseEvent::Button::Left) { 
-                auto S = windowSize();
-                Magnum::Vector3 V(localPosition(event.position()),1);
-                //V.y() /= float(S.x()) / float(S.y());
-                Utility::Debug() << V;
 
-                auto P = root().transformation().inverted() * V;
-                //P.x() -= .5f;
-                //P.y() -= .5f;
+        void mouseMoveEvent(MouseMoveEvent& event) override{
+            Window2::mouseMoveEvent(event);
+            cursor = localPosition(event.position());
+        }
+        void mousePressEvent(MouseEvent& event) override{
+            Window2::mousePressEvent(event);
+            if(!ImGui::GetIO().WantCaptureMouse) {
+                if(event.button() == MouseEvent::Button::Left) { 
+                    points.emplace_back(EigenIntegration::cast<mtao::Vec2f>(cursor));
+                    cursor_mesh.setVertexBuffer( mtao::eigen::stl2eigen(points));
+                    if(points.size() > 1) {
+                        mtao::ColVecs2i E(2,points.size());
+                        E.row(0) = mtao::RowVecXi::LinSpaced(points.size(),0,points.size()-1);
+                        E.row(1).rightCols(E.cols()-1) = E.row(0).leftCols(E.cols()-1);
+                        E(1,0) = points.size()-1;
+                        cursor_mesh.setEdgeBuffer(E.cast<unsigned int>());
+                        cursor_drawable->activate_edges();
+                    }
 
-                Utility::Debug() << P;
-
+                }
             }
         }
-    }
 
     private:
         Magnum::Shaders::Flat2D _flat_shader;
         Magnum::Shaders::VertexColor2D _vcolor_shader;
         mtao::opengl::objects::Grid<2> grid;
+        mtao::opengl::objects::Mesh<2> cursor_mesh;
+        mtao::opengl::objects::Grid<2> visible_grid;
         mtao::opengl::Drawable<Magnum::Shaders::Flat2D>* edge_drawable = nullptr;
         mtao::opengl::Drawable<Magnum::Shaders::VertexColor2D>* face_drawable = nullptr;
+        mtao::opengl::Drawable<Magnum::Shaders::Flat2D>* cursor_drawable = nullptr;
+        mtao::opengl::Drawable<Magnum::Shaders::Flat2D>* visible_drawable = nullptr;
 
 
 };
