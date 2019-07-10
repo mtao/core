@@ -788,6 +788,7 @@ void HalfEdgeMesh::tie_nonsimple_cells(const Eigen::MatrixBase<Derived>& V, cons
         }
     }
 
+    //the vertices that make each cell
     std::map<int,std::vector<int>> CM;
     std::map<int,std::set<int>> CMs;
     for(auto&& he: cell_halfedges) {
