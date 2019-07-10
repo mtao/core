@@ -20,7 +20,7 @@ namespace mtao::opengl::objects {
         Containers::Array<char> indexData;
         std::vector<unsigned int> inds(E.data(),E.data()+E.size());
 
-        edge_Count = E.size();
+        edge_Count = E.cols();
 
         std::tie(indexData, edge_indexType, edge_indexStart, edge_indexEnd) =
             MeshTools::compressIndices(inds);
@@ -31,7 +31,7 @@ namespace mtao::opengl::objects {
         setPrimitive(GL::MeshPrimitive::Triangles);
         Containers::Array<char> indexData;
         std::vector<unsigned int> inds(F.data(),F.data()+F.size());
-        triangle_Count = F.size();
+        triangle_Count = F.cols();
 
         std::tie(indexData, triangle_indexType, triangle_indexStart, triangle_indexEnd) =
             MeshTools::compressIndices(inds);
