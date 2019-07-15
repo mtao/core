@@ -2,16 +2,32 @@
 #include <Magnum/GL/Shader.h>
 #include <Magnum/GL/Version.h>
 #include <Corrade/Containers/Reference.h>
+#include <imgui.h>
+#include <iostream>
 
 
 #include "mtao/opengl/shaders/vector_field.hpp"
 
 using namespace Corrade;
 using namespace Magnum;
+void initializer() {
+
+        CORRADE_RESOURCE_INITIALIZE(MtaoShaders)
+}
 
 namespace mtao::opengl {
 
-    VectorFieldShader::VectorFieldShader(Magnum::UnsignedInt colorMode): _colorMode(colorMode) {
+    template <>
+    VectorFieldShader<2>::VectorFieldShader(Magnum::UnsignedInt colorMode): _colorMode(colorMode) {
+        initialize();
+    }
+    template <>
+    VectorFieldShader<3>::VectorFieldShader(Magnum::UnsignedInt colorMode): _colorMode(colorMode) {
+        initialize();
+    }
+    template <int D>
+    void VectorFieldShader<D>::initialize() {
+        initializer();
         Utility::Resource rs("MtaoShaders");
 
         GL::Shader vert{GL::Version::GL330, GL::Shader::Type::Vertex},
@@ -31,22 +47,57 @@ namespace mtao::opengl {
         CORRADE_INTERNAL_ASSERT(GL::Shader::compile({vert,geom,frag}));
         attachShaders({vert,geom,frag});
         CORRADE_INTERNAL_ASSERT(link());
+        //glUseProgram(id());
+        //GLchar buffer[2048];
+        //GLsizei size;
+        //glGetShaderSource(vert.id(), sizeof(buffer), &size, buffer);
+        //std::cout << buffer << std::endl;
         if(_colorMode == UniformColor) {
             _colorUniform = uniformLocation("color");
         }
         _transformationMatrixUniform = uniformLocation("transformationMatrix");
         _projectionMatrixUniform = uniformLocation("projectionMatrix");
-        _normalMatrixUniform = uniformLocation("normalMatrix");
+        //_normalMatrixUniform = uniformLocation("normalMatrix");
     }
-}
-    template <>
-        void Drawable<VectorFieldShader>::set_buffers() {
+    namespace internal {
+        template <typename Drawable>
+        void vfgui(Drawable& d, const std::string& name_) {
             std::string name = name_;
             if(name.empty()) {
-                name = "Vertex Color Shader";
+                name = "Vector Field Shader";
             }
             if(ImGui::TreeNode(name.c_str())) {
-                ImGui::Checkbox("Visible", &visible);
+                bool vis = d.is_visible();
+                ImGui::Checkbox("Visible", &vis);
+                d.set_visibility(vis);
                 ImGui::TreePop();
             }
         }
+    }
+    template <>
+        void Drawable<VectorFieldShader<2>>::gui(const std::string& name_) {
+            internal::vfgui(*this,name_);
+        }
+    template <>
+        void Drawable<VectorFieldShader<3>>::gui(const std::string& name_) {
+            internal::vfgui(*this,name_);
+        }
+    template <>
+        void Drawable<VectorFieldShader<2>>::set_buffers() {
+            _mesh.addVertexBuffer(_mesh.vertex_buffer, 0, VectorFieldShader<2>::Position{});
+            if(_shader.colorMode() == VectorFieldShader<2>::PerVectorColors) {
+                //_shader.setColor(_data.color);
+            } else {
+                _mesh.addVertexBuffer(_mesh.color_buffer,0, VectorFieldShader<2>::Color4{});
+            }
+        }
+    template <>
+        void Drawable<VectorFieldShader<3>>::set_buffers() {
+            _mesh.addVertexBuffer(_mesh.vertex_buffer, 0, VectorFieldShader<3>::Position{});
+            if(_shader.colorMode() == VectorFieldShader<3>::PerVectorColors) {
+                //_shader.setColor(_data.color);
+            } else {
+                _mesh.addVertexBuffer(_mesh.color_buffer,0, VectorFieldShader<3>::Color4{});
+            }
+        }
+}

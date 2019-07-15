@@ -196,10 +196,10 @@ ADD_LIBRARY(mtao_core
 
 
 IF(${USE_OPENGL})
-    CORRADE_ADD_RESOURCE(ShaderResources ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/shaders/resources.conf)
+    CORRADE_ADD_RESOURCE(MtaoShaders ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/shaders/resources.conf)
 
 ADD_LIBRARY(mtao_opengl 
-    ${ShaderResources}
+    ${MtaoShaders}
     ${COMMON_HEADERS}
     ${IMGUI_SOURCES}
     ${OPENGL_LOADER_SOURCES}
@@ -258,6 +258,7 @@ TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl mtao_co
     Magnum::MeshTools
     Magnum::GlfwApplication
     MagnumIntegration::ImGui
+    Corrade::Utility
     )
 ENDIF(${USE_OPENGL})
 

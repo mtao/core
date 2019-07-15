@@ -1,19 +1,17 @@
 layout(points) in;
+in vec4 geomColor[1];
+in vec4 head_position[1];
 
-layout(lines, max_vertices = 2) out;
+layout(line_strip, max_vertices = 2) out;
 
 out lowp vec4 fragColor;
 
 
-int main() {
+void main() {
     gl_Position = gl_in[0].gl_Position;
-#if defined(PER_VERTEX_COLOR)
     fragColor = vec4(1);
-#else
-    fragColor = gl_in[0].color;
-#endif
     EmitVertex();
-    gl_Position = gl_in[0].gl_Position;
-    fragColor = gl_in[1].color;
+    gl_Position = head_position[0];
+    fragColor = geomColor[0];
     EmitVertex();
 }

@@ -67,6 +67,7 @@ namespace mtao::opengl {
             ShaderData<ShaderType>&  data() { return _data; } 
 
             void set_visibility(bool val) { visible = val; }
+            bool is_visible() const { return visible; }
 
             bool lint_buffers(){
                 bool ret = lint_vertex();
