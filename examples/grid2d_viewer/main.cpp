@@ -29,6 +29,11 @@
 #include <mtao/eigen_utils.h>
 #include<Eigen/IterativeLinearSolvers>
 #include <Magnum/EigenIntegration/Integration.h>
+
+
+#include <mtao/opengl/shaders/vector_field.hpp>
+
+
 using namespace Magnum::Math::Literals;
 
 //using namespace mtao::opengl;

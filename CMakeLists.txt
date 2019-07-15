@@ -68,7 +68,11 @@ IF(${USE_IMGUI_IMPL})
 ENDIF(${USE_IMGUI_IMPL})
 
 FIND_PACKAGE(OpenGL )
+if(${USE_OPENGL})
+    find_package(Corrade REQUIRED Utility)
+ELSE(${USE_OPENGL})
 find_package(Corrade )
+ENDIF(${USE_OPENGL})
 find_package(Magnum COMPONENTS GL Shaders GlxContext GlfwApplication SceneGraph MeshTools)
 find_package(MagnumIntegration COMPONENTS ImGui)
 IF((NOT DEFINED OpenGL_FOUND) OR (NOT DEFINED Corrade_FOUND) OR (NOT DEFINED Magnum_FOUND) OR (NOT DEFINED MagnumIntegration_FOUND))
@@ -192,7 +196,10 @@ ADD_LIBRARY(mtao_core
 
 
 IF(${USE_OPENGL})
+    CORRADE_ADD_RESOURCE(ShaderResources ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/shaders/resources.conf)
+
 ADD_LIBRARY(mtao_opengl 
+    ${ShaderResources}
     ${COMMON_HEADERS}
     ${IMGUI_SOURCES}
     ${OPENGL_LOADER_SOURCES}
@@ -234,13 +241,13 @@ ADD_LIBRARY(mtao_opengl
     #include/mtao/opengl/renderers/tube.h
 
     #Shaders
+    src/opengl/shaders/vector_field.cpp
     #src/opengl/shaders/phong.cpp
     #src/opengl/shaders/baryedge.cpp
     #src/opengl/shaders/simple.cpp
     #src/opengl/shaders/vectors.cpp
     #src/opengl/shaders/tube.cpp
     )
-
 
 TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl mtao_core ${png++_LIBRARIES} ${OPENGL_LOADER_LIBRARIES}
     Magnum::GL

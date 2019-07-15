@@ -29,6 +29,10 @@ namespace mtao::opengl::objects {
                     color_buffer.setData(Containers::ArrayView<const float>{V.data(),size_t(V.size())});
                 }
             template <typename Derived>
+                void setVFieldBuffer(const Eigen::PlainObjectBase<Derived>& V) {
+                    vfield_buffer.setData(Containers::ArrayView<const float>{V.data(),size_t(V.size())});
+                }
+            template <typename Derived>
                 void setNormalBuffer(const Eigen::PlainObjectBase<Derived>& V) {
                     normal_buffer.setData(Containers::ArrayView<const float>{V.data(),size_t(V.size())});
                 }
