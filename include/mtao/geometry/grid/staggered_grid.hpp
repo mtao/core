@@ -22,6 +22,7 @@ namespace mtao {
                         using Base::size;
                         using Base::index;
                         using Base::unindex;
+                        using Scalar = T;
                         using BBox = typename Base::BBox;
                         using Indexer= typename Base::Indexer;
                         using coord_type = typename Base::coord_type;
@@ -32,6 +33,11 @@ namespace mtao {
                         using IVecMap = typename Base::IVecMap;
                         using CIVecMap = typename Base::CIVecMap;
                         using StaggeredGrids = decltype(staggered_grid::make_grids(std::declval<Base>()));
+
+                        template <int N>
+                        constexpr static size_t form_grid_size() {
+                            return std::tuple_size<std::tuple_element_t<N,StaggeredGrids>>();
+                        }
                         /*
                         StaggeredGrid(const coord_type& shape): Base(shape) {
                             resize_grids();
