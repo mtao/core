@@ -34,6 +34,8 @@ namespace mtao {
                             GridData(Args... args): GridData(coord_type{{static_cast<int>(args)...}}) {
                             }
                         GridData() {}
+                        template <typename Derived>
+                            GridData(const indexing::IndexerBase<D,Derived>& g): GridData(g.shape()) {}
                         GridData(const GridData& other) = default;
                         GridData(GridData&& other) = default;
                         GridData& operator=(const GridData& other) = default;
