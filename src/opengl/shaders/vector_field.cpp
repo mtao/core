@@ -41,6 +41,10 @@ namespace mtao::opengl {
             frag.addSource(s);
 
         }
+        if constexpr(D == 2) {
+            constexpr static char s[] = "#define TWO_DIMENSIONS\n";
+            vert.addSource(s);
+        }
         vert.addSource(rs.get("vector_field.vert"));
         geom.addSource(rs.get("vector_field.geom"));
         frag.addSource(rs.get("vector_field.frag"));
@@ -52,11 +56,22 @@ namespace mtao::opengl {
         //GLsizei size;
         //glGetShaderSource(vert.id(), sizeof(buffer), &size, buffer);
         //std::cout << buffer << std::endl;
+            _scaleUniform = uniformLocation("scale");
         if(_colorMode == UniformColor) {
             _colorUniform = uniformLocation("color");
         }
-        _transformationMatrixUniform = uniformLocation("transformationMatrix");
-        _projectionMatrixUniform = uniformLocation("projectionMatrix");
+        _transformationProjectionMatrixUniform= uniformLocation("transformationProjectionMatrix");
+
+        GLint params;
+        GLuint indices;
+        char* name[1] = {"transformationProjectionMatrix"};
+
+        glGetUniformIndices(id(), 1, name, &indices);
+
+        glGetActiveUniformsiv( id(),1, &indices, GL_UNIFORM_TYPE, &params);
+        bindAttributeLocation(Vector::Location, "direction");
+        //_transformationMatrixUniform = uniformLocation("transformationMatrix");
+        //_projectionMatrixUniform = uniformLocation("projectionMatrix");
         //_normalMatrixUniform = uniformLocation("normalMatrix");
     }
     namespace internal {
@@ -85,6 +100,7 @@ namespace mtao::opengl {
     template <>
         void Drawable<VectorFieldShader<2>>::set_buffers() {
             _mesh.addVertexBuffer(_mesh.vertex_buffer, 0, VectorFieldShader<2>::Position{});
+            _mesh.addVertexBuffer(_mesh.vfield_buffer, 0, VectorFieldShader<2>::Vector{});
             if(_shader.colorMode() == VectorFieldShader<2>::PerVectorColors) {
                 //_shader.setColor(_data.color);
             } else {
@@ -94,6 +110,7 @@ namespace mtao::opengl {
     template <>
         void Drawable<VectorFieldShader<3>>::set_buffers() {
             _mesh.addVertexBuffer(_mesh.vertex_buffer, 0, VectorFieldShader<3>::Position{});
+            _mesh.addVertexBuffer(_mesh.vfield_buffer, 0, VectorFieldShader<3>::Vector{});
             if(_shader.colorMode() == VectorFieldShader<3>::PerVectorColors) {
                 //_shader.setColor(_data.color);
             } else {

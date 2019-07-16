@@ -596,6 +596,7 @@ class MeshViewer: public mtao::opengl::Window2 {
             auto g = mtao::geometry::grid::Grid2f::from_bbox
                 (bbox, std::array<int,2>{{NI,NJ}});
 
+
             //auto V = g.vertices();
             //mtao::RowVectorX<float> C = V.colwise()
             grid.setColorBuffer(
@@ -606,6 +607,16 @@ class MeshViewer: public mtao::opengl::Window2 {
                         ,mtao::RowVectorX<float>::Ones(g.size())
                         ));
             grid.set(g);
+            {
+                vfield_mesh.setVertexBuffer(g.vertices());
+                mtao::ColVecs2f V = g.vertices();
+                //V.array() -= .5;
+                auto x = V.row(0).eval();
+                V.row(0) = -V.row(1);
+                V.row(1) = x;
+                vfield_mesh.setVFieldBuffer(V);
+            }
+
             cursor_drawable->deactivate();
             cursor_drawable->activate_points();
             _vf_viewer->deactivate();
@@ -624,6 +635,7 @@ class MeshViewer: public mtao::opengl::Window2 {
         }
         void do_animation() {
         }
+        float scale = 1.0;
         void gui() override {
             if(ImGui::InputInt2("N", &NI))  {
                 update();
@@ -635,6 +647,9 @@ class MeshViewer: public mtao::opengl::Window2 {
             if(ImGui::SliderFloat2("max", bbox.max().data(),-2,2))  {
                 bbox.max() = (bbox.min().array() > bbox.max().array()).select(bbox.min(),bbox.max());
                 update();
+            }
+            if(ImGui::SliderFloat("scale", &scale,0,2))  {
+                _vf_shader.setScale(scale);
             }
             if(edge_drawable) {
                 edge_drawable->gui();
@@ -686,6 +701,7 @@ class MeshViewer: public mtao::opengl::Window2 {
         mtao::opengl::objects::Grid<2> grid;
         mtao::opengl::objects::Mesh<2> cursor_mesh;
         mtao::opengl::objects::Grid<2> visible_grid;
+        mtao::opengl::objects::Mesh<2> vfield_mesh;
         mtao::opengl::Drawable<Magnum::Shaders::Flat2D>* edge_drawable = nullptr;
         mtao::opengl::Drawable<Magnum::Shaders::VertexColor2D>* face_drawable = nullptr;
         mtao::opengl::Drawable<Magnum::Shaders::Flat2D>* cursor_drawable = nullptr;
