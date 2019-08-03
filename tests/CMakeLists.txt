@@ -82,16 +82,6 @@ TARGET_LINK_LIBRARIES(cltest mtao_core)
 ADD_EXECUTABLE(hotkey_test hotkey_test.cpp)
 TARGET_LINK_LIBRARIES(hotkey_test mtao_core)
 
-IF(${USE_OPENGL})
-ADD_EXECUTABLE(imgui_builtin_example 
-    ${IMGUI_PATH}/examples/example_glfw_opengl3/main.cpp
-    ${IMGUI_PATH}/imgui_demo.cpp
-    )
-TARGET_INCLUDE_DIRECTORIES(imgui_builtin_example PRIVATE
-    ${IMGUI_PATH}/examples)
-TARGET_COMPILE_DEFINITIONS(imgui_builtin_example PRIVATE -DIMGUI_IMPL_OPENGL_LOADER_GLEW)
-TARGET_LINK_LIBRARIES(imgui_builtin_example  mtao_opengl GLEW)
-ENDIF(${USE_OPENGL})
 
 #ADD_EXECUTABLE(particle_sampling_test src/particle_sampling_test.cpp ${CORE_INCLUDE}/grid.h ${CORE_INCLUDE}/grid_utils.h
 #    ${CORE_INCLUDE}/arguments.h ${CORE_INCLUDE}/particle_sampler.h)
