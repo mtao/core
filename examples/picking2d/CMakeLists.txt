@@ -4,4 +4,4 @@ ADD_EXECUTABLE(picking2d
     )
 ADD_DEFINITIONS(-g)
 
-TARGET_LINK_LIBRARIES(picking2d mtao_opengl)
+TARGET_LINK_LIBRARIES(picking2d mtao_visualization)

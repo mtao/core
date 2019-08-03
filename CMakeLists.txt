@@ -72,9 +72,9 @@ IF(MTAO_USE_OPENGL)
     find_package(MagnumIntegration COMPONENTS ImGui)
 
 
-    FIND_PACKAGE(PkgConfig REQUIRED)
-    PKG_SEARCH_MODULE(GLFW REQUIRED glfw3)
-    include_directories(${GLFW_INCLUDE_DIRS})
+    #FIND_PACKAGE(PkgConfig REQUIRED)
+    #PKG_SEARCH_MODULE(GLFW REQUIRED glfw3)
+    #include_directories(${GLFW_INCLUDE_DIRS})
 
     #PKG_SEARCH_MODULE(GLM REQUIRED glm)
     #include_directories(${GLM_INCLUDE_DIRS})
@@ -124,14 +124,14 @@ SET(LEVELSET_HEADERS
     include/mtao/geometry/levelset/particle_sampler.h
     )
 
-add_library(headers INTERFACE)
-target_include_directories(headers INTERFACE
+add_library(mtao_headers INTERFACE)
+target_include_directories(mtao_headers INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
-TARGET_LINK_LIBRARIES(headers PUBLIC INTERFACE Eigen3::Eigen)
+TARGET_LINK_LIBRARIES(mtao_headers PUBLIC INTERFACE Eigen3::Eigen)
 
-ADD_LIBRARY(core 
+ADD_LIBRARY(mtao_core 
     include/mtao/logging/logger.hpp
     include/mtao/logging/timer.hpp
     include/mtao/logging/profiler.hpp
@@ -145,12 +145,12 @@ ADD_LIBRARY(core
     )
 
 
-TARGET_LINK_LIBRARIES(core headers Eigen3::Eigen)
+TARGET_LINK_LIBRARIES(mtao_core mtao_headers Eigen3::Eigen)
 
 IF(MTAO_USE_OPENGL)
     CORRADE_ADD_RESOURCE(MtaoShaders ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/shaders/resources.conf)
 
-ADD_LIBRARY(visualization 
+ADD_LIBRARY(mtao_visualization 
     ${MtaoShaders}
     ${COMMON_HEADERS}
     ${IMGUI_SOURCES}
@@ -183,11 +183,11 @@ ADD_LIBRARY(visualization
     )
 if(MTAO_USE_PNGPP)
     FIND_PACKAGE(png++ REQUIRED)
-    TARGET_COMPILE_DEFINITIONS(visualization PRIVATE -DMTAO_HAS_LIBPNGPP)
-    TARGET_INCLUDE_DIRECTORIES(visualization PRIVATE ${png++_INCLUDE_DIRS})
+    TARGET_COMPILE_DEFINITIONS(mtao_visualization PRIVATE -DMTAO_HAS_LIBPNGPP)
+    TARGET_INCLUDE_DIRECTORIES(mtao_visualization PRIVATE ${png++_INCLUDE_DIRS})
 endif(MTAO_USE_PNGPP)
 
-TARGET_LINK_LIBRARIES(visualization PUBLIC core 
+TARGET_LINK_LIBRARIES(mtao_visualization PUBLIC mtao_core 
     Magnum::GL
     Magnum::GLContext
     Magnum::Magnum
@@ -226,7 +226,7 @@ IF(MTAO_USE_OPENGL)
         src/geometry/mesh/triangle/triangle_wrapper_imgui.cpp)
 ENDIF(MTAO_USE_OPENGL)
 
-ADD_LIBRARY(geometry 
+ADD_LIBRARY(mtao_geometry 
     ${GEOMETRY_SRCS}
     )
 
@@ -234,11 +234,11 @@ IF(MTAO_USE_OPENGL)
     SET(GEOMETRY_EXTRAS ${GEOMETRY_EXTRAS} ImGui::ImGui)
 ENDIF(MTAO_USE_OPENGL)
 IF(MTAO_USE_ELTOPO)
-    TARGET_INCLUDE_DIRECTORIES(geometry PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extern/eltopo)
+    TARGET_INCLUDE_DIRECTORIES(mtao_geometry PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extern/eltopo)
     SET(GEOMETRY_EXTRAS ${GEOMETRY_EXTRAS} eltopo)
 ENDIF(MTAO_USE_ELTOPO)
-TARGET_LINK_LIBRARIES(geometry PUBLIC core ${OpenMP_TARGET} PRIVATE triangle ${GEOMETRY_EXTRAS})
-TARGET_INCLUDE_DIRECTORIES(geometry PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extern/triangle)
+TARGET_LINK_LIBRARIES(mtao_geometry PUBLIC mtao_core ${OpenMP_TARGET} PRIVATE triangle ${GEOMETRY_EXTRAS})
+TARGET_INCLUDE_DIRECTORIES(mtao_geometry PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extern/triangle)
 
 
 #SET(MTAO_EXT_LIBS mtao::core mtao::opengl mtao::geometry)

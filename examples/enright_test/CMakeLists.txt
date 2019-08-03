@@ -5,5 +5,5 @@ ADD_EXECUTABLE(enright_test
     )
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)
-TARGET_LINK_LIBRARIES(enright_test mtao_opengl mtao_geometry)
+TARGET_LINK_LIBRARIES(enright_test mtao_visualization mtao_geometry)
 
