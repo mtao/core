@@ -3,4 +3,4 @@ ADD_EXECUTABLE(sphere_obj_generator
     main.cpp
     )
 
-TARGET_LINK_LIBRARIES(sphere_obj_generator mtao_core mtao_geometry)
+TARGET_LINK_LIBRARIES(sphere_obj_generator mtao::common mtao::geometry)

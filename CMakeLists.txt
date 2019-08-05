@@ -131,7 +131,7 @@ target_include_directories(mtao_headers INTERFACE
 )
 TARGET_LINK_LIBRARIES(mtao_headers PUBLIC INTERFACE Eigen3::Eigen)
 
-ADD_LIBRARY(mtao_core 
+ADD_LIBRARY(mtao_common 
     include/mtao/logging/logger.hpp
     include/mtao/logging/timer.hpp
     include/mtao/logging/profiler.hpp
@@ -145,7 +145,7 @@ ADD_LIBRARY(mtao_core
     )
 
 
-TARGET_LINK_LIBRARIES(mtao_core mtao_headers Eigen3::Eigen)
+TARGET_LINK_LIBRARIES(mtao_common mtao_headers Eigen3::Eigen)
 
 IF(MTAO_USE_OPENGL)
     CORRADE_ADD_RESOURCE(MtaoShaders ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/shaders/resources.conf)
@@ -187,7 +187,7 @@ if(MTAO_USE_PNGPP)
     TARGET_INCLUDE_DIRECTORIES(mtao_visualization PRIVATE ${png++_INCLUDE_DIRS})
 endif(MTAO_USE_PNGPP)
 
-TARGET_LINK_LIBRARIES(mtao_visualization PUBLIC mtao_core 
+TARGET_LINK_LIBRARIES(mtao_visualization PUBLIC mtao_common 
     Magnum::GL
     Magnum::GLContext
     Magnum::Magnum
@@ -237,14 +237,44 @@ IF(MTAO_USE_ELTOPO)
     TARGET_INCLUDE_DIRECTORIES(mtao_geometry PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extern/eltopo)
     SET(GEOMETRY_EXTRAS ${GEOMETRY_EXTRAS} eltopo)
 ENDIF(MTAO_USE_ELTOPO)
-TARGET_LINK_LIBRARIES(mtao_geometry PUBLIC mtao_core ${OpenMP_TARGET} PRIVATE triangle ${GEOMETRY_EXTRAS})
+TARGET_LINK_LIBRARIES(mtao_geometry PUBLIC mtao_common ${OpenMP_TARGET} PRIVATE triangle ${GEOMETRY_EXTRAS})
 TARGET_INCLUDE_DIRECTORIES(mtao_geometry PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extern/triangle)
 
 
-#SET(MTAO_EXT_LIBS mtao::core mtao::opengl mtao::geometry)
+#SET(MTAO_EXT_LIBS mtao::common mtao::opengl mtao::geometry)
 #SET(MTAO_EXT_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 ADD_SUBDIRECTORY(tests EXCLUDE_FROM_ALL)
 ADD_SUBDIRECTORY(examples EXCLUDE_FROM_ALL)
 
+add_library(mtao::headers ALIAS mtao_headers)
+add_library(mtao::common ALIAS mtao_common)
+add_library(mtao::geometry ALIAS mtao_geometry)
+IF(MTAO_USE_OPENGL)
+  add_library(mtao::visualization ALIAS mtao_visualization)
+ENDIF(MTAO_USE_OPENGL)
 
+include(CMakePackageConfigHelpers)
+
+MESSAGE(STATUS "LIST DIR: ${CMAKE_CURRENT_LIST_DIR}")
+# Write package configuration file
+configure_package_config_file(
+  ${CMAKE_CURRENT_LIST_DIR}/cmake/mtao-config.cmake.in
+  ${CMAKE_BINARY_DIR}/mtao-config.cmake
+  INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/mtao/cmake
+)
+set_property(TARGET mtao_headers PROPERTY EXPORT_NAME mtao::headers)
+set_property(TARGET mtao_common PROPERTY EXPORT_NAME mtao::common)
+set_property(TARGET mtao_geometry PROPERTY EXPORT_NAME mtao::geometry)
+set_property(TARGET mtao_visualization PROPERTY EXPORT_NAME mtao::visualization)
+export(
+  TARGETS
+  mtao_headers
+  triangle
+  eltopo
+  eltopo_common
+  mtao_common
+  mtao_geometry
+  mtao_visualization
+  FILE mtao-export.cmake
+)

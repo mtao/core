@@ -4,4 +4,4 @@ ADD_EXECUTABLE(imgui_oldgl
     )
 ADD_DEFINITIONS(-g)
 
-TARGET_LINK_LIBRARIES(imgui_oldgl mtao_visualization)
+TARGET_LINK_LIBRARIES(imgui_oldgl mtao::visualization)

@@ -4,4 +4,4 @@ ADD_EXECUTABLE(imgui_newgl
     )
 ADD_DEFINITIONS(-g)
 
-TARGET_LINK_LIBRARIES(imgui_newgl mtao_visualization)
+TARGET_LINK_LIBRARIES(imgui_newgl mtao::visualization)

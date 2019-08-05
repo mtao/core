@@ -9,4 +9,4 @@ ADD_EXECUTABLE(planar_mesh
     )
 
 ADD_DEFINITIONS(-g)
-TARGET_LINK_LIBRARIES(planar_mesh mtao_visualization mtao_geometry Magnum::MeshTools)
+TARGET_LINK_LIBRARIES(planar_mesh mtao::visualization mtao::geometry Magnum::MeshTools)
