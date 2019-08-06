@@ -35,7 +35,10 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
     endif()
 endif()
 
-if(NOT EXISTS "${PROJECT_SOURCE_DIR}/extern/repo/CMakeLists.txt")
+
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui/imgui.h" 
+        OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/extern/triangle/CMakeLists.txt" 
+        OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/extern/eltopo/CMakeLists.txt" )
     message(FATAL_ERROR "The submodules were not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
 endif()
 
