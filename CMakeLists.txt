@@ -199,6 +199,10 @@ ADD_LIBRARY(mtao_visualization
     src/opengl/shaders.cpp
     src/opengl/drawables.cpp
 
+    extern/imgui/imgui.cpp
+    extern/imgui/imgui_widgets.cpp
+    extern/imgui/imgui_draw.cpp
+
     #Shaders
     src/opengl/shaders/vector_field.cpp
     )

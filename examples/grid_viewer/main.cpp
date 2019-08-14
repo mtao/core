@@ -49,6 +49,7 @@ class MeshViewer: public mtao::opengl::Window3 {
         Eigen::SimplicialLDLT<Eigen::SparseMatrix<float>> solver;
 
         MeshViewer(const Arguments& args): Window3(args), _wireframe_shader{Magnum::Shaders::MeshVisualizer::Flag::Wireframe} {
+            return;
             bbox.min().setConstant(-1);
             bbox.max().setConstant(1);
             mv_drawable = new mtao::opengl::Drawable<Magnum::Shaders::MeshVisualizer>{grid,_wireframe_shader, drawables()};
@@ -62,6 +63,7 @@ class MeshViewer: public mtao::opengl::Window3 {
             update();
         }
         void update() {
+            return;
             //mtao::geometry::grid::Grid3f g(std::array<int,3>{{NI,NJ,NK}});
             auto g = mtao::geometry::grid::Grid3f::from_bbox
                 (bbox, std::array<int,3>{{NI,NJ,NK}});
@@ -94,6 +96,7 @@ class MeshViewer: public mtao::opengl::Window3 {
                 do_animation();
             }
         }
+        /*
         void draw() override {
             if(animate) {
                 do_animation();
@@ -101,6 +104,7 @@ class MeshViewer: public mtao::opengl::Window3 {
             Magnum::GL::Renderer::disable(Magnum::GL::Renderer::Feature::FaceCulling);
             Window3::draw();
         }
+        */
     private:
         Magnum::Shaders::MeshVisualizer _wireframe_shader;
         Magnum::Shaders::Flat3D _flat_shader;

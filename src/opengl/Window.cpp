@@ -38,15 +38,17 @@ namespace mtao::opengl {
         setSwapInterval(1);
         //setMinimalLoopPeriod(16);
     }
+    void WindowBase::draw() {}
     void WindowBase::drawEvent() {
 
 
         {//ImGui
             _imgui.newFrame();
-            if(ImGui::GetIO().WantTextInput && !isTextInputActive())
+            if(ImGui::GetIO().WantTextInput && !isTextInputActive()) {
                 startTextInput();
-            else if(!ImGui::GetIO().WantTextInput && isTextInputActive())
+            } else if(!ImGui::GetIO().WantTextInput && isTextInputActive()) {
                 stopTextInput();
+            }
 
             gui();
 

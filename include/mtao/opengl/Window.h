@@ -22,7 +22,7 @@ class WindowBase: public Magnum::Platform::Application {
 
         void drawEvent() override;
 
-        virtual void draw() = 0;
+        virtual void draw();
         virtual void gui() = 0;
 
         virtual void viewportEvent(ViewportEvent& event) override;
