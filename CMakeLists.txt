@@ -290,15 +290,27 @@ configure_package_config_file(
 set_property(TARGET mtao_headers PROPERTY EXPORT_NAME mtao::headers)
 set_property(TARGET mtao_common PROPERTY EXPORT_NAME mtao::common)
 set_property(TARGET mtao_geometry PROPERTY EXPORT_NAME mtao::geometry)
+IF(MTAO_USE_OPENGL)
 set_property(TARGET mtao_visualization PROPERTY EXPORT_NAME mtao::visualization)
-export(
-  TARGETS
+ENDIF(MTAO_USE_OPENGL)
+
+SET(MTAO_EXPORT_TARGETS
   mtao_headers
   triangle
   eltopo
   eltopo_common
   mtao_common
   mtao_geometry
-  mtao_visualization
+  )
+
+
+IF(MTAO_USE_OPENGL)
+    SET(MTAO_EXPORT_TARGETS ${MTAO_EXPORT_TARGETS} mtao_visualization)
+ENDIF(MTAO_USE_OPENGL)
+
+
+export(
+  TARGETS
+  ${MTAO_EXPORT_TARGETS}
   FILE mtao-export.cmake
 )
