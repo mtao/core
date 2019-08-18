@@ -1,4 +1,5 @@
 #include "mtao/geometry/bounding_box.hpp"
+#include "mtao/geometry/bounding_box_mesh.hpp"
 #include "mtao/logging/timer.hpp"
 #include <iostream>
 
@@ -13,6 +14,10 @@ int main() {
         }
         { auto t = mtao::logging::timer("bb1",true);
             auto bb = mtao::geometry::bounding_box(P);
+            auto [V,F,E] = mtao::geometry::bounding_box_mesh<true>(bb);
+            std::cout << V << std::endl;
+            std::cout << F << std::endl;
+            std::cout << E << std::endl;
         }
         { auto t = mtao::logging::timer("bb2",true);
             auto bb = mtao::geometry::bounding_box_slow(P);

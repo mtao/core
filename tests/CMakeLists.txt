@@ -40,7 +40,7 @@ ADD_EXECUTABLE(stl2eigen_test stl2eigen_test.cpp)
 TARGET_LINK_LIBRARIES(stl2eigen_test mtao_core)
 
 ADD_EXECUTABLE(bounding_box_test bounding_box_test.cpp)
-TARGET_LINK_LIBRARIES(bounding_box_test mtao_core)
+TARGET_LINK_LIBRARIES(bounding_box_test mtao::common)
 
 ADD_EXECUTABLE(horner_evaluation_test horner_evaluation_test.cpp)
 ADD_EXECUTABLE(log_test log_test.cpp)

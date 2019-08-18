@@ -39,6 +39,7 @@ namespace mtao::opengl {
 
     }
 
+
     template <typename ShaderType>
         class Drawable: public internal::DrawableType<ShaderType> {
         public:
@@ -123,6 +124,13 @@ namespace mtao::opengl {
             bool lint_vfield()  { return lint_buffer(_mesh.vfield_buffer); }
             bool lint_color()  { return lint_buffer(_mesh.color_buffer); }
         };
+    template <typename ShaderType, int D,
+             typename Camera = internal::CameraType<ShaderType>,
+             typename DrawableGroup = internal::DrawableGroupType<ShaderType>,
+             typename TransMat = internal::TransformMatrixType<ShaderType>>
+                 auto make_drawable(objects::Mesh<D>& mesh, ShaderType& shader, DrawableGroup& group) {
+                     return new Drawable<ShaderType>(mesh,shader,group);
+                 }
     template <>
     void Drawable<Shaders::Flat2D>::gui(const std::string& name);
     template <>
