@@ -258,6 +258,9 @@ ADD_LIBRARY(mtao_geometry
     src/geometry/mesh/halfedge.cpp
     src/geometry/mesh/halfedge_fv_map.cpp
     src/geometry/mesh/read_obj.cpp
+    src/geometry/mesh/write_obj.cpp
+    #src/geometry/mesh/read_ply.cpp
+    src/geometry/mesh/write_ply.cpp
     src/geometry/mesh/triangle/triangle_wrapper.cpp
     src/geometry/mesh/triangle/triangle_wrapper_imgui.cpp
     src/geometry/mesh/triangle/mesh.cpp
