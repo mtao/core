@@ -34,24 +34,38 @@ namespace mtao::geometry::mesh {
             ofs << "ply\n";
             ofs << "format ascii 1.0\n";
             ofs << "element vertex " << V.cols() << std::endl;
-            ofs << "property " << tstr << "x" << std::endl;;
-            ofs << "property " << tstr << "y" << std::endl;;
-            ofs << "property " << tstr << "z" << std::endl;;
+            ofs << "property " << tstr << " x" << std::endl;;
+            ofs << "property " << tstr << " y" << std::endl;;
+            ofs << "property " << tstr << " z" << std::endl;;
             if(C.cols() == V.cols()) {
-                ofs << "property " << tstr << "red" << std::endl;;
-                ofs << "property " << tstr << "green" << std::endl;;
-                ofs << "property " << tstr << "blue" << std::endl;;
+                //ofs << "property " << tstr << " red" << std::endl;;
+                //ofs << "property " << tstr << " green" << std::endl;;
+                //ofs << "property " << tstr << " blue" << std::endl;;
+                ofs << "property uchar red" << std::endl;;
+                ofs << "property uchar green" << std::endl;;
+                ofs << "property uchar blue" << std::endl;;
             }
             ofs << "element face " << F.cols() << std::endl;
             ofs << "property list uchar int vertex_indices" << std::endl;
-            ofs << "end header" << std::endl;
+            ofs << "end_header" << std::endl;
             if(C.cols() == V.cols()) {
-                ofs << mtao::eigen::vstack(V,C).transpose() << std::endl;
+            mtao::ColVectors<T,3> C2 = (255*C.array()).round().cwiseMin(255).cwiseMax(0);
+            for(int i = 0; i < V.cols(); ++i) {
+                ofs << V.col(i).transpose() << " ";
+                auto c = C2.col(i);
+                ofs << c.transpose() << std::endl;
+                //for(int j = 0; j < 3; ++j) {
+                //    ofs << c(j) << " ";
+                //}
+                //ofs <<std::endl;
+            }
+                //ofs << mtao::eigen::vstack(V,C2).transpose() << std::endl;
             } else {
                 ofs << V.transpose() << std::endl;
             }
 
-            ofs << F.transpose() << std::endl;
+
+            ofs << mtao::eigen::vstack(mtao::RowVecXi::Constant(F.cols(),3),F).transpose() << std::endl;
         }
 
     void write_plyF(const mtao::ColVectors<float,3>& V,const mtao::ColVectors<int,3>& F, const std::string& filename) {
