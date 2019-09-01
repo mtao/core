@@ -2,12 +2,13 @@
 #include <mtao/types.hpp>
 #include <mtao/eigen/stack.h>
 #include <mtao/geometry/mesh/shapes/tube.hpp>
+#include <mtao/geometry/mesh/shapes/arrow.hpp>
 
 int main(int argc, char* argv[]) {
 
-    int M = 4;
-    int O = 10;
-    int N = 50;
+    int M = 4;//number of loops
+    int O = 10;//number of radial samples
+    int N = 30;//number of length samples
     mtao::ColVecs3d V(3,N);
     mtao::VecXd theta = mtao::VecXd::LinSpaced(N+1,0,M * 2*M_PI).head(N);
 
@@ -16,9 +17,11 @@ int main(int argc, char* argv[]) {
     V.row(2) = theta.transpose() / (2 * M_PI * M);
 
     {
-        auto [nV,nF] = mtao::geometry::mesh::shapes::disc<true>(mtao::Vec3d::Unit(0).eval(),.1);
+        //auto [nV,nF] = mtao::geometry::mesh::shapes::cone(mtao::Vec3d::Unit(0).eval(),.1);
+        //auto [nV,nF] = mtao::geometry::mesh::shapes::disc<true>((mtao::Vec3d::Unit(0)*.1).eval());
         //auto [nV,nF] = mtao::geometry::mesh::shapes::disc<true>(mtao::Vec3d::Unit(0).eval(),mtao::Vec3d::Unit(1).eval());
         //auto [nV,nF] = mtao::geometry::mesh::shapes::capped_tube(V,.1,O);
+        auto [nV,nF] = mtao::geometry::mesh::shapes::arrow(V,.1,O,1.5,.4);
         for(int i = 0; i < nV.cols(); ++i) {
             std::cout << "v " << nV.col(i).transpose() << std::endl;
         }

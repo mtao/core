@@ -1,6 +1,7 @@
 #pragma once
 #include "mtao/geometry/bishop_frame.hpp"
 #include "mtao/geometry/mesh/shapes/disc.hpp"
+#include <iostream>
 
 
 namespace mtao::geometry::mesh::shapes {
@@ -45,7 +46,25 @@ namespace mtao::geometry::mesh::shapes {
                     auto v = V.col(i);
                     int voff = subdivisions*i;
                     auto r = RV(Eigen::all,Eigen::seqN(subdivisions*i,subdivisions));
-                    r = radius * mtao::eigen::hstack(u,v) * CS;
+                    if(false && i > 0 && i < P.cols()-1) {
+
+                        mtao::Vector3<T> tm = P.col(i-1) - P.col(i);
+                        mtao::Vector3<T> t = P.col(i+1)-P.col(i);
+                        tm.normalize();
+                        t.normalize();
+                        double shift = 1.0/std::sqrt(1-std::abs(tm.normalized().dot(t.normalized())));
+                        mtao::Vector3<T> axis = tm.cross(t).normalized();
+                        mtao::SquareMatrix<T,2> A;
+                        A(0,0) = u.dot(axis);
+                        A(0,1) = v.dot(axis);
+                        A.row(0).normalize();
+                        A(1,1) = A(0,0);
+                        A(1,0) = -A(0,1);
+                        A = A.transpose() * Eigen::Vector2<T>(T(1),T(shift)).asDiagonal() * A.transpose().inverse();
+                        r = radius * mtao::eigen::hstack(u,v) * A * CS;
+                    } else {
+                        r = radius * mtao::eigen::hstack(u,v) * CS;
+                    }
                     r.colwise() += p;
 
                     if(i == P.cols()-1) continue;

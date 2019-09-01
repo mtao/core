@@ -37,6 +37,21 @@ namespace mtao::geometry::mesh::shapes {
         std::tuple<mtao::ColVectors<T,3>,mtao::ColVecs3i> disc(const mtao::Vector<T,3>& U, const mtao::Vector<T,3>& V, int N=5) {
             return {internal::disc_points<CenterPoint>(U,V,N),internal::disc_faces<CenterPoint>(N)};
         }
+        template <bool CenterPoint=false,typename T=double>
+        std::tuple<mtao::ColVectors<T,3>,mtao::ColVecs3i> disc(const mtao::Vector<T,3>& D, int N=5) {
+            using Vec = mtao::Vector<T,3>;
+            Vec U = D.cross(Vec::Unit(0));
+            if(U.norm() < 1e-5) {
+                U = D.cross(Vec::Unit(1));
+            }
+            U.normalize();
+            Vec V = U.cross(D).normalized();
+            U *= D.norm();
+            V *= D.norm();
+
+
+            return {internal::disc_points<CenterPoint>(U,V,N),internal::disc_faces<CenterPoint>(N)};
+        }
 
 
 }
