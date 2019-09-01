@@ -1,3 +1,4 @@
+#ifdef USE_OLD_STUFF
 #include "mtao/opengl/Window.h"
 #include "enright.h"
 #include <iostream>
@@ -21,12 +22,7 @@ using namespace mtao::logging;
 Camera3D cam;
 
 using ClockType = std::chrono::steady_clock;
-using ColVectors3d = mtao::ColVectors<double,3>;
-using ColVectors3i = mtao::ColVectors<int,3>;
-ColVectors3d V;
-ColVectors3i F;
 
-std::unique_ptr<ElTopoTracker> ett;
 
 bool animate = false;
 bool save_frame = false;
@@ -66,37 +62,6 @@ void set_mvp(int w, int h) {
 }
 void animate_func() {
 
-    static double t = 0;
-    static double dt = 0.001;
-
-    double curt = 0;
-    double subdt = dt;
-    while(curt < dt) {
-        double fine_t = t + curt;
-        subdt = dt - curt;
-
-        ett->improve();
-
-
-        V = ett->get_vertices();
-
-        ColVectors3d Vnew = V + (subdt) * 2 * enright_velocities(V, fine_t);
-
-        subdt = ett->integrate(Vnew,subdt);
-        V = Vnew;
-
-        curt = curt + subdt;
-        if(curt > dt) {
-            curt = dt;
-        }
-    }
-    auto [V,F] = ett->get_mesh();
-    ColVectors3d VV = (V.colwise()-center) /  scale;
-    renderer->setMesh(VV.cast<GLfloat>(),F.cast<GLuint>());
-    t += dt;
-    while(t > 1)  {
-        t -= 1;
-    }
 }
 
 void gui_func() {
@@ -177,3 +142,117 @@ int main(int argc, char * argv[]) {
 }
 
 
+#else
+
+#include "mtao/opengl/Window.h"
+#include <iostream>
+#include "imgui.h"
+#include <memory>
+#include <algorithm>
+#include "mtao/geometry/mesh/boundary_facets.h"
+#include "mtao/geometry/mesh/sphere.hpp"
+#include "mtao/geometry/mesh/read_obj.hpp"
+#include "mtao/geometry/bounding_box.hpp"
+#include "mtao/opengl/drawables.h"
+#include <mtao/types.h>
+#include "enright.h"
+#include "mtao/geometry/mesh/eltopo.h"
+#include <Corrade/Containers/Array.h>
+#include <Corrade/Containers/ArrayView.h>
+
+#include <Magnum/Shaders/VertexColor.h>
+#include <Magnum/Shaders/Phong.h>
+#include <Corrade/Utility/Arguments.h>
+#include "mtao/opengl/objects/mesh.h"
+
+#include <glm/gtc/matrix_transform.hpp> 
+
+
+
+class MeshViewer: public mtao::opengl::Window3 {
+    public:
+        using ColVectors3d = mtao::ColVectors<double,3>;
+        using ColVectors3i = mtao::ColVectors<int,3>;
+        ColVectors3d V;
+        ColVectors3i F;
+
+        std::unique_ptr<ElTopoTracker> ett;
+        MeshViewer(const Arguments& args): Window3(args), _wireframe_shader{Magnum::Shaders::MeshVisualizer::Flag::Wireframe} {
+        Corrade::Utility::Arguments myargs;
+        std::tie(V,F) = mtao::geometry::mesh::sphere<double>(4);
+        mesh.setTriangleBuffer(V.cast<float>(),F.cast<unsigned int>());
+        auto E = mtao::geometry::mesh::boundary_facets(F);
+
+        ett = std::make_unique<ElTopoTracker>(V,F);
+
+
+
+        phong_drawable = new mtao::opengl::Drawable<Magnum::Shaders::Phong>{mesh,_shader, drawables()};
+        mv_drawable = new mtao::opengl::Drawable<Magnum::Shaders::MeshVisualizer>{mesh,_wireframe_shader, drawables()};
+
+        mesh.setParent(&root());
+
+    }
+    void gui() override {
+        if(mv_drawable) {
+            mv_drawable->gui();
+        }
+        if(phong_drawable) {
+            phong_drawable->gui();
+        }
+    }
+
+
+    void animate() {
+        static double t = 0;
+        static double dt = 0.001;
+
+        double curt = 0;
+        double subdt = dt;
+        while(curt < dt) {
+            double fine_t = t + curt;
+            subdt = dt - curt;
+
+            ett->improve();
+
+
+            V = ett->get_vertices();
+
+            ColVectors3d Vnew = V + (subdt) * 2 * enright_velocities(V, fine_t);
+
+            subdt = ett->integrate(Vnew,subdt);
+            V = Vnew;
+
+            curt = curt + subdt;
+            if(curt > dt) {
+                curt = dt;
+            }
+        }
+        auto [V,F] = ett->get_mesh();
+        mesh.setTriangleBuffer(V.cast<float>(),F.cast<unsigned int>());
+        t += dt;
+        while(t > 1)  {
+            t -= 1;
+        }
+    }
+
+    void draw() override {
+        Window3::draw();
+        animate();
+    }
+    private:
+    Magnum::Shaders::Phong _shader;
+    Magnum::Shaders::MeshVisualizer _wireframe_shader;
+    Magnum::Shaders::Flat3D _flat_shader;
+    mtao::opengl::objects::Mesh<3> mesh;
+    mtao::opengl::Drawable<Magnum::Shaders::Phong>* phong_drawable = nullptr;
+    mtao::opengl::Drawable<Magnum::Shaders::MeshVisualizer>* mv_drawable = nullptr;
+
+
+};
+
+
+
+
+MAGNUM_APPLICATION_MAIN(MeshViewer)
+#endif

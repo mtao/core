@@ -8,6 +8,7 @@
 #include <Magnum/SceneGraph/Drawable.h>
 #include <Magnum/SceneGraph/Camera.h>
 #include <Magnum/Shaders/Flat.h>
+#include <Magnum/GL/Buffer.h>
 #include "mtao/opengl/shaders.h"
 
 
@@ -38,6 +39,7 @@ namespace mtao::opengl {
 
     }
 
+
     template <typename ShaderType>
         class Drawable: public internal::DrawableType<ShaderType> {
         public:
@@ -49,6 +51,14 @@ namespace mtao::opengl {
             explicit Drawable(MeshType& mesh, ShaderType& shader, DrawableGroup& group): internal::DrawableType<ShaderType>{mesh, &group},  _mesh(mesh),_shader(shader) {}
             void gui(const std::string& name = "");
 
+            void deactivate() {
+                activate_points({});
+                activate_edges({});
+                activate_triangles({});
+            }
+            void activate_points(const std::optional<GL::MeshPrimitive>& p = GL::MeshPrimitive::Points) {
+                point_primitive = p;
+            }
             void activate_edges(const std::optional<GL::MeshPrimitive>& p = GL::MeshPrimitive::Lines) {
                 edge_primitive = p;
             }
@@ -58,11 +68,19 @@ namespace mtao::opengl {
             ShaderData<ShaderType>&  data() { return _data; } 
 
             void set_visibility(bool val) { visible = val; }
+            bool is_visible() const { return visible; }
 
+            bool lint_buffers(){
+                bool ret = lint_vertex();
+                if(edge_primitive) { ret &= lint_edge(); }
+                if(triangle_primitive) { ret &= lint_triangle(); }
+                return ret;
+            }
         private:
             bool visible = true;
             std::optional<GL::MeshPrimitive> triangle_primitive = GL::MeshPrimitive::Triangles;
             std::optional<GL::MeshPrimitive> edge_primitive;// = GL::MeshPrimitive::Lines;
+            std::optional<GL::MeshPrimitive> point_primitive;// = GL::MeshPrimitive::Lines;
             MeshType& _mesh;
             ShaderType& _shader;
             ShaderData<ShaderType> _data;
@@ -88,9 +106,31 @@ namespace mtao::opengl {
                     _mesh.setPrimitive(*edge_primitive);
                     _mesh.draw(_shader);
                 }
+                if(point_primitive) {
+                    _mesh.setCount(_mesh.vertex_Count);
+                    //_mesh.setIndexBuffer({},0,_mesh.edge_indexType,0,0);
+                    //Magnum::GL::Buffer buf(Magnum::NoCreate);
+                    //_mesh.setIndexBuffer(buf,0, Magnum::MeshIndexType{});
+                    _mesh.setPrimitive(*point_primitive);
+                    _mesh.draw(_shader);
+                }
             }
             void set_buffers();
+            bool lint_buffer( Magnum::GL::Buffer& b)  { return b.size() > 0; }
+            bool lint_vertex()  { return lint_buffer(_mesh.vertex_buffer); }
+            bool lint_edge()  { return lint_buffer(_mesh.edge_index_buffer); }
+            bool lint_triangle()  { return lint_buffer(_mesh.triangle_index_buffer); }
+            bool lint_normal()  { return lint_buffer(_mesh.normal_buffer); }
+            bool lint_vfield()  { return lint_buffer(_mesh.vfield_buffer); }
+            bool lint_color()  { return lint_buffer(_mesh.color_buffer); }
         };
+    template <typename ShaderType, int D,
+             typename Camera = internal::CameraType<ShaderType>,
+             typename DrawableGroup = internal::DrawableGroupType<ShaderType>,
+             typename TransMat = internal::TransformMatrixType<ShaderType>>
+                 auto make_drawable(objects::Mesh<D>& mesh, ShaderType& shader, DrawableGroup& group) {
+                     return new Drawable<ShaderType>(mesh,shader,group);
+                 }
     template <>
     void Drawable<Shaders::Flat2D>::gui(const std::string& name);
     template <>
@@ -99,6 +139,17 @@ namespace mtao::opengl {
     void Drawable<Shaders::Flat2D>::set_buffers();
     template <>
     void Drawable<Shaders::VertexColor2D>::set_buffers();
+    template <>
+    void Drawable<Shaders::VertexColor2D>::set_buffers();
+
+
+    template <>
+        bool Drawable<Shaders::VertexColor3D>::lint_buffers() ;
+    template <>
+        bool Drawable<Shaders::VertexColor2D>::lint_buffers() ;
+    template <>
+        bool Drawable<Shaders::Phong>::lint_buffers() ;
+
 
     template <>
     void Drawable<Shaders::Flat3D>::gui(const std::string& name);

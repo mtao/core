@@ -38,15 +38,17 @@ namespace mtao::opengl {
         setSwapInterval(1);
         //setMinimalLoopPeriod(16);
     }
+    void WindowBase::draw() {}
     void WindowBase::drawEvent() {
 
 
         {//ImGui
             _imgui.newFrame();
-            if(ImGui::GetIO().WantTextInput && !isTextInputActive())
+            if(ImGui::GetIO().WantTextInput && !isTextInputActive()) {
                 startTextInput();
-            else if(!ImGui::GetIO().WantTextInput && isTextInputActive())
+            } else if(!ImGui::GetIO().WantTextInput && isTextInputActive()) {
                 stopTextInput();
+            }
 
             gui();
 
@@ -94,6 +96,7 @@ namespace mtao::opengl {
 
     void WindowBase::keyPressEvent(KeyEvent& event) {
         if(_imgui.handleKeyPressEvent(event)) {
+            event.setAccepted();
             redraw();
             return;
         }
@@ -101,6 +104,7 @@ namespace mtao::opengl {
 
     void WindowBase::keyReleaseEvent(KeyEvent& event) {
         if(_imgui.handleKeyReleaseEvent(event)) {
+            event.setAccepted();
             redraw();
             return;
         }
@@ -108,6 +112,7 @@ namespace mtao::opengl {
 
     void WindowBase::mousePressEvent(MouseEvent& event) {
         if(_imgui.handleMousePressEvent(event)) {
+            event.setAccepted();
             redraw();
             return;
         }
@@ -115,6 +120,7 @@ namespace mtao::opengl {
 
     void WindowBase::mouseReleaseEvent(MouseEvent& event) {
         if(_imgui.handleMouseReleaseEvent(event)) {
+            event.setAccepted();
             redraw();
             return;
         }
@@ -122,6 +128,7 @@ namespace mtao::opengl {
 
     void WindowBase::mouseMoveEvent(MouseMoveEvent& event) {
         if(_imgui.handleMouseMoveEvent(event)) {
+            event.setAccepted();
             redraw();
             return;
         }
@@ -129,6 +136,7 @@ namespace mtao::opengl {
 
     void WindowBase::mouseScrollEvent(MouseScrollEvent& event) {
         if(_imgui.handleMouseScrollEvent(event)) {
+            event.setAccepted();
             redraw();
             return;
         }
@@ -136,149 +144,12 @@ namespace mtao::opengl {
 
     void WindowBase::textInputEvent(TextInputEvent& event) {
         if(_imgui.handleTextInputEvent(event)) {
+            event.setAccepted();
             redraw();
             return;
         }
     }
 
-
-
-
-
-
-    Window3::Window3(const Arguments& args): WindowBase(args), _cameraObject(&_scene), _camera(_cameraObject) {
-        _cameraObject.setParent(&_scene)
-            .translate(Vector3::zAxis(5.0f));
-        _camera.setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
-            .setProjectionMatrix(Matrix4::perspectiveProjection(35.0_degf, 1.0f, 0.01f, 1000.0f))
-            .setViewport(GL::defaultFramebuffer.viewport().size());
-
-        _root.setParent(&_scene);
-    }
-    void Window3::draw() {
-        _camera.draw(_drawables);
-    }
-    void Window3::viewportEvent(ViewportEvent& event) {
-        WindowBase::viewportEvent(event);
-        _camera.setViewport(event.windowSize());
-    }
-    Vector3 Window3::positionOnSphere(const Vector2i& position) const {
-        const Vector2 positionNormalized = Vector2{position}/Vector2{_camera.viewport()} - Vector2{0.5f};
-        const Float length = positionNormalized.length();
-        const Vector3 result(length > 1.0f ? Vector3(positionNormalized, 0.0f) : Vector3(positionNormalized, 1.0f - length));
-        return (result*Vector3::yScale(-1.0f)).normalized();
-    }
-
-
-    void Window3::mousePressEvent(MouseEvent& event) {
-        WindowBase::mousePressEvent(event);
-        if(!ImGui::GetIO().WantCaptureMouse) {
-            if(event.button() == MouseEvent::Button::Left)
-                _previousPosition = positionOnSphere(event.position());
-        }
-    }
-
-    void Window3::mouseReleaseEvent(MouseEvent& event) {
-        WindowBase::mouseReleaseEvent(event);
-        if(event.button() == MouseEvent::Button::Left)
-            _previousPosition = Vector3();
-    }
-
-    void Window3::mouseScrollEvent(MouseScrollEvent& event) {
-        WindowBase::mouseScrollEvent(event);
-        if(!ImGui::GetIO().WantCaptureMouse) {
-            if(!event.offset().y()) return;
-
-            /* Distance to origin */
-            const Float distance = _cameraObject.transformation().translation().z();
-
-            /* Move 15% of the distance back or forward */
-            _cameraObject.translate(Vector3::zAxis(
-                        distance*(1.0f - (event.offset().y() > 0 ? 1/0.85f : 0.85f))));
-
-            redraw();
-        }
-    }
-
-
-    void Window3::mouseMoveEvent(MouseMoveEvent& event) {
-        WindowBase::mouseMoveEvent(event);
-        if(!(event.buttons() & MouseMoveEvent::Button::Left)) return;
-
-        const Vector3 currentPosition = positionOnSphere(event.position());
-        const Vector3 axis = Math::cross(_previousPosition, currentPosition);
-
-        if(_previousPosition.length() < 0.001f || axis.length() < 0.001f) return;
-
-        _root.rotate(Math::angle(_previousPosition, currentPosition), axis.normalized());
-        _previousPosition = currentPosition;
-
-        redraw();
-    }
-
-
-    Window2::Window2(const Arguments& args): WindowBase(args), _cameraObject(&_scene), _camera(_cameraObject) {
-        _cameraObject.setParent(&_scene);
-        _camera.setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
-            .setProjectionMatrix(Matrix3::projection({1.0f, 1.0f}))
-            .setViewport(GL::defaultFramebuffer.viewport().size());
-
-
-        _root.setParent(&_scene);
-    }
-    void Window2::draw() {
-        _camera.draw(_drawables);
-    }
-    void Window2::viewportEvent(ViewportEvent& event) {
-        WindowBase::viewportEvent(event);
-        _camera.setViewport(event.windowSize());
-    }
-
-    void Window2::mousePressEvent(MouseEvent& event) {
-        WindowBase::mousePressEvent(event);
-        if(!ImGui::GetIO().WantCaptureMouse) {
-            if(event.button() == MouseEvent::Button::Left)
-                _previousPosition = localPosition(event.position());
-        }
-    }
-
-    void Window2::mouseReleaseEvent(MouseEvent& event) {
-        WindowBase::mouseReleaseEvent(event);
-        if(event.button() == MouseEvent::Button::Left)
-            _previousPosition = Vector2();
-    }
-    Vector2 Window2::localPosition(const Vector2i& position) const {
-        const Vector2 positionNormalized = Vector2{position}/Vector2{_camera.viewport()};
-        return positionNormalized;
-    }
-
-    void Window2::mouseScrollEvent(MouseScrollEvent& event) {
-        WindowBase::mouseScrollEvent(event);
-        if(!ImGui::GetIO().WantCaptureMouse) {
-            _camera.setProjectionMatrix(Matrix3::projection({20.0f/scale, 20.0f/scale}));
-            float my_scale= (event.offset().y() > 0 ? 1/0.85f : 0.85f);
-            scale *= my_scale;
-            _cameraObject.scaleLocal({my_scale,my_scale});
-            Utility::Debug{} << _cameraObject.transformation();
-            redraw();
-        }
-    }
-
-
-    void Window2::mouseMoveEvent(MouseMoveEvent& event) {
-        WindowBase::mouseMoveEvent(event);
-        if(!(event.buttons() & MouseMoveEvent::Button::Left)) return;
-
-        const Vector2 currentPosition = localPosition(event.position());
-
-
-        Vector2 diff = currentPosition - _previousPosition;
-        diff.y() *= -1;
-        _root.translate(diff);
-        _previousPosition = currentPosition;
-
-        redraw();
-    }
 
 
 

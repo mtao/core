@@ -123,6 +123,8 @@ class HalfEdgeMesh {
             void set_one_ring_adjacencies(const Eigen::MatrixBase<Derived>& V, const std::vector<int>& edges, bool stitch_ends = true);
         template <typename T>
             void set_one_ring_adjacencies(const std::map<T,int>& ordered_edge_indices, bool stitch_ends = true);
+        template <typename T>
+            void set_one_ring_adjacencies(const std::map<std::tuple<T,int>,int>& ordered_edge_indices, bool stitch_ends = true);
 
         template <typename Derived, typename Derived2>
             typename Derived::Scalar winding_number(const Eigen::MatrixBase<Derived>& V, const HalfEdge& cell_edge, const Eigen::MatrixBase<Derived2>& p) const;
@@ -387,6 +389,28 @@ void EmbeddedHalfEdgeMesh<S,D>::make_topology() {
     make_cells();
 }
 template <typename T>
+void HalfEdgeMesh::set_one_ring_adjacencies(const std::map<std::tuple<T,int>,int>& ordered_edges, bool stitch_ends) {
+
+    auto ni = next_indices();
+    auto di = dual_indices();
+    auto nit = ordered_edges.begin();
+    if(ordered_edges.size() == 1) {
+        int eidx = nit->second;
+        ni(eidx) = di(eidx);
+    } else {
+        auto it = nit++;
+        for(; nit != ordered_edges.end(); ++it, ++nit) {
+            int nidx = nit->second;
+            int idx = it->second;
+            ni(idx) = di(nidx);
+        }
+        if(stitch_ends) {
+            int idx = it->second;
+            ni(idx) = di(ordered_edges.begin()->second);
+        }
+    }
+}
+template <typename T>
 void HalfEdgeMesh::set_one_ring_adjacencies(const std::map<T,int>& ordered_edges, bool stitch_ends) {
 
     auto ni = next_indices();
@@ -431,6 +455,17 @@ void HalfEdgeMesh::set_one_ring_adjacencies(const Eigen::MatrixBase<Derived>& V,
             S ang = std::atan2(p.y(),p.x());
             edge_angles[ang] = eidx;
         }
+        if(edges.size() != edge_angles.size()) {
+            mtao::logging::warn() << "Duplicate vertex directions found when computing one ring adjacencies bb";
+            std::map<std::tuple<S,int>,int> edge_angles;
+            for(auto [i,eidx]: mtao::iterator::enumerate(edges)) {
+                HalfEdge e = edge(eidx);
+                auto p = V.col(i);
+                S ang = std::atan2(p.y(),p.x());
+                edge_angles[std::make_tuple(ang,i)] = eidx;
+            }
+            HalfEdgeMesh::set_one_ring_adjacencies(edge_angles,stitch_ends);
+        }
     }
     set_one_ring_adjacencies(edge_angles,stitch_ends);
 }
@@ -453,7 +488,20 @@ void EmbeddedHalfEdgeMesh<S,D>::set_one_ring_adjacencies(const Eigen::MatrixBase
                 S ang = std::atan2(p.y(),p.x());
                 return std::make_pair(ang,eidx);
                 });
-        HalfEdgeMesh::set_one_ring_adjacencies(edge_angles);
+        if(edges.size() != edge_angles.size()) {
+            mtao::logging::warn() << "Duplicate vertex directions found when computing one ring adjacencies";
+            std::map<std::tuple<S,int>,int> edge_angles;
+            std::transform(edges.begin(),edges.end(),std::inserter(edge_angles,edge_angles.end()), [&](int eidx) {
+                    HalfEdge e = edge(eidx);
+                    int vertex = e.get_dual().vertex();
+                    auto p = (V(e.get_dual().vertex()) - o);
+                    S ang = std::atan2(p.y(),p.x());
+                    return std::make_pair(std::make_tuple(ang,vertex),eidx);
+                    });
+            HalfEdgeMesh::set_one_ring_adjacencies(edge_angles);
+        } else {
+            HalfEdgeMesh::set_one_ring_adjacencies(edge_angles);
+        }
     }
 }
 
@@ -740,6 +788,7 @@ void HalfEdgeMesh::tie_nonsimple_cells(const Eigen::MatrixBase<Derived>& V, cons
         }
     }
 
+    //the vertices that make each cell
     std::map<int,std::vector<int>> CM;
     std::map<int,std::set<int>> CMs;
     for(auto&& he: cell_halfedges) {

@@ -151,14 +151,11 @@ void gui_func() {
     ImGui::InputInt("Square aspect",&square_aspect);
     ImGui::InputInt("Circle side",&circle_side);
     std::string oldopts = std::string(opt_view);
-    ImGui::InputText("Triangle options",opt_cstr,128);
-    /*
-    if(oldopts != opt_view) {
+    if(ImGui::InputText("Triangle options",opt_cstr,128)){
         tri_opts.parse_options(opt_view);
     }
-    */
 
-    if(false) {
+    {
         static bool show = true;
         ImGui::Begin("Triangle opts",&show); 
         tri_opts.imgui_interface();
@@ -286,6 +283,7 @@ class MeshViewer: public mtao::opengl::Window2 {
             .addBooleanOption("writeall")
             //.addOption("tri_opts",std::string(opt_view))
             .parse(args.argc,args.argv);
+        tri_opts.parse_options(opt_view);
 
         if(myargs.isSet("writeall")) {
             debug() << "Writing all files!";

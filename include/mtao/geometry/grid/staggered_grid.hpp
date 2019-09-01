@@ -22,6 +22,7 @@ namespace mtao {
                         using Base::size;
                         using Base::index;
                         using Base::unindex;
+                        using Scalar = T;
                         using BBox = typename Base::BBox;
                         using Indexer= typename Base::Indexer;
                         using coord_type = typename Base::coord_type;
@@ -32,6 +33,11 @@ namespace mtao {
                         using IVecMap = typename Base::IVecMap;
                         using CIVecMap = typename Base::CIVecMap;
                         using StaggeredGrids = decltype(staggered_grid::make_grids(std::declval<Base>()));
+
+                        template <int N>
+                        constexpr static size_t form_grid_size() {
+                            return std::tuple_size<std::tuple_element_t<N,StaggeredGrids>>();
+                        }
                         /*
                         StaggeredGrid(const coord_type& shape): Base(shape) {
                             resize_grids();
@@ -57,10 +63,10 @@ namespace mtao {
                         static StaggeredGrid from_bbox(BBox bb, const coord_type& shape, bool cubes = false) {
 
                             Vec mid =(bb.min() + bb.max()) / 2;
-                            auto dx = (bb.sizes().array() / (CIVecMap(shape.data()).template cast<T>().array() + (UseVertexGrid?T(0):T(1)))).eval();
+                            auto dx = (bb.sizes().array() / (CIVecMap(shape.data()).template cast<T>().array() + (UseVertexGrid?T(1):T(0)))).eval();
                             if(cubes) {
                                 dx.setConstant(dx.maxCoeff());
-                                bb.max() = (dx.array() * (CIVecMap(shape.data()).template cast<T>().array()+(UseVertexGrid?T(0):T(1)))).eval() / 2;
+                                bb.max() = (dx.array() * (CIVecMap(shape.data()).template cast<T>().array()+(UseVertexGrid?T(1):T(0)))).eval() / 2;
                                 bb.min() = -bb.max(); 
                                 bb.min() += mid;
                                 bb.max() += mid;

@@ -31,6 +31,7 @@ namespace mtao::opengl::objects {
         setPrimitive(GL::MeshPrimitive::Triangles);
         Containers::Array<char> indexData;
         std::vector<unsigned int> inds(F.data(),F.data()+F.size());
+        triangle_Count = F.size();
 
         std::tie(indexData, triangle_indexType, triangle_indexStart, triangle_indexEnd) =
             MeshTools::compressIndices(inds);
@@ -42,7 +43,6 @@ namespace mtao::opengl::objects {
             AlgebraicMesh::setTriangleBuffer(F);
             auto N = mtao::geometry::mesh::vertex_normals(V,F);
             normal_buffer.setData(Containers::ArrayView<const float>{N.data(),size_t(N.size())});
-            triangle_Count = F.size();
         }
 
 

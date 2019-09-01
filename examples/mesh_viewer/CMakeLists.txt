@@ -3,7 +3,7 @@ ADD_EXECUTABLE(mesh_viewer
     main.cpp)
 ADD_DEFINITIONS(-g)
 
-TARGET_LINK_LIBRARIES(mesh_viewer mtao_opengl mtao_geometry Magnum::MeshTools)
+TARGET_LINK_LIBRARIES(mesh_viewer mtao::visualization mtao::geometry Magnum::MeshTools)
 
 #target_link_libraries(MyApplication PRIVATE
 #    Magnum::Application

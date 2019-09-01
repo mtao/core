@@ -4,4 +4,4 @@ ADD_EXECUTABLE(grid_viewer
     )
 ADD_DEFINITIONS(-g)
 
-TARGET_LINK_LIBRARIES(grid_viewer mtao_opengl mtao_geometry Magnum::MeshTools)
+TARGET_LINK_LIBRARIES(grid_viewer mtao::visualization mtao::geometry Magnum::MeshTools)

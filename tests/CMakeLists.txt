@@ -37,60 +37,54 @@ ADD_EXECUTABLE(colvector_loop_test colvector_loop_test.cpp)
 ADD_EXECUTABLE(reindexer_test reindexer_test.cpp)
 
 ADD_EXECUTABLE(stl2eigen_test stl2eigen_test.cpp)
-TARGET_LINK_LIBRARIES(stl2eigen_test mtao_core)
+TARGET_LINK_LIBRARIES(stl2eigen_test mtao::common)
 
 ADD_EXECUTABLE(bounding_box_test bounding_box_test.cpp)
-TARGET_LINK_LIBRARIES(bounding_box_test mtao_core)
+TARGET_LINK_LIBRARIES(bounding_box_test mtao::common)
+
+ADD_EXECUTABLE(tube_creation_test tube_creation_test.cpp)
+TARGET_LINK_LIBRARIES(tube_creation_test mtao::common)
 
 ADD_EXECUTABLE(horner_evaluation_test horner_evaluation_test.cpp)
 ADD_EXECUTABLE(log_test log_test.cpp)
-TARGET_LINK_LIBRARIES(log_test mtao_core)
+TARGET_LINK_LIBRARIES(log_test mtao::common)
 ADD_EXECUTABLE(profiler_test profiler_test.cpp)
-TARGET_LINK_LIBRARIES(profiler_test mtao_core)
+TARGET_LINK_LIBRARIES(profiler_test mtao::common)
 
 ADD_EXECUTABLE(tuple_call_test tuple_call_test.cpp)
 
 ADD_EXECUTABLE(halfedge_test halfedge_test.cpp)
-TARGET_LINK_LIBRARIES(halfedge_test mtao_geometry)
+TARGET_LINK_LIBRARIES(halfedge_test mtao::geometry)
 ADD_EXECUTABLE(halfedge_concentric_circle_test halfedge_concentric_circle_test.cpp)
-TARGET_LINK_LIBRARIES(halfedge_concentric_circle_test  mtao_geometry)
+TARGET_LINK_LIBRARIES(halfedge_concentric_circle_test  mtao::geometry)
 ADD_EXECUTABLE(strand_test strand_test.cpp)
-TARGET_LINK_LIBRARIES(strand_test mtao_geometry)
+TARGET_LINK_LIBRARIES(strand_test mtao::geometry)
 ADD_EXECUTABLE(halfedge_topology_test halfedge_topology_test.cpp)
-TARGET_LINK_LIBRARIES(halfedge_topology_test mtao_geometry)
+TARGET_LINK_LIBRARIES(halfedge_topology_test mtao::geometry)
 ADD_EXECUTABLE(halfedge_submesh_test halfedge_submesh_test.cpp)
-TARGET_LINK_LIBRARIES(halfedge_submesh_test mtao_geometry)
+TARGET_LINK_LIBRARIES(halfedge_submesh_test mtao::geometry)
 ADD_EXECUTABLE(embedded_halfedge_test embedded_halfedge_test.cpp)
-TARGET_LINK_LIBRARIES(embedded_halfedge_test mtao_geometry)
+TARGET_LINK_LIBRARIES(embedded_halfedge_test mtao::geometry)
 
 #ADD_EXECUTABLE(static_iteration_test src/static_iteration_test.cpp)
 ADD_EXECUTABLE(combination_test combination_test.cpp)
 ADD_EXECUTABLE(staggered_grid_test staggered_grid_test.cpp)
+ADD_EXECUTABLE(staggered_grid_form_test staggered_grid_form_test.cpp)
 ADD_EXECUTABLE(staggered_grid_cell_test staggered_grid_cell_test.cpp)
 ADD_EXECUTABLE(staggered_grid_boundary_test staggered_grid_boundary_test.cpp)
 ADD_EXECUTABLE(staggered_grid_util_test staggered_grid_util_test.cpp)
 ADD_EXECUTABLE(laplacian_smoothing_test laplacian_smoothing_test.cpp)
-TARGET_LINK_LIBRARIES(laplacian_smoothing_test mtao_core)
+TARGET_LINK_LIBRARIES(laplacian_smoothing_test mtao::common)
 
 ADD_EXECUTABLE(disjoint_set_test disjoint_set_test.cpp)
 ADD_EXECUTABLE(static_loop_test static_loop_test.cpp)
 
 ADD_EXECUTABLE(cltest cltest.cpp)
-TARGET_LINK_LIBRARIES(cltest mtao_core)
+TARGET_LINK_LIBRARIES(cltest mtao::common)
 
 ADD_EXECUTABLE(hotkey_test hotkey_test.cpp)
-TARGET_LINK_LIBRARIES(hotkey_test mtao_core)
+TARGET_LINK_LIBRARIES(hotkey_test mtao::common)
 
-IF(${USE_OPENGL})
-ADD_EXECUTABLE(imgui_builtin_example 
-    ${IMGUI_PATH}/examples/example_glfw_opengl3/main.cpp
-    ${IMGUI_PATH}/imgui_demo.cpp
-    )
-TARGET_INCLUDE_DIRECTORIES(imgui_builtin_example PRIVATE
-    ${IMGUI_PATH}/examples)
-TARGET_COMPILE_DEFINITIONS(imgui_builtin_example PRIVATE -DIMGUI_IMPL_OPENGL_LOADER_GLEW)
-TARGET_LINK_LIBRARIES(imgui_builtin_example  mtao_opengl GLEW)
-ENDIF(${USE_OPENGL})
 
 #ADD_EXECUTABLE(particle_sampling_test src/particle_sampling_test.cpp ${CORE_INCLUDE}/grid.h ${CORE_INCLUDE}/grid_utils.h
 #    ${CORE_INCLUDE}/arguments.h ${CORE_INCLUDE}/particle_sampler.h)

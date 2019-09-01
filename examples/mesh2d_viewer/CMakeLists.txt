@@ -4,4 +4,4 @@ ADD_EXECUTABLE(mesh2d_viewer
     )
 ADD_DEFINITIONS(-g)
 
-TARGET_LINK_LIBRARIES(mesh2d_viewer mtao_opengl mtao_geometry Magnum::MeshTools)
+TARGET_LINK_LIBRARIES(mesh2d_viewer mtao::visualization mtao::geometry Magnum::MeshTools)

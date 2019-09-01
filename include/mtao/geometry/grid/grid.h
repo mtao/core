@@ -4,6 +4,7 @@
 //#include "grid_storage.h"
 #include "indexers/ordered_indexer.hpp"
 #include <Eigen/Geometry>
+#include "mtao/eigen/stl2eigen.hpp"
 
 
 namespace mtao {
@@ -84,11 +85,11 @@ namespace mtao {
                                 return c;
                             } else if(UseVertexGrid) {
                                 coord_type r = c;
-                                for(auto&& v: r) { v++; }
+                                //for(auto&& v: r) { v++; }
                                 return r;
                             } else {
                                 coord_type r = c;
-                                for(auto&& v: r) { v--; }
+                                //for(auto&& v: r) { v--; }
                                 return r;
                             }
                         }
@@ -102,9 +103,9 @@ namespace mtao {
 
                         BBox bbox() const {
                             if constexpr(UseVertexGrid) {
-                                return BBox(origin(), vertex(shapeAsIVec() - IVec::Ones()));
-                            } else {
                             return BBox(origin(), vertex(shapeAsIVec()));
+                            } else {
+                                return BBox(origin(), vertex(shapeAsIVec() - IVec::Ones()));
                             }
                         }
 

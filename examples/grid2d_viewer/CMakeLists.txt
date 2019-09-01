@@ -4,4 +4,4 @@ ADD_EXECUTABLE(grid2d_viewer
     )
 ADD_DEFINITIONS(-g)
 
-TARGET_LINK_LIBRARIES(grid2d_viewer mtao_opengl)
+TARGET_LINK_LIBRARIES(grid2d_viewer mtao::visualization)

@@ -15,8 +15,8 @@ namespace mtao { namespace geometry { namespace grid {
         GridTriangulator(const GridType& g): g(g) {}
             ColVectors<T,D> vertices() const;
             using coord_type = typename GridType::coord_type;
-            ColVectors<unsigned int, 3> faces() const;
-            ColVectors<unsigned int, 2> edges() const;
+            ColVectors<int, 3> faces() const;
+            ColVectors<int, 2> edges() const;
         private:
             const GridType& g;
     };

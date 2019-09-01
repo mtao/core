@@ -1,5 +1,5 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.8)
-PROJECT(MtaoCore)
+PROJECT(Mtao)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 
@@ -16,126 +16,96 @@ ADD_DEFINITIONS(-Wall)
 #ADD_DEFINITIONS(-Wno-unused-variable)
 
 
-OPTION(USE_ELTOPO "Should we build the el topo submodule" OFF)
-OPTION(USE_OPENGL "Build opengl stuff" OFF)
+OPTION(MTAO_USE_ELTOPO "Should we build the el topo submodule" ON)
+OPTION(MTAO_USE_OPENGL "Build opengl stuff" ON)
+OPTION(MTAO_USE_PNGPP "Use PNG++ for screenshots" ON)
 
-OPTION(USE_IMGUI_IMPL "Should the OpenGL Window use the imgui example impl or not" OFF)
-set(OPENGL_LOADER "GLEW" CACHE STRING "Let us select which OpenGL loader to use")
+find_package(Git QUIET)
+if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
+    # Update submodules as needed
+    option(GIT_SUBMODULE "Check submodules during build" ON)
+    if(GIT_SUBMODULE)
+        message(STATUS "Submodule update")
+        execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            RESULT_VARIABLE GIT_SUBMOD_RESULT)
+        if(NOT GIT_SUBMOD_RESULT EQUAL "0")
+            message(FATAL_ERROR "git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+        endif()
+    endif()
+endif()
 
 
-ADD_DEFINITIONS(-DIMGUI_IMPL_OPENGL_LOADER_${OPENGL_LOADER})
-IF(${OPENGL_LOADER} STREQUAL "GLAD") 
-    SET(OPENGL_LOADER_SOURCES src/opengl/glad.c)
-ENDIF(${OPENGL_LOADER} STREQUAL "GLAD") 
-
-IF(${OPENGL_LOADER} STREQUAL "GLEW") 
-    SET(OPENGL_LOADER_LIBRARIES GLEW)
-ENDIF(${OPENGL_LOADER} STREQUAL "GLEW") 
-
-
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui/imgui.h" 
+        OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/extern/triangle/CMakeLists.txt" 
+        OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/extern/eltopo/CMakeLists.txt" )
+    message(FATAL_ERROR "The submodules were not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
+endif()
 
 # Include dirs
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/extern/triangle)
+FIND_PACKAGE(Eigen3 3.3.3 REQUIRED)
+
+FIND_PACKAGE(OpenMP REQUIRED)
+SET(OpenMP_TARGET OpenMP::OpenMP_CXX)
+
+
+######Geometry
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/extern/triangle)
 
 
-IF(${USE_OPENGL})
-    ADD_DEFINITIONS(-DMTAO_USE_OPENGL)
-SET(IMGUI_PATH ${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui)
-INCLUDE_DIRECTORIES(${IMGUI_PATH})
-
-SET(IMGUI_IMPL_SOURCES
-    ${IMGUI_PATH}/examples/imgui_impl_glfw.cpp
-    ${IMGUI_PATH}/examples/imgui_impl_opengl3.cpp
-    )
-
-SET(IMGUI_SOURCES 
-    ${IMGUI_PATH}/imgui.cpp 
-    ${IMGUI_PATH}/imgui_draw.cpp
-    ${IMGUI_PATH}/imgui_widgets.cpp
-    )
-
-IF(${USE_IMGUI_IMPL})
-    SET(IMGUI_SOURCES ${IMGUI_SOURCES} ${IMGUI_IMPL_SOURCES})
-    ADD_DEFINITIONS(-DUSE_IMGUI_IMPL)
-    ADD_DEFINITIONS(-DIMGUI_IMPL_OPENGL_LOADER_GLEW)
-ENDIF(${USE_IMGUI_IMPL})
-
-FIND_PACKAGE(OpenGL )
-find_package(Corrade )
-find_package(Magnum COMPONENTS GL Shaders GlxContext GlfwApplication SceneGraph MeshTools)
-find_package(MagnumIntegration COMPONENTS ImGui)
-IF((NOT DEFINED OpenGL_FOUND) OR (NOT DEFINED Corrade_FOUND) OR (NOT DEFINED Magnum_FOUND) OR (NOT DEFINED MagnumIntegration_FOUND))
-    SET(USE_OPENGL OFF)
-ENDIF((NOT DEFINED OpenGL_FOUND) OR (NOT DEFINED Corrade_FOUND) OR (NOT DEFINED Magnum_FOUND) OR (NOT DEFINED MagnumIntegration_FOUND))
-
-
-FIND_PACKAGE(png++)
-IF(png++_FOUND)
-    ADD_DEFINITIONS(-DMTAO_HAS_LIBPNGPP)
-    include_directories(${png++_INCLUDE_DIRS})
-ENDIF(png++_FOUND)
-if(OPENGL_FOUND)
-    LINK_DIRECTORIES(${OPENGL_LIBRARY_DIRS})
-    INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
-endif(OPENGL_FOUND)
-
-FIND_PACKAGE(PkgConfig REQUIRED)
-PKG_SEARCH_MODULE(GLFW REQUIRED glfw3)
-include_directories(${GLFW_INCLUDE_DIRS})
-
-PKG_SEARCH_MODULE(GLM REQUIRED glm)
-include_directories(${GLM_INCLUDE_DIRS})
-
-ADD_EXECUTABLE(imgui_demo
-    ${IMGUI_SOURCES}
-    ${IMGUI_IMPL_SOURCES}
-    ${IMGUI_PATH}/imgui_demo.cpp
-    ${IMGUI_PATH}/examples/example_glfw_opengl3/main.cpp
-    )
-
-TARGET_LINK_LIBRARIES(imgui_demo ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} ${OPENGL_LOADER_LIBRARIES})
-TARGET_INCLUDE_DIRECTORIES(imgui_demo PRIVATE ${IMGUI_PATH}/examples)
-
-ENDIF(${USE_OPENGL})
-
-IF(${USE_ELTOPO})
+IF(MTAO_USE_ELTOPO)
     ADD_SUBDIRECTORY(extern/eltopo)
     SET(ELTOPO_SOURCES
         src/geometry/mesh/eltopo.cpp
         include/mtao/geometry/mesh/eltopo.h
         )
-ENDIF(${USE_ELTOPO})
+ENDIF(MTAO_USE_ELTOPO)
 
 
-FIND_PACKAGE(Protobuf)
-IF ( PROTOBUF_FOUND )
-    INCLUDE_DIRECTORIES( ${PROTOBUF_INCLUDE_DIR} )
-    SET(PROTOBUF_IMPORT_DIRS proto)
-    PROTOBUF_GENERATE_CPP(GRID_PROTO_SRCS GRID_PROTO_HDRS proto/grid.proto)
-    SET(PROTOBUF_LIBS ${PROTOBUF_LIBRARY})
-ENDIF(PROTOBUF_FOUND)
-
-FIND_PACKAGE(OpenMP)
-
-
-
-SET(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui)
+#FIND_PACKAGE(Protobuf)
+#IF ( PROTOBUF_FOUND )
+#    INCLUDE_DIRECTORIES( ${PROTOBUF_INCLUDE_DIR} )
+#    SET(PROTOBUF_IMPORT_DIRS proto)
+#    PROTOBUF_GENERATE_CPP(GRID_PROTO_SRCS GRID_PROTO_HDRS proto/grid.proto)
+#    SET(PROTOBUF_LIBS ${PROTOBUF_LIBRARY})
+#ENDIF(PROTOBUF_FOUND)
 
 
 
 
 
+######Visualziation
+
+IF(MTAO_USE_OPENGL)
+    SET(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui CACHE STRING "Location of ImGui")
+    FIND_PACKAGE(ImGui REQUIRED)
 
 
 
-FIND_PACKAGE(Eigen3 3.3.3 REQUIRED)
-INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIR})
+
+    FIND_PACKAGE(OpenGL REQUIRED)
+    find_package(Corrade REQUIRED Utility)
+    find_package(Magnum COMPONENTS GL Shaders GlxContext GlfwApplication SceneGraph MeshTools)
+    find_package(MagnumIntegration COMPONENTS ImGui)
+
+
+    #FIND_PACKAGE(PkgConfig REQUIRED)
+    #PKG_SEARCH_MODULE(GLFW REQUIRED glfw3)
+    #include_directories(${GLFW_INCLUDE_DIRS})
+
+    #PKG_SEARCH_MODULE(GLM REQUIRED glm)
+    #include_directories(${GLM_INCLUDE_DIRS})
+ENDIF(MTAO_USE_OPENGL)
+
+
+
+
+
+
 
 
 
@@ -175,8 +145,14 @@ SET(LEVELSET_HEADERS
     include/mtao/geometry/levelset/particle_sampler.h
     )
 
+add_library(mtao_headers INTERFACE)
+target_include_directories(mtao_headers INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+TARGET_LINK_LIBRARIES(mtao_headers PUBLIC INTERFACE Eigen3::Eigen)
 
-ADD_LIBRARY(mtao_core
+ADD_LIBRARY(mtao_common 
     include/mtao/logging/logger.hpp
     include/mtao/logging/timer.hpp
     include/mtao/logging/profiler.hpp
@@ -190,56 +166,53 @@ ADD_LIBRARY(mtao_core
     )
 
 
-IF(${USE_OPENGL})
-ADD_LIBRARY(mtao_opengl 
+TARGET_LINK_LIBRARIES(mtao_common mtao_headers Eigen3::Eigen)
+
+IF(MTAO_USE_OPENGL)
+    CORRADE_ADD_RESOURCE(MtaoShaders ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/shaders/resources.conf)
+
+ADD_LIBRARY(mtao_visualization 
+    ${MtaoShaders}
     ${COMMON_HEADERS}
     ${IMGUI_SOURCES}
-    ${OPENGL_LOADER_SOURCES}
-    src/opengl/imgui_impl.cpp
     src/opengl/Window.cpp
+    src/opengl/Window2.cpp
+    src/opengl/Window3.cpp
     src/opengl/Monitor.cpp
-    src/opengl/bo.cpp
-    src/opengl/shader.cpp
-    src/opengl/vao.cpp
-    src/opengl/util.cpp
-    src/opengl/tex.cpp
-    src/opengl/camera.cpp
-    include/mtao/opengl/imgui_impl.h
-    include/mtao/opengl/Window.h
-    include/mtao/opengl/Monitor.h
-    include/mtao/opengl/bo.h
-    include/mtao/opengl/shader.h
-    include/mtao/opengl/vao.h
-    include/mtao/opengl/util.h
-    include/mtao/opengl/tex.h
-    include/mtao/opengl/shaders.h
-    include/mtao/opengl/camera.hpp
+    #src/opengl/bo.cpp
+    #src/opengl/shader.cpp
+    #src/opengl/vao.cpp
+    #src/opengl/util.cpp
+    #src/opengl/tex.cpp
+    #src/opengl/camera.cpp
+    #include/mtao/opengl/Window.h
+    #include/mtao/opengl/Monitor.h
+    #include/mtao/opengl/bo.h
+    #include/mtao/opengl/shader.h
+    #include/mtao/opengl/vao.h
+    #include/mtao/opengl/util.h
+    #include/mtao/opengl/tex.h
+    #include/mtao/opengl/shaders.h
+    #include/mtao/opengl/camera.hpp
 
     src/opengl/objects/mesh.cpp
     src/opengl/shaders.cpp
     src/opengl/drawables.cpp
-    #Renderers
-    #src/opengl/renderers/renderer.cpp
-    #include/mtao/opengl/renderers/renderer.h
-    #src/opengl/renderers/mesh.cpp
-    #include/mtao/opengl/renderers/mesh.h
-    #src/opengl/renderers/bbox.cpp
-    #include/mtao/opengl/renderers/bbox.h
-    #src/opengl/renderers/axis.cpp
-    #include/mtao/opengl/renderers/axis.h
-    #src/opengl/renderers/tube.cpp
-    #include/mtao/opengl/renderers/tube.h
+
+    extern/imgui/imgui.cpp
+    extern/imgui/imgui_widgets.cpp
+    extern/imgui/imgui_draw.cpp
 
     #Shaders
-    #src/opengl/shaders/phong.cpp
-    #src/opengl/shaders/baryedge.cpp
-    #src/opengl/shaders/simple.cpp
-    #src/opengl/shaders/vectors.cpp
-    #src/opengl/shaders/tube.cpp
+    src/opengl/shaders/vector_field.cpp
     )
+if(MTAO_USE_PNGPP)
+    FIND_PACKAGE(png++ REQUIRED)
+    TARGET_COMPILE_DEFINITIONS(mtao_visualization PRIVATE -DMTAO_HAS_LIBPNGPP)
+    TARGET_INCLUDE_DIRECTORIES(mtao_visualization PRIVATE ${png++_INCLUDE_DIRS})
+endif(MTAO_USE_PNGPP)
 
-
-TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl mtao_core ${png++_LIBRARIES} ${OPENGL_LOADER_LIBRARIES}
+TARGET_LINK_LIBRARIES(mtao_visualization PUBLIC mtao_common 
     Magnum::GL
     Magnum::GLContext
     Magnum::Magnum
@@ -248,13 +221,15 @@ TARGET_LINK_LIBRARIES(mtao_opengl ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} dl mtao_co
     Magnum::MeshTools
     Magnum::GlfwApplication
     MagnumIntegration::ImGui
+    Corrade::Utility
+    ImGui::ImGui
+    PRIVATE OpenGL::GL ${GLFW_LIBRARIES} dl ${png++_LIBRARIES} 
     )
-ENDIF(${USE_OPENGL})
+ENDIF(MTAO_USE_OPENGL)
 
 
-ADD_DEFINITIONS(-O2)
 
-ADD_LIBRARY(mtao_geometry
+SET(GEOMETRY_SRCS
     src/geometry/mesh/halfedge.cpp
     src/geometry/mesh/halfedge_fv_map.cpp
     src/geometry/mesh/read_obj.cpp
@@ -262,7 +237,6 @@ ADD_LIBRARY(mtao_geometry
     #src/geometry/mesh/read_ply.cpp
     src/geometry/mesh/write_ply.cpp
     src/geometry/mesh/triangle/triangle_wrapper.cpp
-    src/geometry/mesh/triangle/triangle_wrapper_imgui.cpp
     src/geometry/mesh/triangle/mesh.cpp
     #src/geometry/mesh/read_plc.cpp
     include/mtao/geometry/mesh/halfedge.hpp
@@ -275,21 +249,71 @@ ADD_LIBRARY(mtao_geometry
     src/geometry/strands.cpp
     ${ELTOPO_SOURCES}
     )
+IF(MTAO_USE_OPENGL)
+    SET(GEOMETRY_SRCS ${GEOMETRY_SRCS}
+        src/geometry/mesh/triangle/triangle_wrapper_imgui.cpp)
+ENDIF(MTAO_USE_OPENGL)
 
-TARGET_INCLUDE_DIRECTORIES(mtao_geometry PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extern/eltopo)
-TARGET_LINK_LIBRARIES(mtao_geometry mtao_core triangle)
-IF(USE_ELTOPO)
-TARGET_LINK_LIBRARIES(mtao_geometry eltopo)
-ENDIF(USE_ELTOPO)
-IF(OpenMP_CXX_FOUND)
-    TARGET_LINK_LIBRARIES(mtao_geometry OpenMP::OpenMP_CXX)
-IF(${USE_OPENGL})
-    TARGET_LINK_LIBRARIES(mtao_opengl OpenMP::OpenMP_CXX)
-ENDIF(${USE_OPENGL})
-ENDIF(OpenMP_CXX_FOUND)
+ADD_LIBRARY(mtao_geometry 
+    ${GEOMETRY_SRCS}
+    )
 
+IF(MTAO_USE_OPENGL)
+    SET(GEOMETRY_EXTRAS ${GEOMETRY_EXTRAS} ImGui::ImGui)
+ENDIF(MTAO_USE_OPENGL)
+IF(MTAO_USE_ELTOPO)
+    TARGET_INCLUDE_DIRECTORIES(mtao_geometry PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extern/eltopo)
+    SET(GEOMETRY_EXTRAS ${GEOMETRY_EXTRAS} eltopo)
+ENDIF(MTAO_USE_ELTOPO)
+TARGET_LINK_LIBRARIES(mtao_geometry PUBLIC mtao_common ${OpenMP_TARGET} PRIVATE triangle ${GEOMETRY_EXTRAS})
+TARGET_INCLUDE_DIRECTORIES(mtao_geometry PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extern/triangle)
+
+
+#SET(MTAO_EXT_LIBS mtao::common mtao::opengl mtao::geometry)
+#SET(MTAO_EXT_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 ADD_SUBDIRECTORY(tests EXCLUDE_FROM_ALL)
 ADD_SUBDIRECTORY(examples EXCLUDE_FROM_ALL)
 
+add_library(mtao::headers ALIAS mtao_headers)
+add_library(mtao::common ALIAS mtao_common)
+add_library(mtao::geometry ALIAS mtao_geometry)
+IF(MTAO_USE_OPENGL)
+  add_library(mtao::visualization ALIAS mtao_visualization)
+ENDIF(MTAO_USE_OPENGL)
 
+include(CMakePackageConfigHelpers)
+
+# Write package configuration file
+configure_package_config_file(
+  ${CMAKE_CURRENT_LIST_DIR}/cmake/mtao-config.cmake.in
+  ${CMAKE_BINARY_DIR}/mtao-config.cmake
+  INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/mtao/cmake
+)
+set_property(TARGET mtao_headers PROPERTY EXPORT_NAME mtao::headers)
+set_property(TARGET mtao_common PROPERTY EXPORT_NAME mtao::common)
+set_property(TARGET mtao_geometry PROPERTY EXPORT_NAME mtao::geometry)
+IF(MTAO_USE_OPENGL)
+set_property(TARGET mtao_visualization PROPERTY EXPORT_NAME mtao::visualization)
+ENDIF(MTAO_USE_OPENGL)
+
+SET(MTAO_EXPORT_TARGETS
+  mtao_headers
+  triangle
+  eltopo
+  eltopo_common
+  mtao_common
+  mtao_geometry
+  )
+
+
+IF(MTAO_USE_OPENGL)
+    SET(MTAO_EXPORT_TARGETS ${MTAO_EXPORT_TARGETS} mtao_visualization)
+ENDIF(MTAO_USE_OPENGL)
+
+
+export(
+  TARGETS
+  ${MTAO_EXPORT_TARGETS}
+  FILE mtao-export.cmake
+)

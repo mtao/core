@@ -78,7 +78,7 @@ void test() {
             std::cout << v.size()  << "," ;
         }
         std::cout << std::endl;
-        auto sizes = std::get<1>(mtao::geometry::grid::staggered_grid::staggered_grid_sizes(sg.shape()));
+        auto sizes = std::get<1>(mtao::geometry::grid::staggered_grid::staggered_grid_sizes(sg.cell_shape()));
         for(auto&& v: sizes) {
             std::cout << v << "," ;
         }

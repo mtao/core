@@ -15,6 +15,7 @@
 #include <Magnum/Shaders/Phong.h>
 #include <Corrade/Utility/Arguments.h>
 #include "mtao/opengl/objects/mesh.h"
+#include "mtao/opengl/objects/bbox.h"
 
 #include <glm/gtc/matrix_transform.hpp> 
 bool animate = false;
@@ -41,6 +42,8 @@ void gui_func() {
 
 class MeshViewer: public mtao::opengl::Window3 {
     public:
+        bool show_bbox_faces = false;
+        bool show_bbox_edges = true;
 
     MeshViewer(const Arguments& args): Window3(args), _wireframe_shader{Magnum::Shaders::MeshVisualizer::Flag::Wireframe} {
         Corrade::Utility::Arguments myargs;
@@ -53,6 +56,9 @@ class MeshViewer: public mtao::opengl::Window3 {
         mesh.setTriangleBuffer(V,F.cast<unsigned int>());
         auto E = mtao::geometry::mesh::boundary_facets(F);
 
+        bb = mtao::geometry::bounding_box(V);
+        bbox.set_bbox(bb);
+
         mesh.setEdgeBuffer(E.cast<unsigned int>());
 
 
@@ -62,9 +68,16 @@ class MeshViewer: public mtao::opengl::Window3 {
 
 
         edge_drawable = new mtao::opengl::Drawable<Magnum::Shaders::Flat3D>{mesh,_flat_shader, drawables()};
-        edge_drawable->activate_triangles({});
+        edge_drawable->deactivate();
         edge_drawable->activate_edges();
+
+        point_drawable = new mtao::opengl::Drawable<Magnum::Shaders::Flat3D>{mesh,_flat_shader, drawables()};
+        point_drawable->deactivate();
+        point_drawable->activate_points();
         mesh.setParent(&root());
+
+        bbox_drawable = mtao::opengl::make_drawable(bbox,_flat_shader,drawables());
+        bbox.setParent(&root());
 
     }
     void gui() override {
@@ -76,7 +89,25 @@ class MeshViewer: public mtao::opengl::Window3 {
             phong_drawable->gui();
         }
         if(edge_drawable) {
-            edge_drawable->gui();
+            edge_drawable->gui("Edge");
+        }
+        if(point_drawable) {
+            point_drawable->gui("Point");
+        }
+
+        if(ImGui::Checkbox("BBox Faces", &show_bbox_faces)) {
+            if(show_bbox_faces) {
+                bbox_drawable->activate_triangles();
+            } else {
+                bbox_drawable->activate_triangles({});
+            }
+        }
+        if(ImGui::Checkbox("BBox Edges", &show_bbox_edges)) {
+            if(show_bbox_edges) {
+                bbox_drawable->activate_edges();
+            } else {
+                bbox_drawable->activate_edges({});
+            }
         }
     }
     void draw() override {
@@ -87,9 +118,12 @@ class MeshViewer: public mtao::opengl::Window3 {
     Magnum::Shaders::MeshVisualizer _wireframe_shader;
     Magnum::Shaders::Flat3D _flat_shader;
     mtao::opengl::objects::Mesh<3> mesh;
+    mtao::opengl::objects::BoundingBox<3> bbox;
     mtao::opengl::Drawable<Magnum::Shaders::Phong>* phong_drawable = nullptr;
     mtao::opengl::Drawable<Magnum::Shaders::MeshVisualizer>* mv_drawable = nullptr;
     mtao::opengl::Drawable<Magnum::Shaders::Flat3D>* edge_drawable = nullptr;
+    mtao::opengl::Drawable<Magnum::Shaders::Flat3D>* point_drawable = nullptr;
+    mtao::opengl::Drawable<Magnum::Shaders::Flat3D>* bbox_drawable = nullptr;
 
 
 };

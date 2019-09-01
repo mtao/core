@@ -40,7 +40,7 @@ namespace mtao::geometry {
             value += ang;
 
         }
-        return value;
+        return value / (2 * M_PI);
     }
     template <typename PDerived, typename VDerived, typename Container>
     typename VDerived::Scalar winding_number(const Eigen::MatrixBase<VDerived>& V, const Container& C, const Eigen::MatrixBase<PDerived>& p) {
@@ -53,7 +53,7 @@ namespace mtao::geometry {
     template <typename PDerived, typename VDerived, typename BeginIt, typename EndIt>
     bool interior_winding_number(const Eigen::MatrixBase<VDerived>& V, const BeginIt& beginit, const EndIt& endit, const Eigen::MatrixBase<PDerived>& p) {
         auto v = winding_number(V,beginit,endit,p);
-        return std::abs(v) > 1;
+        return std::abs(v) > .5;
     }
     template <typename PDerived, typename VDerived, typename Container>
     bool interior_winding_number(const Eigen::MatrixBase<VDerived>& V, const Container& C, const Eigen::MatrixBase<PDerived>& p) {

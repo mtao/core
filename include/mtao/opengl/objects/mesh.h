@@ -17,11 +17,20 @@ namespace mtao::opengl::objects {
 
             template <typename Derived>
                 void setVertexBuffer(const Eigen::PlainObjectBase<Derived>& V) {
+                    vertex_Count = V.cols();
                     vertex_buffer.setData(Containers::ArrayView<const float>{V.data(),size_t(V.size())});
+                }
+                void setVertexBuffer(const Containers::ArrayView<const float>& V, int count = 1) {
+                    vertex_Count = count;
+                    vertex_buffer.setData(V);
                 }
             template <typename Derived>
                 void setColorBuffer(const Eigen::PlainObjectBase<Derived>& V) {
                     color_buffer.setData(Containers::ArrayView<const float>{V.data(),size_t(V.size())});
+                }
+            template <typename Derived>
+                void setVFieldBuffer(const Eigen::PlainObjectBase<Derived>& V) {
+                    vfield_buffer.setData(Containers::ArrayView<const float>{V.data(),size_t(V.size())});
                 }
             template <typename Derived>
                 void setNormalBuffer(const Eigen::PlainObjectBase<Derived>& V) {
@@ -30,6 +39,7 @@ namespace mtao::opengl::objects {
 
 
             Magnum::GL::Buffer vertex_buffer, edge_index_buffer, triangle_index_buffer, normal_buffer, vfield_buffer, color_buffer;
+            Magnum::Int vertex_Count;
 
             Magnum::UnsignedInt edge_Count;
             Magnum::MeshIndexType edge_indexType;
@@ -63,6 +73,13 @@ namespace mtao::opengl::objects {
             Mesh(const ColVecs& V, const mtao::ColVectors<unsigned int, 2>& E) {
                 setEdgeBuffer(V,E);
             }
+                void setVertexBuffer(const Containers::ArrayView<const float>& V) {
+                    setVertexBuffer(V,V.size() / D);
+                }
+                template <typename T>
+                void setVertexBuffer(const Math::Vector<D,T>& V) {
+                    setVertexBuffer(Containers::ArrayView<const float>(V.data(),D));
+                }
             void setTriangleBuffer(const ColVecs& V, const mtao::ColVectors<unsigned int, 3>& F) {
                 setVertexBuffer(V);
                 setTriangleBuffer(F);
@@ -76,6 +93,9 @@ namespace mtao::opengl::objects {
     template <>
         void Mesh<3>::setTriangleBuffer(const ColVecs& V, const mtao::ColVectors<unsigned int, 3>& F);
 
+    template <int D>
+        class EdgeMesh: public Mesh<D> {
+        };
 
 
 }
