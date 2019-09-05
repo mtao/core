@@ -300,12 +300,13 @@ ENDIF(MTAO_USE_OPENGL)
 SET(MTAO_EXPORT_TARGETS
   mtao_headers
   triangle
-  eltopo
-  eltopo_common
   mtao_common
   mtao_geometry
   )
 
+IF(MTAO_USE_ELTOPO)
+    SET(MTAO_EXPORT_TARGETS ${MTAO_EXPORT_TARGETS} eltopo eltopo_common)
+ENDIF(MTAO_USE_ELTOPO)
 
 IF(MTAO_USE_OPENGL)
     SET(MTAO_EXPORT_TARGETS ${MTAO_EXPORT_TARGETS} mtao_visualization)
