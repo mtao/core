@@ -61,11 +61,15 @@ namespace mtao::geometry::mesh {
             }
                 //ofs << mtao::eigen::vstack(V,C2).transpose() << std::endl;
             } else {
-                ofs << V.transpose() << std::endl;
+                for(int i = 0; i < V.cols(); ++i) {
+                    ofs << V.col(i).transpose() << std::endl;
+                }
             }
 
+            for(int i = 0; i < F.cols(); ++i) {
+                ofs << 3 << " " << F.col(i).transpose() << std::endl;
+            }
 
-            ofs << mtao::eigen::vstack(mtao::RowVecXi::Constant(F.cols(),3),F).transpose() << std::endl;
         }
 
     void write_plyF(const mtao::ColVectors<float,3>& V,const mtao::ColVectors<int,3>& F, const std::string& filename) {
