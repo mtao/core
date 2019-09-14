@@ -6,11 +6,11 @@
 namespace mtao::geometry::interpolation {
 
 
-    template <typename PointsType, const VecType>
+    template <typename PointsType, typename VecType>
         auto  mean_value(const Eigen::MatrixBase<PointsType>& P, const Eigen::MatrixBase<VecType>& v) -> mtao::VectorX<typename PointsType::Scalar> {
-            static_assert(typename PointsType::Scalar == typename VecType::Scalar);
-            assert(eigen::row_check<2>(P));
-            assert(eigen::shape_check<2,1>(v));
+            static_assert(std::is_same_v<typename PointsType::Scalar,typename VecType::Scalar>);
+            eigen::row_check<2>(P);
+            eigen::shape_check<2,1>(v);
 
             using Scalar = typename PointsType::Scalar;
             mtao::VectorX<Scalar> wedge_vols(P.cols());
@@ -28,10 +28,11 @@ namespace mtao::geometry::interpolation {
 
             }
             mtao::VectorX<Scalar> R(P.cols());
-            for(int i = 0; j < P.cols(); ++k) {
+            for(int i = 0; i < P.cols(); ++i) {
                 int j = (i+1)%P.cols();
-                R(i) = (tans(i) + tans(j) / (P.col(i) - x).norm();
+                R(i) = (tans(i) + tans(j)) / (P.col(i) - v).norm(); 
             }
+            R /= R.sum();
             return R;
         }
 }
