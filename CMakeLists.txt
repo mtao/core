@@ -19,7 +19,7 @@ ADD_DEFINITIONS(-Wall)
 OPTION(MTAO_USE_ELTOPO "Should we build the el topo submodule" ON)
 OPTION(MTAO_USE_OPENGL "Build opengl stuff" ON)
 OPTION(MTAO_USE_PNGPP "Use PNG++ for screenshots" ON)
-OPTION(MTAO_CUSTOM_EIGEN_PATH "Use a custom Eigen path" "")
+SET(MTAO_CUSTOM_EIGEN_PATH "" CACHE INTERNAL "Use a custom Eigen path" FORCE)
 
 IF(NOT "${MTAO_CUSTOM_EIGEN_PATH}" STREQUAL "")
     IF(NOT TARGET Eigen3::Eigen)
