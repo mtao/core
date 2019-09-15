@@ -3,6 +3,8 @@
 #include <mtao/eigen/stl2eigen.hpp>
 #include <mtao/geometry/interpolation/mean_value.hpp>
 #include <mtao/geometry/interpolation/wachpress.hpp>
+#include <mtao/geometry/interpolation/radial_basis_function.hpp>
+#include "mtao/overload.hpp"
 
 
 void Curve::clear() {
@@ -62,12 +64,14 @@ bool Curve::inside(const mtao::Vec2d& V) const{
 }
 
 auto Curve::evaluator(InterpMode mode) const -> CurveEvaluator {
-    return CurveEvaluator(*this, mode);
+    switch(mode) {
+        case InterpMode::Wachpress: return evaluator(InterpParameters<InterpMode::Wachpress>{});
+        case InterpMode::MeanValue: return evaluator(InterpParameters<InterpMode::MeanValue>{});
+        case InterpMode::GaussianRBF: return evaluator(InterpParameters<InterpMode::GaussianRBF>{});
+    }
+    return evaluator(InterpParameters<InterpMode::Wachpress>{});
 }
 
-Curve::CurveEvaluator::CurveEvaluator(const Curve& c, InterpMode mode): curve(c), vertices(c.V()), interp_mode(mode) {
-
-}
 
 mtao::VecXd Curve::CurveEvaluator::operator()(const mtao::VecXd& coeffs, const mtao::ColVecs2d& V) const {
 
@@ -78,15 +82,18 @@ mtao::VecXd Curve::CurveEvaluator::from_coefficients(const mtao::VecXd& coeffs, 
 
     mtao::VecXd ret(V.cols());
     for(int i = 0; i < V.cols(); ++i) {
-        mtao::VecXd weights(size());
-        if(interp_mode == InterpMode::Wachpress) {
+        mtao::VecXd weights(coeffs.rows());
+        std::visit(mtao::overloaded {
+                [&](const InterpParameters<InterpMode::Wachpress>&) {
             weights = mtao::geometry::interpolation::wachpress(vertices,V.col(i));
-        } else if(interp_mode == InterpMode::MeanValue) {
-
+                },
+                [&](const InterpParameters<InterpMode::MeanValue>&) {
             weights = mtao::geometry::interpolation::mean_value(vertices,V.col(i));
-        } else {
-            weights.setZero();
-        }
+                },
+                [&](const InterpParameters<InterpMode::GaussianRBF>& p) {
+            weights = mtao::geometry::interpolation::gaussian_rbf(vertices,V.col(i),p.radius);
+                },
+                },interp_params);
         ret(i) = coeffs.dot(weights);
     }
     return ret;

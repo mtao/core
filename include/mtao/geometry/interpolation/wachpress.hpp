@@ -1,5 +1,4 @@
 #pragma once
-#include <iostream>
 #include "mtao/types.hpp"
 #include "mtao/eigen/shape_checks.hpp"
 
@@ -28,11 +27,10 @@ namespace mtao::geometry::interpolation {
                 pie_vols(i) = A.determinant() ;
                 wedge_vols((i+1)%P.cols()) = B.determinant(); 
             }
-            std::cout << pie_vols.transpose() << std::endl;
             mtao::VectorX<Scalar> R(P.cols());
             for(int j = 0; j < P.cols(); ++j) {
                 int i = (j+1)%P.cols();
-                R(i) = wedge_vols(i) / (pie_vols(j),pie_vols(i));
+                R(i) = wedge_vols(i) / (pie_vols(j)*pie_vols(i));
             }
             R /= R.sum();
             return R;

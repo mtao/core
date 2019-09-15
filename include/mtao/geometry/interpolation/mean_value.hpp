@@ -1,7 +1,6 @@
 #pragma once
 #include "mtao/types.hpp"
 #include "mtao/eigen/shape_checks.hpp"
-#include "mtao/geometry/volume.hpp"
 
 namespace mtao::geometry::interpolation {
 
@@ -30,7 +29,7 @@ namespace mtao::geometry::interpolation {
             mtao::VectorX<Scalar> R(P.cols());
             for(int i = 0; i < P.cols(); ++i) {
                 int j = (i+1)%P.cols();
-                R(i) = (tans(i) + tans(j)) / (P.col(i) - v).norm(); 
+                R(j) = (tans(i) + tans(j)) / (P.col(j) - v).norm(); 
             }
             R /= R.sum();
             return R;

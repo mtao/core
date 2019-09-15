@@ -46,6 +46,7 @@ class MeshViewer: public mtao::opengl::Window2 {
 
         float permeability = 100.0;
         float timestep = 1000.0;
+        Curve::InterpMode interp_mode = Curve::InterpMode::MeanValue;
         bool animate = false;
         using Vec = mtao::VectorX<GLfloat>;
         using Vec2 = mtao::Vec2f;
@@ -59,7 +60,7 @@ class MeshViewer: public mtao::opengl::Window2 {
         int active_weight_index = 0;
 
 
-        std::array<int,2> N{{25,25}};
+        std::array<int,2> N{{300,300}};
         int& NI=N[0];
         int& NJ=N[1];
         Vector2 cursor;
@@ -87,7 +88,7 @@ class MeshViewer: public mtao::opengl::Window2 {
             curve_drawable = new mtao::opengl::Drawable<Magnum::Shaders::Flat2D>{curve_mesh,_flat_shader, drawables()};
             curve_drawable->deactivate();
             curve_mesh.setVertexBuffer(mtao::Vec2f::Zero().eval());
-            curve_drawable->data().color = 0xffffff_rgbf;
+            curve_drawable->data().color = 0xff0000_rgbf;
             curve_drawable->activate_points();
             //
             //curve_point_drawable = new mtao::opengl::Drawable<Magnum::Shaders::VertexColor2D>{curve_points,_vcolor_shader, drawables()};
@@ -129,7 +130,6 @@ class MeshViewer: public mtao::opengl::Window2 {
 
             //grid_data.resize(std::array<int,2>{{NI,NJ}});
 
-            std::cout << "POINT SIZE:" << points.size() << std::endl;
             if(points.size() > 1) {
                 curve_mesh.setEdgeBuffer(curve.V().cast<float>().eval(),curve.E().cast<unsigned int>());
                 curve_drawable->activate_edges();
@@ -137,9 +137,9 @@ class MeshViewer: public mtao::opengl::Window2 {
 
 
                 auto V = grid.vertices();
-                auto evaluator = curve.evaluator();
+                auto evaluator = curve.evaluator(interp_mode);
                 mtao::VecXd coeffs = mtao::VecXd::Unit(points.size(), active_weight_index);
-                std::cout << "CoeffS: " << coeffs.transpose() << std::endl;
+                std::cout << "Coeffs: " << coeffs.transpose() << std::endl;
                 //mtao::VecXf D = evaluator(Dat, V.cast<double>()).cast<float>();
                 mtao::VecXf D = evaluator.from_coefficients(coeffs, V.cast<double>()).cast<float>();
                 D = D.cwiseAbs();
@@ -171,6 +171,23 @@ class MeshViewer: public mtao::opengl::Window2 {
             if(ImGui::InputInt2("N", &NI))  {
                 update();
             }
+            {
+            const char* interp_types[] = {
+                "Wachpress",
+                "MeanValue",
+                "GaussianRBF",
+                //"RadialBasis",
+            };
+            int current = int(interp_mode);
+            if(ImGui::ListBox("Interp modes",&current, interp_types, 3,2)){
+                interp_mode = Curve::InterpMode(current);
+                update();
+            }
+            }
+
+
+
+
             if(ImGui::InputInt("active_index", &active_weight_index))  {
                 update();
             }
@@ -191,7 +208,10 @@ class MeshViewer: public mtao::opengl::Window2 {
             if(face_drawable) {
                 face_drawable->gui();
             }
-            ImGui::Text("Cursor Position: (%f,%f)", cursor.x(), cursor.y());
+            auto evaluator = curve.evaluator(interp_mode);
+            mtao::VecXd coeffs = mtao::VecXd::Unit(curve.points.size(), active_weight_index);
+            float v = evaluator.from_coefficients(coeffs, mtao::Vec2d(cursor.x(),cursor.y()))(0);
+            ImGui::Text("Cursor Position: (%f,%f):%f", cursor.x(), cursor.y(),v);
         }
         void draw() override {
             Magnum::GL::Renderer::disable(Magnum::GL::Renderer::Feature::DepthTest);
