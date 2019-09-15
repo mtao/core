@@ -39,6 +39,10 @@ class Curve {
 };
 template <>
 struct Curve::InterpParameters<Curve::InterpMode::GaussianRBF> {double radius = 1.;};
+template <>
+struct Curve::InterpParameters<Curve::InterpMode::SplineGaussianRBF> {double radius = 1.;};
+template <>
+struct Curve::InterpParameters<Curve::InterpMode::DesbrunSplineRBF> {double radius = 1.;};
 
 class Curve::CurveEvaluator {
     public:
@@ -64,6 +68,8 @@ class Curve::CurveEvaluator {
             InterpParameters<InterpMode::MeanValue>
             ,InterpParameters<InterpMode::Wachpress>
             ,InterpParameters<InterpMode::GaussianRBF>
+            ,InterpParameters<InterpMode::SplineGaussianRBF>
+            ,InterpParameters<InterpMode::DesbrunSplineRBF>
             > interp_params;
 };
 

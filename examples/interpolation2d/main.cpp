@@ -41,13 +41,8 @@ using namespace mtao::opengl;
 
 class MeshViewer: public mtao::opengl::Window2 {
     public:
-        enum class Mode: int { Smoothing, LSReinitialization };
-        Mode mode = Mode::LSReinitialization;
 
-        float permeability = 100.0;
-        float timestep = 1000.0;
         Curve::InterpMode interp_mode = Curve::InterpMode::MeanValue;
-        bool animate = false;
         using Vec = mtao::VectorX<GLfloat>;
         using Vec2 = mtao::Vec2f;
         Vec data;
@@ -176,10 +171,12 @@ class MeshViewer: public mtao::opengl::Window2 {
                 "Wachpress",
                 "MeanValue",
                 "GaussianRBF",
+                "SplineGaussianRBF",
+                "DesbrunSplineRBF",
                 //"RadialBasis",
             };
             int current = int(interp_mode);
-            if(ImGui::ListBox("Interp modes",&current, interp_types, 3,2)){
+            if(ImGui::ListBox("Interp modes",&current, interp_types, 5,2)){
                 interp_mode = Curve::InterpMode(current);
                 update();
             }

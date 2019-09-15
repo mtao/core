@@ -34,4 +34,11 @@ namespace mtao::geometry::interpolation {
             R /= R.sum();
             return R;
         }
+    template <typename PointsType, typename VecType>
+        auto  mean_value_gradient(const Eigen::MatrixBase<PointsType>& P, const Eigen::MatrixBase<VecType>& v) -> mtao::ColVectors<typename PointsType::Scalar, 2> {
+            static_assert(std::is_same_v<typename PointsType::Scalar,typename VecType::Scalar>);
+            eigen::row_check<2>(P);
+            eigen::shape_check<2,1>(v);
+            return {};
+        }
 }
