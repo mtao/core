@@ -29,7 +29,7 @@ namespace mtao::geometry {
                 auto P = Eigen::AngleAxis<S>(theta,axis);
                 Vec tu =  P * T.col(i-1);
                 if((tu-T.col(i)).norm() > 1e-2) {
-                    std::cout << "FRAME COMPUTATION FAILURE!" << std::endl;
+                    //std::cout << "FRAME COMPUTATION FAILURE!" << std::endl;
                 }
                 t = P * t;
                 u = P * u;

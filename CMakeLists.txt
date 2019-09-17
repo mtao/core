@@ -19,12 +19,15 @@ ADD_DEFINITIONS(-Wall)
 OPTION(MTAO_USE_ELTOPO "Should we build the el topo submodule" ON)
 OPTION(MTAO_USE_OPENGL "Build opengl stuff" ON)
 OPTION(MTAO_USE_PNGPP "Use PNG++ for screenshots" ON)
-SET(MTAO_CUSTOM_EIGEN_PATH "" CACHE INTERNAL "Use a custom Eigen path" FORCE)
+SET(MTAO_CUSTOM_EIGEN_PATH "" CACHE INTERNAL "Use a custom Eigen path")
+MESSAGE(STATUS "MTAO EIGEN: ${MTAO_CUSTOM_EIGEN_PATH}")
 
 IF(NOT "${MTAO_CUSTOM_EIGEN_PATH}" STREQUAL "")
     IF(NOT TARGET Eigen3::Eigen)
+        MESSAGE(STATUS "EIGEN3 not found yet!")
         #Let it pollute everything with GLOBAL
         ADD_LIBRARY(Eigen3::Eigen INTERFACE IMPORTED GLOBAL)
+
         SET_TARGET_PROPERTIES(Eigen3::Eigen PROPERTIES
             INTERFACE_INCLUDE_DIRECTORIES "${MTAO_CUSTOM_EIGEN_PATH}")
     ENDIF()
@@ -244,6 +247,7 @@ SET(GEOMETRY_SRCS
     src/geometry/mesh/halfedge.cpp
     src/geometry/mesh/halfedge_fv_map.cpp
     src/geometry/mesh/read_obj.cpp
+    src/geometry/point_cloud/read_xyz.cpp
     src/geometry/mesh/write_obj.cpp
     #src/geometry/mesh/read_ply.cpp
     src/geometry/mesh/write_ply.cpp
@@ -283,6 +287,7 @@ TARGET_INCLUDE_DIRECTORIES(mtao_geometry PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/ext
 #SET(MTAO_EXT_LIBS mtao::common mtao::opengl mtao::geometry)
 #SET(MTAO_EXT_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+ADD_SUBDIRECTORY(tools EXCLUDE_FROM_ALL)
 ADD_SUBDIRECTORY(tests EXCLUDE_FROM_ALL)
 ADD_SUBDIRECTORY(examples EXCLUDE_FROM_ALL)
 

@@ -45,7 +45,8 @@ namespace mtao::geometry::mesh::shapes {
                     auto u = U.col(i);
                     auto v = V.col(i);
                     int voff = subdivisions*i;
-                    auto r = RV(Eigen::all,Eigen::seqN(subdivisions*i,subdivisions));
+                    auto r = RV.block(0,subdivisions*i,RV.rows(),subdivisions);
+                    //auto r = RV(Eigen::all,Eigen::seqN(subdivisions*i,subdivisions));
                     if(false && i > 0 && i < P.cols()-1) {
 
                         mtao::Vector3<T> tm = P.col(i-1) - P.col(i);
@@ -60,7 +61,7 @@ namespace mtao::geometry::mesh::shapes {
                         A.row(0).normalize();
                         A(1,1) = A(0,0);
                         A(1,0) = -A(0,1);
-                        A = A.transpose() * Eigen::Vector2<T>(T(1),T(shift)).asDiagonal() * A.transpose().inverse();
+                        A = A.transpose() * mtao::Vector2<T>(T(1),T(shift)).asDiagonal() * A.transpose().inverse();
                         r = radius * mtao::eigen::hstack(u,v) * A * CS;
                     } else {
                         r = radius * mtao::eigen::hstack(u,v) * CS;
@@ -68,7 +69,8 @@ namespace mtao::geometry::mesh::shapes {
                     r.colwise() += p;
 
                     if(i == P.cols()-1) continue;
-                    auto f = RF(Eigen::all,Eigen::seqN(2*subdivisions*i,2*subdivisions));
+                    //auto f = RF(Eigen::all,Eigen::seqN(2*subdivisions*i,2*subdivisions));
+                    auto f = RF.block(0,2*subdivisions*i,RF.rows(),2*subdivisions);
                     for(int j = 0; j < subdivisions; ++j) {
                         int u = voff+j;
                         int v = voff+(j+1)%subdivisions;
@@ -88,12 +90,22 @@ namespace mtao::geometry::mesh::shapes {
                 if(front || back) {
                     auto CF =internal::disc_faces(subdivisions);
                     if(front & back) {
-                        RF = mtao::eigen::hstack(RF,CF,CF({0,2,1},Eigen::all).array()+(P.cols()-1)*subdivisions);
+                    mtao::ColVecs3i CSwiz(CF.rows(),CF.cols());
+                    CSwiz.row(0) = CF.row(0);
+                    CSwiz.row(1) = CF.row(2);
+                    CSwiz.row(2) = CF.row(1);
+                        //RF = mtao::eigen::hstack(RF,CF,CF({0,2,1},Eigen::all).array()+(P.cols()-1)*subdivisions);
+                        RF = mtao::eigen::hstack(RF,CF,CSwiz.array()+(P.cols()-1)*subdivisions);
                     } else {
                         if(front) {
                             RF = mtao::eigen::hstack(RF,CF);
                         } else {
-                            RF = mtao::eigen::hstack(RF,CF({0,2,1},Eigen::all).array()+(P.cols()-1)*subdivisions);
+                    mtao::ColVecs3i CSwiz(CF.rows(),CF.cols());
+                    CSwiz.row(0) = CF.row(0);
+                    CSwiz.row(1) = CF.row(2);
+                    CSwiz.row(2) = CF.row(1);
+                            //RF = mtao::eigen::hstack(RF,CF({0,2,1},Eigen::all).array()+(P.cols()-1)*subdivisions);
+                            RF = mtao::eigen::hstack(RF,CSwiz.array()+(P.cols()-1)*subdivisions);
                         }
                     }
                 }
