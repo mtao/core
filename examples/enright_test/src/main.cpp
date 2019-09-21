@@ -14,6 +14,7 @@
 #include <mtao/types.h>
 #include "enright.h"
 #include "mtao/geometry/mesh/eltopo.h"
+#include "mtao/geometry/mesh/lostopos.hpp"
 
 #include <glm/gtc/matrix_transform.hpp> 
 
@@ -127,7 +128,7 @@ int main(int argc, char * argv[]) {
     }
     V *= .15;
     V.colwise() += Eigen::Vector3d(.35,.35,.35);
-    ett = std::make_unique<ElTopoTracker>(V,F);
+    tracker = std::make_unique<TrackerType>(V,F);
     prepare_mesh(V,F);
 
     animate = true;
@@ -157,6 +158,7 @@ int main(int argc, char * argv[]) {
 #include <mtao/types.h>
 #include "enright.h"
 #include "mtao/geometry/mesh/eltopo.h"
+#include "mtao/geometry/mesh/lostopos.hpp"
 #include <Corrade/Containers/Array.h>
 #include <Corrade/Containers/ArrayView.h>
 
@@ -166,6 +168,7 @@ int main(int argc, char * argv[]) {
 #include "mtao/opengl/objects/mesh.h"
 
 #include <glm/gtc/matrix_transform.hpp> 
+using TrackerType = mtao::geometry::mesh::LosToposTracker;
 
 
 
@@ -176,14 +179,14 @@ class MeshViewer: public mtao::opengl::Window3 {
         ColVectors3d V;
         ColVectors3i F;
 
-        std::unique_ptr<ElTopoTracker> ett;
+        std::unique_ptr<TrackerType> tracker;
         MeshViewer(const Arguments& args): Window3(args), _wireframe_shader{Magnum::Shaders::MeshVisualizer::Flag::Wireframe} {
         Corrade::Utility::Arguments myargs;
         std::tie(V,F) = mtao::geometry::mesh::sphere<double>(4);
         mesh.setTriangleBuffer(V.cast<float>(),F.cast<unsigned int>());
         auto E = mtao::geometry::mesh::boundary_facets(F);
 
-        ett = std::make_unique<ElTopoTracker>(V,F);
+        tracker = std::make_unique<TrackerType>(V,F);
 
 
 
@@ -213,14 +216,14 @@ class MeshViewer: public mtao::opengl::Window3 {
             double fine_t = t + curt;
             subdt = dt - curt;
 
-            ett->improve();
+            tracker->improve();
 
 
-            V = ett->get_vertices();
+            V = tracker->get_vertices();
 
             ColVectors3d Vnew = V + (subdt) * 2 * enright_velocities(V, fine_t);
 
-            subdt = ett->integrate(Vnew,subdt);
+            subdt = tracker->integrate(Vnew,subdt);
             V = Vnew;
 
             curt = curt + subdt;
@@ -228,7 +231,7 @@ class MeshViewer: public mtao::opengl::Window3 {
                 curt = dt;
             }
         }
-        auto [V,F] = ett->get_mesh();
+        auto [V,F] = tracker->get_mesh();
         mesh.setTriangleBuffer(V.cast<float>(),F.cast<unsigned int>());
         t += dt;
         while(t > 1)  {

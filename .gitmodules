@@ -7,3 +7,6 @@
 [submodule "extern/triangle"]
 	path = extern/triangle
 	url = https://github.com/libigl/triangle
+[submodule "extern/LosTopos"]
+	path = extern/LosTopos
+	url = https://github.com/mtao/LosTopos.git
