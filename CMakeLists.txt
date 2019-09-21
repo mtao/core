@@ -20,7 +20,8 @@ OPTION(MTAO_USE_ELTOPO "Should we build the el topo submodule" ON)
 OPTION(MTAO_USE_LOSTOPOS "Should we build the los topos submodule" ON)
 OPTION(MTAO_USE_OPENGL "Build opengl stuff" ON)
 OPTION(MTAO_USE_PNGPP "Use PNG++ for screenshots" ON)
-SET(MTAO_CUSTOM_EIGEN_PATH "" CACHE INTERNAL "Use a custom Eigen path")
+SET(MTAO_CUSTOM_EIGEN_PATH "" CACHE STRING "Use a custom Eigen path")
+SET(MTAO_CUSTOM_LOSTOPOS_PATH "" CACHE STRING "Use a custom Los Topos path")
 MESSAGE(STATUS "MTAO EIGEN: ${MTAO_CUSTOM_EIGEN_PATH}")
 
 IF(NOT "${MTAO_CUSTOM_EIGEN_PATH}" STREQUAL "")
@@ -82,7 +83,15 @@ ENDIF(MTAO_USE_ELTOPO)
 
 
 IF(MTAO_USE_LOSTOPOS)
-    ADD_SUBDIRECTORY(extern/LosTopos)
+    MESSAGE(STATUS "LOSTOPOS PATH:" ${MTAO_CUSTOM_LOSTOPOS_PATH})
+    IF(NOT "${MTAO_CUSTOM_LOSTOPOS_PATH}" STREQUAL "")
+        SET(LOSTOPOSDIR ${MTAO_CUSTOM_LOSTOPOS_PATH})
+    ELSE()
+        SET(LOSTOPOSDIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/LosTopos)
+        MESSAGE(STATUS "LOSOTPOPS DIR is sad")
+    ENDIF()
+        MESSAGE(STATUS "LOSOTPOPS DIR: " << ${LOSTOPOSDIR})
+    ADD_SUBDIRECTORY(${LOSTOPOSDIR} LosTopos)
     SET(LOSTOPOS_SOURCES
         src/geometry/mesh/lostopos.cpp
         include/mtao/geometry/mesh/lostopos.hpp

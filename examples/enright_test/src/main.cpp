@@ -168,6 +168,7 @@ int main(int argc, char * argv[]) {
 #include "mtao/opengl/objects/mesh.h"
 
 #include <glm/gtc/matrix_transform.hpp> 
+//using TrackerType = ElTopoTracker;
 using TrackerType = mtao::geometry::mesh::LosToposTracker;
 
 

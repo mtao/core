@@ -144,15 +144,18 @@ auto LosToposTracker::get_triangles() const -> ColVectors3i {
 
 void LosToposTracker::defrag_mesh() {
     assert(m_surf);
-    m_surf->defrag_mesh();
+    m_surf->defrag_mesh_from_scratch();
 }
 
 void LosToposTracker::improve() {
     assert(m_surf);
-    // Improve
-    m_surf->improve_mesh();
+
+    m_surf->compute_all_vertex_target_edge_lengths();
     // Topology changes
     m_surf->topology_changes();
+    m_surf->compute_all_vertex_target_edge_lengths();
+    // Improve
+    m_surf->improve_mesh();
     if(m_defrag_mesh) defrag_mesh();
 }
 
