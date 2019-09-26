@@ -37,8 +37,13 @@ LosToposTracker::LosToposTracker(const CRefCV3d& V, const CRefCV3i& F, bool coll
     if(m_verbose) std::cout << "Starting constructor!" << std::endl;
 
     m_init_params->m_use_fraction = true;
+#ifdef FANGDA_SURF_LOSTOPOS
     m_init_params->m_min_target_edge_length = .5;
     m_init_params->m_max_target_edge_length = 1.5;
+#else
+    m_init_params->m_min_edge_length = .5;
+    m_init_params->m_max_edge_length = 1.5;
+#endif
     m_init_params->m_max_volume_change = .1;
 
     m_init_params->m_min_curvature_multiplier=1.0;
@@ -99,7 +104,12 @@ std::unique_ptr<SurfTrack> LosToposTracker::make_surftrack(const CRefCV3d& V, co
 
     if(m_verbose) std::cout << "Making surface!" << std::endl;
 
+#ifdef FANGDA_LOSTOPOS
+    std::vector<LosTopos::Vec2i> pt(tris.size(),LosTopos::Vec2i{0,1});
+    return std::unique_ptr<SurfTrack>(new SurfTrack(verts,tris,pt,masses,*m_init_params));
+#else
     return std::unique_ptr<SurfTrack>(new SurfTrack(verts,tris,masses,*m_init_params));
+#endif
 }
 
 LosToposTracker::~LosToposTracker() {
@@ -144,16 +154,24 @@ auto LosToposTracker::get_triangles() const -> ColVectors3i {
 
 void LosToposTracker::defrag_mesh() {
     assert(m_surf);
+#ifdef FANGDA_SURF_LOSTOPOS
     m_surf->defrag_mesh_from_scratch();
+#else
+    m_surf->defrag_mesh();
+#endif
 }
 
 void LosToposTracker::improve() {
     assert(m_surf);
 
+#ifdef FANGDA_SURF_LOSTOPOS
     m_surf->compute_all_vertex_target_edge_lengths();
+#endif
     // Topology changes
     m_surf->topology_changes();
+#ifdef FANGDA_SURF_LOSTOPOS
     m_surf->compute_all_vertex_target_edge_lengths();
+#endif
     // Improve
     m_surf->improve_mesh();
     if(m_defrag_mesh) defrag_mesh();
