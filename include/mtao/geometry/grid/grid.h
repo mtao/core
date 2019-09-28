@@ -155,9 +155,13 @@ namespace mtao {
                         auto&& dx() const { return m_dx; }
 
                         template <typename Derived>
-                            auto local_coord(const Eigen::MatrixBase<Derived>& v) const -> Vec {
+                            auto local_coord(const Eigen::MatrixBase<Derived>& v) const -> auto {
 
-                                return (v - origin()).cwiseQuotient( dx());
+                                if constexpr(Derived::ColsAtCompileTime == 1) {
+                                    return Vec((v - origin()).cwiseQuotient( dx()));
+                                } else {
+                                    return ColVecs((v.colwise() - origin()).array().colwise() / dx().array());
+                                }
                             }
                         template <typename Derived>
                             auto world_coord(const Eigen::MatrixBase<Derived>& v) const -> auto {
