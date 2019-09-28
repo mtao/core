@@ -160,9 +160,13 @@ namespace mtao {
                                 return (v - origin()).cwiseQuotient( dx());
                             }
                         template <typename Derived>
-                            auto world_coord(const Eigen::MatrixBase<Derived>& v) const -> Vec {
+                            auto world_coord(const Eigen::MatrixBase<Derived>& v) const -> auto {
 
-                                return dx().asDiagonal() * v + origin();
+                                if constexpr(Derived::ColsAtCompileTime == 1) {
+                                    return Vec(dx().asDiagonal() * v + origin());
+                                } else {
+                                    return ColVecs(dx().asDiagonal() * v).colwise() + origin();
+                                }
                             }
                         T local_coord(T v, int axis) const {
                             return (v -  origin()(axis)) / dx()(axis);
