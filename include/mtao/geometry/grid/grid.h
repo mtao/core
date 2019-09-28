@@ -156,6 +156,12 @@ namespace mtao {
 
                                 return dx().asDiagonal() * v + origin();
                             }
+                        T local_coord(T v, int axis) const {
+                            return (v -  origin()(axis)) / dx()(axis);
+                        }
+                        T world_coord(T v, int axis) const {
+                            return dx()(axis) * v + origin()(axis);
+                        }
 
                         template <typename Derived>
                             auto coord(const Eigen::MatrixBase<Derived>& v) const {

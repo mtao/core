@@ -1,5 +1,5 @@
 #include <iostream>
-#include "mtao/geometry/grid/grid.h"
+#include <mtao/geometry/grid/grid.h>
 #include <utility>
 #include <numeric>
 
@@ -19,6 +19,9 @@ void test() {
             std::cout << g.vertex(a).transpose() << std::endl;
             });
 
+    for(int i = 0; i < D; ++i) {
+        std::cout << 0.5 << " => " << g.world_coord(.5,i) << " => " << g.local_coord(g.world_coord(.5,i),i) << std::endl;
+    }
 
 }
 

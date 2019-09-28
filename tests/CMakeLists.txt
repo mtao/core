@@ -1,3 +1,4 @@
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 ADD_DEFINITIONS(-g)
 ADD_EXECUTABLE(grid_test grid_test.cpp)
 ADD_EXECUTABLE(grid_data_test grid_data_test.cpp)
