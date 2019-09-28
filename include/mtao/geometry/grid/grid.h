@@ -139,6 +139,14 @@ namespace mtao {
                             return V;
                         }
 
+                        ColVecs local_vertices() const {
+                            ColVecs V(D,size());
+                            loop_parallel([&](auto&& a) {
+                                    V.col(this->index(a)) = eigen::stl2eigen(a).template cast<T>();
+                                    });
+                            return V;
+                        }
+
 
                         auto shapeAsIVec() const {
                             return idx2ivec(shape());

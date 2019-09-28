@@ -19,6 +19,8 @@ void test() {
             std::cout << g.vertex(a).transpose() << std::endl;
             });
 
+    std::cout << g.vertices() << std::endl;
+    std::cout << g.local_vertices() << std::endl;
     for(int i = 0; i < D; ++i) {
         std::cout << 0.5 << " => " << g.world_coord(.5,i) << " => " << g.local_coord(g.world_coord(.5,i),i) << std::endl;
     }
