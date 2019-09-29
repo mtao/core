@@ -160,7 +160,8 @@ namespace mtao {
                                 if constexpr(Derived::ColsAtCompileTime == 1) {
                                     return Vec((v - origin()).cwiseQuotient( dx()));
                                 } else {
-                                    return ColVecs((v.colwise() - origin()).array().colwise() / dx().array());
+                                        ColVecs R = (v.colwise() - origin()).array().colwise() / dx().array();
+                                        return R;
                                 }
                             }
                         template <typename Derived>
@@ -169,7 +170,8 @@ namespace mtao {
                                 if constexpr(Derived::ColsAtCompileTime == 1) {
                                     return Vec(dx().asDiagonal() * v + origin());
                                 } else {
-                                    return ColVecs(dx().asDiagonal() * v).colwise() + origin();
+                                    ColVecs R = (dx().asDiagonal() * v).colwise() + origin();
+                                    return R;
                                 }
                             }
                         T local_coord(T v, int axis) const {
