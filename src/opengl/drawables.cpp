@@ -78,7 +78,11 @@ namespace mtao::opengl {
             if(ImGui::TreeNode(name.c_str())) {
                 ImGui::Checkbox("Visible", &visible);
                 ImGui::ColorEdit4("Ambient Color", _data.ambient_color.data());
+                if(_shader.flags() & Magnum::Shaders::Phong::Flag::VertexColor) {
+                    ImGui::Text("Vertex Color Mode Specifies Diffuse");
+                } else {
                 ImGui::ColorEdit4("Diffuse Color", _data.diffuse_color.data());
+                }
                 ImGui::ColorEdit4("Specular Color", _data.specular_color.data());
 
                 ImGui::SliderFloat("Shininess", &_data.shininess, 0., 100.);
@@ -137,13 +141,21 @@ namespace mtao::opengl {
             _mesh.addVertexBuffer(_mesh.vertex_buffer, 0, Shaders::Phong::Position{});
             _mesh.addVertexBuffer(_mesh.normal_buffer, 0, Shaders::Phong::Normal{});
             _shader.setShininess(_data.shininess)
-                .setDiffuseColor(_data.diffuse_color)
-                .setAmbientColor(_data.ambient_color)
-                .setSpecularColor(_data.specular_color)
                 .setLightPositions(_data.light_positions)
                 .setLightColors(_data.light_colors);
             if(_shader.flags() & Shaders::Phong::Flag::AlphaMask) {
                 _shader.setAlphaMask(_data.alpha_mask);
+            }
+            if(_shader.flags() & Shaders::Phong::Flag::VertexColor) {
+                _mesh.addVertexBuffer(_mesh.color_buffer, 0, Shaders::Phong::Color4{});
+                _shader
+                .setAmbientColor(_data.ambient_color)
+                .setSpecularColor(_data.specular_color);
+            } else {
+
+                _shader.setDiffuseColor(_data.diffuse_color)
+                .setAmbientColor(_data.ambient_color)
+                .setSpecularColor(_data.specular_color);
             }
         }
     template <>

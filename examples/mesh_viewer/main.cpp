@@ -16,6 +16,7 @@
 #include <Corrade/Utility/Arguments.h>
 #include "mtao/opengl/objects/mesh.h"
 #include "mtao/opengl/objects/bbox.h"
+#include <mtao/geometry/mesh/vertex_normals.hpp>
 
 #include <glm/gtc/matrix_transform.hpp> 
 bool animate = false;
@@ -61,6 +62,21 @@ class MeshViewer: public mtao::opengl::Window3 {
 
         mesh.setEdgeBuffer(E.cast<unsigned int>());
 
+        auto N = mtao::geometry::mesh::vertex_normals(V,F);
+        mtao::ColVecs4f COL(4,V.cols());
+        COL.topRows<3>()= N.cast<float>();
+        COL.row(3).setConstant(1);
+
+        mesh.setColorBuffer(COL);
+
+
+    using namespace Magnum;
+    using namespace Math::Literals;
+
+        vphong_drawable = new mtao::opengl::Drawable<Magnum::Shaders::Phong>{mesh,_vcolor_shader, drawables()};
+
+        vphong_drawable->data().ambient_color = 0x111111_rgbf;
+        vphong_drawable->data().specular_color = 0xffffff_rgbf;
 
 
         phong_drawable = new mtao::opengl::Drawable<Magnum::Shaders::Phong>{mesh,_shader, drawables()};
@@ -78,6 +94,14 @@ class MeshViewer: public mtao::opengl::Window3 {
 
         bbox_drawable = mtao::opengl::make_drawable(bbox,_flat_shader,drawables());
         bbox.setParent(&root());
+        bbox_drawable->deactivate();
+        bbox_drawable->activate_edges();
+
+        phong_drawable->deactivate();
+        mv_drawable->deactivate();
+        point_drawable->deactivate();
+        edge_drawable->deactivate();
+
 
     }
     void gui() override {
@@ -87,6 +111,9 @@ class MeshViewer: public mtao::opengl::Window3 {
         }
         if(phong_drawable) {
             phong_drawable->gui();
+        }
+        if(vphong_drawable) {
+            vphong_drawable->gui("VColor Phong");
         }
         if(edge_drawable) {
             edge_drawable->gui("Edge");
@@ -115,11 +142,13 @@ class MeshViewer: public mtao::opengl::Window3 {
     }
     private:
     Magnum::Shaders::Phong _shader;
+    Magnum::Shaders::Phong _vcolor_shader = Magnum::Shaders::Phong(Magnum::Shaders::Phong::Flag::VertexColor);
     Magnum::Shaders::MeshVisualizer _wireframe_shader;
     Magnum::Shaders::Flat3D _flat_shader;
     mtao::opengl::objects::Mesh<3> mesh;
     mtao::opengl::objects::BoundingBox<3> bbox;
     mtao::opengl::Drawable<Magnum::Shaders::Phong>* phong_drawable = nullptr;
+    mtao::opengl::Drawable<Magnum::Shaders::Phong>* vphong_drawable = nullptr;
     mtao::opengl::Drawable<Magnum::Shaders::MeshVisualizer>* mv_drawable = nullptr;
     mtao::opengl::Drawable<Magnum::Shaders::Flat3D>* edge_drawable = nullptr;
     mtao::opengl::Drawable<Magnum::Shaders::Flat3D>* point_drawable = nullptr;
