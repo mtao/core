@@ -14,6 +14,14 @@ namespace mtao::geometry::mesh {
         }
     }
 
+    /*
+    template <>
+    void write_obj(const mtao::ColVectors<float,3>& V,const mtao::ColVectors<int,3>& F, const std::string& filename);
+
+    template <>
+    void write_obj(const mtao::ColVectors<double,3>& V,const mtao::ColVectors<int,3>& F, const std::string& filename);
+
+    */
     void write_objF(const mtao::ColVectors<float,3>& V,const mtao::ColVectors<int,3>& F, const std::string& filename) {
         write_obj(V,F,filename);
     }
