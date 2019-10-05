@@ -4,6 +4,7 @@
 #include <Magnum/Magnum.h>
 #include "mtao/opengl/objects/mesh.h"
 #include <Magnum/Shaders/VertexColor.h>
+#include <Magnum/Math/Color.h>
 #include <Magnum/Shaders/Phong.h>
 #include <Magnum/Shaders/MeshVisualizer.h>
 #include <Magnum/Shaders/Flat.h>
