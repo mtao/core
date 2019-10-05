@@ -1,7 +1,8 @@
 #ifndef BOUNDARY_MATRIX_H
 #define BOUNDARY_MATRIX_H
 
-#include <mtao/types.h>
+#include <mtao/types.hpp>
+#include <Eigen/Sparse>
 
 namespace mtao { namespace geometry { namespace mesh {
 
@@ -74,6 +75,22 @@ namespace mtao { namespace geometry { namespace mesh {
             return A;
         }
 
+    //Edges -> Vertices
+    template <typename T, typename EdgeType>
+        auto graph_boundary_matrix(const Eigen::MatrixBase<EdgeType>& E) -> Eigen::SparseMatrix<T> {
+
+
+
+            std::vector<Eigen::Triplet<T>> trips;
+            for(int i = 0; i < E.cols(); ++i) {
+                auto e = E.col(i);
+                trips.emplace_back(e(0),i,-1);
+                trips.emplace_back(e(1),i,1);
+            }
+            Eigen::SparseMatrix<T> A(E.maxCoeff()+1,E.cols());
+            A.setFromTriplets(trips.begin(),trips.end());
+            return A;
+        }
 
 }}}
 
