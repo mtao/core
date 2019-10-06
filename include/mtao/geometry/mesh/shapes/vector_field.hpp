@@ -22,7 +22,6 @@ namespace mtao::geometry::mesh::shapes {
                 offset += v.cols();
 
             }
-            std::cout << "Offset at the end: " << offset << std::endl;
             return {
                 mtao::eigen::hstack_iter(Vs.begin(),Vs.end()),
                 mtao::eigen::hstack_iter(Fs.begin(),Fs.end())
