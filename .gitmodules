@@ -10,4 +10,4 @@
 [submodule "extern/LosTopos"]
 	path = extern/LosTopos
 	url = https://github.com/mtao/LosTopos.git
-    branch = fangda
+    branch = christopherbatty
