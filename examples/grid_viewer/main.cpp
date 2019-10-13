@@ -48,7 +48,7 @@ class MeshViewer: public mtao::opengl::Window3 {
 
         Eigen::SimplicialLDLT<Eigen::SparseMatrix<float>> solver;
 
-        MeshViewer(const Arguments& args): Window3(args), _wireframe_shader{Magnum::Shaders::MeshVisualizer::Flag::Wireframe} {
+        MeshViewer(const Arguments& args): Window3(args), _wireframe_shader{supportsGeometryShader()?Magnum::Shaders::MeshVisualizer::Flag::Wireframe:Magnum::Shaders::MeshVisualizer::Flag{}} {
             return;
             bbox.min().setConstant(-1);
             bbox.max().setConstant(1);

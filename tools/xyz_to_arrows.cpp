@@ -1,6 +1,7 @@
 #include <mtao/geometry/point_cloud/read_xyz.hpp>
 #include <mtao/geometry/mesh/shapes/arrow.hpp>
 #include <mtao/geometry/mesh/write_ply.hpp>
+#include <mtao/geometry/mesh/write_obj.hpp>
 #include <iostream>
 
 
@@ -29,6 +30,7 @@ int main(int argc, char * argv[]) {
 
     auto FV = mtao::eigen::hstack_iter(NV.begin(),NV.end());
     auto FF = mtao::eigen::hstack_iter(NF.begin(),NF.end());
-    mtao::geometry::mesh::write_plyD(FV,FF,argv[2]);
+    mtao::geometry::mesh::write_plyD(FV,FF,std::string(argv[2])+".ply");
+    mtao::geometry::mesh::write_objD(FV,FF,std::string(argv[2])+".obj");
     return 0;
 }

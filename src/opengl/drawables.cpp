@@ -161,10 +161,13 @@ namespace mtao::opengl {
     template <>
         void Drawable<Shaders::MeshVisualizer>::set_buffers() {
             _mesh.addVertexBuffer(_mesh.vertex_buffer, 0, Shaders::MeshVisualizer::Position{});
-            _shader.setColor(_data.color)
+            _shader.setColor(_data.color);
+            if(_shader.flags() & Magnum::Shaders::MeshVisualizer::Flag::Wireframe) {
+                _shader
                 .setWireframeColor(_data.wireframe_color)
                 .setWireframeWidth(_data.wireframe_width)
                 .setSmoothness(_data.smoothness);
+            }
 
             if(_data.viewport_size) {
                 _shader.setViewportSize(*_data.viewport_size);

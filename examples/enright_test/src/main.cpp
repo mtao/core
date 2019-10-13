@@ -181,7 +181,7 @@ class MeshViewer: public mtao::opengl::Window3 {
         ColVectors3i F;
 
         std::unique_ptr<TrackerType> tracker;
-        MeshViewer(const Arguments& args): Window3(args), _wireframe_shader{Magnum::Shaders::MeshVisualizer::Flag::Wireframe} {
+        MeshViewer(const Arguments& args): Window3(args), _wireframe_shader{supportsGeometryShader()?Magnum::Shaders::MeshVisualizer::Flag::Wireframe:Magnum::Shaders::MeshVisualizer::Flag{}} {
         Corrade::Utility::Arguments myargs;
         std::tie(V,F) = mtao::geometry::mesh::sphere<double>(4);
         mesh.setTriangleBuffer(V.cast<float>(),F.cast<unsigned int>());

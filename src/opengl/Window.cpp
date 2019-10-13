@@ -14,14 +14,15 @@
 #include <Magnum/GL/DebugOutput.h>
 #include <Magnum/Math/Color.h>
 #include <iostream>
+#include <Magnum/GL/Extensions.h>
 
 
 using namespace Magnum;
 using namespace Math::Literals;
 
 namespace mtao::opengl {
-    WindowBase::WindowBase(const Arguments& arguments): 
-        GlfwApplication{arguments, Configuration{}.setTitle("WindowBase").setWindowFlags(Configuration::WindowFlag::Resizable)},
+    WindowBase::WindowBase(const Arguments& arguments, GL::Version version): 
+        GlfwApplication{arguments, Configuration{}.setTitle("WindowBase").setWindowFlags(Configuration::WindowFlag::Resizable),GLConfiguration{}.setVersion(version)},
         _imgui{Vector2(windowSize())/dpiScaling(), windowSize(), framebufferSize()}
     {
         //TODO: This is certainly not what I want, but isn't the imgui constructor supposed to do things for me?
@@ -150,6 +151,17 @@ namespace mtao::opengl {
         }
     }
 
+
+    bool WindowBase::supportsGeometryShader() const {
+        using namespace Magnum;
+        #ifndef MAGNUM_TARGET_GLES
+        using ShaderType = GL::Extensions::ARB::geometry_shader4;
+        #elif !defined(MAGNUM_TARGET_WEBGL)
+        using ShaderType = GL::Extensions::EXT::geometry_shader;
+        #endif
+
+        return isExtensionSupported<ShaderType>();
+    }
 
 
 
