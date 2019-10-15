@@ -1,7 +1,7 @@
 #ifndef _SPHERE_MESH_GEN_IMPL_H_
 #define _SPHERE_MESH_GEN_IMPL_H_
 
-#include "mtao/types.h"
+#include "mtao/types.hpp"
 #include <tuple>
 #include <array>
 #include <map>
@@ -10,7 +10,7 @@
 #include <fstream>
 #include <Eigen/Dense>
 
-namespace mtao { namespace geometry { namespace mesh {
+namespace mtao::geometry::mesh::shapes {
     namespace detail {
         template <typename Scalar_>
             class SphereMeshFactory{
@@ -143,5 +143,5 @@ namespace mtao { namespace geometry { namespace mesh {
 
     }
 
-}}}
+}
 #endif

@@ -9,6 +9,7 @@ namespace mtao::geometry::point_cloud {
         std::array<mtao::ColVectors<T,3>,2> read_xyz(const std::string& filename) {
             std::vector<std::array<T,6>> lines;
 
+            int min_linelen = std::numeric_limits<int>::max();
 
             std::ifstream ifs(filename);
 
@@ -20,6 +21,7 @@ namespace mtao::geometry::point_cloud {
                         , std::back_insert_iterator<std::vector<std::string> >(tokens));
 
                 int linelen = std::min<int>(tokens.size(),6);
+                min_linelen = std::min(linelen,min_linelen);
                 std::array<T,6> V;
                 std::fill(V.begin(),V.end(),0);
                 std::transform(tokens.begin(),tokens.begin()+linelen, V.begin(), [&](const std::string& s) {
@@ -29,7 +31,11 @@ namespace mtao::geometry::point_cloud {
 
             }
             mtao::MatrixX<T> D = mtao::eigen::stl2eigen(lines);
-            return {{D.topRows(3),D.bottomRows(3)}};
+            if(min_linelen <= 3) {
+                return {{D.topRows(3),{}}};
+            } else {
+                return {{D.topRows(3),D.bottomRows(3)}};
+            }
         }
 
     std::array<mtao::ColVectors<float,3>,2> read_xyzF(const std::string& filename) {
