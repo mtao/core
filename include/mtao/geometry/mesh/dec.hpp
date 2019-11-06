@@ -226,16 +226,20 @@ template <typename Derived, typename T, int EmbeddedDim, int Dim> template <int 
 auto DECMeshCore<Derived,T,EmbeddedDim,Dim>::d() const -> SparseMatrix {
     return boundary<D+1>().transpose();
 }
+
+// * d *
 template <typename Derived, typename T, int EmbeddedDim, int Dim> template <int D>
 auto DECMeshCore<Derived,T,EmbeddedDim,Dim>::cod() const -> SparseMatrix {
     return hi<D-1>().asDiagonal() * d<D-1>().transpose() * h<D>().asDiagonal();
 }
 
 //Laplacians
+//d * d *
 template <typename Derived, typename T, int EmbeddedDim, int Dim> template <int D>
 auto DECMeshCore<Derived,T,EmbeddedDim,Dim>:: laplacian_down() const -> SparseMatrix {
     return d<D-1>() * cod<D>();
 }
+//* d * d
 template <typename Derived, typename T, int EmbeddedDim, int Dim> template <int D>
 auto DECMeshCore<Derived,T,EmbeddedDim,Dim>:: laplacian_up() const -> SparseMatrix {
     //h<1>
@@ -251,26 +255,29 @@ auto DECMeshCore<Derived,T,EmbeddedDim,Dim>:: laplacian() const -> SparseMatrix 
         return laplacian_down<D>() + laplacian_down<D>();
     }
 }
+//d * d that goes up down a dimension
 template <typename Derived, typename T, int EmbeddedDim, int Dim> template <int D>
 auto DECMeshCore<Derived,T,EmbeddedDim,Dim>:: weak_laplacian_down() const -> SparseMatrix {
     auto a = d<D-1>();
     return a * hi<D-1>().asDiagonal() * a.transpose();
 }
+//d * d that goes up a dimension
 template <typename Derived, typename T, int EmbeddedDim, int Dim> template <int D>
 auto DECMeshCore<Derived,T,EmbeddedDim,Dim>:: weak_laplacian_up() const -> SparseMatrix {
     auto a = d<D>();
     return a.transpose() * h<D+1>().asDiagonal() * a;
 }
-
+//d x
 template <typename Derived, typename T, int EmbeddedDim, int Dim> template <int D>
 auto DECMeshCore<Derived,T,EmbeddedDim,Dim>::weak_poisson_down_rhs(const VecX& o) const -> VecX {
     return d<D>(o);
 }
+//d * x
 template <typename Derived, typename T, int EmbeddedDim, int Dim> template <int D>
 auto DECMeshCore<Derived,T,EmbeddedDim,Dim>::weak_poisson_up_rhs(const VecX& o) const -> VecX {
     return d<D-1>().transpose() * h<D>(o);
-
 }
+//(d * d )^{-1} ( d x )
 template <typename Derived, typename T, int EmbeddedDim, int Dim> template <int D>
 auto DECMeshCore<Derived,T,EmbeddedDim,Dim>::weak_poisson_down(const VecX& rhs) const -> VecX {
     auto L = weak_laplacian_down<D>();
@@ -278,6 +285,7 @@ auto DECMeshCore<Derived,T,EmbeddedDim,Dim>::weak_poisson_down(const VecX& rhs) 
     VecX p = solver.solveWithGuess(rhs,VecX::Zero(rhs.rows()));
     return p;
 }
+//(d * d )^{-1} ( d * x )
 template <typename Derived, typename T, int EmbeddedDim, int Dim> template <int D>
 auto DECMeshCore<Derived,T,EmbeddedDim,Dim>::weak_poisson_up(const VecX& rhs) const -> VecX {
     auto L = weak_laplacian_up<D>();
