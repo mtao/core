@@ -154,6 +154,7 @@ namespace mtao {
                         auto&& origin() const { return m_origin; }
                         auto&& dx() const { return m_dx; }
 
+                        //maps world space to local space
                         template <typename Derived>
                             auto local_coord(const Eigen::MatrixBase<Derived>& v) const -> auto {
 
@@ -164,6 +165,7 @@ namespace mtao {
                                         return R;
                                 }
                             }
+                        //maps world space to local space
                         template <typename Derived>
                             auto world_coord(const Eigen::MatrixBase<Derived>& v) const -> auto {
 
@@ -182,13 +184,17 @@ namespace mtao {
                         }
 
                         template <typename Derived>
-                            auto coord(const Eigen::MatrixBase<Derived>& v) const {
-                                auto p = local_coord(v);
+                            auto coord_from_local(const Eigen::MatrixBase<Derived>& p) const {
                                 std::array<int,D> coord;
                                 std::array<T,D> quot;
                                 IVecMap(coord.data()) = p.template cast<int>();
                                 VecMap(quot.data()) = p - IVecMap(coord.data()).template cast<T>();
                                 return std::make_tuple(coord,quot);
+                            }
+                        template <typename Derived>
+                            auto coord(const Eigen::MatrixBase<Derived>& v) const {
+                                auto p = local_coord(v);
+                                return coord_from_local(p);
                             }
 
 
