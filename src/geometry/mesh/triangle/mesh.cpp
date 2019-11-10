@@ -75,7 +75,7 @@ namespace mtao::geometry::mesh::triangle {
             }
             auto B = mtao::geometry::barycentric_simplicial(T,mC.col(i).eval());
             valid(i) = (B.minCoeff() > 1e-5);
-            auto c = mC.col(i);
+            //auto c = mC.col(i);
             /*
                for(int i = 0; i < 3; ++i) {
                auto u = V.col(f((i+0)%3));

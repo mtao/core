@@ -33,7 +33,7 @@ namespace mtao { namespace geometry {
     template <typename VertexDerived, typename SimplexDerived> 
         auto volumes( const Eigen::MatrixBase<VertexDerived>& V, const Eigen::MatrixBase<SimplexDerived>& S) {
             constexpr static int E = VertexDerived::RowsAtCompileTime;//embed dim
-            constexpr static int N = SimplexDerived::ColsAtCompileTime;//number of elements
+            //constexpr static int N = SimplexDerived::ColsAtCompileTime;//number of elements
             constexpr static int D = SimplexDerived::RowsAtCompileTime;//simplex dim
             using Scalar = typename VertexDerived::Scalar;
 
@@ -54,7 +54,7 @@ namespace mtao { namespace geometry {
     template <typename VertexDerived, typename SimplexDerived> 
         auto brep_volume( const Eigen::MatrixBase<VertexDerived>& V, const Eigen::MatrixBase<SimplexDerived>& S) {
             constexpr static int E = VertexDerived::RowsAtCompileTime;//embed dim
-            constexpr static int N = SimplexDerived::ColsAtCompileTime;//number of elements
+            //constexpr static int N = SimplexDerived::ColsAtCompileTime;//number of elements
             constexpr static int D = SimplexDerived::RowsAtCompileTime;//simplex dim
             using Scalar = typename VertexDerived::Scalar;
 

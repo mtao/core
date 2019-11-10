@@ -50,7 +50,6 @@ class Window2: public WindowBase {
     public:
         explicit Window2(const Arguments& arguments, GL::Version = GL::Version::None);
         virtual void draw() override;
-        virtual void gui() = 0;
         
         virtual void viewportEvent(ViewportEvent& event) override;
         virtual void mousePressEvent(MouseEvent& event) override;
@@ -90,7 +89,6 @@ class Window3: public WindowBase {
     public:
         explicit Window3(const Arguments& arguments, GL::Version = GL::Version::None);
         virtual void draw() override;
-        virtual void gui() = 0;
         
         virtual void viewportEvent(ViewportEvent& event) override;
         virtual void mousePressEvent(MouseEvent& event) override;

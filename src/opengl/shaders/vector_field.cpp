@@ -64,7 +64,7 @@ namespace mtao::opengl {
 
         GLint params;
         GLuint indices;
-        char* name[1] = {"transformationProjectionMatrix"};
+        const char* name[1] = {"transformationProjectionMatrix"};
 
         glGetUniformIndices(id(), 1, name, &indices);
 

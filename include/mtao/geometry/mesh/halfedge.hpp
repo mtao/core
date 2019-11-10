@@ -450,7 +450,7 @@ void HalfEdgeMesh::set_one_ring_adjacencies(const Eigen::MatrixBase<Derived>& V,
     } else {
 
         for(auto [i,eidx]: mtao::iterator::enumerate(edges)) {
-            HalfEdge e = edge(eidx);
+            //HalfEdge e = edge(eidx);
             auto p = V.col(i);
             S ang = std::atan2(p.y(),p.x());
             edge_angles[ang] = eidx;
@@ -459,7 +459,7 @@ void HalfEdgeMesh::set_one_ring_adjacencies(const Eigen::MatrixBase<Derived>& V,
             mtao::logging::warn() << "Duplicate vertex directions found when computing one ring adjacencies bb";
             std::map<std::tuple<S,int>,int> edge_angles;
             for(auto [i,eidx]: mtao::iterator::enumerate(edges)) {
-                HalfEdge e = edge(eidx);
+                //HalfEdge e = edge(eidx);
                 auto p = V.col(i);
                 S ang = std::atan2(p.y(),p.x());
                 edge_angles[std::make_tuple(ang,i)] = eidx;
@@ -483,7 +483,7 @@ void EmbeddedHalfEdgeMesh<S,D>::set_one_ring_adjacencies(const Eigen::MatrixBase
 
         std::transform(edges.begin(),edges.end(),std::inserter(edge_angles,edge_angles.end()), [&](int eidx) {
                 HalfEdge e = edge(eidx);
-                int vertex = e.get_dual().vertex();
+                //int vertex = e.get_dual().vertex();
                 auto p = (V(e.get_dual().vertex()) - o);
                 S ang = std::atan2(p.y(),p.x());
                 return std::make_pair(ang,eidx);
@@ -803,7 +803,7 @@ void HalfEdgeMesh::tie_nonsimple_cells(const Eigen::MatrixBase<Derived>& V, cons
     }
     for(auto&& ohe: outer_hes) {
         int ocell = cell_index(ohe);
-        int docell = cell_index(dual_index(ohe));
+        //int docell = cell_index(dual_index(ohe));
         for(auto&& ihe: interior_hes) {
             int icell = cell_index(ihe);
             int dicell = cell_index(dual_index(ihe));

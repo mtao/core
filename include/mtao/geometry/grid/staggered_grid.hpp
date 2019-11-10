@@ -231,7 +231,7 @@ namespace mtao {
                             std::vector<Eigen::Triplet<T>> trips;
                             for(auto&& [K,grids]: iterator::enumerate(std::get<N>(m_grids))) {
                                 std::bitset<D> difference_mask = combinatorial::nCr_mask<D>(N,K);
-                                grid<N>(K).loop([&](const coord_type& c) {
+                                grid<N>(K).loop([&,K=K](const coord_type& c) {
                                         int col = staggered_index<N>(c,K);
                                         auto s = staggered_shape<N>(K);
                                         masked_difference_looper(difference_mask,c,

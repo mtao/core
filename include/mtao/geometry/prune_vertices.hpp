@@ -9,7 +9,7 @@ namespace mtao { namespace geometry {
     template <typename Container 
         , typename T
         >
-        auto prune(const Container& V, T eps = T(1e-8)) {
+        auto prune(const Container& V, T eps = T(1e-8)) -> std::tuple<Container, std::map<int,int>> {
             using Vec = typename Container::value_type;
             constexpr static int D = Vec::RowsAtCompileTime;
             using Scalar = typename Vec::Scalar;
@@ -60,7 +60,12 @@ namespace mtao { namespace geometry {
             for(int i = 0; i < V.cols(); ++i) {
                 stlV[i] = V.col(i);
             }
-            auto [P,m] = prune(stlV,eps);
+            auto pr = prune(stlV,eps);
+            //auto [P,m] = prune(stlV,eps);
+            const mtao::vector<typename mtao::Vector<Scalar,D>>& P = std::get<0>(pr);
+            const std::map<int,int>& m = std::get<1>(pr);
+
+
             mtao::ColVectors<Scalar,D> RV(V.rows(),P.size());
             for(int i = 0; i < RV.cols(); ++i) {
                 RV.col(i) = P[i];

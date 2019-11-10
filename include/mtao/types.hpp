@@ -1,8 +1,13 @@
 #pragma once
+//Verbose because clang/llvm pretend to have gnuc
+#if defined(__GNUC__) && !defined(__llvm__) && !defined(__INTEL_COMPILER)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wint-in-bool-context"
+#endif
 #include <Eigen/Dense>
+#if defined(__GNUC__) && !defined(__llvm__) && !defined(__INTEL_COMPILER)
 #pragma GCC diagnostic pop
+#endif
 #include <vector>
 #include <map>
 namespace mtao{ 
