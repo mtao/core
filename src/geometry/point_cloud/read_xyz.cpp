@@ -21,6 +21,9 @@ namespace mtao::geometry::point_cloud {
                         , std::back_insert_iterator<std::vector<std::string> >(tokens));
 
                 int linelen = std::min<int>(tokens.size(),6);
+                if(linelen < 3) {
+                    continue;
+                }
                 min_linelen = std::min(linelen,min_linelen);
                 std::array<T,6> V;
                 std::fill(V.begin(),V.end(),0);
