@@ -1,6 +1,7 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 #include <Magnum/Platform/GlfwApplication.h>
+#include <Magnum/GL/Context.h>
 #include <Magnum/ImGuiIntegration/Context.hpp>
 #include <functional>
 #include "mtao/hotkey_manager.hpp"
@@ -11,6 +12,7 @@
 #include <Magnum/Math/Vector.h>
 #include <Magnum/SceneGraph/Camera.h>
 #include <Magnum/SceneGraph/Drawable.h>
+#include <Magnum/GL/Version.h>
 
 namespace mtao::opengl {
     using namespace Magnum;
@@ -18,7 +20,7 @@ namespace mtao::opengl {
 class WindowBase: public Magnum::Platform::Application {
     public:
 
-        explicit WindowBase(const Arguments& arguments);
+        explicit WindowBase(const Arguments& arguments, GL::Version = GL::Version::None);
 
         void drawEvent() override;
 
@@ -36,6 +38,9 @@ class WindowBase: public Magnum::Platform::Application {
         virtual void mouseScrollEvent(MouseScrollEvent& event) override;
         virtual void textInputEvent(TextInputEvent& event) override;
 
+        bool supportsGeometryShader() const;
+        template <typename T>
+            bool isExtensionSupported() const;
 
     private:
         Magnum::ImGuiIntegration::Context _imgui{Magnum::NoCreate};
@@ -43,9 +48,8 @@ class WindowBase: public Magnum::Platform::Application {
 };
 class Window2: public WindowBase {
     public:
-        explicit Window2(const Arguments& arguments);
+        explicit Window2(const Arguments& arguments, GL::Version = GL::Version::None);
         virtual void draw() override;
-        virtual void gui() = 0;
         
         virtual void viewportEvent(ViewportEvent& event) override;
         virtual void mousePressEvent(MouseEvent& event) override;
@@ -83,9 +87,8 @@ class Window2: public WindowBase {
 
 class Window3: public WindowBase {
     public:
-        explicit Window3(const Arguments& arguments);
+        explicit Window3(const Arguments& arguments, GL::Version = GL::Version::None);
         virtual void draw() override;
-        virtual void gui() = 0;
         
         virtual void viewportEvent(ViewportEvent& event) override;
         virtual void mousePressEvent(MouseEvent& event) override;
@@ -109,6 +112,12 @@ class Window3: public WindowBase {
 
 
 };
+
+
+template <typename T>
+bool WindowBase::isExtensionSupported() const {
+    return Magnum::GL::Context::current().isExtensionSupported<T>();
+}
 }
 
 #endif//WINDOW_H

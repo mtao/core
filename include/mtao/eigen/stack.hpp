@@ -78,15 +78,19 @@ namespace mtao { namespace eigen {
 
             for(auto it = beginit; it != endit; ++it) {
                 auto&& c = *it;
+                if(c.size() > 0) {
                 crows = std::max<int>(crows,c.rows());
                 ccols += c.cols();
+                }
             }
             RetCells mC(crows,ccols);
             ccols = 0;
             for(auto it = beginit; it != endit; ++it) {
                 auto&& c = *it;
+                if(c.size() > 0) {
                 mC.block(0,ccols,c.rows(),c.cols()) = c;
                 ccols += c.cols();
+                }
             }
             return mC;
         }

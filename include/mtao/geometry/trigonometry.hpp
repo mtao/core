@@ -89,6 +89,7 @@ namespace mtao::geometry::trigonometry {
             int size =  std::distance(beginit,endit);
             S ang = angle_sum(V,beginit,endit);
 
+            /*
             //counteract size when we have degenerate cells
             for(auto it = beginit; it != endit; ++it) {
                 auto it1 = it;
@@ -102,6 +103,7 @@ namespace mtao::geometry::trigonometry {
                     auto c = V.col(*it2);
                     double ang = angle(c-b,a-b)(0);
             }
+            */
             S expected=  interior_angle_sum<S>(size);
             bool ret = std::abs(ang - expected) < 1e-5;
             

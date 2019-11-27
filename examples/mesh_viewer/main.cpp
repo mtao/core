@@ -47,7 +47,8 @@ class MeshViewer: public mtao::opengl::Window3 {
         bool show_bbox_faces = false;
         bool show_bbox_edges = true;
 
-    MeshViewer(const Arguments& args): Window3(args), _wireframe_shader{Magnum::Shaders::MeshVisualizer::Flag::Wireframe} {
+        MeshViewer(const Arguments& args): Window3(args), _wireframe_shader{supportsGeometryShader()?Magnum::Shaders::MeshVisualizer::Flag::Wireframe:Magnum::Shaders::MeshVisualizer::Flag{}} {
+    //MeshViewer(const Arguments& args): Window3(args,Magnum::GL::Version::GL210), _wireframe_shader{} {
         Corrade::Utility::Arguments myargs;
         myargs.addArgument("filename").parse(args.argc,args.argv);
         std::string filename = myargs.value("filename");
@@ -71,9 +72,16 @@ class MeshViewer: public mtao::opengl::Window3 {
         mesh.setColorBuffer(COL);
 
         {
+            double edge_length_sum = 0;
+            for(int i = 0; i < E.cols(); ++i) {
+                auto e = E.col(i);
+                double d = (V.col(e(0)) - V.col(e(1))).norm();
+                edge_length_sum += d;
+            }
+            double mean_edge_length = edge_length_sum / E.cols();
             
             std::cout << "Normal cols: " << N.cols() << std::endl;
-            auto [nV,nF] = mtao::geometry::mesh::shapes::vector_field(V,(.0005 * N).eval(),.0001);
+            auto [nV,nF] = mtao::geometry::mesh::shapes::vector_field(V,(mean_edge_length * N).eval(),.1 * mean_edge_length);
             std::cout << nV.rows() << " " << nV.cols() << std::endl;
             std::cout << nF.rows() << " " << nF.cols() << std::endl;
             normal_mesh.setTriangleBuffer(nV,nF.cast<unsigned int>());
@@ -108,9 +116,6 @@ class MeshViewer: public mtao::opengl::Window3 {
         bbox_drawable->deactivate();
         bbox_drawable->activate_edges();
 
-        mv_drawable->deactivate();
-        point_drawable->deactivate();
-        edge_drawable->deactivate();
 
 
     }

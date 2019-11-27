@@ -47,7 +47,7 @@ namespace mtao::geometry::mesh {
                 auto cb = c-b;
                 auto ab = a-b;
                 auto ac = a-c;
-                mtao::Vec2d n(-ac.y(),ac.x());
+                //mtao::Vec2d n(-ac.y(),ac.x());
                 /*
                 if(cb.x() * ab.y() -  cb.y() * ab.x() < 1e-12) {
                     return false;

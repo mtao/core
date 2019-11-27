@@ -20,7 +20,7 @@ using namespace Magnum;
 using namespace Math::Literals;
 
 namespace mtao::opengl {
-    Window3::Window3(const Arguments& args): WindowBase(args), _cameraObject(&_scene), _camera(_cameraObject) {
+    Window3::Window3(const Arguments& args, GL::Version version): WindowBase(args, version), _cameraObject(&_scene), _camera(_cameraObject) {
         _cameraObject.setParent(&_scene)
             .translate(Vector3::zAxis(5.0f));
         _camera.setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
