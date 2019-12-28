@@ -4,6 +4,7 @@
 #include <tuple>
 #include <utility>
 #include <algorithm>
+#include "mtao/types.hpp"
 
 
 namespace mtao { namespace eigen {

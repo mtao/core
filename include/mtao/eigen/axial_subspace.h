@@ -1,6 +1,7 @@
 #ifndef EIGEN_AXIAL_SUBSPACE_H
 #define EIGEN_AXIAL_SUBSPACE_H
 
+#include "mtao/types.hpp"
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 namespace mtao { namespace eigen {

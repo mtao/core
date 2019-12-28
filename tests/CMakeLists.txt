@@ -1,8 +1,25 @@
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 
+
+if(NOT Catch2_FOUND)
+    FetchContent_Declare(
+        catch2
+        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+        GIT_TAG v2.9.1
+        )
+    FetchContent_GetProperties(catch2)
+
+    if(NOT catch2_POPULATED)
+        FetchContent_Populate(catch2)
+        MESSAGE(STATUS "${catch2_SOURCE_DIR} ${catch2_BINARY_DIR}")
+        add_subdirectory(${catch2_SOURCE_DIR} ${catch2_BINARY_DIR})
+    endif()
+
+endif()
+
 FUNCTION(ADD_MYTEST BINNAME)
     ADD_EXECUTABLE(${BINNAME} ${ARGN})
-    TARGET_LINK_LIBRARIES(${BINNAME} mtao::common)
+    TARGET_LINK_LIBRARIES(${BINNAME} PRIVATE mtao::common Catch2::Catch2)
 ENDFUNCTION(ADD_MYTEST)
 
 ADD_DEFINITIONS(-g)
@@ -80,6 +97,9 @@ ADD_MYTEST(staggered_grid_cell_test staggered_grid_cell_test.cpp)
 ADD_MYTEST(staggered_grid_boundary_test staggered_grid_boundary_test.cpp)
 ADD_MYTEST(staggered_grid_util_test staggered_grid_util_test.cpp)
 ADD_MYTEST(laplacian_smoothing_test laplacian_smoothing_test.cpp)
+
+ADD_MYTEST(eigen_type_utils_test eigen_type_utils_test.cpp)
+ADD_MYTEST(mat_to_triplets_test mat_to_triplets_test.cpp)
 
 ADD_MYTEST(disjoint_set_test disjoint_set_test.cpp)
 ADD_MYTEST(static_loop_test static_loop_test.cpp)
