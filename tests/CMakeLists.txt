@@ -18,26 +18,32 @@ if(NOT Catch2_FOUND)
 endif()
 
 FUNCTION(ADD_MYTEST BINNAME)
-    ADD_EXECUTABLE(${BINNAME} main.cpp ${ARGN})
-    TARGET_LINK_LIBRARIES(${BINNAME} PRIVATE mtao::common Catch2::Catch2)
+    ADD_EXECUTABLE(${BINNAME} ${ARGN})
+    TARGET_LINK_LIBRARIES(${BINNAME} PRIVATE mtao::common)
 ENDFUNCTION()
 
 FUNCTION(ADD_CATCHTEST BINNAME)
     ADD_EXECUTABLE(${BINNAME} main.cpp ${ARGN})
     TARGET_LINK_LIBRARIES(${BINNAME} PRIVATE mtao::common Catch2::Catch2)
+    add_test(${BINNAME} COMMAND ${BINNAME})
 ENDFUNCTION()
 
 ADD_DEFINITIONS(-g)
 
 ADD_CATCHTEST(geometry_tests
     angle_test.cpp 
+    grid_test.cpp
+    grid_data_test.cpp
+    staggered_grid_test.cpp
     )
 
 
 # TODO: make the following into proper tests
 
-ADD_MYTEST(grid_test grid_test.cpp)
-ADD_MYTEST(grid_data_test grid_data_test.cpp)
+ADD_MYTEST(staggered_grid_form_test staggered_grid_form_test.cpp)
+ADD_MYTEST(staggered_grid_cell_test staggered_grid_cell_test.cpp)
+ADD_MYTEST(staggered_grid_boundary_test staggered_grid_boundary_test.cpp)
+ADD_MYTEST(staggered_grid_util_test staggered_grid_util_test.cpp)
 ADD_MYTEST(levelset_test levelset_test.cpp)
 ADD_MYTEST(multi_loop_test multi_loop_test.cpp)
 ADD_MYTEST(static_type_iteration_test static_type_iteration_test.cpp)
@@ -103,11 +109,6 @@ TARGET_LINK_LIBRARIES(embedded_halfedge_test mtao::geometry)
 
 #ADD_EXECUTABLE(static_iteration_test src/static_iteration_test.cpp)
 ADD_MYTEST(combination_test combination_test.cpp)
-ADD_MYTEST(staggered_grid_test staggered_grid_test.cpp)
-ADD_MYTEST(staggered_grid_form_test staggered_grid_form_test.cpp)
-ADD_MYTEST(staggered_grid_cell_test staggered_grid_cell_test.cpp)
-ADD_MYTEST(staggered_grid_boundary_test staggered_grid_boundary_test.cpp)
-ADD_MYTEST(staggered_grid_util_test staggered_grid_util_test.cpp)
 ADD_MYTEST(laplacian_smoothing_test laplacian_smoothing_test.cpp)
 
 ADD_MYTEST(eigen_type_utils_test eigen_type_utils_test.cpp)

@@ -1,8 +1,10 @@
 #include <iostream>
+#include <catch2/catch.hpp>
 #include "mtao/geometry/grid/grid_data.hpp"
+#include <mtao/iterator/enumerate.hpp>
 #include <utility>
 #include <numeric>
-
+#include <set>
 
 template <typename T>
 void printGrid2(const T& g) {
@@ -42,14 +44,10 @@ struct A {
 };
 
 
-void testA() {
-    std::cout << "TEST A" << std::endl;
-    std::cout << "======" << std::endl;
+TEST_CASE("Grid iteration", "[grid]") {
     //mtao::geometry::grid::GridData2f a(std::array<int,2>{{3,5}});
     A a;
     a.grid = returnGrid(3,5);
-    std::cout << "should print a 3x5 grid with inreasing indices" << std::endl;
-    printGrid2(a.grid);
     //std::cout << std::endl;
     //std::cout << "Retrieval!" << std::endl;
 
@@ -81,74 +79,77 @@ void testA() {
     //auto d = a;
     //printGrid2(d);
 
-    std::array<int,3> arr;
+    std::array<int,2> arr;
     arr[0] = 2;
     arr[1] = 3;
-    arr[2] = 4;
-    std::cout << "Should print out every index less than 2,3,4" << std::endl;
-    mtao::geometry::grid::utils::multi_loop(arr,[](auto&& a) {
-            for(auto&& v: a) {
-            std::cout << v << " ";
+    std::set<std::array<int,2>> seen;
+    mtao::geometry::grid::utils::multi_loop(arr,[&](auto&& a) {
+            seen.insert(a);
+            for(auto&& [i,v]: mtao::iterator::enumerate(a)) {
+                REQUIRE(v >= 0);
+                REQUIRE(v < arr[i]);
             }
-            std::cout << std::endl;
             });
-    std::cout << "Should print out every index less than 2,3,4, but greatest first" << std::endl;
-    mtao::geometry::grid::utils::right_multi_loop(arr,[](auto&& a) {
-            for(auto&& v: a) {
-            std::cout << v << " ";
+    REQUIRE(seen.size() == 2*3);
+    seen.clear();
+    mtao::geometry::grid::utils::right_multi_loop(arr,[&](auto&& a) {
+            seen.insert(a);
+            for(auto&& [i,v]: mtao::iterator::enumerate(a)) {
+                REQUIRE(v >= 0);
+                REQUIRE(v < arr[i]);
             }
-            std::cout << std::endl;
             });
+    REQUIRE(seen.size() == 2*3);
 
     a.grid.loop_write_idx([&](auto&& v) -> float {
             return v[0];
             });
-    std::cout << "Should be a grid with just the x coordinate" << std::endl;
-    printGrid2(a.grid);
+    mtao::geometry::grid::utils::multi_loop(arr,[&](auto&& c) {
+            REQUIRE(a.grid(c) == c[0]);
+            });
+
     a.grid.loop_write_idx([&](auto&& v) -> float {
             return v[1];
             });
-    std::cout << "Should be a grid with just the y coordinate" << std::endl;
-    printGrid2(a.grid);
+    mtao::geometry::grid::utils::multi_loop(arr,[&](auto&& c) {
+            REQUIRE(a.grid(c) == c[1]);
+            });
 
 
 }
 
-void testB() {
-    std::cout << "TEST B" << std::endl;
-    std::cout << "======" << std::endl;
+TEST_CASE("Grid assignment", "[grid]") {
     auto A = returnGrid(5,5);
     auto B = returnGrid(5,5);
     for(auto&& a: A) {
         a = 1;
     }
+    for(auto a: A) {
+        REQUIRE(a == 1);
+    }
     for(auto&& b: B) {
         b = 2;
     }
-    std::cout << "Grid of just 1" << std::endl;
-    printGrid2(A);
-    std::cout << std::endl;
-    std::cout << "Grid of just 2" << std::endl;
-    printGrid2(B);
+    for(auto b: B) {
+        REQUIRE(b == 2);
+    }
     std::cout << std::endl;
     mtao::geometry::grid::GridData2f C;
     C = (A-B)/3;
-    std::cout << "Grid of A-B" << std::endl;
-    printGrid2(A-B);
-    std::cout << "Grid of (A-B)/2" << std::endl;
-    printGrid2(C);
+    for(auto c: C) {
+        REQUIRE(c == Approx(-1/3.));
+    }
+
+    C = A - B;
+    for(auto c: C) {
+        REQUIRE(c == Approx(-1));
+    }
 
 }
-void matlabTest() {
-    std::cout << "MATLAB TEST:" << std::endl;
-    std::cout << "===============" << std::endl;
+TEST_CASE("Matlab storage compatibility", "[grid]") {
     mtao::geometry::grid::GridData3i g(10,11,12);
-    std::cout << "Shape:";
-    for(auto&& s: g.shape()) {
-        std::cout << s << ",";
-    }
-    std::cout << std::endl;
-    std::cout << "Size: " << g.size() << std::endl;
+    
+    REQUIRE( g.size() == 10*11*12);
     std::iota(g.begin(),g.end(),1);
     /*
     >> x = reshape(1:(10*11*12),[10,11,12]);
@@ -161,16 +162,11 @@ void matlabTest() {
          */
 
 
-    std::cout << g(0,0,0) << " " << 1 << std::endl;
-    std::cout << g(1,0,0) << " " << 2 << std::endl;
-    std::cout << g(0,1,0) << " " << 11 << std::endl;
-    std::cout << g(0,0,1) << " " << 111 << std::endl;
-    std::cout << g(3,4,5) << " " << 594 << std::endl;
+    REQUIRE(g(0,0,0) == 1 );
+    REQUIRE(g(1,0,0) == 2 );
+    REQUIRE(g(0,1,0) == 11 );
+    REQUIRE(g(0,0,1) == 111 );
+    REQUIRE(g(3,4,5) == 594 );
 
 }
 
-int main(int argc, char * argv[]) {
-    matlabTest();
-    testA();
-    testB();
-}

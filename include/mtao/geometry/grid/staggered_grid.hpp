@@ -10,29 +10,26 @@ namespace mtao {
     namespace geometry {
         namespace grid {
 
-            template <typename T, int Dim, bool UseVertexGrid=false>
-                struct StaggeredGrid: public GridD<T,Dim, UseVertexGrid> {
+            // A not-so-simple staggered grid class
+            template <typename T, int Dim>
+                struct StaggeredGrid {
                    
                     public:
                         constexpr static int D = Dim;
-                        using GridType = GridD<T,Dim, UseVertexGrid>;
-                        using Base = GridType;
-                        using Base::dx;
-                        using Base::shape;
-                        using Base::size;
-                        using Base::index;
-                        using Base::unindex;
+                        using GridType = GridD<T,Dim>;
                         using Scalar = T;
-                        using BBox = typename Base::BBox;
-                        using Indexer= typename Base::Indexer;
-                        using coord_type = typename Base::coord_type;
-                        using Vec = typename Base::Vec;
-                        using VecMap = typename Base::VecMap;
-                        using CVecMap = typename Base::CVecMap;
-                        using IVec = typename Base::IVec;
-                        using IVecMap = typename Base::IVecMap;
-                        using CIVecMap = typename Base::CIVecMap;
-                        using StaggeredGrids = decltype(staggered_grid::make_grids(std::declval<Base>()));
+                        using BBox = typename GridType::BBox;
+                        using Indexer= typename GridType::Indexer;
+                        using coord_type = typename GridType::coord_type;
+                        using Vec = typename GridType::Vec;
+                        using VecMap = typename GridType::VecMap;
+                        using CVecMap = typename GridType::CVecMap;
+                        using IVec = typename GridType::IVec;
+                        using IVecMap = typename GridType::IVecMap;
+                        using CIVecMap = typename GridType::CIVecMap;
+                        using StaggeredGrids = decltype(staggered_grid::make_grids(std::declval<GridType>()));
+
+                        const Vec& dx() const { return vertex_grid().dx(); }
 
                         template <int N>
                         constexpr static size_t form_grid_size() {
@@ -43,8 +40,11 @@ namespace mtao {
                             resize_grids();
                         }
                         */
+                        // the vertex grid is the "defining" type
                         template <typename... Args>
-                            StaggeredGrid(Args&&... args): Base(std::forward<Args>(args)...) {
+                            StaggeredGrid(Args&&... args) {
+
+                                std::get<0>(std::get<0>(m_grids)) = GridType(std::forward<Args>(args)...);
                                 resize_grids();
                             }
                         //template <typename... Args>
@@ -63,10 +63,10 @@ namespace mtao {
                         static StaggeredGrid from_bbox(BBox bb, const coord_type& shape, bool cubes = false) {
 
                             Vec mid =(bb.min() + bb.max()) / 2;
-                            auto dx = (bb.sizes().array() / (CIVecMap(shape.data()).template cast<T>().array() + (UseVertexGrid?T(1):T(0)))).eval();
+                            auto dx = (bb.sizes().array() / (CIVecMap(shape.data()).template cast<T>().array())).eval();
                             if(cubes) {
                                 dx.setConstant(dx.maxCoeff());
-                                bb.max() = (dx.array() * (CIVecMap(shape.data()).template cast<T>().array()+(UseVertexGrid?T(1):T(0)))).eval() / 2;
+                                bb.max() = (dx.array() * (CIVecMap(shape.data()).template cast<T>().array())).eval() / 2;
                                 bb.min() = -bb.max(); 
                                 bb.min() += mid;
                                 bb.max() += mid;
@@ -344,8 +344,8 @@ namespace mtao {
 
                     private:
                         void resize_grids() {
-                            m_grids = staggered_grid::make_grids(*static_cast<Base*>(this),std::integral_constant<bool,UseVertexGrid>());
-                            m_offsets = staggered_grid::staggered_grid_offsets(shape(),std::integral_constant<bool,UseVertexGrid>());
+                            m_grids = staggered_grid::make_grids(vertex_grid());
+                            m_offsets = staggered_grid::staggered_grid_offsets(vertex_shape());
                         }
                         StaggeredGrids m_grids;
                         decltype(staggered_grid::staggered_grid_offsets(std::declval<coord_type>())) m_offsets;

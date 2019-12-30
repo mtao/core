@@ -11,15 +11,13 @@ namespace mtao {
     namespace geometry {
         namespace grid {
 
-            //NOTE: The UseVertexGrid flag is mainly for compabitibility with deriving staggered grids from this class
-            template <typename T, typename Indexer_, bool UseVertexGrid_=true>
+            template <typename T, typename Indexer_>
                 class Grid: public Indexer_ {
                     public:
                         using Indexer = Indexer_;
                         EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
                         using value_type = T;
                         using Scalar = T;//for eigen compat
-                        static constexpr int UseVertexGrid = UseVertexGrid_;
                         static constexpr int D = Indexer::D;
                         using coord_type = typename Indexer::coord_type;
                         using Indexer::shape;
@@ -50,11 +48,11 @@ namespace mtao {
                         Grid(const coord_type& a, const Eigen::MatrixBase<Derived>& dx, const Eigen::MatrixBase<Derived2>& origin = Vec::Zero()): Indexer(a), m_origin(origin), m_dx(dx) {}
                         template <typename Derived=Vec>
                         Grid(const coord_type& a, const Eigen::MatrixBase<Derived>& dx, const Vec& origin = Vec::Zero()): Indexer(a), m_origin(origin), m_dx(dx) {}
-                        Grid(const coord_type& a): Grid(a,(1.0 / (CIVecMap(a.data()).template cast<T>().array()-UseVertexGrid)).matrix()) {}
+                        Grid(const coord_type& a): Grid(a,(1.0 / (CIVecMap(a.data()).template cast<T>().array()-1)).matrix()) {}
                         Grid() {}
                         static Grid old_bad_from_bbox(BBox bb, const coord_type& shape, bool cubes = false) {
                             auto o = bb.min();
-                            auto dx = (bb.sizes().array() / (CIVecMap(shape.data()).template cast<T>().array()-UseVertexGrid)).eval();
+                            auto dx = (bb.sizes().array() / (CIVecMap(shape.data()).template cast<T>().array()-1)).eval();
                             if(cubes) {
                                 dx.setConstant(dx.maxCoeff());
                             }
@@ -62,10 +60,10 @@ namespace mtao {
                         }
                         static Grid from_bbox(BBox bb, const coord_type& shape, bool cubes = false) {
                             Vec mid =(bb.min() + bb.max()) / 2;
-                            auto dx = (bb.sizes().array() / (CIVecMap(shape.data()).template cast<T>().array()-UseVertexGrid)).eval();
+                            auto dx = (bb.sizes().array() / (CIVecMap(shape.data()).template cast<T>().array()-1)).eval();
                             if(cubes) {
                                 dx.setConstant(dx.maxCoeff());
-                                bb.max() = (dx.array() * (CIVecMap(shape.data()).template cast<T>().array()-UseVertexGrid)).eval() / 2;
+                                bb.max() = (dx.array() * (CIVecMap(shape.data()).template cast<T>().array()-1)).eval() / 2;
                                 bb.min() = -bb.max(); 
                                 bb.min() += mid;
                                 bb.max() += mid;
@@ -78,35 +76,16 @@ namespace mtao {
                         Grid& operator=(const Grid& other) = default;
                         Grid& operator=(Grid&& other) = default;
 
-                    private:
-                        template <bool UseVertexGrid__>
-                        static coord_type cast_change_grid(const coord_type& c) {
-                            if(UseVertexGrid__ == UseVertexGrid) {
-                                return c;
-                            } else if(UseVertexGrid) {
-                                coord_type r = c;
-                                //for(auto&& v: r) { v++; }
-                                return r;
-                            } else {
-                                coord_type r = c;
-                                //for(auto&& v: r) { v--; }
-                                return r;
-                            }
-                        }
                     public:
-                        template <typename U, typename Idxr, bool UseVertexGrid__>
-                        Grid(const Grid<U,Idxr,UseVertexGrid__>& o): Grid(cast_change_grid<UseVertexGrid__>(o.shape()), o.dx().template cast<T>(), o.origin().template cast<T>()) {}
+                        template <typename U, typename Idxr>
+                        Grid(const Grid<U,Idxr> o): Grid(o.shape(), o.dx().template cast<T>(), o.origin().template cast<T>()) {}
 
                         void resize(const coord_type& idx) {
                             Indexer::resize(idx);
                         }
 
                         BBox bbox() const {
-                            if constexpr(UseVertexGrid) {
-                            return BBox(origin(), vertex(shapeAsIVec()));
-                            } else {
-                                return BBox(origin(), vertex(shapeAsIVec() - IVec::Ones()));
-                            }
+                            return BBox(origin(), vertex(shapeAsIVec() - IVec::Ones()));
                         }
 
                         template <typename Derived>
@@ -151,8 +130,8 @@ namespace mtao {
                         auto shapeAsIVec() const {
                             return idx2ivec(shape());
                         }
-                        auto&& origin() const { return m_origin; }
-                        auto&& dx() const { return m_dx; }
+                        const Vec& origin() const { return m_origin; }
+                        const Vec& dx() const { return m_dx; }
 
                         //maps world space to local space
                         template <typename Derived>
@@ -206,8 +185,8 @@ namespace mtao {
                 };
 
 
-            template <typename T, int D, bool UseVertexGrid=true>
-                using GridD = Grid<T,indexing::OrderedIndexer<D>,UseVertexGrid>;
+            template <typename T, int D>
+                using GridD = Grid<T,indexing::OrderedIndexer<D>>;
             using Grid2f = GridD<float,2>;
             using Grid3f = GridD<float,3>;
             using Grid2i = GridD<int,2>;
