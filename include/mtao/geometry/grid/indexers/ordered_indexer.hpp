@@ -2,6 +2,8 @@
 #include "indexer_base.hpp"
 #include "mtao/algebra/horner_evaluation.hpp"
 #include <iostream>
+#include <functional>
+#include "mtao/type_utils.h"
 namespace mtao {
     namespace geometry {
         namespace grid {
@@ -18,17 +20,14 @@ namespace mtao {
                             using Base::shape;
                             using Base::rows;
                             using Base::cols;
-                            template <typename... Args>
-                                size_t index(Args... args) const {
-                                    return index(coord_type{{static_cast<int>(args)...}});
+                            template <typename ArrType>
+                                size_t index_from_array(const ArrType& arr) const {
+                                    if constexpr(RowMajor) {
+                                        return ::mtao::algebra::horner_rowmajor_index(arr,shape());
+                                    } else {
+                                        return ::mtao::algebra::horner_rowminor_index(arr,shape());
+                                    }
                                 }
-                            size_t index(const coord_type& a) const {
-                                if constexpr(RowMajor) {
-                                return ::mtao::algebra::horner_rowmajor_index(a,shape());
-                                } else {
-                                return ::mtao::algebra::horner_rowminor_index(a,shape());
-                                }
-                            }
                             coord_type unindex(size_t ind) const {
                                 coord_type c;
                                 if constexpr(RowMajor) {

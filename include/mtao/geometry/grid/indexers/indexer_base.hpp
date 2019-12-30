@@ -36,10 +36,27 @@ namespace mtao {
                                 m_shape = idx;
                             }
                             template <typename... Args>
-                                size_t index(Args... args) const {
-                                    static_assert(sizeof...(Args) == D);
-                                    static_assert((std::is_convertible_v<Args,int> && ...));
-                                    return derived().index(std::forward<Args>(args)...);
+                                size_t index(Args&&... args) const {
+                                    if constexpr(sizeof...(Args) == 1) {
+                                        if constexpr((std::equal_to<int>()(std::tuple_size<std::decay_t<Args>>::value,D) && ...) &&
+                                                (std::is_integral_v<typename std::decay_t<Args>::value_type> && ...)) {
+                                                return index_from_array(std::forward<Args>(args)...);
+                                        } else {
+                                            static_assert(D == 1);
+                                            static_assert((std::is_integral_v<typename std::decay_t<Args>> && ...));
+                                            return index(coord_type{{static_cast<int>(args)...}});
+                                        }
+                                    } else {
+                                        static_assert(sizeof...(Args) == D);
+                                        static_assert((std::is_integral_v<typename std::decay_t<Args>> && ...));
+                                        return index(coord_type{{static_cast<int>(args)...}});
+                                    }
+                                }
+                            template <typename Arg>
+                                size_t index_from_array(const Arg& arg) const {
+                                    static_assert(std::tuple_size<Arg>::value == D);
+                                    static_assert( std::is_integral_v<typename Arg::value_type> );
+                                    return derived().index_from_array(arg);
                                 }
 
                             coord_type unindex(size_t ind) const {
