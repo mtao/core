@@ -24,7 +24,9 @@ namespace mtao::geometry::grid::utils {
                         constexpr static int NN = N+1;
                         constexpr static int MyNN = Reverse?M-NN-1:NN;
                         if constexpr(Parallel) {
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
                             for(auto& i = idx[MyN] = 0; i < bounds[MyN]; ++i) {
                                 for(auto& j = idx[MyNN] = 0; j < bounds[MyNN]; ++j) {
                                     masked_multi_looper<N+2,M,Mask,coord_type,Func,Reverse>::run(bounds,idx,f);
@@ -40,7 +42,9 @@ namespace mtao::geometry::grid::utils {
                         idx[MyNN] = 0;
                     } else {
                         if constexpr(Parallel) {
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
                             for(auto&& i = idx[MyN] = 0; i < bounds[MyN]; ++i) {
                                 masked_multi_looper<N+1,M,Mask,coord_type,Func,Reverse>::run(bounds,idx,f);
                             }
@@ -59,7 +63,9 @@ namespace mtao::geometry::grid::utils {
                         constexpr static int NN = N+1;
                         constexpr static int MyNN = Reverse?M-NN-1:NN;
                         if constexpr(Parallel) {
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
                             for(auto& i = idx[MyN] = begin[MyN]; i < end[MyN]; ++i) {
                                 for(auto& j = idx[MyNN] = begin[MyNN]; j < end[MyNN]; ++j) {
                                     masked_multi_looper<N+2,M,Mask,coord_type,Func,Reverse>::run(begin,end,idx,f);
@@ -75,7 +81,9 @@ namespace mtao::geometry::grid::utils {
                         idx[MyNN] = begin[MyNN];
                     } else {
                         if constexpr(Parallel) {
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
                             for(auto&& i = idx[MyN] = begin[MyN]; i < end[MyN]; ++i) {
                                 masked_multi_looper<N+1,M,Mask,coord_type,Func,Reverse>::run(begin,end,idx,f);
                             }
