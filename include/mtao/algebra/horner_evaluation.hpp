@@ -26,14 +26,14 @@ namespace mtao {
                 using namespace mtao::iterator;
                 if constexpr(std::tuple_size_v<Coefficients> == 2) {
                     auto& A = coeffs[0];
-                    auto& B = coeffs[1];
+                    //auto& B = coeffs[1];
                     auto& a = values[0];
                     auto& b = values[1];
                     return a +  A *  b;
                 } else if constexpr(std::tuple_size_v<Coefficients> == 3) {
                     auto& A = coeffs[0];
                     auto& B = coeffs[1];
-                    auto& C = coeffs[2];
+                    //auto& C = coeffs[2];
                     auto& a = values[0];
                     auto& b = values[1];
                     auto& c = values[2];
