@@ -1,8 +1,10 @@
 #include <iostream>
 #include <mtao/geometry/trigonometry.hpp>
+#include <catch2/catch.hpp>
 
+using namespace mtao::geometry::trigonometry;
 
-int main() {
+TEST_CASE("Polygon angles", "[trigonometry]") {
     mtao::ColVecs2d V(2,5);
     V.col(0) = mtao::Vec2d(0.0,0.0);
     V.col(1) = mtao::Vec2d(1.0,0.0);
@@ -10,16 +12,20 @@ int main() {
     V.col(3) = mtao::Vec2d(0.0,1.0);
     V.col(4) = mtao::Vec2d(0.5,0.5);
 
-    std::cout << mtao::geometry::trigonometry::interior_angle_sum(5) << " => "
-        << mtao::geometry::trigonometry::exterior_angle_sum(5) << std::endl;
-    std::cout << mtao::geometry::trigonometry::angle_sum(V,{0,1,2,3,4})<< " "
-        << mtao::geometry::trigonometry::angle_sum(V,{4,3,2,1,0})<< std::endl;
-    std::cout << mtao::geometry::trigonometry::interior_angle_sum(4) << " => "
-        << mtao::geometry::trigonometry::exterior_angle_sum(4) << std::endl;
-    std::cout << mtao::geometry::trigonometry::angle_sum(V,{0,1,2,3})<< " "
-        << mtao::geometry::trigonometry::angle_sum(V,{3,2,1,0})<< std::endl;
-    std::cout << mtao::geometry::trigonometry::interior_angle_sum(3) << " => "
-        << mtao::geometry::trigonometry::exterior_angle_sum(3) << std::endl;
-    std::cout << mtao::geometry::trigonometry::angle_sum(V,{0,1,2}) << " "
-        << mtao::geometry::trigonometry::angle_sum(V,{0,2,1}) << std::endl;
+
+    
+    for(int n = 3; n < 5; ++n) {
+        std::stringstream ss;
+        ss << "n = " << n;
+        SECTION( ss.str().c_str() ) {
+            std::vector<int> a(n);
+            std::iota(a.begin(),a.end(),0);
+            std::vector<int> b(n);
+            std::copy(a.rbegin(),a.rend(),b.begin());
+            REQUIRE( Approx(M_PI * 2 * n) == interior_angle_sum(n) + exterior_angle_sum(n));
+            REQUIRE( angle_sum(V,a) == Approx(interior_angle_sum(n)));
+            REQUIRE( angle_sum(V,b) == Approx(exterior_angle_sum(n)));
+        }
+    }
+
 }

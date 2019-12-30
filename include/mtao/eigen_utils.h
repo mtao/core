@@ -10,7 +10,7 @@ namespace mtao {
     namespace eigen {
         template <typename Derived>
         auto finite(const Eigen::ArrayBase<Derived>& m) {
-            return m.isFinite();
+            return m.isFinite().select(m,0);
         }
         template <typename Derived>
         auto finite(const Eigen::MatrixBase<Derived>& m) {

@@ -18,14 +18,26 @@ if(NOT Catch2_FOUND)
 endif()
 
 FUNCTION(ADD_MYTEST BINNAME)
-    ADD_EXECUTABLE(${BINNAME} ${ARGN})
+    ADD_EXECUTABLE(${BINNAME} main.cpp ${ARGN})
     TARGET_LINK_LIBRARIES(${BINNAME} PRIVATE mtao::common Catch2::Catch2)
-ENDFUNCTION(ADD_MYTEST)
+ENDFUNCTION()
+
+FUNCTION(ADD_CATCHTEST BINNAME)
+    ADD_EXECUTABLE(${BINNAME} main.cpp ${ARGN})
+    TARGET_LINK_LIBRARIES(${BINNAME} PRIVATE mtao::common Catch2::Catch2)
+ENDFUNCTION()
 
 ADD_DEFINITIONS(-g)
+
+ADD_CATCHTEST(geometry_tests
+    angle_test.cpp 
+    )
+
+
+# TODO: make the following into proper tests
+
 ADD_MYTEST(grid_test grid_test.cpp)
 ADD_MYTEST(grid_data_test grid_data_test.cpp)
-ADD_MYTEST(angle_test angle_test.cpp)
 ADD_MYTEST(levelset_test levelset_test.cpp)
 ADD_MYTEST(multi_loop_test multi_loop_test.cpp)
 ADD_MYTEST(static_type_iteration_test static_type_iteration_test.cpp)
