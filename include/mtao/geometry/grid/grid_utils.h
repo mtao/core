@@ -116,24 +116,27 @@ namespace mtao::geometry::grid::utils {
             using multi_looper_parallel = masked_multi_looper<N,M,((1<<M) - 1),coord_type, Func, Reverse, true>;
 #endif
     }
+
+
+    // Mask is an integer M such that every dimension d s.t (1 << d) & M == 0, the looper skips that dimension
     template <int Mask, typename coord_type, typename Func>
         void masked_multi_loop(const coord_type& index, const Func& f) {
-            coord_type idx;
+            coord_type idx = {};
             internal::masked_multi_looper<0,std::tuple_size<coord_type>::value,Mask,coord_type,Func,false>::run(index,idx,f);
         }
     template <typename coord_type, typename Func>
         void multi_loop(const coord_type& index, const Func& f) {
-            coord_type idx;
+            coord_type idx = {};
             internal::multi_looper<0,std::tuple_size<coord_type>::value,coord_type,Func,false>::run(index,idx,f);
         }
     template <typename coord_type, typename Func>
         void multi_loop_parallel(const coord_type& index, const Func& f) {
-            coord_type idx;
+            coord_type idx = {};
             internal::multi_looper<0,std::tuple_size<coord_type>::value,coord_type,Func,false>::run(index,idx,f);
         }
     template <typename coord_type, typename Func>
         void right_multi_loop(const coord_type& index, const Func& f) {//Same above but does dimensions in reverse
-            coord_type idx;
+            coord_type idx = {};
             std::fill(idx.begin(),idx.end(),0);
             internal::multi_looper<0,std::tuple_size<coord_type>::value,coord_type,Func,true>::run(index,idx,f);
         }

@@ -35,6 +35,7 @@ ADD_CATCHTEST(geometry_tests
     grid_test.cpp
     grid_data_test.cpp
     staggered_grid_test.cpp
+    multi_loop_test.cpp
     )
 
 
@@ -45,7 +46,6 @@ ADD_MYTEST(staggered_grid_cell_test staggered_grid_cell_test.cpp)
 ADD_MYTEST(staggered_grid_boundary_test staggered_grid_boundary_test.cpp)
 ADD_MYTEST(staggered_grid_util_test staggered_grid_util_test.cpp)
 ADD_MYTEST(levelset_test levelset_test.cpp)
-ADD_MYTEST(multi_loop_test multi_loop_test.cpp)
 ADD_MYTEST(static_type_iteration_test static_type_iteration_test.cpp)
 ADD_MYTEST(eigen_interweave_test eigen_interweave_test.cpp)
 ADD_MYTEST(eigen_stack_test eigen_stack_test.cpp)
