@@ -1,5 +1,6 @@
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 
+enable_testing()
 
 if(NOT Catch2_FOUND)
     FetchContent_Declare(
@@ -23,19 +24,20 @@ FUNCTION(ADD_MYTEST BINNAME)
 ENDFUNCTION()
 
 FUNCTION(ADD_CATCHTEST BINNAME)
-    ADD_EXECUTABLE(${BINNAME} main.cpp ${ARGN})
-    TARGET_LINK_LIBRARIES(${BINNAME} PRIVATE mtao::common Catch2::Catch2)
-    add_test(${BINNAME} COMMAND ${BINNAME})
+    ADD_EXECUTABLE(${BINNAME}_test main.cpp ${ARGN})
+    TARGET_LINK_LIBRARIES(${BINNAME}_test PRIVATE mtao::common Catch2::Catch2)
+    add_test(NAME ${BINNAME} COMMAND ${BINNAME}_test)
 ENDFUNCTION()
 
 ADD_DEFINITIONS(-g)
 
-ADD_CATCHTEST(geometry_tests
+ADD_CATCHTEST(geometry
     angle_test.cpp 
     grid_test.cpp
     grid_data_test.cpp
     staggered_grid_test.cpp
     multi_loop_test.cpp
+    staggered_grid_boundary_test.cpp
     )
 
 
@@ -43,7 +45,6 @@ ADD_CATCHTEST(geometry_tests
 
 ADD_MYTEST(staggered_grid_form_test staggered_grid_form_test.cpp)
 ADD_MYTEST(staggered_grid_cell_test staggered_grid_cell_test.cpp)
-ADD_MYTEST(staggered_grid_boundary_test staggered_grid_boundary_test.cpp)
 ADD_MYTEST(staggered_grid_util_test staggered_grid_util_test.cpp)
 ADD_MYTEST(levelset_test levelset_test.cpp)
 ADD_MYTEST(static_type_iteration_test static_type_iteration_test.cpp)

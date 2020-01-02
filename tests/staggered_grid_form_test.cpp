@@ -45,7 +45,7 @@ template <int D>
 void test() {
     std::array<int,D> arr;
     std::iota(arr.begin(),arr.end(),3);
-    mtao::geometry::grid::StaggeredGrid<float,D,true> sg(arr);
+    mtao::geometry::grid::StaggeredGrid<float,D> sg(arr);
     run_test<0>(sg);
     run_test<1>(sg);
     run_test<2>(sg);

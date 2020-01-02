@@ -18,7 +18,7 @@ void test() {
     }
     std::cout << std::endl;
     {
-        mtao::geometry::grid::StaggeredGrid<float,D,true> sg(arr);
+        mtao::geometry::grid::StaggeredGrid<float,D> sg(arr);
         std::array<int,D> r;
         std::iota(r.begin(),r.end(),1);
         std::cout << "====0,0" << std::endl;

@@ -233,14 +233,14 @@ namespace mtao {
                                 std::bitset<D> difference_mask = combinatorial::nCr_mask<D>(N,K);
                                 grid<N>(K).loop([&,K=K](const coord_type& c) {
                                         int col = staggered_index<N>(c,K);
-                                        auto s = staggered_shape<N>(K);
+                                        //auto s = staggered_shape<N>(K);
                                         masked_difference_looper(difference_mask,c,
                                                 [&](const coord_type& l, const coord_type& u, int d) {
                                                 std::bitset mybs = difference_mask;
                                                 mybs[d] = 0;
                                                 int dim = combinatorial::nCr_unmask<D>(N-1,mybs);
 
-                                                auto s = staggered_shape<N-1>(dim);
+                                                //auto s = staggered_shape<N-1>(dim);
                                                 int lrow = static_cast<int>(staggered_index<N-1>(l,dim));
                                                 int urow = static_cast<int>(staggered_index<N-1>(u,dim));
                                                 trips.emplace_back(lrow,col,T{-1});
