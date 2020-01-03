@@ -2,7 +2,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.13.4)
 PROJECT(Mtao)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-include(FetchContent REQUIRED)
+include(fetch_dependencies)
 
 if(CMAKE_PROJET_NAME STREQUAL PROJECT_NAME)
     include(CTest)
@@ -26,8 +26,6 @@ OPTION(MTAO_USE_ELTOPO "Should we build the el topo submodule" ON)
 OPTION(MTAO_USE_LOSTOPOS "Should we build the los topos submodule" ON)
 OPTION(MTAO_USE_OPENGL "Build opengl stuff" ON)
 OPTION(MTAO_USE_PNGPP "Use PNG++ for screenshots" ON)
-SET(MTAO_LOSTOPOS_TYPE "FANGDA" CACHE STRING "Los topos branch")
-SET(MTAO_CUSTOM_LOSTOPOS_PATH "" CACHE STRING "Use a custom Los Topos path")
 
 FIND_PACKAGE(Eigen3 3.3.3 REQUIRED)
 
@@ -68,7 +66,6 @@ ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/extern/triangle)
 
 
 IF(MTAO_USE_ELTOPO)
-    ADD_SUBDIRECTORY(extern/eltopo)
     SET(ELTOPO_SOURCES
         src/geometry/mesh/eltopo.cpp
         include/mtao/geometry/mesh/eltopo.h
@@ -77,16 +74,6 @@ ENDIF(MTAO_USE_ELTOPO)
 
 
 IF(MTAO_USE_LOSTOPOS)
-    MESSAGE(STATUS "LOSTOPOS PATH:" ${MTAO_CUSTOM_LOSTOPOS_PATH})
-    IF(${MTAO_LOSTOPOS_TYPE} STREQUAL "FANGDA")
-        SET(LOSTOPOS_DEFINES -DFANGDA_LOSTOPOS)
-    ENDIF()
-    IF(NOT "${MTAO_CUSTOM_LOSTOPOS_PATH}" STREQUAL "")
-        SET(LOSTOPOSDIR ${MTAO_CUSTOM_LOSTOPOS_PATH})
-    ELSE()
-        SET(LOSTOPOSDIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/LosTopos)
-    ENDIF()
-    ADD_SUBDIRECTORY(${LOSTOPOSDIR} LosTopos)
     SET(LOSTOPOS_SOURCES
         src/geometry/mesh/lostopos.cpp
         include/mtao/geometry/mesh/lostopos.hpp
@@ -108,13 +95,12 @@ ENDIF(MTAO_USE_LOSTOPOS)
 ######Visualziation
 
 IF(MTAO_USE_OPENGL)
-    SET(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui CACHE STRING "Location of ImGui")
     FIND_PACKAGE(ImGui REQUIRED)
 
 
 
 
-    FIND_PACKAGE(OpenGL REQUIRED)
+    find_package(OpenGL REQUIRED)
     find_package(Corrade REQUIRED Utility)
     find_package(Magnum COMPONENTS GL Shaders GlxContext GlfwApplication SceneGraph MeshTools)
     find_package(MagnumIntegration COMPONENTS ImGui)
@@ -299,7 +285,8 @@ IF(MTAO_USE_LOSTOPOS)
     SET(GEOMETRY_EXTRAS ${GEOMETRY_EXTRAS} LosTopos)
 ENDIF(MTAO_USE_LOSTOPOS)
 TARGET_LINK_LIBRARIES(mtao_geometry PUBLIC mtao_common ${OpenMP_TARGET} PRIVATE triangle ${GEOMETRY_EXTRAS})
-TARGET_INCLUDE_DIRECTORIES(mtao_geometry PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extern/triangle)
+message(STATUS "TRIANGLE DIR: ${TRIANGLE_DIR}")
+TARGET_INCLUDE_DIRECTORIES(mtao_geometry PRIVATE ${TRIANGLE_DIR})
 TARGET_COMPILE_DEFINITIONS(mtao_geometry PRIVATE ${LOSTOPOS_DEFINES})
 
 
@@ -334,29 +321,3 @@ set_property(TARGET mtao_geometry PROPERTY EXPORT_NAME mtao::geometry)
 IF(MTAO_USE_OPENGL)
 set_property(TARGET mtao_visualization PROPERTY EXPORT_NAME mtao::visualization)
 ENDIF(MTAO_USE_OPENGL)
-
-SET(MTAO_EXPORT_TARGETS
-  mtao_headers
-  triangle
-  mtao_common
-  mtao_geometry
-  )
-
-IF(MTAO_USE_ELTOPO)
-    SET(MTAO_EXPORT_TARGETS ${MTAO_EXPORT_TARGETS} eltopo eltopo_common)
-ENDIF(MTAO_USE_ELTOPO)
-
-IF(MTAO_USE_LOSTOPOS)
-    SET(MTAO_EXPORT_TARGETS ${MTAO_EXPORT_TARGETS} LosTopos)
-ENDIF(MTAO_USE_LOSTOPOS)
-
-IF(MTAO_USE_OPENGL)
-    SET(MTAO_EXPORT_TARGETS ${MTAO_EXPORT_TARGETS} mtao_visualization)
-ENDIF(MTAO_USE_OPENGL)
-
-
-export(
-  TARGETS
-  ${MTAO_EXPORT_TARGETS}
-  FILE mtao-export.cmake
-)
