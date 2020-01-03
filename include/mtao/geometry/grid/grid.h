@@ -80,6 +80,12 @@ namespace mtao {
                         template <typename U, typename Idxr>
                         Grid(const Grid<U,Idxr> o): Grid(o.shape(), o.dx().template cast<T>(), o.origin().template cast<T>()) {}
 
+                        template <typename U>
+                            Grid<U,Indexer> cast() const {
+                                return Grid<U,Indexer>(shape(), dx().template cast<U>(), origin().template cast<U>()); 
+                            }
+
+
                         void resize(const coord_type& idx) {
                             Indexer::resize(idx);
                         }
