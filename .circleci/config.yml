@@ -22,7 +22,7 @@ jobs:
             - run:
                 name: Building 
                 command: 'cmake --build build'
-    build:
+    test:
         docker:
             - image: "ubuntu:devel"
             - image: "gcc:9.2.0"
