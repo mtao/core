@@ -27,7 +27,7 @@ jobs:
                 command: 'cmake -H. -Bbuild -DBUILD_TESTING=ON -DCMAKE_BUILD_TYPE="Release"'
             - run:
                 name: Building 
-                command: 'cmake --build build'
+                command: 'cmake --build build -j 2'
     test:
         docker:
             - image: "ubuntu:devel"
