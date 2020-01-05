@@ -28,21 +28,23 @@ jobs:
             - run:
                 name: Building 
                 command: 'cmake --build build -j 2'
-    test:
-        docker:
-            - image: "ubuntu:devel"
-            - image: "gcc:9.2.0"
-        steps:
+            - persist_to_workspace:
+                root: workspace
+                #    test:
+                #        docker:
+                #            - image: "ubuntu:devel"
+                #            - image: "gcc:9.2.0"
+                #        steps:
             - run:
                 name: Run tests
                 command: 'cmake --build build --target test'
 
 
-workflows:
-  version: 2
-  build_and_test:
-    jobs:
-      - build
-      - test:
-          requires:
-            - build
+                #workflows:
+                #  version: 2
+                #  build_and_test:
+                #    jobs:
+                #      - build
+                #      - test:
+                #          requires:
+                #            - build
