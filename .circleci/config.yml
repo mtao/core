@@ -20,8 +20,8 @@ jobs:
                 name: Installing numerical libs
                 command: 'apt-get install -y libeigen3-dev libblas-dev liblapack-dev'
             - run:
-                name: Installing GL libs
-                command: 'apt-get install -y libglfw3-dev libgl-dev'
+                name: Installing graphics libs
+                command: 'apt-get install -y libglfw3-dev libgl-dev libpng++-dev'
             - run:
                 name: Making CMake build files
                 command: 'cmake -H. -Bbuild -DBUILD_TESTING=ON -DCMAKE_BUILD_TYPE="Release"'
