@@ -57,3 +57,15 @@ if(MTAO_USE_OPENGL)
         fetch_dep(magnum-integration https://github.com/mosra/magnum-integration v2019.10 ON)
     endif()
 endif()
+
+if(BUILD_TESTING)
+    if(NOT Catch2_FOUND)
+        fetch_dep(
+            catch2
+            https://github.com/catchorg/Catch2.git
+            v2.9.1
+            ON
+            )
+
+    endif()
+endif()

@@ -1,0 +1,42 @@
+version: 2
+
+jobs:
+    build:
+        docker:
+            - image: "ubuntu:devel"
+            - image: "gcc:9.2.0"
+        steps:
+            - checkout
+            - run:
+                name: Installing cmake
+                command: 'apt-get install -y cmake'
+            - run:
+                name: Installing boost threads
+                command: 'apt-get install -y libboost-thread-dev'
+            - run:
+                name: Installing Eigen
+                command: 'apt-get install -y libeigen3-dev'
+            - run:
+                name: Making CMake build files
+                command: 'cmake -H. -Bbuild -DBUILD_TESTING=ON -DCMAKE_BUILD_TYPE="Release"'
+            - run:
+                name: Building 
+                command: 'cmake --build build'
+    build:
+        docker:
+            - image: "ubuntu:devel"
+            - image: "gcc:9.2.0"
+        steps:
+            - run:
+                name: Run tests
+                command: 'cmake --build build --target test'
+
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build

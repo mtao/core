@@ -40,7 +40,7 @@ int main(int argc, char * argv[]) {
         std::cout << std::endl;
         std::cout << std::endl << std::endl;
     }
-    auto D = hem.vertices();
+    auto D = hem.V();
 
 
     mtao::ColVectors<float,2> P(2,7);

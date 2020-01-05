@@ -1,25 +1,9 @@
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 
-enable_testing()
 
-if(NOT Catch2_FOUND)
-    FetchContent_Declare(
-        catch2
-        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-        GIT_TAG v2.9.1
-        )
-    FetchContent_GetProperties(catch2)
-
-    if(NOT catch2_POPULATED)
-        FetchContent_Populate(catch2)
-        MESSAGE(STATUS "${catch2_SOURCE_DIR} ${catch2_BINARY_DIR}")
-        add_subdirectory(${catch2_SOURCE_DIR} ${catch2_BINARY_DIR})
-    endif()
-
-endif()
 
 FUNCTION(ADD_MYTEST BINNAME)
-    ADD_EXECUTABLE(${BINNAME} ${ARGN})
+    ADD_EXECUTABLE(${BINNAME} EXCLUDE_FROM_ALL ${ARGN} )
     TARGET_LINK_LIBRARIES(${BINNAME} PRIVATE mtao::common)
 ENDFUNCTION()
 
@@ -95,18 +79,18 @@ ADD_MYTEST(profiler_test profiler_test.cpp)
 
 ADD_MYTEST(tuple_call_test tuple_call_test.cpp)
 
-ADD_EXECUTABLE(halfedge_test halfedge_test.cpp)
-TARGET_LINK_LIBRARIES(halfedge_test mtao::geometry)
-ADD_EXECUTABLE(halfedge_concentric_circle_test halfedge_concentric_circle_test.cpp)
-TARGET_LINK_LIBRARIES(halfedge_concentric_circle_test  mtao::geometry)
-ADD_EXECUTABLE(strand_test strand_test.cpp)
-TARGET_LINK_LIBRARIES(strand_test mtao::geometry)
-ADD_EXECUTABLE(halfedge_topology_test halfedge_topology_test.cpp)
-TARGET_LINK_LIBRARIES(halfedge_topology_test mtao::geometry)
-ADD_EXECUTABLE(halfedge_submesh_test halfedge_submesh_test.cpp)
-TARGET_LINK_LIBRARIES(halfedge_submesh_test mtao::geometry)
-ADD_EXECUTABLE(embedded_halfedge_test embedded_halfedge_test.cpp)
-TARGET_LINK_LIBRARIES(embedded_halfedge_test mtao::geometry)
+ADD_EXECUTABLE(halfedge_test EXCLUDE_FROM_ALL halfedge_test.cpp)
+TARGET_LINK_LIBRARIES(halfedge_test EXCLUDE_FROM_ALL mtao::geometry)
+ADD_EXECUTABLE(halfedge_concentric_circle_test EXCLUDE_FROM_ALL halfedge_concentric_circle_test.cpp)
+TARGET_LINK_LIBRARIES(halfedge_concentric_circle_test EXCLUDE_FROM_ALL  mtao::geometry)
+ADD_EXECUTABLE(strand_test EXCLUDE_FROM_ALL strand_test.cpp)
+TARGET_LINK_LIBRARIES(strand_test EXCLUDE_FROM_ALL mtao::geometry)
+ADD_EXECUTABLE(halfedge_topology_test EXCLUDE_FROM_ALL halfedge_topology_test.cpp)
+TARGET_LINK_LIBRARIES(halfedge_topology_test EXCLUDE_FROM_ALL mtao::geometry)
+ADD_EXECUTABLE(halfedge_submesh_test EXCLUDE_FROM_ALL halfedge_submesh_test.cpp)
+TARGET_LINK_LIBRARIES(halfedge_submesh_test EXCLUDE_FROM_ALL mtao::geometry)
+ADD_EXECUTABLE(embedded_halfedge_test EXCLUDE_FROM_ALL embedded_halfedge_test.cpp)
+TARGET_LINK_LIBRARIES(embedded_halfedge_test EXCLUDE_FROM_ALL mtao::geometry)
 
 #ADD_EXECUTABLE(static_iteration_test src/static_iteration_test.cpp)
 ADD_MYTEST(combination_test combination_test.cpp)
