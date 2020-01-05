@@ -158,7 +158,7 @@ int main(int argc, char * argv[]) {
 #include <mtao/types.h>
 #include "enright.h"
 #include "mtao/geometry/mesh/eltopo.h"
-#include "mtao/geometry/mesh/lostopos.hpp"
+//#include "mtao/geometry/mesh/lostopos.hpp"
 #include <Corrade/Containers/Array.h>
 #include <Corrade/Containers/ArrayView.h>
 
@@ -168,8 +168,8 @@ int main(int argc, char * argv[]) {
 #include "mtao/opengl/objects/mesh.h"
 
 #include <glm/gtc/matrix_transform.hpp> 
-//using TrackerType = ElTopoTracker;
-using TrackerType = mtao::geometry::mesh::LosToposTracker;
+using TrackerType = ElTopoTracker;
+//using TrackerType = mtao::geometry::mesh::LosToposTracker;
 
 
 

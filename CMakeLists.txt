@@ -2,7 +2,6 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.13.4)
 PROJECT(Mtao)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-include(FetchContent REQUIRED)
 
 if(CMAKE_PROJET_NAME STREQUAL PROJECT_NAME)
     include(CTest)
@@ -23,36 +22,17 @@ ADD_DEFINITIONS(-Wall)
 
 
 OPTION(MTAO_USE_ELTOPO "Should we build the el topo submodule" ON)
-OPTION(MTAO_USE_LOSTOPOS "Should we build the los topos submodule" ON)
+OPTION(MTAO_USE_LOSTOPOS "Should we build the los topos submodule" OFF)
 OPTION(MTAO_USE_OPENGL "Build opengl stuff" ON)
 OPTION(MTAO_USE_PNGPP "Use PNG++ for screenshots" ON)
-SET(MTAO_LOSTOPOS_TYPE "FANGDA" CACHE STRING "Los topos branch")
-SET(MTAO_CUSTOM_LOSTOPOS_PATH "" CACHE STRING "Use a custom Los Topos path")
+
+include(fetch_dependencies)
 
 FIND_PACKAGE(Eigen3 3.3.3 REQUIRED)
 
 
-find_package(Git QUIET)
-if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
-    # Update submodules as needed
-    option(GIT_SUBMODULE "Check submodules during build" ON)
-    if(GIT_SUBMODULE)
-        message(STATUS "Submodule update")
-        execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            RESULT_VARIABLE GIT_SUBMOD_RESULT)
-        if(NOT GIT_SUBMOD_RESULT EQUAL "0")
-            message(FATAL_ERROR "git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
-        endif()
-    endif()
-endif()
 
 
-if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui/imgui.h" 
-        OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/extern/triangle/CMakeLists.txt" 
-        OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/extern/eltopo/CMakeLists.txt" )
-    message(FATAL_ERROR "The submodules were not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
-endif()
 
 # Include dirs
 
@@ -64,11 +44,9 @@ SET(OpenMP_TARGET OpenMP::OpenMP_CXX)
 
 
 ######Geometry
-ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/extern/triangle)
 
 
 IF(MTAO_USE_ELTOPO)
-    ADD_SUBDIRECTORY(extern/eltopo)
     SET(ELTOPO_SOURCES
         src/geometry/mesh/eltopo.cpp
         include/mtao/geometry/mesh/eltopo.h
@@ -77,16 +55,6 @@ ENDIF(MTAO_USE_ELTOPO)
 
 
 IF(MTAO_USE_LOSTOPOS)
-    MESSAGE(STATUS "LOSTOPOS PATH:" ${MTAO_CUSTOM_LOSTOPOS_PATH})
-    IF(${MTAO_LOSTOPOS_TYPE} STREQUAL "FANGDA")
-        SET(LOSTOPOS_DEFINES -DFANGDA_LOSTOPOS)
-    ENDIF()
-    IF(NOT "${MTAO_CUSTOM_LOSTOPOS_PATH}" STREQUAL "")
-        SET(LOSTOPOSDIR ${MTAO_CUSTOM_LOSTOPOS_PATH})
-    ELSE()
-        SET(LOSTOPOSDIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/LosTopos)
-    ENDIF()
-    ADD_SUBDIRECTORY(${LOSTOPOSDIR} LosTopos)
     SET(LOSTOPOS_SOURCES
         src/geometry/mesh/lostopos.cpp
         include/mtao/geometry/mesh/lostopos.hpp
@@ -108,16 +76,12 @@ ENDIF(MTAO_USE_LOSTOPOS)
 ######Visualziation
 
 IF(MTAO_USE_OPENGL)
-    SET(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui CACHE STRING "Location of ImGui")
-    FIND_PACKAGE(ImGui REQUIRED)
 
-
-
-
-    FIND_PACKAGE(OpenGL REQUIRED)
-    find_package(Corrade REQUIRED Utility)
-    find_package(Magnum COMPONENTS GL Shaders GlxContext GlfwApplication SceneGraph MeshTools)
-    find_package(MagnumIntegration COMPONENTS ImGui)
+    set(OpenGL_GL_PREFERENCE GLVND)
+    find_package(OpenGL REQUIRED)
+    #find_package(Corrade REQUIRED Utility)
+    #find_package(Magnum COMPONENTS GL Shaders GlxContext GlfwApplication SceneGraph MeshTools)
+    #find_package(MagnumIntegration COMPONENTS ImGui)
 
 
     #FIND_PACKAGE(PkgConfig REQUIRED)
@@ -199,7 +163,6 @@ IF(MTAO_USE_OPENGL)
 ADD_LIBRARY(mtao_visualization 
     ${MtaoShaders}
     ${COMMON_HEADERS}
-    ${IMGUI_SOURCES}
     src/opengl/Window.cpp
     src/opengl/Window2.cpp
     src/opengl/Window3.cpp
@@ -226,9 +189,6 @@ ADD_LIBRARY(mtao_visualization
     src/opengl/shaders.cpp
     src/opengl/drawables.cpp
 
-    extern/imgui/imgui.cpp
-    extern/imgui/imgui_widgets.cpp
-    extern/imgui/imgui_draw.cpp
 
     #Shaders
     src/opengl/shaders/vector_field.cpp
@@ -241,7 +201,6 @@ endif(MTAO_USE_PNGPP)
 
 TARGET_LINK_LIBRARIES(mtao_visualization PUBLIC mtao_common 
     Magnum::GL
-    Magnum::GLContext
     Magnum::Magnum
     Magnum::Shaders
     Magnum::SceneGraph
@@ -291,16 +250,13 @@ IF(MTAO_USE_OPENGL)
     SET(GEOMETRY_EXTRAS ${GEOMETRY_EXTRAS} ImGui::ImGui)
 ENDIF(MTAO_USE_OPENGL)
 IF(MTAO_USE_ELTOPO)
-    TARGET_INCLUDE_DIRECTORIES(mtao_geometry PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extern/eltopo)
     SET(GEOMETRY_EXTRAS ${GEOMETRY_EXTRAS} eltopo)
 ENDIF(MTAO_USE_ELTOPO)
 IF(MTAO_USE_LOSTOPOS)
-    TARGET_INCLUDE_DIRECTORIES(mtao_geometry PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extern/LosTopos/include)
     SET(GEOMETRY_EXTRAS ${GEOMETRY_EXTRAS} LosTopos)
 ENDIF(MTAO_USE_LOSTOPOS)
 TARGET_LINK_LIBRARIES(mtao_geometry PUBLIC mtao_common ${OpenMP_TARGET} PRIVATE triangle ${GEOMETRY_EXTRAS})
-TARGET_INCLUDE_DIRECTORIES(mtao_geometry PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extern/triangle)
-TARGET_COMPILE_DEFINITIONS(mtao_geometry PRIVATE ${LOSTOPOS_DEFINES})
+TARGET_INCLUDE_DIRECTORIES(mtao_geometry PRIVATE ${triangle_INCLUDE_DIR})
 
 
 #SET(MTAO_EXT_LIBS mtao::common mtao::opengl mtao::geometry)
@@ -334,29 +290,3 @@ set_property(TARGET mtao_geometry PROPERTY EXPORT_NAME mtao::geometry)
 IF(MTAO_USE_OPENGL)
 set_property(TARGET mtao_visualization PROPERTY EXPORT_NAME mtao::visualization)
 ENDIF(MTAO_USE_OPENGL)
-
-SET(MTAO_EXPORT_TARGETS
-  mtao_headers
-  triangle
-  mtao_common
-  mtao_geometry
-  )
-
-IF(MTAO_USE_ELTOPO)
-    SET(MTAO_EXPORT_TARGETS ${MTAO_EXPORT_TARGETS} eltopo eltopo_common)
-ENDIF(MTAO_USE_ELTOPO)
-
-IF(MTAO_USE_LOSTOPOS)
-    SET(MTAO_EXPORT_TARGETS ${MTAO_EXPORT_TARGETS} LosTopos)
-ENDIF(MTAO_USE_LOSTOPOS)
-
-IF(MTAO_USE_OPENGL)
-    SET(MTAO_EXPORT_TARGETS ${MTAO_EXPORT_TARGETS} mtao_visualization)
-ENDIF(MTAO_USE_OPENGL)
-
-
-export(
-  TARGETS
-  ${MTAO_EXPORT_TARGETS}
-  FILE mtao-export.cmake
-)

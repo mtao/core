@@ -40,13 +40,26 @@ namespace mtao {
                             resize_grids();
                         }
                         */
+                        template <typename U>
+                        StaggeredGrid(const StaggeredGrid<U,D>& o): StaggeredGrid(o.vertex_grid().template cast<T>()) {}
                         // the vertex grid is the "defining" type
+                        StaggeredGrid(const GridType& g) {
+                            std::get<0>(std::get<0>(m_grids)) = g;
+                            resize_grids();
+                        }
+                        StaggeredGrid(const coord_type& g) {
+                            std::get<0>(std::get<0>(m_grids)) = g;
+                            resize_grids();
+                        }
+                        /*
                         template <typename... Args>
                             StaggeredGrid(Args&&... args) {
 
+                                static_assert((std::is_integral_v<Args> && ... ));
                                 std::get<0>(std::get<0>(m_grids)) = GridType(std::forward<Args>(args)...);
                                 resize_grids();
                             }
+                            */
                         //template <typename... Args>
                         //    StaggeredGrid(const coord_type& shape, Args&&... args): Base(shape, std::forward<Args>(args)...) {
                         //        resize_grids();
@@ -62,17 +75,7 @@ namespace mtao {
                         }
                         static StaggeredGrid from_bbox(BBox bb, const coord_type& shape, bool cubes = false) {
 
-                            Vec mid =(bb.min() + bb.max()) / 2;
-                            auto dx = (bb.sizes().array() / (CIVecMap(shape.data()).template cast<T>().array())).eval();
-                            if(cubes) {
-                                dx.setConstant(dx.maxCoeff());
-                                bb.max() = (dx.array() * (CIVecMap(shape.data()).template cast<T>().array())).eval() / 2;
-                                bb.min() = -bb.max(); 
-                                bb.min() += mid;
-                                bb.max() += mid;
-                            }
-                            auto o = bb.min();
-                            return StaggeredGrid(shape,dx.matrix(),o);
+                            return GridType::from_bbox(bb,shape,cubes);
                         }
                         auto&& origin() const { return vertex_grid().origin(); }
                         template <int N, int K>
