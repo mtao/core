@@ -18,7 +18,7 @@ jobs:
                 command: 'apt-get install -y libboost-thread-dev'
             - run:
                 name: Installing numerical libs
-                command: 'apt-get install -y libeigen3-dev libblas-dev'
+                command: 'apt-get install -y libeigen3-dev libblas-dev liblapack-dev'
             - run:
                 name: Installing GL libs
                 command: 'apt-get install -y libglfw3-dev libgl-dev'
