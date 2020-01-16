@@ -45,11 +45,24 @@ namespace mtao {
                         
 
                         template <typename Derived=Vec, typename Derived2>
-                        Grid(const coord_type& a, const Eigen::MatrixBase<Derived>& dx, const Eigen::MatrixBase<Derived2>& origin = Vec::Zero()): Indexer(a), m_origin(origin), m_dx(dx) {}
+                        Grid(const coord_type& a, const Eigen::MatrixBase<Derived>& dx, const Eigen::MatrixBase<Derived2>& origin = Vec::Zero()): Indexer(a), m_origin(origin), m_dx(dx) {
+                            assert(valid());
+                        }
                         template <typename Derived=Vec>
-                        Grid(const coord_type& a, const Eigen::MatrixBase<Derived>& dx, const Vec& origin = Vec::Zero()): Indexer(a), m_origin(origin), m_dx(dx) {}
-                        Grid(const coord_type& a): Grid(a,(1.0 / (CIVecMap(a.data()).template cast<T>().array()-1)).matrix()) {}
+                        Grid(const coord_type& a, const Eigen::MatrixBase<Derived>& dx, const Vec& origin = Vec::Zero()): Indexer(a), m_origin(origin), m_dx(dx) {
+                            assert(valid());
+                        }
+                        Grid(const coord_type& a): Grid(a,(1.0 / (CIVecMap(a.data()).template cast<T>().array()-1)).matrix()) {
+                            assert(valid());
+                        }
                         Grid() {}
+
+                        bool valid() const {
+                            const bool nonempty_grid_dims = 0 < *std::min_element(shape().begin(),shape().end());
+                            const bool positive_dx = 0 < dx().minCoeff();
+                            const bool finite_dx = dx().array().isFinite().all();
+                            return nonempty_grid_dims && positive_dx && finite_dx;
+                        }
                         static Grid old_bad_from_bbox(BBox bb, const coord_type& shape, bool cubes = false) {
                             auto o = bb.min();
                             auto dx = (bb.sizes().array() / (CIVecMap(shape.data()).template cast<T>().array()-1)).eval();
@@ -78,7 +91,7 @@ namespace mtao {
 
                     public:
                         template <typename U, typename Idxr>
-                        Grid(const Grid<U,Idxr> o): Grid(o.shape(), o.dx().template cast<T>(), o.origin().template cast<T>()) {}
+                        Grid(const Grid<U,Idxr>& o): Grid(o.shape(), o.dx().template cast<T>(), o.origin().template cast<T>()) {}
 
                         template <typename U>
                             Grid<U,Indexer> cast() const {
