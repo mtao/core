@@ -31,7 +31,7 @@ namespace mtao::optimization {
 
             //run takes a function that guesses alpha from an iteration.
             //if gradient and whatnot need to be captured it's the caller's responsibility to capture it in the alpha function
-            void run(const std::function<Scalar(int)>& alpha = [](int) -> Scalar { return Scalar(1.0); });
+            int run(const std::function<Scalar(int)>& alpha = [](int) -> Scalar { return Scalar(1.0); });
 
             void set_epsilon(Scalar v) { m_epsilon = v; }
             void set_position(Vector v) { 
@@ -116,10 +116,10 @@ namespace mtao::optimization {
                                     };
 
     template <typename Derived, typename Scalar, typename Vector>
-        void LineSearchBase<Derived, Scalar, Vector>::run(const std::function<Scalar(int)>& alpha_func) {
+        int LineSearchBase<Derived, Scalar, Vector>::run(const std::function<Scalar(int)>& alpha_func) {
             if(!initialized) {
                 //TODO: what warning do  iwant here?
-                return;
+                return -1;
             }
             int k = 0;
             do {
@@ -128,6 +128,7 @@ namespace mtao::optimization {
                 set_position(position() + alpha * descent_direction());
                 k++;
             } while( !converged() );
+            return k;
 
         }
     template <typename Derived, typename Scalar, typename Vector>

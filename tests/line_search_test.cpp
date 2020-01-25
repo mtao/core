@@ -15,7 +15,22 @@ struct QuadraticFunc {
         return ret;
     }
 
-    Vector descent_direction(const Vector& p) const { return -gradient(p).normalized(); }
+    //Vector descent_direction(const Vector& p) const { return -gradient(p).normalized(); }
+    Vector descent_direction(const Vector& p) const { 
+
+
+        if(trinary) {
+        return (-gradient(p)).unaryExpr([](double v) -> double {
+                if(v > 0) { return 1; }
+                else if(v < 0) { return -1; }
+                else { return 0; }
+                });
+        } else {
+            return -gradient(p).normalized();
+        }
+
+    }
+    bool trinary = false;
     Eigen::MatrixXd A;
     Eigen::VectorXd b;
     Scalar c;
@@ -52,15 +67,16 @@ int main(int argc, char * argv[]) {
     }
 
     auto run = [&](auto&& opt) {
-    opt.set_position(b);
-    std::cout << "Optimal energy: " << opt.objective() << std::endl;
-    std::cout << "Optimal gradient: " << opt.gradient().transpose() << std::endl;
-    opt.set_position(Eigen::VectorXd::Random(N));
-    std::cout << "Initial energy: " << opt.objective() << std::endl;
-    opt.run();
-    std::cout << "Final energy: " << opt.objective() << std::endl;
-    std::cout << "position: " << opt.position().transpose() << std::endl;
+        opt.set_position(b);
+        std::cout << "Optimal energy: " << opt.objective() << std::endl;
+        std::cout << "Optimal gradient: " << opt.gradient().transpose() << std::endl;
+        opt.set_position(Eigen::VectorXd::Random(N));
+        std::cout << "Initial energy: " << opt.objective() << std::endl;
+        int iters = opt.run();
+        std::cout << "Final energy: " << opt.objective() << " in " << iters << " iterations."<< std::endl;
+        std::cout << "position: " << opt.position().transpose() << std::endl;
     };
+    auto run_run = [&]() {
     {
         std::cout << "Backtracking / armijo conditions" << std::endl;
         auto opt = make_backtracking_line_search(func);
@@ -78,4 +94,12 @@ int main(int argc, char * argv[]) {
         opt.set_strong();
         run(opt);
     }
+    };
+    run_run();
+    std::cout << std::endl;
+    std::cout << std::endl;
+    std::cout << std::endl;
+    func.trinary = true;
+    std::cout << "Using a `trinary` which is lazy for something in the roughly right direction" << std::endl;
+    run_run();
 }
