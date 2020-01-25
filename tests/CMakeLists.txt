@@ -106,6 +106,7 @@ ADD_MYTEST(cltest cltest.cpp)
 
 ADD_MYTEST(hotkey_test hotkey_test.cpp)
 
+ADD_MYTEST(line_search_test line_search_test.cpp)
 
 #ADD_EXECUTABLE(particle_sampling_test src/particle_sampling_test.cpp ${CORE_INCLUDE}/grid.h ${CORE_INCLUDE}/grid_utils.h
 #    ${CORE_INCLUDE}/arguments.h ${CORE_INCLUDE}/particle_sampler.h)
