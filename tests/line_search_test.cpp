@@ -25,51 +25,57 @@ struct QuadraticFunc {
 
 
 using namespace mtao::optimization;
-struct QuadraticBTLS: public QuadraticFunc, BacktrackingLineSearchBase<QuadraticBTLS> {
-    using Opt = BacktrackingLineSearchBase<QuadraticBTLS>;
-    using Scalar = QuadraticFunc::Scalar;
-    using Vector = QuadraticFunc::Vector;
-    using QuadraticFunc::objective;
-    using QuadraticFunc::gradient;
-    using QuadraticFunc::descent_direction;
-    using QuadraticFunc::QuadraticFunc;
-    using Opt::Base::set_position;
-};
-struct QuadraticWLS: public QuadraticFunc, WolfeLineSearchBase<QuadraticWLS> {
-    using Opt = WolfeLineSearchBase<QuadraticWLS>;
-    using Scalar = QuadraticFunc::Scalar;
-    using Vector = QuadraticFunc::Vector;
-    using QuadraticFunc::objective;
-    using QuadraticFunc::gradient;
-    using QuadraticFunc::descent_direction;
-    using QuadraticFunc::QuadraticFunc;
-    using Opt::Base::set_position;
-};
 
 
 int main(int argc, char * argv[]) {
-    QuadraticWLS opt;
-    opt.set_weak();
-    //QuadraticBTLS opt;
+    QuadraticFunc func;
     int N = 10;
     Eigen::MatrixXd A(N,N);
     Eigen::VectorXd b(N);
-    A.setIdentity();
-    b.setOnes(N);
 
-    opt.A = A.transpose() * A;
-    opt.b = -2 * A.transpose() * b;
-    opt.QuadraticFunc::c = b.dot(b);
-    //A.setRandom();
-    //b.setRandom();
-    //opt.b = b;
-    //opt.c = 5;
 
+    if constexpr(true) {
+        A.setIdentity();
+        b.setOnes(N);
+
+
+        func.A = A.transpose() * A;
+        func.b = -2 * A.transpose() * b;
+        func.c = b.dot(b);
+    } else {
+
+        A.setRandom();
+        b.setRandom();
+        func.A = A.transpose() * A;
+        func.b = b;
+        func.c = 5;
+    }
+
+    auto run = [&](auto&& opt) {
     opt.set_position(b);
-    std::cout << "Optimal energy: " << opt.Opt::Base::objective() << std::endl;
-    std::cout << "Optimal gradient: " << opt.Opt::Base::gradient().transpose() << std::endl;
+    std::cout << "Optimal energy: " << opt.objective() << std::endl;
+    std::cout << "Optimal gradient: " << opt.gradient().transpose() << std::endl;
     opt.set_position(Eigen::VectorXd::Random(N));
-    std::cout << "Initial energy: " << opt.Opt::Base::objective() << std::endl;
+    std::cout << "Initial energy: " << opt.objective() << std::endl;
     opt.run();
-    std::cout << "Final energy: " << opt.Opt::Base::objective() << std::endl;
+    std::cout << "Final energy: " << opt.objective() << std::endl;
+    std::cout << "position: " << opt.position().transpose() << std::endl;
+    };
+    {
+        std::cout << "Backtracking / armijo conditions" << std::endl;
+        auto opt = make_backtracking_line_search(func);
+        run(opt);
+    }
+    {
+        std::cout << "weak wolfe conditions" << std::endl;
+        auto opt = make_wolfe_line_search(func);
+        opt.set_weak();
+        run(opt);
+    }
+    {
+        std::cout << "Strong wolfe conditions" << std::endl;
+        auto opt = make_wolfe_line_search(func);
+        opt.set_strong();
+        run(opt);
+    }
 }
