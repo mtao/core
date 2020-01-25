@@ -204,8 +204,8 @@ namespace mtao::optimization {
             Vector descent_direction(const Vector& pos) const { return interface.descent_direction(pos); }
         };
     template <typename Func>
-        auto make_backtracking_line_search(const Func& f) {
-            //static_assert(std::is_lvalue_reference_v<Func>);//make sure that the container isnt set to disappear
+        auto make_backtracking_line_search(Func&& f) {
+            static_assert(std::is_lvalue_reference_v<Func>);//make sure that the container isnt set to disappear
             using F  = std::decay_t<Func>;
             return LineSearchInterface<
                 BacktrackingLineSearchBase
@@ -214,8 +214,8 @@ namespace mtao::optimization {
                 >(f);
         }
     template <typename Func>
-        auto make_wolfe_line_search(const Func& f) {
-            //static_assert(std::is_lvalue_reference_v<Func>);//make sure that the container isnt set to disappear
+        auto make_wolfe_line_search(Func&& f) {
+            static_assert(std::is_lvalue_reference_v<Func>);//make sure that the container isnt set to disappear
             using F  = std::decay_t<Func>;
             return LineSearchInterface<
                 WolfeLineSearchBase
