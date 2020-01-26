@@ -113,7 +113,13 @@ namespace mtao::optimization {
                                         Scalar m_c1 = Scalar(1e-4);
                                         Scalar m_c2 = Scalar(.9);
                                         Scalar m_tau = Scalar(.5);
+                                        int m_search_max = 200;
+                                        int m_zoom_max = 52;
                                         bool strong = false;
+
+                                        //Debug to see how bad we're doing
+                                        int zoom_max_hits = 0;
+                                        int search_max_hits = 0;
                                     };
 
     template <typename Derived, typename Scalar, typename Vector>
@@ -162,22 +168,105 @@ namespace mtao::optimization {
             assert(m_c1 < m_c2);
             assert(m_c2 < 1);
 
-            int j = 0;
 
             Vector cur_dd = descent_direction();
 
-            Scalar m = gradient().dot(cur_dd);
-            Scalar cur_obj = objective();
-            Scalar t = -m_c1 * m;
-            Scalar curv = -m_c2 * m;
 
-            bool condition;
+            Scalar alpha_max = alpha;
+            Scalar alpha_min = Scalar(0);
+            Scalar min_obj = objective();
+            //Scalar min_obj = objective(position() + alpha_min * descent_direction());
+
+            //following nocdeal wright notation
+            //
+            Scalar alpha_now = alpha_max / 2;
+            Scalar alpha_prev = alpha_min;
+            Scalar prev_obj = min_obj;
+
+
+
+            Scalar min_phip = cur_dd.dot(gradient());
+
+
+
+            auto zoom = [&](Scalar alpha_min, Scalar alpha_max) {
+                Vector min_pos = position() + alpha_min * descent_direction();
+                Scalar min_obj = objective(min_pos);
+                Scalar min_phip = cur_dd.dot(gradient(min_pos));
+                for(int i = 0; i < m_zoom_max; ++i) {
+                    Scalar alpha_now = (alpha_min + alpha_max) / 2;
+                    Vector now_pos = position() + alpha_now * descent_direction();
+                    Scalar now_obj = objective(now_pos);
+                    //Scalar min_obj = objective(position() + alpha_min * descent_direction());
+
+                    if(now_obj > min_obj + m_c1 * alpha_now * min_phip || now_obj > min_obj) {
+                        alpha_max = alpha_now;
+                    } else {
+                        Scalar phip = cur_dd.dot(gradient(now_pos));
+
+                        Scalar phipp = strong?std::abs(phip):phip;
+
+                        if(phipp <= -m_c2 * min_phip) {
+                            return alpha_now;
+                        } else if(phip * (alpha_max - alpha_min) >= 0) {
+                            alpha_max = alpha_min;
+                        }
+
+                        alpha_min = alpha_now;
+
+                    }
+                }
+                const_cast<int&>(zoom_max_hits)++;
+                //std::cout << "Zoom max hit" << std::endl;
+                return alpha_max;
+
+            };
+
+
+
+
+            bool first_it = true;
+            for(int i = 0; i < m_search_max; ++i) {
+                Vector now_pos = position() + alpha_now * descent_direction();
+                Scalar now_obj = objective(now_pos);
+                Scalar phip = cur_dd.dot(gradient(now_pos));
+                if(now_obj > min_obj + m_c1 * alpha_now * min_phip || (!first_it && now_obj >= prev_obj)) {
+                    return zoom(alpha_prev,alpha_now);
+                }
+                now_pos = position() + alpha_now * descent_direction();
+                //Scalar new_obj = objective(new_pos);
+                phip = cur_dd.dot(gradient(now_pos));
+                Scalar phipp = strong?std::abs(phip):phip;
+
+                if(phipp <= -m_c2 * min_phip) {
+                    return alpha_now;
+                } else {
+                    if(phip >= 0) {
+                        return zoom(alpha_now, alpha_prev);
+                    }
+                }
+                alpha_prev = alpha_now;
+                alpha_now = (alpha_now + alpha_max)/Scalar(2);
+                first_it = false;
+
+            }
+            const_cast<int&>(search_max_hits)++;
+            //std::cout << "Search max hit" << std::endl;
+            return alpha_max;
+
+            /*
+
+            Scalar max_obj = objective(position() + alpha_max * descent_direction());
+            Scalar alpha_mid;
             do {
-                Scalar alpha_j = alpha * std::pow<Scalar>(m_tau,j++);
-                Vector new_pos = position() + alpha_j * descent_direction();
+
+                alpha_mid = (alpha_max + alpha_min)/Scalar(2);
+                Vector new_pos = position() + alpha_mid * descent_direction();
                 Scalar new_obj = objective(new_pos);
 
-                bool armijo = new_obj - cur_obj <= alpha_j * t;
+                if(
+
+                bool armijo = new_obj - cur_obj <= alpha_mid * t;
                 bool curvature;
                 if(strong) {
                     curvature = std::abs(cur_dd.dot(gradient(new_pos))) <= std::abs(m_c2 * m);
@@ -185,9 +274,24 @@ namespace mtao::optimization {
                     curvature = -cur_dd.dot(gradient(new_pos)) <= curv;
                 }
                 condition = armijo && curvature;
+                if(!condition) {
+                    std::cout << armijo << "|" << curvature << std::endl;
+                //std::cout << alpha_mid << std::endl;
+                //std::cout << new_obj << "      ||| " << alpha_min << " -> " << alpha_max <<  " ===> " ;
+                    if(armijo) {//no curvature
+                        //std::cout << "Min jump";
+                        alpha_min = alpha_mid;
+                    } else {//no armijo
+                        //std::cout << "max jump";
+                        alpha_max = alpha_mid;
+                    }
+                std::cout << alpha_min << " -> " << alpha_max <<std::endl;
+                } else {
+                }
             } while( !(condition ) );
 
-            return alpha * std::pow<Scalar>(m_tau,j-1);
+            return alpha_mid;
+            */
 
         }
 

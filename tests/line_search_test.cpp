@@ -45,7 +45,7 @@ using namespace mtao::optimization;
 int main(int argc, char * argv[]) {
     std::cout << "Eigen threads: " << Eigen::nbThreads() << std::endl;
     QuadraticFunc func;
-    int N = 50;
+    int N = 600;
     Eigen::MatrixXd A(N,N);
     Eigen::VectorXd b(N);
 
