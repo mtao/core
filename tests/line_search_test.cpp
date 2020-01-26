@@ -8,7 +8,7 @@ struct QuadraticFunc {
     using Vector = Eigen::VectorXd;
 
     Scalar objective(const Vector& p) const {
-        return p.transpose() * A * p + b.dot(p) + c;
+        return p.transpose() * (A * p + b) + c;
     }
     Vector gradient(const Vector& p) const {
         Vector ret = 2 * A * p + b;
