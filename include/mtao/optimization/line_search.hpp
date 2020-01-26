@@ -51,6 +51,7 @@ namespace mtao::optimization {
             Scalar epsilon() const { return m_epsilon; }
 
             bool converged() const { return m_gradient.norm() < m_epsilon; }
+            //bool converged() const { return m_gradient.template lpNorm<Eigen::Infinity>() < m_epsilon; }
             private:
             bool initialized = false;
             Vector m_position;
@@ -127,6 +128,7 @@ namespace mtao::optimization {
                 Scalar alpha = stepsize(k,alpha_guess);
                 set_position(position() + alpha * descent_direction());
                 k++;
+                //std::cout << k << ")" << objective() << "|" << gradient().template lpNorm<-1>() << std::endl;
             } while( !converged() );
             return k;
 
@@ -149,7 +151,7 @@ namespace mtao::optimization {
                 Scalar new_obj = objective(newpos);
 
                 condition =  cur_obj - new_obj >= alpha_j * t;
-            } while( !condition );
+            } while( !(condition) );
 
             return alpha * std::pow<Scalar>(m_tau,j-1);
 
@@ -167,6 +169,7 @@ namespace mtao::optimization {
             Scalar m = gradient().dot(cur_dd);
             Scalar cur_obj = objective();
             Scalar t = -m_c1 * m;
+            Scalar curv = -m_c2 * m;
 
             bool condition;
             do {
@@ -179,11 +182,10 @@ namespace mtao::optimization {
                 if(strong) {
                     curvature = std::abs(cur_dd.dot(gradient(new_pos))) <= std::abs(m_c2 * m);
                 } else {
-                    curvature = -cur_dd.dot(gradient(new_pos)) <= -m_c2 * m;
+                    curvature = -cur_dd.dot(gradient(new_pos)) <= curv;
                 }
                 condition = armijo && curvature;
-                j++;
-            } while( !(condition ));
+            } while( !(condition ) );
 
             return alpha * std::pow<Scalar>(m_tau,j-1);
 

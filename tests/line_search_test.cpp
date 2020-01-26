@@ -43,8 +43,9 @@ using namespace mtao::optimization;
 
 
 int main(int argc, char * argv[]) {
+    std::cout << "Eigen threads: " << Eigen::nbThreads() << std::endl;
     QuadraticFunc func;
-    int N = 10;
+    int N = 50;
     Eigen::MatrixXd A(N,N);
     Eigen::VectorXd b(N);
 
@@ -69,12 +70,13 @@ int main(int argc, char * argv[]) {
     auto run = [&](auto&& opt) {
         opt.set_position(b);
         std::cout << "Optimal energy: " << opt.objective() << std::endl;
-        std::cout << "Optimal gradient: " << opt.gradient().transpose() << std::endl;
+        std::cout << "Optimal gradient norm: " << opt.gradient().norm() << std::endl;
         opt.set_position(Eigen::VectorXd::Random(N));
         std::cout << "Initial energy: " << opt.objective() << std::endl;
         int iters = opt.run();
         std::cout << "Final energy: " << opt.objective() << " in " << iters << " iterations."<< std::endl;
-        std::cout << "position: " << opt.position().transpose() << std::endl;
+        std::cout << std::endl;
+        //std::cout << "position: " << opt.position().transpose() << std::endl;
     };
     auto run_run = [&]() {
     {
