@@ -26,7 +26,7 @@ OPTION(MTAO_USE_LOSTOPOS "Should we build the los topos submodule" OFF)
 OPTION(MTAO_USE_OPENGL "Build opengl stuff" ON)
 OPTION(MTAO_USE_PNGPP "Use PNG++ for screenshots" ON)
 
-include(fetch_dependencies)
+include(mtao_fetch_dependencies)
 
 FIND_PACKAGE(Eigen3 3.3.3 REQUIRED)
 
