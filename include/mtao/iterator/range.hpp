@@ -55,12 +55,25 @@ namespace mtao {
             };
 
         } 
-        template <typename Index = int>
-        inline auto inf_range(Index a = 0) {
-            return detail::range_container<Index>(a,std::numeric_limits<Index>::has_infinity?std::numeric_limits<Index>::infinity():std::numeric_limits<Index>::max(),1);
+        namespace internal {
+            template <typename Index>
+            constexpr Index largest() {
+                if constexpr (std::numeric_limits<Index>::has_infinity) {
+                    return std::numeric_limits<Index>::infinity();
+                }
+                else {
+                    //These weird parens are to hide when windows.h defines a min/max macro somewhere!
+                    return (std::numeric_limits<Index>::max)();
+                }
+            }
         }
         template <typename Index = int>
-        inline auto range(Index N = std::numeric_limits<Index>::has_infinity?std::numeric_limits<Index>::infinity():std::numeric_limits<Index>::max()) {
+        inline auto inf_range(Index a = 0) {
+            return detail::range_container<Index>(a,internal::largest<Index>(),1);
+        }
+
+        template <typename Index = int>
+        inline auto range(Index N = internal::largest<Index>()) {
             return detail::range_container<Index>(0,N,1);
         }
         template <typename Index = int>

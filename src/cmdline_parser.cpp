@@ -107,7 +107,7 @@ namespace mtao {
                             } else if constexpr(std::is_same_v<T,std::string>) {
                                 v = value;
                             }
-                        } catch (const std::invalid_argument& e) {
+                        } catch (std::invalid_argument e) {
                             error() << "Invalid argument: " << argit->first << "("<< opt_type(argit->first) <<"): [" << value <<"]";
                         }
                     }

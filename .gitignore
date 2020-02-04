@@ -41,3 +41,5 @@ build-release
 */build
 */build-debug
 */build-release
+/.vs
+/CMakeSettings.json
