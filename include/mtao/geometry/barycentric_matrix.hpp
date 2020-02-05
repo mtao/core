@@ -30,6 +30,7 @@ namespace mtao::geometry {
             return A;
         }
     //A collection of simplicies, indices into simplices, and related barycentric coordinates
+    //piecewise constant per-face values
     template <typename Scalar, typename SIType>
         Eigen::SparseMatrix<Scalar> 
         barycentric_matrix_face(int num_faces, const Eigen::MatrixBase<SIType>& SI) {
