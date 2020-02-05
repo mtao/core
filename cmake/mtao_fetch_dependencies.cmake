@@ -23,8 +23,9 @@ endfunction()
 
 if(NOT Eigen3_FOUND)
         set(BUILD_TESTING OFF)
-fetch_dep(eigen https://gitlab.com/libeigen/eigen.git bcbaad6d874d451817457ae0603f953cda3c0c06 ON)
-
+        fetch_dep(eigen https://gitlab.com/libeigen/eigen.git bcbaad6d874d451817457ae0603f953cda3c0c06 OFF)
+        set(EIGEN_INCLUDE_DIR ${eigen_SOURCE_DIR})
+        find_package(Eigen3 REQUIRED)
 ENDIF()
 if(MTAO_USE_OPENGL)
     #find_package(GLFW)
