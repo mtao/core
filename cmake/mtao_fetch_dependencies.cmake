@@ -8,6 +8,7 @@ function(fetch_dep REPO_NAME GIT_REPO GIT_TAG ADD_SUBDIR)
         GIT_TAG ${GIT_TAG}
         )
     if(ADD_SUBDIR)
+        set(BUILD_TESTING)
         if(${CMAKE_VERSION} VERSION_LESS 3.14)
             FetchContent_Populate(${REPO_NAME})
             add_subdirectory(${${REPO_NAME}_SOURCE_DIR} ${${REPO_NAME}_BINARY_DIR})
