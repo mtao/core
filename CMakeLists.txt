@@ -209,7 +209,7 @@ TARGET_LINK_LIBRARIES(mtao_visualization PUBLIC mtao_common
     MagnumIntegration::ImGui
     Corrade::Utility
     ImGui::ImGui
-    PRIVATE OpenGL::GL ${GLFW_LIBRARIES} dl ${png++_LIBRARIES} 
+    PRIVATE OpenGL::GL GLFW::GLFW dl ${png++_LIBRARIES} 
     )
 ENDIF(MTAO_USE_OPENGL)
 

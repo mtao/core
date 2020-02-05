@@ -1,6 +1,11 @@
 #ifndef TYPE_UTILS_H
 #define TYPE_UTILS_H
+#if defined(_MSC_VER)
+#include <Windows.h>
+#include <tchar.h>
+#else
 #include <cxxabi.h>
+#endif
 #include <type_traits>
 #include <string>
 
@@ -35,10 +40,17 @@ namespace mtao { namespace types {
 
             const char* const name = typeid(T).name();
             int status = 0;
+            //TODO: Actually demangle in msc
+#if defined(_MSC_VER)
+            const char* const readable_name = name;
+#else
             using abi::__cxa_demangle;
             char* const readable_name = __cxa_demangle(name, 0, 0, &status);
+#endif
             std::string name_str(status == 0 ? readable_name : name);
+#if !defined(_MSC_VER)
             free(readable_name);
+#endif
             if constexpr(std::is_reference_v<T>) {
                 name_str = name_str + "&";
             }
