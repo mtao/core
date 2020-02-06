@@ -24,7 +24,7 @@ endfunction()
 if(NOT Eigen3_FOUND)
         set(BUILD_TESTING OFF)
         fetch_dep(eigen https://gitlab.com/libeigen/eigen.git bcbaad6d874d451817457ae0603f953cda3c0c06 OFF)
-        set(EIGEN_INCLUDE_DIR ${eigen_SOURCE_DIR})
+        set(EIGEN3_INCLUDE_DIR ${eigen_SOURCE_DIR})
         if(EIGEN3_FOUND AND NOT TARGET Eigen3::Eigen)
             add_library(Eigen3::Eigen INTERFACE IMPORTED GLOBAL)
             set_target_properties(Eigen3::Eigen PROPERTIES
