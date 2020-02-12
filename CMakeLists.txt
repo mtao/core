@@ -166,7 +166,7 @@ ADD_LIBRARY(mtao_visualization
     src/opengl/Window.cpp
     src/opengl/Window2.cpp
     src/opengl/Window3.cpp
-    src/opengl/Monitor.cpp
+    #src/opengl/Monitor.cpp
     #src/opengl/bo.cpp
     #src/opengl/shader.cpp
     #src/opengl/vao.cpp
