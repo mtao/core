@@ -2,6 +2,7 @@
 #include <iostream>
 #include <chrono>
 #include <iomanip>
+#include <spdlog/spdlog.h>
 
 namespace mtao { namespace logging {
     std::map<std::string,Logger> active_loggers;
