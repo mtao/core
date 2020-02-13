@@ -77,6 +77,11 @@ if(MTAO_USE_OPENGL)
     endif()
 endif()
 
+find_package(spdlog)
+if(NOT spdlog_FOUND)
+fetch_dep(spdlog https://github.com/gabime/spdlog.git v1.5.0 ON)
+endif()
+
 if(BUILD_TESTING)
     if(NOT Catch2_FOUND)
         fetch_dep(

@@ -12,8 +12,8 @@ namespace mtao::geometry {
                   bb.corner(Eigen::AlignedBox<T,D>::CornerType::BottomRight),
                   bb.corner(Eigen::AlignedBox<T,D>::CornerType::TopLeft),
                   bb.corner(Eigen::AlignedBox<T,D>::CornerType::TopRight);
-                E << 0,1,3,2,
-                  1,2,0,3;
+                E << 0,0,3,2,
+                     1,2,1,3;
                 return std::make_tuple(V,E);
             } else {//D == 3
                 mtao::ColVectors<int,3> F(3,12);
