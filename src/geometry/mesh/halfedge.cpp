@@ -370,7 +370,9 @@ void HalfEdgeMesh::make_cells() {
     int null_end = ds.get_root(-1).data;
     std::map<int,int> reindexer;
     for(auto&& i: ds.root_indices()) {
-            reindexer[ds.node(i).data] = reindexer.size();
+        if(ds.node(i).data == null_end) continue;
+        int size = reindexer.size();
+        reindexer[ds.node(i).data] = size;
     }
     reindexer[null_end] = -1;
 
