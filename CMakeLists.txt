@@ -158,10 +158,10 @@ ADD_LIBRARY(mtao_common
 TARGET_LINK_LIBRARIES(mtao_common mtao_headers Eigen3::Eigen spdlog::spdlog)
 
 IF(MTAO_USE_OPENGL)
-    CORRADE_ADD_RESOURCE(MtaoShaders ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/shaders/resources.conf)
+    #CORRADE_ADD_RESOURCE(MtaoShaders ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/shaders/resources.conf)
 
 ADD_LIBRARY(mtao_visualization 
-    ${MtaoShaders}
+    #${MtaoShaders}
     ${COMMON_HEADERS}
     src/opengl/Window.cpp
     src/opengl/Window2.cpp
@@ -191,7 +191,7 @@ ADD_LIBRARY(mtao_visualization
 
 
     #Shaders
-    src/opengl/shaders/vector_field.cpp
+    #src/opengl/shaders/vector_field.cpp
     )
 if(MTAO_USE_PNGPP)
     FIND_PACKAGE(png++ REQUIRED)
