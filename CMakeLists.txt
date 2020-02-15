@@ -217,6 +217,7 @@ ENDIF(MTAO_USE_OPENGL)
 
 
 SET(GEOMETRY_SRCS
+    src/geometry/mesh/shapes/cube.cpp
     src/geometry/mesh/halfedge.cpp
     src/geometry/mesh/halfedge_fv_map.cpp
     src/geometry/mesh/read_obj.cpp

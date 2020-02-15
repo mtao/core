@@ -4,7 +4,7 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 
 FUNCTION(ADD_MYTEST BINNAME)
     ADD_EXECUTABLE(${BINNAME} EXCLUDE_FROM_ALL ${ARGN} )
-    TARGET_LINK_LIBRARIES(${BINNAME} PRIVATE mtao::common OpenMP::OpenMP_CXX)
+    TARGET_LINK_LIBRARIES(${BINNAME} PRIVATE mtao::common mtao::geometry OpenMP::OpenMP_CXX)
 ENDFUNCTION()
 
 FUNCTION(ADD_CATCHTEST BINNAME)
@@ -26,6 +26,7 @@ ADD_CATCHTEST(geometry
 
 
 # TODO: make the following into proper tests
+ADD_MYTEST(cube_shape_test cube_shape_test.cpp)
 
 ADD_MYTEST(staggered_grid_form_test staggered_grid_form_test.cpp)
 ADD_MYTEST(staggered_grid_cell_test staggered_grid_cell_test.cpp)
