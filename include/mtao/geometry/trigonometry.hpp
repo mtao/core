@@ -38,7 +38,7 @@ namespace mtao::geometry::trigonometry {
             using S = typename Derived::Scalar;
             Eigen::Matrix<S,1,Derived::ColsAtCompileTime> A(1,P.cols());
 
-            A = P.row(0).binaryExpr(P.row(1), std::ptr_fun(angle_scalar<S>));
+            A = P.row(0).binaryExpr(P.row(1), std::function(angle_scalar<S>));
             return A;
         }
 
@@ -47,7 +47,7 @@ namespace mtao::geometry::trigonometry {
         auto angle(const Eigen::MatrixBase<Derived>& A, const Eigen::MatrixBase<Derived1>& B) {
             using S = typename Derived::Scalar;
             auto R = (angle(B) - angle(A)).eval();
-            R.noalias() = R.unaryExpr(std::ptr_fun(angle_clamp_positive<S>));
+            R.noalias() = R.unaryExpr(std::function(angle_clamp_positive<S>));
             return R;
         }
 
