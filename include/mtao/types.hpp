@@ -146,7 +146,7 @@ namespace mtao{
     template <typename T, typename Allocator = mtao::allocator<T>>
         using vector = std::vector<T,Allocator>;
 
-    template <typename Key, typename T, typename Compare=std::less<Key>, typename Allocator = mtao::allocator<T>>
+    template <typename Key, typename T, typename Compare=std::less<Key>, typename Allocator = mtao::allocator<std::pair<const Key,T>>>
         using map = std::map<Key,T,Compare,Allocator>;
 
     template <typename T>
