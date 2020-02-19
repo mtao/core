@@ -55,7 +55,13 @@ namespace mtao::geometry::trigonometry {
         auto angle(const Eigen::MatrixBase<Derived>& A, const Eigen::MatrixBase<Derived1>& B) {
             using S = typename Derived::Scalar;
             auto R = (angle(B) - angle(A)).eval();
+#ifdef TODO_CHECK_WHEN_THIS_IS_OK
             R.noalias() = R.unaryExpr(std::function(angle_clamp_positive<S>));
+#else
+            for(int i = 0; i < R.size(); ++i) {
+                R(i) = angle_clamp_positive(R(i));
+            }
+#endif
             return R;
         }
 
