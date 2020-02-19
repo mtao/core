@@ -38,7 +38,15 @@ namespace mtao::geometry::trigonometry {
             using S = typename Derived::Scalar;
             Eigen::Matrix<S,1,Derived::ColsAtCompileTime> A(1,P.cols());
 
+#ifdef TODO_CHECK_WHEN_THIS_IS_OK
             A = P.row(0).binaryExpr(P.row(1), std::function(angle_scalar<S>));
+#else
+            auto a = P.row(0);
+            auto b = P.row(1);
+            for(int i = 0; i < P.cols(); ++i) {
+                A(i) = angle_scalar<S>(a(i),b(i));
+            }
+#endif
             return A;
         }
 
