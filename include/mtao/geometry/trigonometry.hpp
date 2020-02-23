@@ -53,9 +53,9 @@ namespace mtao::geometry::trigonometry {
     // Returns the angle of between each col from A to B clockwise
     template <typename Derived, typename Derived1>
         auto angle(const Eigen::MatrixBase<Derived>& A, const Eigen::MatrixBase<Derived1>& B) {
-            using S = typename Derived::Scalar;
             auto R = (angle(B) - angle(A)).eval();
 #ifdef TODO_CHECK_WHEN_THIS_IS_OK
+            using S = typename Derived::Scalar;
             R.noalias() = R.unaryExpr(std::function(angle_clamp_positive<S>));
 #else
             for(int i = 0; i < R.size(); ++i) {
