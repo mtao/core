@@ -42,7 +42,20 @@ SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 FIND_PACKAGE(OpenMP REQUIRED)
 SET(OpenMP_TARGET OpenMP::OpenMP_CXX)
+find_package(PkgConfig QUIET)
+if(PkgConfig_FOUND)
+    message(STATUS "PkgConfigFound")
+    pkg_check_modules(tbb QUIET IMPORTED_TARGET tbb)
+    if(TARGET PkgConfig::tbb)
+        message(STATUS "TBB Target found by pkgconfig")
+        SET(MTAO_TBB_AVAILABLE ON)
+    endif()
+endif()
+OPTION(MTAO_USE_TBB "Use TBB for screenshots" ${MTAO_TBB_AVAILABLE})
 
+if((MTAO_USE_TBB) AND NOT (MTAO_TBB_AVAILABLE))
+    message(SEND_ERROR "TBB REQUESTED BUT NOT AVAIALBLE")
+endif()
 
 ######Geometry
 
@@ -156,7 +169,12 @@ ADD_LIBRARY(mtao_common
     )
 
 
-TARGET_LINK_LIBRARIES(mtao_common mtao_headers Eigen3::Eigen spdlog::spdlog)
+TARGET_LINK_LIBRARIES(mtao_common PUBLIC mtao_headers Eigen3::Eigen spdlog::spdlog)
+
+if(MTAO_USE_TBB)
+    TARGET_LINK_LIBRARIES(mtao_headers INTERFACE PkgConfig::tbb)
+    target_compile_definitions(mtao_common PUBLIC -DMTAO_TBB_ENABLED)
+endif()
 
 IF(MTAO_USE_OPENGL)
     #CORRADE_ADD_RESOURCE(MtaoShaders ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/shaders/resources.conf)

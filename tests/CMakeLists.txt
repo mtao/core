@@ -24,6 +24,11 @@ ADD_CATCHTEST(geometry
     staggered_grid_boundary_test.cpp
     )
 
+if(MTAO_USE_TBB)
+ADD_CATCHTEST(tbb
+    tbb_parloop_test.cpp 
+    )
+endif()
 
 # TODO: make the following into proper tests
 ADD_MYTEST(cube_shape_test cube_shape_test.cpp)
