@@ -27,6 +27,15 @@ OPTION(MTAO_USE_LOSTOPOS "Should we build the los topos submodule" OFF)
 OPTION(MTAO_USE_OPENGL "Build opengl stuff" ON)
 OPTION(MTAO_USE_PNGPP "Use PNG++ for screenshots" ON)
 
+# https://medium.com/@alasher/colored-c-compiler-output-with-ninja-clang-gcc-10bfe7f2b949
+option (MTAO_FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only and affects global compile_options)." OFF)
+if (MTAO_FORCE_COLORED_OUTPUT)
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+       add_compile_options (-fdiagnostics-color=always)
+    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+       add_compile_options (-fcolor-diagnostics)
+    endif ()
+endif()
 include(mtao_fetch_dependencies)
 
 FIND_PACKAGE(Eigen3 3.3.3 REQUIRED)
