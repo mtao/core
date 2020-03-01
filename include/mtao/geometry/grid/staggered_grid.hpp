@@ -184,6 +184,45 @@ namespace mtao {
                         bool cell_valid_index(const coord_type& idx) const { return staggered_valid_index<D,0>(idx);}
 
                         template <int D>
+                            std::array<T, combinatorial::nCr(Dim,D)> form_volumes() const {
+                                std::array<T, combinatorial::nCr(Dim,D)> R;
+                                if constexpr(D == 0) {
+                                    return {{T(1)}};
+                                } else if constexpr( D == 1 ) {
+                                    std::copy(dx().data(),dx().data()+dx().size(),R.begin());
+                                } else if constexpr( D == Dim-1 ) {
+                                    std::fill(R.begin(),R.end(),1);
+                                    for(int i = 0; i < Dim; ++i) {
+                                        for(int j = 1; j < Dim; ++j) {
+                                            R[i] *= dx()((i+j)%Dim);
+                                        }
+                                    }
+                                } else if constexpr(D == Dim) {
+                                    return {{dx().prod()}};
+                                }
+                                return R;
+                            }
+                            std::vector<T> form_volumes(int D) const {
+                                int size = combinatorial::nCr(Dim,D);
+                                std::vector<T> R(size,1);
+                                if (D == 0) {
+                                    return {T(1)};
+                                } else if ( D == 1 ) {
+                                    std::copy(dx().data(),dx().data()+dx().size(),R.begin());
+                                } else if ( D == Dim-1 ) {
+                                    std::fill(R.begin(),R.end(),1);
+                                    for(int i = 0; i < Dim; ++i) {
+                                        for(int j = 1; j < Dim; ++j) {
+                                            R[i] *= dx()((i+j)%Dim);
+                                        }
+                                    }
+                                } else if (D == Dim) {
+                                    return {dx().prod()};
+                                }
+                                return R;
+                            }
+
+                        template <int D>
                         size_t form_size() const {
                             auto&& gs = std::get<D>(m_offsets);
                             using U = types::remove_cvref_t<decltype(gs)>;

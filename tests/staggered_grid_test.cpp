@@ -139,6 +139,28 @@ TEST_CASE("Staggered Grid vertices 2D", "[grid][staggered_grid]") {
         }
 
     }
+    {
+    REQUIRE(sg.form_volumes<0>()[0] == 1);
+    auto g = sg.form_volumes<1>();
+    REQUIRE(g[0] == dx(0));
+    REQUIRE(g[1] == dx(1));
+    double pd = dx.prod();
+    REQUIRE(sg.form_volumes<2>()[0] == Approx(pd));
+    }
+    {
+
+    {
+        REQUIRE(sg.form_volumes(0)[0] == 1);
+        {
+            auto g = sg.form_volumes(1);
+            REQUIRE(g[0] == dx(0));
+            REQUIRE(g[1] == dx(1));
+            REQUIRE(g[2] == dx(2));
+        }
+        double pd = dx.prod();
+        REQUIRE(sg.form_volumes(2)[0] == Approx(pd));
+    }
+    }
 }
 TEST_CASE("Staggered Grid vertices 3D", "[grid][staggered_grid]") {
     constexpr static int D = 3;
@@ -198,5 +220,43 @@ TEST_CASE("Staggered Grid vertices 3D", "[grid][staggered_grid]") {
             }
             REQUIRE(ofs[i+1] - ofs[i] == v.size());
         }
+    }
+    {
+        REQUIRE(sg.form_volumes(0)[0] == 1);
+        {
+            auto g = sg.form_volumes(1);
+            REQUIRE(g[0] == dx(0));
+            REQUIRE(g[1] == dx(1));
+            REQUIRE(g[2] == dx(2));
+        }
+
+        {
+            auto g = sg.form_volumes(2);
+            REQUIRE(g[0] == Approx(dx(1) * dx(2)));
+            REQUIRE(g[1] == Approx(dx(0) * dx(2)));
+            REQUIRE(g[2] == Approx(dx(0) * dx(1)));
+        }
+        double pd = dx.prod();
+
+        REQUIRE(sg.form_volumes(3)[0] == Approx(pd));
+    }
+    {
+        REQUIRE(sg.form_volumes<0>()[0] == 1);
+        {
+            auto g = sg.form_volumes<1>();
+            REQUIRE(g[0] == dx(0));
+            REQUIRE(g[1] == dx(1));
+            REQUIRE(g[2] == dx(2));
+        }
+
+        {
+            auto g = sg.form_volumes<2>();
+            REQUIRE(g[0] == Approx(dx(1) * dx(2)));
+            REQUIRE(g[1] == Approx(dx(0) * dx(2)));
+            REQUIRE(g[2] == Approx(dx(0) * dx(1)));
+        }
+        double pd = dx.prod();
+
+        REQUIRE(sg.form_volumes<3>()[0] == Approx(pd));
     }
 }
