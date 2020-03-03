@@ -23,6 +23,9 @@ ADD_CATCHTEST(geometry
     multi_loop_test.cpp
     staggered_grid_boundary_test.cpp
     )
+ADD_CATCHTEST(eigen
+    sparse_blocks_test.cpp
+    )
 
 if(MTAO_USE_TBB)
 ADD_CATCHTEST(tbb
