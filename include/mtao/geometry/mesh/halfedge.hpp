@@ -655,7 +655,7 @@ void EmbeddedHalfEdgeMesh<S, D>::set_one_ring_adjacencies_quadcross(
         int eidx = *edges.begin();
         ni(eidx) = di(eidx);
     } else {
-        mtao::ColVectors<S,D> VV(edges.size());
+        mtao::ColVectors<S,D> VV(D,edges.size());
 
         std::vector<int> edges_vec(edges.begin(),edges.end());
         for(auto&& [i,eidx]: mtao::iterator::enumerate(edges_vec)) {
