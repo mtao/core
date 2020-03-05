@@ -651,6 +651,9 @@ void EmbeddedHalfEdgeMesh<S, D>::set_one_ring_adjacencies_quadcross(
     static_assert(D == 2);
     auto ni = next_indices();
     auto di = dual_indices();
+    if(edges.empty()) {
+        return;
+    }
     if (edges.size() == 1) {
         int eidx = *edges.begin();
         ni(eidx) = di(eidx);
