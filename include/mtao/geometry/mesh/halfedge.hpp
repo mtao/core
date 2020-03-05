@@ -10,6 +10,7 @@
 
 #include "mtao/data_structures/disjoint_set.hpp"
 #include "mtao/geometry/mesh/earclipping.hpp"
+#include "mtao/geometry/cyclic_order.hpp"
 #include "mtao/types.h"
 
 namespace mtao::geometry::mesh {
