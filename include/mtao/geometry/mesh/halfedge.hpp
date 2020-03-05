@@ -143,18 +143,31 @@ class HalfEdgeMesh {
     HalfEdgeMesh submesh_from_cells(const std::set<int>& cell_indices) const;
     HalfEdgeMesh submesh_from_edges(const std::set<int>& edge_indices) const;
     HalfEdgeMesh submesh_from_vertices(const std::set<int>& edge_indices) const;
+
+    // returns the directed halfedges that point away from each particular vertex
     std::map<int, std::set<int>> vertex_edges_no_topology() const;
+
+
+    // atan based sorting
+    // pass in a single vertex and the pertinent 
     template <typename Derived>
-    void set_one_ring_adjacencies(const Eigen::MatrixBase<Derived>& V,
+    void set_one_ring_adjacencies_cotan(const Eigen::MatrixBase<Derived>& V,
                                   const std::vector<int>& edges,
                                   bool stitch_ends = true);
     template <typename T>
-    void set_one_ring_adjacencies(const std::map<T, int>& ordered_edge_indices,
+    void set_one_ring_adjacencies_cotan(const std::map<T, int>& ordered_edge_indices,
                                   bool stitch_ends = true);
     template <typename T>
-    void set_one_ring_adjacencies(
+    void set_one_ring_adjacencies_cotan(
         const std::map<std::tuple<T, int>, int>& ordered_edge_indices,
         bool stitch_ends = true);
+
+    // quadrant + cotan for sorting
+    //template <typename Derived>
+    //void set_one_ring_adjacencies_quadcross(const Eigen::MatrixBase<Derived>& V,
+    //                              const std::vector<int>& edges,
+    //                              bool stitch_ends = true);
+    void set_one_ring_adjacencies_quadcross(const std::vector<int>& ordered_edge_indices);
 
     template <typename Derived, typename Derived2>
     typename Derived::Scalar winding_number(
@@ -314,7 +327,12 @@ class EmbeddedHalfEdgeMesh : public HalfEdgeMesh {
             m_vertices, std::set<int>(C.begin(), C.end()));
     }
     template <typename Derived>
-    void set_one_ring_adjacencies(
+    void set_one_ring_adjacencies_cotan(
+        const Eigen::MatrixBase<Derived>& central_vertex,
+        const std::set<int>& outward_facing_halfedges);
+
+    template <typename Derived>
+    void set_one_ring_adjacencies_quadcross(
         const Eigen::MatrixBase<Derived>& central_vertex,
         const std::set<int>& outward_facing_halfedges);
 
@@ -459,19 +477,27 @@ void EmbeddedHalfEdgeMesh<S, D>::make_topology() {
 #pragma omp parallel for
     for (idx = 0; idx < verts.size(); ++idx) {
         int vidx = verts[idx];
-        set_one_ring_adjacencies(V(vidx), e2v.at(vidx));
+#ifdef MTAO_USE_ATAN2_CYCLIC_ORDERING
+        set_one_ring_adjacencies_cotan(V(vidx), e2v.at(vidx));
+#else
+        set_one_ring_adjacencies_quadcross(V(vidx), e2v.at(vidx));
+#endif
     }
 
 #else
     for (auto&& [vidx, edges] : e2v) {
-        set_one_ring_adjacencies(V(vidx), edges);
+#ifdef MTAO_USE_ATAN2_CYCLIC_ORDERING
+        set_one_ring_adjacencies_cotan(V(vidx), edges);
+#else
+        set_one_ring_adjacencies_quadcross(V(vidx), edges);
+#endif
     }
 #endif
 
     make_cells();
 }
 template <typename T>
-void HalfEdgeMesh::set_one_ring_adjacencies(
+void HalfEdgeMesh::set_one_ring_adjacencies_cotan(
     const std::map<std::tuple<T, int>, int>& ordered_edges, bool stitch_ends) {
     auto ni = next_indices();
     auto di = dual_indices();
@@ -493,7 +519,7 @@ void HalfEdgeMesh::set_one_ring_adjacencies(
     }
 }
 template <typename T>
-void HalfEdgeMesh::set_one_ring_adjacencies(
+void HalfEdgeMesh::set_one_ring_adjacencies_cotan(
     const std::map<T, int>& ordered_edges, bool stitch_ends) {
     auto ni = next_indices();
     auto di = dual_indices();
@@ -515,7 +541,7 @@ void HalfEdgeMesh::set_one_ring_adjacencies(
     }
 }
 template <typename Derived>
-void HalfEdgeMesh::set_one_ring_adjacencies(const Eigen::MatrixBase<Derived>& V,
+void HalfEdgeMesh::set_one_ring_adjacencies_cotan(const Eigen::MatrixBase<Derived>& V,
                                             const std::vector<int>& edges,
                                             bool stitch_ends) {
     assert(V.rows() == 2);
@@ -548,14 +574,14 @@ void HalfEdgeMesh::set_one_ring_adjacencies(const Eigen::MatrixBase<Derived>& V,
                 S ang = std::atan2(p.y(), p.x());
                 edge_angles[std::make_tuple(ang, i)] = eidx;
             }
-            HalfEdgeMesh::set_one_ring_adjacencies(edge_angles, stitch_ends);
+            HalfEdgeMesh::set_one_ring_adjacencies_cotan(edge_angles, stitch_ends);
         }
     }
-    set_one_ring_adjacencies(edge_angles, stitch_ends);
+    set_one_ring_adjacencies_cotan(edge_angles, stitch_ends);
 }
 template <typename S, int D>
 template <typename Derived>
-void EmbeddedHalfEdgeMesh<S, D>::set_one_ring_adjacencies(
+void EmbeddedHalfEdgeMesh<S, D>::set_one_ring_adjacencies_cotan(
     const Eigen::MatrixBase<Derived>& o, const std::set<int>& edges) {
     static_assert(D == 2);
     auto ni = next_indices();
@@ -588,13 +614,62 @@ void EmbeddedHalfEdgeMesh<S, D>::set_one_ring_adjacencies(
                     S ang = std::atan2(p.y(), p.x());
                     return std::make_pair(std::make_tuple(ang, vertex), eidx);
                 });
-            HalfEdgeMesh::set_one_ring_adjacencies(edge_angles);
+            HalfEdgeMesh::set_one_ring_adjacencies_cotan(edge_angles);
         } else {
-            HalfEdgeMesh::set_one_ring_adjacencies(edge_angles);
+            HalfEdgeMesh::set_one_ring_adjacencies_cotan(edge_angles);
         }
     }
 }
 
+
+//template <typename Derived>
+//void HalfEdgeMesh::set_one_ring_adjacencies_quadcross(const Eigen::MatrixBase<Derived>& V,
+//                                            const std::vector<int>& edges,
+//                                            bool stitch_ends) {
+//    assert(V.rows() == 2);
+//    using S = typename Derived::Scalar;
+//    std::map<S, int> edge_angles;
+//    if (edges.size() == 0) {
+//        return;
+//    }
+//    if (edges.size() == 1) {
+//        int eidx = *edges.begin();
+//        auto ni = next_indices();
+//        auto di = dual_indices();
+//        ni(eidx) = di(eidx);
+//    } else {
+//        auto ordered_edges = cyclic_order(V);
+//        set_one_ring_adjacencies_quadcross(ordered_edges, stitch_ends);
+//    }
+//}
+
+template <typename S, int D>
+template <typename Derived>
+void EmbeddedHalfEdgeMesh<S, D>::set_one_ring_adjacencies_quadcross(
+    const Eigen::MatrixBase<Derived>& o, const std::set<int>& edges) {
+    static_assert(D == 2);
+    auto ni = next_indices();
+    auto di = dual_indices();
+    if (edges.size() == 1) {
+        int eidx = *edges.begin();
+        ni(eidx) = di(eidx);
+    } else {
+        mtao::ColVectors<S,D> VV(edges.size());
+
+        std::vector<int> edges_vec(edges.begin(),edges.end());
+        for(auto&& [i,eidx]: mtao::iterator::enumerate(edges_vec)) {
+            HalfEdge e = edge(eidx);
+            // int vertex = e.get_dual().vertex();
+            VV.col(i) = V(e.get_dual().vertex()) - o;
+        }
+        std::vector<int> order = cyclic_order(VV);
+        std::transform(edges_vec.begin(),edges_vec.end(), edges_vec.begin(), [&](int idx) {
+                return edges_vec.at(idx);
+                });
+
+        HalfEdgeMesh::set_one_ring_adjacencies_quadcross(edges_vec);
+    }
+}
 template <typename Derived>
 bool HalfEdgeMesh::is_inside(const Eigen::MatrixBase<Derived>& V, int cell_edge,
                              const std::vector<int>& vertex_indices) const {

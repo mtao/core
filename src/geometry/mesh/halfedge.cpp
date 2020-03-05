@@ -547,6 +547,25 @@ HalfEdge HalfEdge::get_dual() const {
     return HalfEdge(m_cc,dual_index());
 }
 
+void HalfEdgeMesh::set_one_ring_adjacencies_quadcross(
+    const std::vector<int>& ordered_edges) {
+    auto ni = next_indices();
+    auto di = dual_indices();
+    auto nit = ordered_edges.begin();
+    if (ordered_edges.size() == 1) {
+        int eidx = *nit;
+        ni(eidx) = di(eidx);
+    } else {
+        auto it = nit++;
+        for (; nit != ordered_edges.end(); ++it, ++nit) {
+            int nidx = *nit;
+            int idx = *it;
+            ni(idx) = di(nidx);
+        }
+        int idx = *it;
+        ni(idx) = di(ordered_edges.front());
+    }
+}
 
 std::map<int,std::set<int>> HalfEdgeMesh::vertex_edges_no_topology() const {
     std::map<int,std::set<int>> map;
