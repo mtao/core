@@ -653,25 +653,23 @@ void EmbeddedHalfEdgeMesh<S, D>::set_one_ring_adjacencies_quadcross(
     auto di = dual_indices();
     if(edges.empty()) {
         return;
-    }
-    if (edges.size() == 1) {
+    } else if (edges.size() == 1) {
         int eidx = *edges.begin();
         ni(eidx) = di(eidx);
     } else {
-        mtao::ColVectors<S,D> VV(D,edges.size());
-
         std::vector<int> edges_vec(edges.begin(),edges.end());
+        mtao::ColVectors<S,D> VV(D,edges.size());
         for(auto&& [i,eidx]: mtao::iterator::enumerate(edges_vec)) {
             HalfEdge e = edge(eidx);
             // int vertex = e.get_dual().vertex();
             VV.col(i) = V(e.get_dual().vertex()) - o;
         }
         std::vector<int> order = cyclic_order(VV);
-        std::transform(edges_vec.begin(),edges_vec.end(), edges_vec.begin(), [&](int idx) {
+        std::transform(order.begin(),order.end(), order.begin(), [&](int idx) {
                 return edges_vec.at(idx);
                 });
 
-        HalfEdgeMesh::set_one_ring_adjacencies_quadcross(edges_vec);
+        HalfEdgeMesh::set_one_ring_adjacencies_quadcross(order);
     }
 }
 template <typename Derived>
