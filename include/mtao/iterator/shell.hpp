@@ -1,6 +1,7 @@
 #pragma once
 #include <tuple>
 #include <utility>
+#include <memory>
 
 namespace mtao {
     namespace iterator {
@@ -61,6 +62,22 @@ namespace mtao {
         template <typename T, int D>
             auto shell(T c[D]) {
                 return shell(c,c+D);
+            }
+        template <typename T>
+            auto shell(T* c, int D) {
+                return shell(c,c+D);
+            }
+        template <typename T>
+            auto shell(const T* c, int D) {
+                return shell(c,c+D);
+            }
+        template <typename T, typename Deleter>
+            auto shell(std::unique_ptr<T[],Deleter>& c, int D) {
+                return shell(c.get(),D);
+            }
+        template <typename T, typename Deleter>
+            auto shell(const std::unique_ptr<T[],Deleter>& c, int D) {
+                return shell(c.get(),D);
             }
     }
 
