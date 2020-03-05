@@ -1,6 +1,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.13.4)
 PROJECT(Mtao)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+set(CMAKE_NO_SYSTEM_FROM_IMPORTED ON)
 
 SET(MTAO_BUILD_TESTING ${BUILD_TESTING})
 
@@ -25,6 +26,7 @@ ADD_DEFINITIONS(-Wall)
 OPTION(MTAO_USE_ELTOPO "Should we build the el topo submodule" ON)
 OPTION(MTAO_USE_LOSTOPOS "Should we build the los topos submodule" OFF)
 OPTION(MTAO_USE_OPENGL "Build opengl stuff" ON)
+OPTION(MTAO_USE_OPENVDB "Build openvdb stuff" OFF)
 OPTION(MTAO_USE_PNGPP "Use PNG++ for screenshots" ON)
 
 # https://medium.com/@alasher/colored-c-compiler-output-with-ninja-clang-gcc-10bfe7f2b949

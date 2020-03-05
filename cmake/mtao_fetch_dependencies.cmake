@@ -46,6 +46,7 @@ if(MTAO_USE_OPENGL)
     set(ImGui_INCLUDE_DIR ${ImGui_INCLUDE_DIR} CACHE STRING "Location of the imgui library headers")
 endif()
 
+
 if(NOT DEFINED TRIANGLE_DIR)
     fetch_dep(triangle https://github.com/libigl/triangle.git d284c4a843efac043c310f5fa640b17cf7d96170 ON)
     set(triangle_INCLUDE_DIR ${triangle_SOURCE_DIR} CACHE STRING "The location of hte triangle.h header")
@@ -89,4 +90,17 @@ if(MTAO_BUILD_TESTING)
             )
 
     endif()
+endif()
+
+if(MTAO_USE_OPENVDB)
+    find_package(openvdb 7.0.0 QUIET)
+    if(NOT openvdb_FOUND)
+        fetch_dep(openvdb https://github.com/AcademySoftwareFoundation/openvdb v7.0.0 ON)
+    endif()
+endif()
+
+
+find_package(cxxopts 2.2.0 QUIET)
+if(NOT cxxopts_FOUND)
+    fetch_dep(cxxopts https://github.com/jarro2783/cxxopts v2.2.0 ON)
 endif()
