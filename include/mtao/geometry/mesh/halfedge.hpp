@@ -469,6 +469,16 @@ void EmbeddedHalfEdgeMesh<S, D>::make_topology() {
     static_assert(D == 2);
     // MAke edge connectivity
     auto e2v = vertex_edges_no_topology();
+
+#ifdef _DEBUG
+    for(auto&& [vidx, edges]: e2v) {
+        for(auto&& [i,eidx]: mtao::iterator::enumerate(edges)) {
+            HalfEdge e = edge(eidx);
+            // int vertex = e.get_dual().vertex();
+            assert(e.get_dual().vertex() < nV());
+        }
+    }
+#endif
 #ifdef _OPENMP
     std::vector<int> verts(e2v.size());
     std::transform(e2v.begin(), e2v.end(), verts.begin(),
@@ -649,6 +659,13 @@ template <typename Derived>
 void EmbeddedHalfEdgeMesh<S, D>::set_one_ring_adjacencies_quadcross(
     const Eigen::MatrixBase<Derived>& o, const std::set<int>& edges) {
     static_assert(D == 2);
+#ifdef _DEBUG
+        for(auto&& [i,eidx]: mtao::iterator::enumerate(edges)) {
+            HalfEdge e = edge(eidx);
+            // int vertex = e.get_dual().vertex();
+            assert(e.get_dual().vertex() < nV());
+        }
+#endif
     auto ni = next_indices();
     auto di = dual_indices();
     if(edges.empty()) {

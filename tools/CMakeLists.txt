@@ -8,5 +8,7 @@ TARGET_LINK_LIBRARIES(mesh_info mtao::geometry)
 if(MTAO_USE_OPENVDB)
 ADD_EXECUTABLE(vdb_to_mesh vdb_to_mesh.cpp)
 TARGET_LINK_LIBRARIES(vdb_to_mesh mtao::geometry cxxopts openvdb)
+ADD_EXECUTABLE(mesh_to_vdb mesh_to_vdb.cpp)
+TARGET_LINK_LIBRARIES(mesh_to_vdb mtao::geometry cxxopts openvdb)
 endif()
 #Half Iex IexMath IlmThread Imath tbb
