@@ -29,6 +29,9 @@ ADD_CATCHTEST(eigen
     sparse_blocks_test.cpp
     )
 
+ADD_CATCHTEST(solvers
+    conjugate_gradient_tests.cpp
+    )
 if(MTAO_USE_TBB)
 ADD_CATCHTEST(tbb
     tbb_parloop_test.cpp 
