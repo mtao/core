@@ -1,10 +1,13 @@
 #pragma once 
 #include "mtao/types.hpp"
 #include "mtao/iterator/enumerate.hpp"
+#include "mtao/type_utils.h"
 #include <numeric>
+#include "mtao/geometry/mesh/compactify.hpp"
 
 namespace mtao::geometry::mesh {
 
+    namespace internal {
     // either pass in itersatosr full of tuples {Vertices, Triangles} or tuples {Vertices,Triangles, colors}
     template <typename BeginIt, typename EndIt>
         auto stack_meshes(BeginIt beginit, EndIt endit) {
@@ -45,7 +48,7 @@ namespace mtao::geometry::mesh {
                     V.block(0,off,v.rows(),v.cols()) = v;
                     F.block(0,foff,f.rows(),f.cols()) = f.array() + off;
                     if(c.cols() == 1) {
-                        C.block(0,off,4,v.cols()).colwise() = c;
+                        C.block(0,off,4,v.cols()).colwise() = c.col(0);
                     } else {
                         C.block(0,off,4,v.cols()) = c;
                     }
@@ -62,9 +65,38 @@ namespace mtao::geometry::mesh {
             }
 
         }
+    }
     template <typename Container>
         auto stack_meshes(const Container& container) {
-            return stack_meshes(container.begin(),container.end());
+            return internal::stack_meshes(container.begin(),container.end());
+        }
+
+    // eitehr container of {F} or container of {F,C}
+    template <typename VDerived, typename Container>
+        auto stack_meshes(const Eigen::MatrixBase<VDerived>& V, const Container& container) {
+
+            using T = typename VDerived::Scalar;
+            constexpr int D = VDerived::RowsAtCompileTime;
+            if constexpr(types::is_specialization_of_v<std::tuple, typename Container::value_type>) {
+                std::vector<std::tuple<mtao::ColVectors<T,D>, mtao::ColVecs3i, mtao::ColVectors<T,4>>> tups;
+                tups.reserve(container.size());
+                for(auto&& [F,C]: container) {
+                    auto [v,f] = compactify(V,F);
+                    tups.emplace_back(std::move(v),std::move(f),C);
+                }
+
+                return internal::stack_meshes(tups.begin(),tups.end());
+            } else {// just a bunch of fs
+
+                std::vector<std::tuple<mtao::ColVectors<T,D>, mtao::ColVecs3i>> tups;
+                tups.reserve(container.size());
+                for(auto&& F: container) {
+                    tups.emplace_back(compactify(V,F));
+                }
+
+                return internal::stack_meshes(tups.begin(),tups.end());
+            }
+
         }
 
 

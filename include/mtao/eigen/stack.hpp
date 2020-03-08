@@ -94,4 +94,32 @@ namespace mtao { namespace eigen {
             }
             return mC;
         }
+    template <typename BeginIt, typename EndIt>
+        auto vstack_iter(BeginIt beginit, EndIt endit) {
+            using CDerived = typename std::decay_t<decltype(*beginit)>;
+
+            constexpr static int CCols = CDerived::ColsAtCompileTime;
+            using Index = typename CDerived::Scalar;
+            using RetCells = Eigen::Matrix<Index,Eigen::Dynamic,CCols>;
+            int ccols = 0;
+            int crows = 0;
+
+            for(auto it = beginit; it != endit; ++it) {
+                auto&& c = *it;
+                if(c.size() > 0) {
+                ccols = std::max<int>(ccols,c.cols());
+                crows += c.rows();
+                }
+            }
+            RetCells mC(crows,ccols);
+            crows = 0;
+            for(auto it = beginit; it != endit; ++it) {
+                auto&& c = *it;
+                if(c.size() > 0) {
+                mC.block(crows,0,c.rows(),c.cols()) = c;
+                crows += c.rows();
+                }
+            }
+            return mC;
+        }
 }}

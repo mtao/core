@@ -43,7 +43,7 @@ namespace mtao::geometry::mesh {
 
             constexpr static int CRows = CDerived::RowsAtCompileTime;
             using Index = typename CDerived::Scalar;
-            using RetCells = mtao::ColVectors<Index,CRows>;
+            //using RetCells = mtao::ColVectors<Index,CRows>;
 
             std::vector<CDerived,Allocator> mCs = Cs;
 
