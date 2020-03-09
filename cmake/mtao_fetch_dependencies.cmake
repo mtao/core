@@ -100,6 +100,8 @@ if(MTAO_USE_OPENVDB)
 endif()
 
 
+option(CXXOPTS_BUILD_EXAMPLES "Set to ON to build cxxopts examples" OFF)
+option(CXXOPTS_BUILD_TESTS "Set to ON to build cxxopts tests" OFF)
 find_package(cxxopts 2.2.0 QUIET)
 if(NOT cxxopts_FOUND)
     fetch_dep(cxxopts https://github.com/jarro2783/cxxopts v2.2.0 ON)
