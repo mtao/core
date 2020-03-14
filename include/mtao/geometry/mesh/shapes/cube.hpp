@@ -17,6 +17,8 @@ namespace mtao::geometry::mesh::shapes {
             extern const int _F[36];
     }
 
+    // [0,1]^D cubes, E selects the embedding dimension
+    // the cube selected is always the first D dimensions in the embedded space
     template <typename T, int D = 3, int E = 3>
         std::tuple<mtao::ColVectors<T,E>,mtao::ColVecs3i> cube() {
             auto _VM = Eigen::Map<const mtao::ColVectors<T,3>>(cube_internal::vert_container<T>::_V,3,12);
