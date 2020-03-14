@@ -32,6 +32,9 @@ ADD_CATCHTEST(eigen
 ADD_CATCHTEST(solvers
     conjugate_gradient_tests.cpp
     )
+ADD_CATCHTEST(krylov
+    krylov_tests.cpp
+    )
 if(MTAO_USE_TBB)
 ADD_CATCHTEST(tbb
     tbb_parloop_test.cpp 
