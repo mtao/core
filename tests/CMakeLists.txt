@@ -29,11 +29,10 @@ ADD_CATCHTEST(eigen
     sparse_blocks_test.cpp
     )
 
-ADD_CATCHTEST(solvers
+ADD_CATCHTEST(linalg
     conjugate_gradient_tests.cpp
-    )
-ADD_CATCHTEST(krylov
     krylov_tests.cpp
+    gram_schmidt_test.cpp
     )
 if(MTAO_USE_TBB)
 ADD_CATCHTEST(tbb

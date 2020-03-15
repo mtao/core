@@ -11,7 +11,7 @@ namespace mtao::linear_algebra {
             auto arnoldi(const Eigen::MatrixBase<Derived>& M, const Eigen::MatrixBase<BDerived>& b, Eigen::PlainObjectBase<QDerived>& Q, Eigen::PlainObjectBase<HDerived>& H) {
                 const int N = H.rows() - 1;
                 using Scalar = typename Derived::Scalar;
-                constexpr double eps = std::numeric_limits<Scalar>::epsilon();
+                constexpr Scalar eps = std::numeric_limits<Scalar>::epsilon();
                 using Vec = Eigen::Matrix<Scalar, Derived::RowsAtCompileTime, 1>;
 
 

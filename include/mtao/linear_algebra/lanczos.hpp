@@ -11,7 +11,7 @@ namespace mtao::linear_algebra {
             auto lanczos(const Eigen::MatrixBase<Derived>& M, const Eigen::MatrixBase<BDerived>& v1, Eigen::PlainObjectBase<VDerived>& V, Eigen::PlainObjectBase<TDerived>& T) {
                 const int N = T.rows();
                 using Scalar = typename Derived::Scalar;
-                constexpr double eps = std::numeric_limits<Scalar>::epsilon();
+                constexpr Scalar eps = std::numeric_limits<Scalar>::epsilon();
                 using Vec = Eigen::Matrix<Scalar,Derived::RowsAtCompileTime, 1>;
 
                 V.setZero();
