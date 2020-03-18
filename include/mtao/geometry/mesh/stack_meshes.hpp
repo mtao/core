@@ -13,6 +13,7 @@ namespace mtao::geometry::mesh {
         auto stack_meshes(BeginIt beginit, EndIt endit) {
             using TupleType = std::decay_t<decltype(*beginit)>;
             using VType = std::tuple_element_t<0,TupleType>;
+            using FType = std::tuple_element_t<1,TupleType>;
             using T = typename VType::Scalar;
             constexpr int D = VType::RowsAtCompileTime;
             constexpr bool has_color = std::tuple_size_v<TupleType> == 3;
@@ -41,7 +42,7 @@ namespace mtao::geometry::mesh {
             if constexpr(has_color) {
                 C.resize(4,V.cols());
             }
-            mtao::ColVecs3i F(3,foffsets.back());
+            FType F(std::get<1>(*beginit).rows(),foffsets.back());
             for(auto&& [idx,pr,off,foff]: mtao::iterator::enumerate(mtao::iterator::shell(beginit,endit),offsets,foffsets)) {
                 if constexpr(has_color) {
                     auto&& [v,f,c] = pr;
@@ -78,7 +79,9 @@ namespace mtao::geometry::mesh {
             using T = typename VDerived::Scalar;
             constexpr int D = VDerived::RowsAtCompileTime;
             if constexpr(types::is_specialization_of_v<std::tuple, typename Container::value_type>) {
-                std::vector<std::tuple<mtao::ColVectors<T,D>, mtao::ColVecs3i, mtao::ColVectors<T,4>>> tups;
+                using IFType = typename std::tuple_element_t<0,typename Container::value_type>;
+                using FType = mtao::ColVectors<int,IFType::RowsAtCompileTime>;
+                std::vector<std::tuple<mtao::ColVectors<T,D>, FType, mtao::ColVectors<T,4>>> tups;
                 tups.reserve(container.size());
                 for(auto&& [F,C]: container) {
                     auto [v,f] = compactify(V,F);
@@ -88,7 +91,8 @@ namespace mtao::geometry::mesh {
                 return internal::stack_meshes(tups.begin(),tups.end());
             } else {// just a bunch of fs
 
-                std::vector<std::tuple<mtao::ColVectors<T,D>, mtao::ColVecs3i>> tups;
+                using FType = mtao::ColVectors<int,Container::value_type::RowsAtCompileTime>;
+                std::vector<std::tuple<mtao::ColVectors<T,D>, FType>> tups;
                 tups.reserve(container.size());
                 for(auto&& F: container) {
                     tups.emplace_back(compactify(V,F));
