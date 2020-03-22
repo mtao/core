@@ -34,6 +34,10 @@ ADD_CATCHTEST(linalg
     krylov_tests.cpp
     gram_schmidt_test.cpp
     )
+
+ADD_CATCHTEST(algebra
+    sort_with_permutation_count_test.cpp
+    )
 if(MTAO_USE_TBB)
 ADD_CATCHTEST(tbb
     tbb_parloop_test.cpp 

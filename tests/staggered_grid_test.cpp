@@ -155,7 +155,6 @@ TEST_CASE("Staggered Grid vertices 2D", "[grid][staggered_grid]") {
             auto g = sg.form_volumes(1);
             REQUIRE(g[0] == dx(0));
             REQUIRE(g[1] == dx(1));
-            REQUIRE(g[2] == dx(2));
         }
         double pd = dx.prod();
         REQUIRE(sg.form_volumes(2)[0] == Approx(pd));
