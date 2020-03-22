@@ -24,6 +24,7 @@ ADD_CATCHTEST(geometry
     staggered_grid_boundary_test.cpp
     cyclic_order_test.cpp
     stack_meshes_test.cpp
+    unique_simplices_test.cpp
     )
 ADD_CATCHTEST(eigen
     sparse_blocks_test.cpp
