@@ -7,6 +7,11 @@ using namespace mtao::algebra;
 namespace {
 template <typename T>
 void sort_test(T vec) {
+    std::iota(vec.begin(), vec.end(), 0);
+    auto [svec, size] = sort_with_permutation_sign<SortType::Bubble>(vec);
+    REQUIRE(std::is_sorted(svec.begin(), svec.end()));
+    REQUIRE(size == true);
+
     for (size_t i = 0; i < vec.size(); ++i) {
         vec[i] = vec.size() - i - 1;
     }

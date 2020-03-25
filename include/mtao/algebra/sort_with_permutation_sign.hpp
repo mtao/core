@@ -6,6 +6,8 @@
 
 namespace mtao::algebra {
 
+// returns whether the number of sorts is even or not.
+// no swaps returns True
 template <SortType type = SortType::Bubble,
           typename ContainerType = std::vector<int>>
 bool sort_with_permutation_sign_in_place(ContainerType& c) {
