@@ -25,6 +25,7 @@ ADD_CATCHTEST(geometry
     cyclic_order_test.cpp
     stack_meshes_test.cpp
     unique_simplices_test.cpp
+    edges_to_plcurves_test.cpp
     )
 ADD_CATCHTEST(eigen
     sparse_blocks_test.cpp
