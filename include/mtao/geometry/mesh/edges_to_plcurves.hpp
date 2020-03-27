@@ -51,13 +51,11 @@ std::vector<std::tuple<std::vector<int>, bool>> edge_to_plcurves(
     };
     std::vector<std::tuple<std::vector<int>, bool>> ret;
     auto run = [&](const int start_vertex, const int start_edge) {
-        std::cout << "Start!" << std::endl;
         auto& [vec, closedness] = ret.emplace_back();
         closedness = true;
         int vertex = start_vertex;
         int edge = start_edge;
         do {
-            std::cout << vertex << ":" << edge << std::endl;
             vec.emplace_back(vertex);
             auto&& e = E.col(edge);
             // step vertex
@@ -97,7 +95,6 @@ std::vector<std::tuple<std::vector<int>, bool>> edge_to_plcurves(
         } else {
             start_edge = e[0];
         }
-        std::cout << e[0] << "::" << e[1] << std::endl;
         run(start_idx, start_edge);
     }
     while (!unseen_edges.empty()) {
