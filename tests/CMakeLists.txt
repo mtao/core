@@ -26,7 +26,10 @@ ADD_CATCHTEST(geometry
     stack_meshes_test.cpp
     unique_simplices_test.cpp
     edges_to_plcurves_test.cpp
+    read_obj_test.cpp
     )
+target_link_libraries(geometry_test PRIVATE mtao::geometry)
+
 ADD_CATCHTEST(eigen
     sparse_blocks_test.cpp
     )
