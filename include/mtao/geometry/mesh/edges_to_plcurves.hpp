@@ -84,6 +84,9 @@ std::vector<std::tuple<std::vector<int>, bool>> edge_to_plcurves(
             }
 
         } while (vertex != start_vertex);
+        if(vec.size() == 2 && !closed_only) {
+            closedness = false;
+        }
     };
     while (!open_edges.empty()) {
         int start_idx = *open_edges.begin();
