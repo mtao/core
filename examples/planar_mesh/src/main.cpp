@@ -59,8 +59,7 @@ bool triangulated_active = false;
 
 int active_edge_marker = -1;
 
-void write(const std::string& filename, bool extra_metadata = false) {
-    auto&& m = *triangulated;
+void write(const std::string& filename, const Mesh& m, bool extra_metadata = false) {
     std::ofstream of(filename);
 
     if(extra_metadata) {
@@ -97,6 +96,9 @@ void write(const std::string& filename, bool extra_metadata = false) {
         }
     }
     debug() << "Wrote to a file: " << filename;
+}
+void write(const std::string& filename, bool extra_metadata = false) {
+    write(filename,*triangulated,extra_metadata);
 }
 
 const Mesh& active_mesh() {
@@ -171,7 +173,10 @@ void gui_func() {
 
     ImGui::InputText("Filename",filename,128);
     if(ImGui::Button("Save")) {
-        write(filename);
+        write(filename,true);
+    }
+    if(ImGui::Button("Save Input")) {
+        write(filename,original,true);
     }
     /*
     ImGui::Checkbox("Show Delauney Failures", &show_delauney_failures);
