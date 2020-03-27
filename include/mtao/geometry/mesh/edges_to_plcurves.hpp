@@ -75,16 +75,16 @@ std::vector<std::tuple<std::vector<int>, bool>> edge_to_plcurves(
             // if we hit an end we can continue wrapping around or end,
             // depending on closed_only
             if (edge < 0) {
-                closedness = false;
                 if (closed_only) {
                     edge = de[0];
                 } else {
+                    closedness = false;
                     break;
                 }
             }
 
         } while (vertex != start_vertex);
-        if(vec.size() == 2 && !closed_only) {
+        if (vec.size() == 2 && !closed_only) {
             closedness = false;
         }
     };
