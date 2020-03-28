@@ -21,7 +21,7 @@ struct MeshReader {
     static std::array<T, D> process_vertex(TokIt begin, const TokIt& end) {
         std::array<T, D> v;
         std::transform(begin, end, v.begin(),
-                       [](const std::string& s) { return std::stof(s); });
+                       [](const std::string& s) { return std::stod(s); });
 
         /*
            size_t dist = std::distance(begin,end);
