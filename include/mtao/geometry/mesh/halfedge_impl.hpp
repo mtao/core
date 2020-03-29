@@ -3,11 +3,36 @@
 #include "mtao/geometry/mesh/halfedge_iterator.hpp"
 #include "mtao/types.hpp"
 namespace mtao::geometry::mesh {
-template <typename S, int D>
 template <typename TDerived>
-void EmbeddedHalfEdgeMesh<S, D>::make_topology(
+void HalfEdgeMesh::make_topology(
     const std::map<std::array<int, 2>, std::tuple<int, bool>>& tangent_map,
     const Eigen::MatrixBase<TDerived>& T) {
+    // MAke edge connectivity
+    auto e2v = vertex_edges_no_topology();
+
+#ifdef _OPENMP
+    std::vector<int> verts(e2v.size());
+    std::transform(e2v.begin(), e2v.end(), verts.begin(),
+                   [](auto&& pr) { return std::get<0>(pr); });
+
+    size_t idx = 0;
+#pragma omp parallel for
+    for (idx = 0; idx < verts.size(); ++idx) {
+        int vidx = verts[idx];
+        HalfEdgeMesh::set_one_ring_adjacencies_quadcross(e2v.at(vidx),
+                                                         tangent_map, T);
+    }
+
+#else
+    for (auto&& [vidx, edges] : e2v) {
+        HalfEdgeMesh::set_one_ring_adjacencies_quadcross(edges, tangent_map, T);
+    }
+#endif
+
+    make_cells();
+}
+template <typename S, int D>
+void EmbeddedHalfEdgeMesh<S, D>::make_topology() {
     static_assert(D == 2);
     // MAke edge connectivity
     auto e2v = vertex_edges_no_topology();
@@ -21,44 +46,23 @@ void EmbeddedHalfEdgeMesh<S, D>::make_topology(
         }
     }
 #endif
-    if (tangent_map.size() == 0) {
 #ifdef _OPENMP
-        std::vector<int> verts(e2v.size());
-        std::transform(e2v.begin(), e2v.end(), verts.begin(),
-                       [](auto&& pr) { return std::get<0>(pr); });
+    std::vector<int> verts(e2v.size());
+    std::transform(e2v.begin(), e2v.end(), verts.begin(),
+                   [](auto&& pr) { return std::get<0>(pr); });
 
-        size_t idx = 0;
+    size_t idx = 0;
 #pragma omp parallel for
-        for (idx = 0; idx < verts.size(); ++idx) {
-            int vidx = verts[idx];
-            set_one_ring_adjacencies_quadcross(V(vidx), e2v.at(vidx));
-        }
-
-#else
-        for (auto&& [vidx, edges] : e2v) {
-            set_one_ring_adjacencies_quadcross(V(vidx), edges);
-        }
-#endif
-    } else {
-#ifdef _OPENMP
-        std::vector<int> verts(e2v.size());
-        std::transform(e2v.begin(), e2v.end(), verts.begin(),
-                       [](auto&& pr) { return std::get<0>(pr); });
-
-        size_t idx = 0;
-#pragma omp parallel for
-        for (idx = 0; idx < verts.size(); ++idx) {
-            int vidx = verts[idx];
-            HalfEdgeMesh::set_one_ring_adjacencies_quadcross(e2v.at(vidx), tangent_map,
-                                               T);
-        }
-
-#else
-        for (auto&& [vidx, edges] : e2v) {
-            HalfEdgeMesh::set_one_ring_adjacencies_quadcross(edges, tangent_map, T);
-        }
-#endif
+    for (idx = 0; idx < verts.size(); ++idx) {
+        int vidx = verts[idx];
+        set_one_ring_adjacencies_quadcross(V(vidx), e2v.at(vidx));
     }
+
+#else
+    for (auto&& [vidx, edges] : e2v) {
+        set_one_ring_adjacencies_quadcross(V(vidx), edges);
+    }
+#endif
 
     make_cells();
 }

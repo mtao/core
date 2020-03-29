@@ -84,7 +84,10 @@ std::vector<std::tuple<std::vector<int>, bool>> edge_to_plcurves(
             }
 
         } while (vertex != start_vertex);
-        if (vec.size() == 2 && !closed_only) {
+        if(vec.size() == 1 && !closed_only) {
+            vec.emplace_back(vertex);
+            closedness = false;
+        } else if (vec.size() == 2 && !closed_only) {
             closedness = false;
         }
     };

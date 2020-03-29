@@ -84,6 +84,10 @@ class HalfEdgeMesh {
             return cell_indices()(idx);
     }
     const Edges& edges() const { return m_edges; }
+    template <typename TDerived = ColVectors<int, 2>>
+    void make_topology(const std::map<std::array<int, 2>, std::tuple<int, bool>>&
+                           tangent_map,
+                       const Eigen::MatrixBase<TDerived>& T);
 
     // Returns a unique halfedge to access a particular element type
     std::vector<int> cell_halfedges() const;
@@ -307,10 +311,7 @@ class EmbeddedHalfEdgeMesh : public HalfEdgeMesh {
     auto&& V() const { return m_vertices; }
     int nV() const { return m_vertices.cols(); }
 
-    template <typename TDerived = ColVectors<int, 2>>
-    void make_topology(const std::map<std::array<int, 2>, std::tuple<int, bool>>&
-                           tangent_map = {},
-                       const Eigen::MatrixBase<TDerived>& T = ColVectors<int,2>{});
+    void make_topology();
     void tie_nonsimple_cells(const std::set<int>& cell_halfedges) const {
         return HalfEdgeMesh::tie_nonsimple_cells(m_vertices, cell_halfedges);
     }

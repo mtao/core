@@ -43,7 +43,7 @@ void check_hem(const Eigen::MatrixBase<D>& V, const Eigen::MatrixBase<D2>& E) {
         auto C = hem.cell_halfedges();
     }
     {
-        auto hem = EmbeddedHalfEdgeMesh<float, 2>::from_edges(V, E);
+        auto hem = HalfEdgeMesh::from_edges(E);
         hem.make_topology(tangent_map, T);
         check_matrix(hem_edges, hem.edges());
     }

@@ -40,13 +40,15 @@ TEST_CASE("ClosedCurves", "[edges_to_plcurves]") {
 }
 TEST_CASE("OpenCurves", "[edges_to_plcurves]") {
     auto process = [](const mtao::ColVecs2i& E) {
+        std::cout << "Edges: \n";
         std::cout << E << std::endl;
-        auto r = edge_to_plcurves(E);
+        auto r = edge_to_plcurves(E,false);
         for (auto&& [vec, closedness] : r) {
             std::copy(vec.begin(), vec.end(),
                       std::ostream_iterator<int>(std::cout, ","));
             REQUIRE(closedness == false);
-            REQUIRE(vec.size() == 2 * E.cols());
+            // max is for the first case only!
+            REQUIRE(vec.size() == std::max<size_t>(2,E.cols()));
             if (closedness) {
                 std::cout << "closed" << std::endl;
             } else {
