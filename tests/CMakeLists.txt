@@ -27,6 +27,7 @@ ADD_CATCHTEST(geometry
     unique_simplices_test.cpp
     edges_to_plcurves_test.cpp
     read_obj_test.cpp
+    halfedge_topology_test.cpp
     )
 target_link_libraries(geometry_test PRIVATE mtao::geometry)
 
@@ -110,8 +111,6 @@ ADD_EXECUTABLE(halfedge_concentric_circle_test EXCLUDE_FROM_ALL halfedge_concent
 TARGET_LINK_LIBRARIES(halfedge_concentric_circle_test EXCLUDE_FROM_ALL  mtao::geometry)
 ADD_EXECUTABLE(strand_test EXCLUDE_FROM_ALL strand_test.cpp)
 TARGET_LINK_LIBRARIES(strand_test EXCLUDE_FROM_ALL mtao::geometry)
-ADD_EXECUTABLE(halfedge_topology_test EXCLUDE_FROM_ALL halfedge_topology_test.cpp)
-TARGET_LINK_LIBRARIES(halfedge_topology_test EXCLUDE_FROM_ALL mtao::geometry)
 ADD_EXECUTABLE(halfedge_submesh_test EXCLUDE_FROM_ALL halfedge_submesh_test.cpp)
 TARGET_LINK_LIBRARIES(halfedge_submesh_test EXCLUDE_FROM_ALL mtao::geometry)
 ADD_EXECUTABLE(embedded_halfedge_test EXCLUDE_FROM_ALL embedded_halfedge_test.cpp)

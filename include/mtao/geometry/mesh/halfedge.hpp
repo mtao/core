@@ -5,13 +5,14 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <tuple>
 #include <utility>
 #include <vector>
 
 #include "mtao/data_structures/disjoint_set.hpp"
-#include "mtao/geometry/mesh/earclipping.hpp"
 #include "mtao/geometry/cyclic_order.hpp"
-#include "mtao/types.h"
+#include "mtao/geometry/mesh/earclipping.hpp"
+#include "mtao/types.hpp"
 
 namespace mtao::geometry::mesh {
 
@@ -30,7 +31,7 @@ class HalfEdgeMesh {
     };
     using VecXi = mtao::VectorX<int>;
     template <int D>
-    using ColVectorsi = mtao::ColVectors<int, D>;
+    using ColVectorsi = ColVectors<int, D>;
     using Cells = mtao::MatrixX<int>;
     using Edges = ColVectorsi<int(Index::IndexEnd)>;
     using DatVec = mtao::Vector<int, int(Index::IndexEnd)>;
@@ -42,7 +43,7 @@ class HalfEdgeMesh {
     static HalfEdgeMesh from_cells(const Cells& F,
                                    bool use_open_halfedges = false);
     static HalfEdgeMesh from_edges(
-        const mtao::ColVectors<int, 2>& E);  // From non-dual edges
+        const ColVectors<int, 2>& E);  // From non-dual edges
     HalfEdgeMesh() = default;
     HalfEdgeMesh(const HalfEdgeMesh&) = default;
     HalfEdgeMesh(HalfEdgeMesh&&) = default;
@@ -145,30 +146,18 @@ class HalfEdgeMesh {
     HalfEdgeMesh submesh_from_edges(const std::set<int>& edge_indices) const;
     HalfEdgeMesh submesh_from_vertices(const std::set<int>& edge_indices) const;
 
-    // returns the directed halfedges that point away from each particular vertex
+    // returns the directed halfedges that point away from each particular
+    // vertex
     std::map<int, std::set<int>> vertex_edges_no_topology() const;
 
-
-    // atan based sorting
-    // pass in a single vertex and the pertinent 
-    template <typename Derived>
-    void set_one_ring_adjacencies_cotan(const Eigen::MatrixBase<Derived>& V,
-                                  const std::vector<int>& edges,
-                                  bool stitch_ends = true);
-    template <typename T>
-    void set_one_ring_adjacencies_cotan(const std::map<T, int>& ordered_edge_indices,
-                                  bool stitch_ends = true);
-    template <typename T>
-    void set_one_ring_adjacencies_cotan(
-        const std::map<std::tuple<T, int>, int>& ordered_edge_indices,
-        bool stitch_ends = true);
-
-    // quadrant + cotan for sorting
-    //template <typename Derived>
-    //void set_one_ring_adjacencies_quadcross(const Eigen::MatrixBase<Derived>& V,
-    //                              const std::vector<int>& edges,
-    //                              bool stitch_ends = true);
-    void set_one_ring_adjacencies_quadcross(const std::vector<int>& ordered_edge_indices);
+    void set_one_ring_adjacencies_quadcross(
+        const std::vector<int>& ordered_edge_indices);
+    template <typename TDerived = ColVectors<int, 2>>
+        // get passed in half-edge indices
+    void set_one_ring_adjacencies_quadcross(
+        const std::set<int>& edges,
+        const std::map<std::array<int, 2>, std::tuple<int, bool>>& tangent_map,
+        const Eigen::MatrixBase<TDerived>& T);
 
     template <typename Derived, typename Derived2>
     typename Derived::Scalar winding_number(
@@ -290,21 +279,21 @@ class EmbeddedHalfEdgeMesh : public HalfEdgeMesh {
     EmbeddedHalfEdgeMesh& operator=(EmbeddedHalfEdgeMesh&&) = default;
     ~EmbeddedHalfEdgeMesh() = default;
     template <typename... Args>
-    EmbeddedHalfEdgeMesh(const mtao::ColVectors<S, D>& V, Args&&... args)
+    EmbeddedHalfEdgeMesh(const ColVectors<S, D>& V, Args&&... args)
         : HalfEdgeMesh(std::forward<Args>(args)...), m_vertices(V) {}
 
-    static EmbeddedHalfEdgeMesh from_cells(const mtao::ColVectors<S, D>& V,
+    static EmbeddedHalfEdgeMesh from_cells(const ColVectors<S, D>& V,
                                            const Cells& F,
                                            bool use_open_halfedges = false) {
         return EmbeddedHalfEdgeMesh(
             V, HalfEdgeMesh::from_cells(F, use_open_halfedges));
     }
-    static EmbeddedHalfEdgeMesh from_edges(const mtao::ColVectors<S, D>& V,
-                                           const mtao::ColVectors<int, 2>& E) {
+    static EmbeddedHalfEdgeMesh from_edges(const ColVectors<S, D>& V,
+                                           const ColVectors<int, 2>& E) {
         return EmbeddedHalfEdgeMesh(V, HalfEdgeMesh::from_edges(E));
     }
 
-    mtao::ColVectors<int, 3> cells_triangulated() const;
+    ColVectors<int, 3> cells_triangulated() const;
     auto V(int i) {
         assert(i >= 0);
         assert(i < nV());
@@ -317,7 +306,11 @@ class EmbeddedHalfEdgeMesh : public HalfEdgeMesh {
     }
     auto&& V() const { return m_vertices; }
     int nV() const { return m_vertices.cols(); }
-    void make_topology();
+
+    template <typename TDerived = ColVectors<int, 2>>
+    void make_topology(const std::map<std::array<int, 2>, std::tuple<int, bool>>&
+                           tangent_map = {},
+                       const Eigen::MatrixBase<TDerived>& T = ColVectors<int,2>{});
     void tie_nonsimple_cells(const std::set<int>& cell_halfedges) const {
         return HalfEdgeMesh::tie_nonsimple_cells(m_vertices, cell_halfedges);
     }
@@ -327,10 +320,6 @@ class EmbeddedHalfEdgeMesh : public HalfEdgeMesh {
         return HalfEdgeMesh::tie_nonsimple_cells(
             m_vertices, std::set<int>(C.begin(), C.end()));
     }
-    template <typename Derived>
-    void set_one_ring_adjacencies_cotan(
-        const Eigen::MatrixBase<Derived>& central_vertex,
-        const std::set<int>& outward_facing_halfedges);
 
     template <typename Derived>
     void set_one_ring_adjacencies_quadcross(
@@ -355,7 +344,7 @@ class EmbeddedHalfEdgeMesh : public HalfEdgeMesh {
     template <typename Derived>
     int get_cell(const Eigen::MatrixBase<Derived>& p)
         const;  // returns the cell containing point p
-    mtao::VectorX<int> get_cells(const mtao::ColVectors<S, D>& P) const;
+    mtao::VectorX<int> get_cells(const ColVectors<S, D>& P) const;
     auto T(int idx) const {
         auto e = edge(idx);
         int a = e.vertex();
@@ -396,703 +385,15 @@ class EmbeddedHalfEdgeMesh : public HalfEdgeMesh {
 
    private:
     // creates next arrows
-    mtao::ColVectors<S, D> m_vertices;
+    ColVectors<S, D> m_vertices;
 };
 namespace detail {
 void invalid_edge_warning();
 void invalid_cell_warning();
 }  // namespace detail
-
-template <typename Derived>
-struct edge_iterator_base {
-   public:
-    using MeshType = HalfEdgeMesh;
-    using HalfEdge = HalfEdgeMesh::HalfEdge;
-    edge_iterator_base(const HalfEdge& he) : m_he(he) {}
-    edge_iterator_base(const MeshType* cc, int index) : m_he(cc, index) {}
-    edge_iterator_base(const MeshType& cc, int index) : m_he(&cc, index) {}
-    Derived& derived() { return *static_cast<Derived*>(this); }
-    const Derived& derived() const {
-        return *static_cast<const Derived*>(this);
-    }
-
-    static void increment(HalfEdge& he) { return Derived::increment(he); }
-
-    HalfEdge start() const { return m_he; }
-
-    void operator()(const std::function<void(const HalfEdge&)>& f) {
-        auto it = start();
-        do {
-            f(it);
-            increment(it);
-        } while (it.index() != -1 && it.index() != m_he.index());
-        if (it.index() == -1) {
-            detail::invalid_edge_warning();
-        }
-    }
-
-    void run_earlyout(const std::function<bool(const HalfEdge&)>& f) {
-        auto it = start();
-        do {
-            if (!f(it)) {
-                return;
-            }
-            increment(it);
-        } while (it.index() != -1 && it.index() != m_he.index());
-        if (it.index() == -1) {
-            detail::invalid_edge_warning();
-        }
-    }
-
-   public:
-    HalfEdge m_he;
-};
-
-struct cell_iterator : public edge_iterator_base<cell_iterator> {
-    using Base = edge_iterator_base<cell_iterator>;
-    using Base::Base;
-    static void increment(HalfEdge& he);
-};
-struct vertex_iterator : public edge_iterator_base<vertex_iterator> {
-    using Base = edge_iterator_base<vertex_iterator>;
-    using Base::Base;
-    static void increment(HalfEdge& he);
-};
-struct boundary_iterator : public edge_iterator_base<boundary_iterator> {
-    using Base = edge_iterator_base<boundary_iterator>;
-    using Base::Base;
-    static void increment(HalfEdge& he);
-};
-
-template <typename S, int D>
-void EmbeddedHalfEdgeMesh<S, D>::make_topology() {
-    static_assert(D == 2);
-    // MAke edge connectivity
-    auto e2v = vertex_edges_no_topology();
-
-#ifdef _DEBUG
-    for(auto&& [vidx, edges]: e2v) {
-        for(auto&& [i,eidx]: mtao::iterator::enumerate(edges)) {
-            HalfEdge e = edge(eidx);
-            // int vertex = e.get_dual().vertex();
-            assert(e.get_dual().vertex() < nV());
-        }
-    }
-#endif
-#ifdef _OPENMP
-    std::vector<int> verts(e2v.size());
-    std::transform(e2v.begin(), e2v.end(), verts.begin(),
-                   [](auto&& pr) { return std::get<0>(pr); });
-
-    int idx = 0;
-#pragma omp parallel for
-    for (idx = 0; idx < verts.size(); ++idx) {
-        int vidx = verts[idx];
-#ifdef MTAO_USE_ATAN2_CYCLIC_ORDERING
-        set_one_ring_adjacencies_cotan(V(vidx), e2v.at(vidx));
-#else
-        set_one_ring_adjacencies_quadcross(V(vidx), e2v.at(vidx));
-#endif
-    }
-
-#else
-    for (auto&& [vidx, edges] : e2v) {
-#ifdef MTAO_USE_ATAN2_CYCLIC_ORDERING
-        set_one_ring_adjacencies_cotan(V(vidx), edges);
-#else
-        set_one_ring_adjacencies_quadcross(V(vidx), edges);
-#endif
-    }
-#endif
-
-    make_cells();
-}
-template <typename T>
-void HalfEdgeMesh::set_one_ring_adjacencies_cotan(
-    const std::map<std::tuple<T, int>, int>& ordered_edges, bool stitch_ends) {
-    auto ni = next_indices();
-    auto di = dual_indices();
-    auto nit = ordered_edges.begin();
-    if (ordered_edges.size() == 1) {
-        int eidx = nit->second;
-        ni(eidx) = di(eidx);
-    } else {
-        auto it = nit++;
-        for (; nit != ordered_edges.end(); ++it, ++nit) {
-            int nidx = nit->second;
-            int idx = it->second;
-            ni(idx) = di(nidx);
-        }
-        if (stitch_ends) {
-            int idx = it->second;
-            ni(idx) = di(ordered_edges.begin()->second);
-        }
-    }
-}
-template <typename T>
-void HalfEdgeMesh::set_one_ring_adjacencies_cotan(
-    const std::map<T, int>& ordered_edges, bool stitch_ends) {
-    auto ni = next_indices();
-    auto di = dual_indices();
-    auto nit = ordered_edges.begin();
-    if (ordered_edges.size() == 1) {
-        int eidx = nit->second;
-        ni(eidx) = di(eidx);
-    } else {
-        auto it = nit++;
-        for (; nit != ordered_edges.end(); ++it, ++nit) {
-            int nidx = nit->second;
-            int idx = it->second;
-            ni(idx) = di(nidx);
-        }
-        if (stitch_ends) {
-            int idx = it->second;
-            ni(idx) = di(ordered_edges.begin()->second);
-        }
-    }
-}
-template <typename Derived>
-void HalfEdgeMesh::set_one_ring_adjacencies_cotan(const Eigen::MatrixBase<Derived>& V,
-                                            const std::vector<int>& edges,
-                                            bool stitch_ends) {
-    assert(V.rows() == 2);
-    using S = typename Derived::Scalar;
-    std::map<S, int> edge_angles;
-    if (edges.size() == 0) {
-        return;
-    }
-    if (edges.size() == 1) {
-        int eidx = *edges.begin();
-        auto ni = next_indices();
-        auto di = dual_indices();
-        ni(eidx) = di(eidx);
-        return;
-        edge_angles[0] = eidx;
-    } else {
-        for (auto [i, eidx] : mtao::iterator::enumerate(edges)) {
-            // HalfEdge e = edge(eidx);
-            auto p = V.col(i);
-            S ang = std::atan2(p.y(), p.x());
-            edge_angles[ang] = eidx;
-        }
-        if (edges.size() != edge_angles.size()) {
-            mtao::logging::warn() << "Duplicate vertex directions found when "
-                                     "computing one ring adjacencies bb";
-            std::map<std::tuple<S, int>, int> edge_angles;
-            for (auto [i, eidx] : mtao::iterator::enumerate(edges)) {
-                // HalfEdge e = edge(eidx);
-                auto p = V.col(i);
-                S ang = std::atan2(p.y(), p.x());
-                edge_angles[std::make_tuple(ang, i)] = eidx;
-            }
-            HalfEdgeMesh::set_one_ring_adjacencies_cotan(edge_angles, stitch_ends);
-        }
-    }
-    set_one_ring_adjacencies_cotan(edge_angles, stitch_ends);
-}
-template <typename S, int D>
-template <typename Derived>
-void EmbeddedHalfEdgeMesh<S, D>::set_one_ring_adjacencies_cotan(
-    const Eigen::MatrixBase<Derived>& o, const std::set<int>& edges) {
-    static_assert(D == 2);
-    auto ni = next_indices();
-    auto di = dual_indices();
-    if (edges.size() == 1) {
-        int eidx = *edges.begin();
-        ni(eidx) = di(eidx);
-    } else {
-        std::map<S, int> edge_angles;
-
-        std::transform(edges.begin(), edges.end(),
-                       std::inserter(edge_angles, edge_angles.end()),
-                       [&](int eidx) {
-                           HalfEdge e = edge(eidx);
-                           // int vertex = e.get_dual().vertex();
-                           auto p = (V(e.get_dual().vertex()) - o);
-                           S ang = std::atan2(p.y(), p.x());
-                           return std::make_pair(ang, eidx);
-                       });
-        if (edges.size() != edge_angles.size()) {
-            mtao::logging::warn() << "Duplicate vertex directions found when "
-                                     "computing one ring adjacencies";
-            std::map<std::tuple<S, int>, int> edge_angles;
-            std::transform(
-                edges.begin(), edges.end(),
-                std::inserter(edge_angles, edge_angles.end()), [&](int eidx) {
-                    HalfEdge e = edge(eidx);
-                    int vertex = e.get_dual().vertex();
-                    auto p = (V(e.get_dual().vertex()) - o);
-                    S ang = std::atan2(p.y(), p.x());
-                    return std::make_pair(std::make_tuple(ang, vertex), eidx);
-                });
-            HalfEdgeMesh::set_one_ring_adjacencies_cotan(edge_angles);
-        } else {
-            HalfEdgeMesh::set_one_ring_adjacencies_cotan(edge_angles);
-        }
-    }
-}
-
-
-//template <typename Derived>
-//void HalfEdgeMesh::set_one_ring_adjacencies_quadcross(const Eigen::MatrixBase<Derived>& V,
-//                                            const std::vector<int>& edges,
-//                                            bool stitch_ends) {
-//    assert(V.rows() == 2);
-//    using S = typename Derived::Scalar;
-//    std::map<S, int> edge_angles;
-//    if (edges.size() == 0) {
-//        return;
-//    }
-//    if (edges.size() == 1) {
-//        int eidx = *edges.begin();
-//        auto ni = next_indices();
-//        auto di = dual_indices();
-//        ni(eidx) = di(eidx);
-//    } else {
-//        auto ordered_edges = cyclic_order(V);
-//        set_one_ring_adjacencies_quadcross(ordered_edges, stitch_ends);
-//    }
-//}
-
-template <typename S, int D>
-template <typename Derived>
-void EmbeddedHalfEdgeMesh<S, D>::set_one_ring_adjacencies_quadcross(
-    const Eigen::MatrixBase<Derived>& o, const std::set<int>& edges) {
-    static_assert(D == 2);
-#ifdef _DEBUG
-        for(auto&& [i,eidx]: mtao::iterator::enumerate(edges)) {
-            HalfEdge e = edge(eidx);
-            // int vertex = e.get_dual().vertex();
-            assert(e.get_dual().vertex() < nV());
-        }
-#endif
-    auto ni = next_indices();
-    auto di = dual_indices();
-    if(edges.empty()) {
-        return;
-    } else if (edges.size() == 1) {
-        int eidx = *edges.begin();
-        ni(eidx) = di(eidx);
-    } else {
-        std::vector<int> edges_vec(edges.begin(),edges.end());
-        mtao::ColVectors<S,D> VV(D,edges.size());
-        for(auto&& [i,eidx]: mtao::iterator::enumerate(edges_vec)) {
-            HalfEdge e = edge(eidx);
-            // int vertex = e.get_dual().vertex();
-            VV.col(i) = V(e.get_dual().vertex()) - o;
-        }
-        std::vector<int> order = cyclic_order(VV);
-        std::transform(order.begin(),order.end(), order.begin(), [&](int idx) {
-                return edges_vec.at(idx);
-                });
-
-        HalfEdgeMesh::set_one_ring_adjacencies_quadcross(order);
-    }
-}
-template <typename Derived>
-bool HalfEdgeMesh::is_inside(const Eigen::MatrixBase<Derived>& V, int cell_edge,
-                             const std::vector<int>& vertex_indices) const {
-    return is_inside(V, edge(cell_edge), vertex_indices);
-}
-template <typename Derived, typename Derived2>
-bool HalfEdgeMesh::is_inside(const Eigen::MatrixBase<Derived>& V, int cell_edge,
-                             const Eigen::MatrixBase<Derived2>& p) const {
-    return is_inside(V, edge(cell_edge), p);
-}
-
-template <typename Derived, typename Derived2>
-auto HalfEdgeMesh::winding_number(const Eigen::MatrixBase<Derived>& V,
-                                  const HalfEdge& cell_edge,
-                                  const Eigen::MatrixBase<Derived2>& p) const ->
-    typename Derived::Scalar {
-    using S = typename Derived::Scalar;
-
-    auto edge = [](HalfEdge he) -> std::array<int, 2> {
-        int i = he.vertex();
-        he.next();
-        int j = he.vertex();
-        return {{i, j}};
-    };
-    S value = 0;
-    get_cell_iterator(cell_edge)([&](auto&& e) {
-        auto [i, j] = edge(e);
-        auto a = V.col(i) - p;
-        auto b = V.col(j) - p;
-        S aa = std::atan2(a.y(), a.x());
-        S ba = std::atan2(b.y(), b.x());
-        S ang = ba - aa;
-        if (ang > M_PI) {
-            ang -= 2 * M_PI;
-        } else if (ang <= -M_PI) {
-            ang += 2 * M_PI;
-        }
-        value += ang;
-    });
-    return value;
-}
-template <typename Derived, typename Derived2>
-auto HalfEdgeMesh::winding_number(const Eigen::MatrixBase<Derived>& V,
-                                  const std::set<int>& cell_edge,
-                                  const Eigen::MatrixBase<Derived2>& p) const ->
-    typename Derived::Scalar {
-    using S = typename Derived::Scalar;
-
-    S ret = 0;
-    for (auto&& ce : cell_edge) {
-        ret += winding_number(V, edge(ce), p);
-    }
-    return ret;
-}
-template <typename Derived>
-std::map<int, typename Derived::Scalar> HalfEdgeMesh::signed_areas(
-    const Eigen::MatrixBase<Derived>& V) const {
-    auto cem = cell_halfedges_multi_component_map();
-    std::map<int, typename Derived::Scalar> ret;
-    for (auto&& [c, hes] : cem) {
-        if (c >= 0) {
-            ret[c] = signed_area(V, hes);
-        }
-    }
-    return ret;
-}
-template <typename Derived>
-auto HalfEdgeMesh::signed_area(const Eigen::MatrixBase<Derived>& V,
-                               const HalfEdge& cell_edge) const ->
-    typename Derived::Scalar {
-    using S = typename Derived::Scalar;
-
-    S ret = 0;
-    auto edge = [](HalfEdge he) -> std::array<int, 2> {
-        int i = he.vertex();
-        he.next();
-        int j = he.vertex();
-        return {{i, j}};
-    };
-
-    get_cell_iterator(cell_edge)([&](auto&& e) {
-        auto [i, j] = edge(e);
-        auto a = V.col(i);
-        auto b = V.col(j);
-        ret += a.x() * b.y() - a.y() * b.x();
-    });
-    return .5 * ret;
-}
-template <typename Derived>
-auto HalfEdgeMesh::signed_area(const Eigen::MatrixBase<Derived>& V,
-                               const std::set<int>& cell_edge) const ->
-    typename Derived::Scalar {
-    using S = typename Derived::Scalar;
-
-    S ret = 0;
-    for (auto&& ce : cell_edge) {
-        ret += signed_area(V, edge(ce));
-    }
-    return ret;
-}
-
-template <typename Derived>
-bool HalfEdgeMesh::is_inside(const Eigen::MatrixBase<Derived>& V,
-                             const std::set<int>& cell_edge,
-                             const std::vector<int>& vertex_indices) const {
-    for (auto&& vi : vertex_indices) {
-        if (!is_inside(V, cell_edge, V.col(vi))) {
-            return false;
-        }
-    }
-    return true;
-}
-
-template <typename Derived, typename Derived2>
-bool HalfEdgeMesh::is_inside(const Eigen::MatrixBase<Derived>& V,
-                             const std::set<int>& cell_edge,
-                             const Eigen::MatrixBase<Derived2>& p) const {
-    if constexpr (Derived2::ColsAtCompileTime == 1) {
-        return std::abs(HalfEdgeMesh::winding_number(V, cell_edge, p)) >
-               1;  // 1 is ok, looking for multiples of 2pi right?
-    } else {
-        for (int i = 0; i < p.cols(); ++i) {
-            if (!is_inside(V, cell_edge, p.col(i))) {
-                return false;
-            }
-        }
-        return true;
-    }
-}
-template <typename Derived>
-bool HalfEdgeMesh::is_inside(const Eigen::MatrixBase<Derived>& V,
-                             const HalfEdge& cell_edge,
-                             const std::vector<int>& vertex_indices) const {
-    for (auto&& vi : vertex_indices) {
-        if (!is_inside(V, cell_edge, V.col(vi))) {
-            return false;
-        }
-    }
-    return true;
-}
-
-template <typename Derived, typename Derived2>
-bool HalfEdgeMesh::is_inside(const Eigen::MatrixBase<Derived>& V,
-                             const HalfEdge& cell_edge,
-                             const Eigen::MatrixBase<Derived2>& p) const {
-    if constexpr (Derived2::ColsAtCompileTime == 1) {
-        return std::abs(HalfEdgeMesh::winding_number(V, cell_edge, p)) >
-               1;  // 1 is ok, looking for multiples of 2pi right?
-    } else {
-        for (int i = 0; i < p.cols(); ++i) {
-            if (!is_inside(V, cell_edge, p.col(i))) {
-                return false;
-            }
-        }
-        return true;
-    }
-}
-template <typename S, int D>
-template <typename Derived>
-bool EmbeddedHalfEdgeMesh<S, D>::is_inside(
-    const std::set<int>& cell_edge, const Eigen::MatrixBase<Derived>& p) const {
-    return HalfEdgeMesh::is_inside(m_vertices, cell_edge, p);
-}
-template <typename S, int D>
-bool EmbeddedHalfEdgeMesh<S, D>::is_inside(
-    const std::set<int>& cell_edge,
-    const std::vector<int>& vertex_indices) const {
-    return HalfEdgeMesh::is_inside(m_vertices, cell_edge, vertex_indices);
-}
-
-template <typename S, int D>
-template <typename Derived>
-bool EmbeddedHalfEdgeMesh<S, D>::is_inside(
-    int cell_edge, const Eigen::MatrixBase<Derived>& p) const {
-    return is_inside(edge(cell_edge), p);
-}
-template <typename S, int D>
-template <typename Derived>
-bool EmbeddedHalfEdgeMesh<S, D>::is_inside(
-    const HalfEdge& cell_edge, const Eigen::MatrixBase<Derived>& p) const {
-    return HalfEdgeMesh::is_inside(m_vertices, cell_edge, p);
-}
-template <typename S, int D>
-bool EmbeddedHalfEdgeMesh<S, D>::is_inside(
-    int cell_edge, const std::vector<int>& vertex_indices) const {
-    return is_inside(edge(cell_edge), vertex_indices);
-}
-template <typename S, int D>
-bool EmbeddedHalfEdgeMesh<S, D>::is_inside(
-    const HalfEdge& cell_edge, const std::vector<int>& vertex_indices) const {
-    return HalfEdgeMesh::is_inside(m_vertices, cell_edge, vertex_indices);
-}
-template <typename S, int D>
-mtao::ColVectors<int, 3> EmbeddedHalfEdgeMesh<S, D>::cells_triangulated()
-    const {
-    /*
-    std::cout << "Cells: " << std::endl;
-    for(auto&& c: cells()) {
-        for(auto&& i: c) {
-            std::cout << i << ",";
-        }
-        std::cout << std::endl;
-    }
-    std::cout << "^^^^^" << std::endl;
-    */
-    return mtao::geometry::mesh::earclipping(m_vertices, cells());
-}
-template <typename S, int D>
-template <typename Derived>
-int EmbeddedHalfEdgeMesh<S, D>::get_cell(
-    const Eigen::MatrixBase<Derived>& p) const {
-    static_assert(D == 2);
-    auto C = cell_halfedges_multi_component_map();
-
-    for (auto&& [c, hes] : C) {
-        if (is_inside(hes, p)) {
-            return c;
-        }
-    }
-    return -1;
-}
-template <typename S, int D>
-mtao::VectorX<int> EmbeddedHalfEdgeMesh<S, D>::get_cells(
-    const mtao::ColVectors<S, D>& P) const {
-    auto C = cell_halfedges();
-    mtao::VectorX<int> indices(P.cols());
-
-    auto edge = [](HalfEdge he) -> std::array<int, 3> {
-        int i = he.vertex();
-        he.next();
-        int j = he.vertex();
-        he.next();
-        int k = he.vertex();
-        he.next();
-        return {{i, j, k}};
-    };
-
-    auto get_index = [&](auto&& p) -> int {
-        for (size_t i = 0; i < C.size(); ++i) {
-            bool inside = true;
-            cell_iterator(this, C[i]).run_earlyout([&](auto&& e) -> bool {
-                auto [i, j, k] = edge(e);
-                auto a = V(i);
-                auto b = V(j);
-                auto c = V(k);
-                auto ba = b - a;
-                auto cb = c - b;
-                auto pb = p - b;
-                Vec n(-ba.y(), ba.x());
-                inside = pb.dot(n) * cb.dot(n) >= 0;
-
-                return inside;
-            });
-            if (inside) {
-                return i;
-            }
-        }
-        return -1;
-    };
-
-    for (int k = 0; k < P.cols(); ++k) {
-        auto& idx = indices(k);
-        auto p = P.col(k);
-        idx = get_index(p);
-    }
-    return indices;
-}
-
-template <typename S, int D>
-std::set<std::tuple<S, int>> EmbeddedHalfEdgeMesh<S, D>::get_edge_angles(
-    int eidx) const {
-    std::set<std::tuple<S, int>> edge_angles;
-
-    vertex_iterator(this, eidx)([&](auto&& e) {
-        auto t = T(e.index());
-        S ang = std::atan2(t.y(), t.x());
-        edge_angles.emplace({ang, e.index()});
-    });
-    /*
-       std::transform(edges.begin(),edges.end(),std::inserter(edge_angles,edge_angles.end()),
-       [&](int eidx) { HalfEdge e = edge(eidx); auto p =
-       V(e.get_dual().vertex()) - o; T ang = std::atan2(p.y(),p.x()); return
-       std::make_pair(ang,eidx);
-       });
-       */
-    return edge_angles;
-}
-
-template <typename Derived>
-void HalfEdgeMesh::tie_nonsimple_cells(const Eigen::MatrixBase<Derived>& V,
-                                       const std::set<int>& cell_halfedges) {
-    auto vols = signed_areas(V);
-    std::map<int, std::set<int>> halfedge_partial_ordering;
-    auto cells_map = this->cells_map();
-    std::set<int> outer_hes;
-    std::set<int> interior_hes;
-    mtao::data_structures::DisjointSet<int> ds;
-    ds.add_node(-1);
-    for (auto&& he : cell_halfedges) {
-        auto area = signed_area(V, edge(he));
-        if (area > 0) {
-            outer_hes.insert(he);
-        } else if (area < 0) {
-            interior_hes.insert(he);
-        } else {
-            // assert(area != 0);
-            int ci = cell_index(he);
-            ds.add_node(ci);
-            ds.join(-1, ci);
-        }
-    }
-
-    // the vertices that make each cell
-    std::map<int, std::vector<int>> CM;
-    std::map<int, std::set<int>> CMs;
-    for (auto&& he : cell_halfedges) {
-        auto&& v = CM[he] = cell_he(he);
-        CMs[he] = std::set<int>(v.begin(), v.end());
-    }
-
-    for (auto&& he : cell_halfedges) {
-        int cell = cell_index(he);
-        ds.add_node(cell);
-        ds.add_node(cell_index(dual_index(he)));
-    }
-    for (auto&& ohe : outer_hes) {
-        int ocell = cell_index(ohe);
-        // int docell = cell_index(dual_index(ohe));
-        for (auto&& ihe : interior_hes) {
-            int icell = cell_index(ihe);
-            int dicell = cell_index(dual_index(ihe));
-            if (ocell == icell || dicell == ocell) {
-                continue;
-            } else {
-                if (is_inside(V, edge(ohe), CM[ihe])) {
-                    auto&& potential_parent = CMs[ohe];
-                    auto&& potential_child = CMs[ihe];
-                    // if there's some random edge connecting these two we need
-                    // to find it
-                    if (std::includes(
-                            potential_parent.begin(), potential_parent.end(),
-                            potential_child.begin(), potential_child.end())) {
-                        auto&& child = CM[ihe];
-                        auto&& parent = CM[ohe];
-                        std::set<std::array<int, 2>> edges;
-                        for (int i = 0; i < parent.size(); ++i) {
-                            std::array<int, 2> e;
-                            e[0] = parent[i];
-                            e[1] = parent[(i + 1) % parent.size()];
-                            std::sort(e.begin(), e.end());
-                            edges.emplace(e);
-                        }
-                        for (int i = 0; i < child.size(); ++i) {
-                            std::array<int, 2> e;
-                            e[0] = child[i];
-                            e[1] = child[(i + 1) % child.size()];
-                            std::sort(e.begin(), e.end());
-                            if (edges.find(e) == edges.end()) {
-                                auto v = (V.col(e[0]) + V.col(e[1])) / 2;
-                                if (is_inside(V, edge(ohe), v)) {
-                                    halfedge_partial_ordering[ohe].insert(ihe);
-                                    break;
-                                }
-                            }
-                        }
-                    } else {
-                        halfedge_partial_ordering[ohe].insert(ihe);
-                    }
-                }
-            }
-        }
-    }
-
-    std::map<int, std::set<int>> ordered_partial_ordering;
-    std::set<int> seen_cells;
-    for (auto&& [h, hs] : halfedge_partial_ordering) {
-        ordered_partial_ordering[hs.size()].insert(h);
-    }
-    for (auto&& pr : ordered_partial_ordering) {
-        auto&& hs = std::get<1>(pr);
-        for (auto&& h : hs) {
-            int cell = cell_index(h);
-            auto&& children = halfedge_partial_ordering[h];
-
-            for (auto&& che : children) {
-                if (seen_cells.find(che) == seen_cells.end()) {
-                    int ci = cell_index(che);
-                    ds.join(cell, ci);
-                    seen_cells.emplace(che);
-                }
-            }
-        }
-    }
-    ds.reduce_all();
-    {
-        auto ci = cell_indices();
-        for (int i = 0; i < size(); ++i) {
-            int c = ci(i);
-            if (ds.has_node(c)) {
-                int root = ds.get_root(ci(i)).data;
-                cell_indices()(i) = root;
-            }
-        }
-    }
-}
 }  // namespace mtao::geometry::mesh
+
+#include "mtao/geometry/mesh/halfedge_impl.hpp"
+#include "mtao/geometry/mesh/halfedge_iterator.hpp"
+
 #endif  // HALFEDGE_CELLCOMPLEX_H
