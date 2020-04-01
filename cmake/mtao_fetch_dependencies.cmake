@@ -53,7 +53,7 @@ if(NOT DEFINED TRIANGLE_DIR)
 endif()
 
 if(MTAO_USE_ELTOPO)
-    fetch_dep(eltopo https://github.com/mtao/eltopo.git a242873acff7a3ed6f5b2af9ed0001b661258ec7 ON)
+    fetch_dep(eltopo https://github.com/mtao/eltopo.git 882d1f532ac11a2dae3dce90d39190a1ef451666 ON)
 endif()
 if(MTAO_USE_LOSTOPOS)
     fetch_dep(lostopos https://github.com/mtao/LosTopos.git 577636bfff2d72acf264c631610b345b61d797c2 ON)

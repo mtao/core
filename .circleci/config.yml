@@ -11,7 +11,7 @@ jobs:
                 command: 'apt-get update && apt-get install -y git'
             - run:
                 name: Installing gcc g++
-                command: 'apt-get install -y gcc g++'
+                command: 'apt-get install -y gcc g++ clang'
             - run:
                 name: Installing cmake
                 command: 'DEBIAN_FRONTEND=noninteractive apt-get install -y cmake'
@@ -26,27 +26,20 @@ jobs:
                 command: 'apt-get install -y libglfw3-dev libgl-dev libpng++-dev libxinerama-dev xorg-dev'
             - run:
                 name: Making CMake build files
-                command: 'cmake -H. -Bbuild -DBUILD_TESTING=ON -DCMAKE_BUILD_TYPE="Release"'
+                command: 'cmake -H. -Bbuild -DBUILD_TESTING=ON -DCMAKE_BUILD_TYPE="Debug"'
             - run:
                 name: Building 
                 command: 'cmake --build build -j 2'
-                #- persist_to_workspace:
-                #    root: workspace
-                #    test:
-                #        docker:
-                #            - image: "ubuntu:devel"
-                #            - image: "gcc:9.2.0"
-                #        steps:
             - run:
                 name: Run tests
                 command: 'cmake --build build --target test'
 
-
-                #workflows:
-                #  version: 2
-                #  build_and_test:
-                #    jobs:
-                #      - build
-                #      - test:
-                #          requires:
-                #            - build
+            - run:
+                name: Making CMake build files
+                command: 'cmake -H. -Bbuild-clang -DBUILD_TESTING=ON -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang'
+            - run:
+                name: Building 
+                command: 'cmake --build build-clang -j 2'
+            - run:
+                name: Run tests
+                command: 'cmake --build build-clang --target test'

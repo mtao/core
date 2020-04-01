@@ -81,7 +81,7 @@ struct IterativeLinearSolver
     }
     Vector solve(const Matrix & A, const Vector & b)
     {
-        compute(A,b,x);
+        compute(A,b);
         return solve();
     }
     void solve(const Matrix & A, const Vector & b, const Vector & x)
