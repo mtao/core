@@ -79,6 +79,7 @@ std::vector<std::tuple<std::vector<int>, bool>> edge_to_plcurves(
                     edge = de[0];
                 } else {
                     closedness = false;
+                    vec.emplace_back(vertex);
                     break;
                 }
             }
