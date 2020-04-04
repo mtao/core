@@ -7,7 +7,7 @@
 
 namespace mtao {
     template <typename IndexType=int>
-        struct ReIndexer {
+        struct [[deprecated]] ReIndexer {
             IndexType add_index(IndexType idx) {
                 if(auto it = m_forward.find(idx); it != m_forward.end()) {
                     return it->second;
