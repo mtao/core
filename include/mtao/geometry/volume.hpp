@@ -59,7 +59,7 @@ namespace mtao { namespace geometry {
             using Scalar = typename VertexDerived::Scalar;
 
 
-            mtao::Matrix<Scalar,E,D+1> v(V.rows(),S.rows());
+            mtao::Matrix<Scalar,E,(D != Eigen::Dynamic)?(D+1) : Eigen::Dynamic> v(V.rows(),S.rows()+1);
             v.col(D).setZero();
             Scalar myvol = 0;
             for(int i = 0; i < S.cols(); ++i) {
