@@ -9,9 +9,9 @@ namespace mtao::geometry {
     template <typename Derived, typename BeginIt, typename EndIt>
         auto curve_centroid( const Eigen::MatrixBase<Derived> & V, const BeginIt& beginit, const EndIt& endit) {
             static_assert(
-                    V::RowsAtCompileTime == 2 || 
-                    V::RowsAtCompileTime == 3 || 
-                    V::RowsAtCompileTime == Eigen::Dynamic);
+                    Derived::RowsAtCompileTime == 2 || 
+                    Derived::RowsAtCompileTime == 3 || 
+                    Derived::RowsAtCompileTime == Eigen::Dynamic);
             auto it = beginit;
             auto it1 = beginit;
             it1++;
@@ -25,11 +25,11 @@ namespace mtao::geometry {
                 auto a = V.col(*it);
                 auto b = V.col(*it1);
                 typename Derived::Scalar v;
-                if constexpr(V::RowsAtCompileTime == 2) {
+                if constexpr(Derived::RowsAtCompileTime == 2) {
                     v = a.x() * b.y() - a.y() * b.x();
-                } else if constexpr(V::RowsAtCompileTime == 3) {
+                } else if constexpr(Derived::RowsAtCompileTime == 3) {
                     v = a.cross(b).norm();
-                } else if constexpr(V::RowsAtCompileTime == Eigen::Dynamic) {
+                } else if constexpr(Derived::RowsAtCompileTime == Eigen::Dynamic) {
                     if(V.rows() == 2) {
                         v = a.x() * b.y() - a.y() * b.x();
                     } else if(V.rows() == 3) {
