@@ -1,6 +1,10 @@
 #pragma once
 #include <spdlog/spdlog.h>
 
+#include <algorithm>
+#include <array>
+#include <functional>
+
 namespace mtao::quadrature {
 // N = number of intervals integrated, N+1 calls made
 template <typename Scalar = double,
