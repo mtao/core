@@ -7,17 +7,25 @@
 
 namespace mtao::quadrature {
 // N = number of intervals integrated, N+1 calls made
+// basic simpsons rule implementation;
+// takes in a function from scaslars to scalar, a range, and a number of
+// intervals to integrate follows different simpsons rules depending on the case
 template <typename Scalar = double,
-          typename Func = std::function<double(double)> >
+          typename Func = std::function<double(double)>>
 Scalar simpsons_rule(Func&& f, Scalar a, Scalar b, int N = 3);
 
-template <int D, typename Scalar = double, typename Func = void>
-Scalar multidim_simpsons_rule(Func&& f, Scalar min, Scalar max, int count = 3);
-
-template <int D, typename Scalar = double, typename Func = void>
+// a multi-dimensional simpsons rule that takes in a function, bounding box, and
+// the per-dimension counts
+template <int D, typename Scalar = double,
+          typename Func = std::function<double(const std::array<Scalar, D>&)>>
 Scalar multidim_simpsons_rule(Func&& f, const std::array<Scalar, D>& min,
                               const std::array<Scalar, D>& max,
                               const std::array<int, D>& count);
+
+// similar to previous multidim_simpsons rule takes in a bounding box
+// [min,max]^D with a pre-set number of intervals for each dimension
+template <int D, typename Scalar = double, typename Func = void>
+Scalar multidim_simpsons_rule(Func&& f, Scalar min, Scalar max, int count = 3);
 
 template <typename Scalar, typename Func>
 Scalar simpsons_rule(Func&& f, Scalar a, Scalar b, int N) {
