@@ -28,6 +28,7 @@ ADD_CATCHTEST(geometry
     edges_to_plcurves_test.cpp
     read_obj_test.cpp
     halfedge_topology_test.cpp
+    winding_number_test.cpp
     )
 target_link_libraries(geometry_test PRIVATE mtao::geometry)
 
@@ -44,6 +45,14 @@ ADD_CATCHTEST(linalg
 ADD_CATCHTEST(algebra
     sort_with_permutation_count_test.cpp
     composite_test.cpp
+    )
+
+ADD_CATCHTEST(simulation
+    laplacian_test.cpp
+    )
+
+ADD_CATCHTEST(quadrature
+    quadrature_test.cpp
     )
 
 ADD_CATCHTEST(reindex

@@ -43,7 +43,7 @@ namespace mtao { namespace geometry { namespace mesh {
                 }
 
             }
-            for(int i = 0; i < diag.size(); ++i) {
+            for(size_t i = 0; i < diag.size(); ++i) {
                 trips.emplace_back(i,i,diag[i]);
             }
 
