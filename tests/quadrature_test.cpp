@@ -26,4 +26,32 @@ TEST_CASE("simpsons", "[quadrature]") {
             CHECK(v == Approx(a));
         }
     }
+
+    CHECK(multidim_simpsons_rule<2>(
+              [](const std::array<double, 2>& x) -> double {
+                  return std::pow(x[0], 5);
+              },
+              0., double(1), /*samples=*/30) == Approx(1 / 6.));
+
+    CHECK(multidim_simpsons_rule<2>(
+              [](const std::array<double, 2>& x) -> double {
+                  return std::pow(x[1], 5);
+              },
+              0., double(1), /*samples=*/30) == Approx(1 / 6.));
+    CHECK(multidim_simpsons_rule<3>(
+              [](const std::array<double, 3>& x) -> double {
+                  return std::pow(x[0], 5);
+              },
+              0., double(1), /*samples=*/30) == Approx(1 / 6.));
+
+    CHECK(multidim_simpsons_rule<3>(
+              [](const std::array<double, 3>& x) -> double {
+                  return std::pow(x[1], 5);
+              },
+              0., double(1), /*samples=*/30) == Approx(1 / 6.));
+    CHECK(multidim_simpsons_rule<2>(
+              [](const std::array<double, 2>& x) -> double {
+                  return std::pow(x[0] * x[1], 5);
+              },
+              0., double(1), /*samples=*/30) == Approx(1 / 36.));
 }
