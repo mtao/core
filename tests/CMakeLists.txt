@@ -29,6 +29,7 @@ ADD_CATCHTEST(geometry
     read_obj_test.cpp
     halfedge_topology_test.cpp
     winding_number_test.cpp
+    triangle_monomial_integrals_test.cpp
     )
 target_link_libraries(geometry_test PRIVATE mtao::geometry)
 
