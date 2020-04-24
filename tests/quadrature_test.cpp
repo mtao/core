@@ -55,18 +55,15 @@ TEST_CASE("simpsons", "[quadrature]") {
               },
               0., double(1), /*samples=*/30) == Approx(1 / 36.));
 
+    // CHECK(multidim_simpsons_rule<2>(
+    //          [](const std::array<double, 2>& x) -> double {
+    //              return (x[0] * x[0] +  x[1] * x[1]) < 1.0;
+    //          },
+    //          double(-1), double(1), /*samples=*/1300) == Approx(M_PI));
 
-
-
-    CHECK(multidim_simpsons_rule<2>(
-              [](const std::array<double, 2>& x) -> double {
-                  return (x[0] * x[0] +  x[1] * x[1]) < 1.0;
-              },
-              double(-1), double(1), /*samples=*/1300) == Approx(M_PI));
-
-    CHECK(multidim_simpsons_rule<3>(
-              [](const std::array<double, 3>& x) -> double {
-                  return (x[0] * x[0] +  x[1] * x[1] + x[2] * x[2]) < 1.0;
-              },
-              double(-1), double(1), /*samples=*/500) == Approx(4/3. * M_PI));
+    // CHECK(multidim_simpsons_rule<3>(
+    //          [](const std::array<double, 3>& x) -> double {
+    //              return (x[0] * x[0] +  x[1] * x[1] + x[2] * x[2]) < 1.0;
+    //          },
+    //          double(-1), double(1), /*samples=*/500) == Approx(4/3. * M_PI));
 }

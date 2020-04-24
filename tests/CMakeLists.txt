@@ -46,6 +46,7 @@ ADD_CATCHTEST(linalg
 ADD_CATCHTEST(algebra
     sort_with_permutation_count_test.cpp
     composite_test.cpp
+    pascal_triangle_test.cpp
     )
 
 ADD_CATCHTEST(simulation

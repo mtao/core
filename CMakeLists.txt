@@ -177,6 +177,7 @@ ADD_LIBRARY(mtao_common
     src/logging/timer.cpp
     src/logging/profiler.cpp
     src/cmdline_parser.cpp
+    src/algebra/pascal_triangle.cpp
     )
 
 
