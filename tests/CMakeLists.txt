@@ -9,7 +9,7 @@ ENDFUNCTION()
 
 FUNCTION(ADD_CATCHTEST BINNAME)
     ADD_EXECUTABLE(${BINNAME}_test main.cpp ${ARGN})
-    TARGET_LINK_LIBRARIES(${BINNAME}_test PRIVATE mtao::common Catch2::Catch2)
+    TARGET_LINK_LIBRARIES(${BINNAME}_test PRIVATE mtao::common Catch2::Catch2 fmt)
     add_test(NAME ${BINNAME} COMMAND ${BINNAME}_test)
 ENDFUNCTION()
 

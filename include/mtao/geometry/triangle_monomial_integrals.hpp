@@ -73,11 +73,11 @@ std::vector<T> triangle_monomial_integrals(
     }
 
     for (size_t d = 0; d <= max_dim; ++d) {
-        std::cout << "<<<<<<<<<<<<" << d << std::endl;
+        //std::cout << "<<<<<<<<<<<<" << d << std::endl;
         // int off = (d * (d + 1)) / 2;
         // for (size_t j = 0; j <= d; ++j) {
         for (long long j = d; j >= 0; --j) {
-            // std::cout << "j,k=" << j << ":" << k << " => " << std::endl;
+             //std::cout << "j = " << j << " => " << std::endl;
             //;
             // monomial is
             // (s u.x + t v.x + a.x)^j + (s u.y + t v.y + a.y)^k
@@ -86,9 +86,11 @@ std::vector<T> triangle_monomial_integrals(
             // d+0 = d => (s u.y + t v.y + a.y)^d
 
             // if dim == 3 we have to do this t hird loop
-             for (long long k = (Dim == 2)?(d - j):(d-j-1); k >= (Dim == 2) ? (d - j) : 0; --k) {
+             //for (long long k = (d - j); k >= (long long)(d - j) ; --k) {
+
+             for (long long k = (Dim == 2)?(d - j):(d-j-1); k >= (long long)((Dim == 2) ? (d - j) : 0); --k) {
             //for (size_t k = (Dim == 2) ? (d - j) : 0; k <= d - j; ++k) {
-                std::cout << j << << ", " <<  k << "(" << (d-j)<< std::endl;
+             //std::cout << "k = " << k << " => " << std::endl;
                 double val = 0.0;
                 // term of (s u.x + t v.x + a.x)^j expanded
                 for (size_t m = 0; (long long)m <= j; ++m) {
@@ -186,7 +188,7 @@ std::vector<T> triangle_monomial_integrals(
                     }
                     // std::cout << "Value: " << val << std::endl;
                 }
-                std::cout << "Value: " << val << std::endl;
+                //std::cout << "Value: " << val << std::endl;
                 ret.emplace_back(val * det);
             }
         }
