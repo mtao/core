@@ -30,6 +30,8 @@ ADD_CATCHTEST(geometry
     halfedge_topology_test.cpp
     winding_number_test.cpp
     triangle_monomial_integrals_test.cpp
+    dual_edge_lengths_test.cpp
+    dual_volume_test.cpp
     )
 target_link_libraries(geometry_test PRIVATE mtao::geometry)
 
@@ -41,6 +43,7 @@ ADD_CATCHTEST(linalg
     conjugate_gradient_tests.cpp
     krylov_tests.cpp
     gram_schmidt_test.cpp
+    solver_tests.cpp
     )
 
 ADD_CATCHTEST(algebra

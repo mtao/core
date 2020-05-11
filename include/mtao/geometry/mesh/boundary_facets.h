@@ -8,6 +8,7 @@
 
 namespace mtao { namespace geometry { namespace mesh {
 
+    // returns column vectors of simplices one dimension lower than that of hte input
     //Only for simplices
     template <typename CellType>
 auto boundary_facets(const Eigen::MatrixBase<CellType>& C) {
