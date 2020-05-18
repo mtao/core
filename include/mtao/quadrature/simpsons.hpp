@@ -77,7 +77,7 @@ Scalar multidim_simpsons_rule(Func&& f, const std::array<Scalar, D>& min,
                               std::array<Scalar, D>& thusfar);
 }
 
-template <int D, typename Scalar = double, typename Func = void>
+template <int D, typename Scalar, typename Func>
 Scalar multidim_simpsons_rule(Func&& f, const std::array<Scalar, D>& min,
                               const std::array<Scalar, D>& max,
                               const std::array<int, D>& count) {
