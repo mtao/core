@@ -38,10 +38,10 @@ TEST_CASE("DualVolume3","[geometry,mesh]") {
     F.col(0) << 0,1,2;
     F.col(1) << 1,3,2;
     auto DV = mtao::geometry::mesh::dual_volumes(V,F);
-    CHECK(DV(0) == Approx(1/3.));
-    CHECK(DV(1) == Approx(2/3.));
-    CHECK(DV(2) == Approx(2/3.));
-    CHECK(DV(3) == Approx(1/3.));
+    CHECK(DV(0) == Approx(1/6.));
+    CHECK(DV(1) == Approx(2/6.));
+    CHECK(DV(2) == Approx(2/6.));
+    CHECK(DV(3) == Approx(1/6.));
 
 }
 

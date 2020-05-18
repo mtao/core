@@ -21,11 +21,11 @@ template <typename MatrixType>
 struct JacobiLinearSolver
     : public IterativeLinearSolver<JacobiLinearSolver<MatrixType>> {
     using Base = IterativeLinearSolver<JacobiLinearSolver<MatrixType>>;
-    using Base::Base;
     using Base::A;
     using Base::b;
-    using Base::x;
+    using Base::Base;
     using Base::solve;
+    using Base::x;
 
     void compute() {}
     void step() {
@@ -45,10 +45,11 @@ template <typename MatrixType, typename VecType>
 auto jacobi(const MatrixType& A, const VecType& b) {
     using Scalar = typename MatrixType::Scalar;
     mtao::VectorX<Scalar> x(A.cols());
-    auto residual = (b-A*x).template lpNorm<Eigen::Infinity>();
-    auto solver = JacobiLinearSolver<MatrixType>(1e6*A.rows(), 1e-5*residual);
+    auto residual = (b - A * x).template lpNorm<Eigen::Infinity>();
+    auto solver =
+        JacobiLinearSolver<MatrixType>(1e6 * A.rows(), 1e-5 * residual);
 
-    solver.solve(A,b,x);
+    solver.solve(A, b, x);
     return solver.x();
 }
 

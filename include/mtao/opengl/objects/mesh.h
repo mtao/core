@@ -12,6 +12,7 @@ namespace mtao::opengl::objects {
             AlgebraicMesh() {}
             AlgebraicMesh(const mtao::ColVectors<unsigned int, 3>& F);
             AlgebraicMesh(const mtao::ColVectors<unsigned int, 2>& E);
+            void makeVertexIndexBuffer(unsigned int size);
             void setTriangleBuffer(const mtao::ColVectors<unsigned int, 3>& F);
             void setEdgeBuffer(const mtao::ColVectors<unsigned int, 2>& E);
 
@@ -38,8 +39,10 @@ namespace mtao::opengl::objects {
                 }
 
 
-            Magnum::GL::Buffer vertex_buffer, edge_index_buffer, triangle_index_buffer, normal_buffer, vfield_buffer, color_buffer;
+            Magnum::GL::Buffer vertex_buffer, vertex_index_buffer, edge_index_buffer, triangle_index_buffer, normal_buffer, vfield_buffer, color_buffer;
             Magnum::Int vertex_Count;
+            Magnum::MeshIndexType vertex_indexType;
+            Magnum::UnsignedInt vertex_indexStart, vertex_indexEnd;
 
             Magnum::UnsignedInt edge_Count;
             Magnum::MeshIndexType edge_indexType;
