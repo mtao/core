@@ -18,11 +18,11 @@ namespace mtao::opengl::objects {
 
             template <typename Derived>
                 void setVertexBuffer(const Eigen::PlainObjectBase<Derived>& V) {
-                    vertex_Count = V.cols();
+                    makeVertexIndexBuffer(V.cols());
                     vertex_buffer.setData(Containers::ArrayView<const float>{V.data(),size_t(V.size())});
                 }
                 void setVertexBuffer(const Containers::ArrayView<const float>& V, int count = 1) {
-                    vertex_Count = count;
+                    makeVertexIndexBuffer(count);
                     vertex_buffer.setData(V);
                 }
             template <typename Derived>

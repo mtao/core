@@ -18,6 +18,7 @@ AlgebraicMesh::AlgebraicMesh(const mtao::ColVectors<unsigned int, 3>& F) {
     setTriangleBuffer(F);
 }
 void AlgebraicMesh::makeVertexIndexBuffer(unsigned int size) {
+    vertex_Count = size;
     std::vector<unsigned int> inds(size);
     Containers::Array<char> indexData;
     std::iota(inds.begin(), inds.end(), (unsigned int)(0));

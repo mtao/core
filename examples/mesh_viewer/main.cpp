@@ -19,7 +19,6 @@
 #include <mtao/geometry/mesh/vertex_normals.hpp>
 #include <mtao/geometry/mesh/shapes/vector_field.hpp>
 
-#include <glm/gtc/matrix_transform.hpp> 
 bool animate = false;
 bool save_frame = false;
 ImVec4 clear_color = ImColor(114, 144, 154);

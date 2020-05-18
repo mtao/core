@@ -13,7 +13,9 @@ layout(location = 5)
 in highp vec2 direction;
 #else
 uniform highp mat4 transformationProjectionMatrix;
+layout(location = 0)
 in highp vec4 position;
+layout(location = 5)
 in highp vec3 direction;
 #endif
 
@@ -29,7 +31,7 @@ void main() {
     head_position.xywz = vec4(transformationProjectionMatrix * vec3(position + scale * direction,1),0);
 #else
     gl_Position = transformationProjectionMatrix * position;
-    head_position = transformationProjectionMatrix * (position + vec4(direction,0));
+    head_position = transformationProjectionMatrix * (position + vec4( scale * direction,0));
 #endif
     geomColor = color;
 }

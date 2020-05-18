@@ -21,7 +21,6 @@
 #include <mtao/opengl/objects/grid.h>
 #include <mtao/geometry/grid/grid.h>
 
-#include <glm/gtc/matrix_transform.hpp> 
 #include <mtao/eigen/stack.h>
 #include <memory>
 #include <algorithm>

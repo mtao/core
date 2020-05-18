@@ -16,7 +16,6 @@
 #include "mtao/geometry/mesh/eltopo.h"
 #include "mtao/geometry/mesh/lostopos.hpp"
 
-#include <glm/gtc/matrix_transform.hpp> 
 
 using namespace mtao::opengl;
 using namespace mtao::logging;
@@ -53,7 +52,6 @@ void prepare_mesh(const ColVectors3d& V, const ColVectors3i&F) {
 void set_mvp(int w, int h) {
     cam.set_shape(w,h);
 
-    //cam.v() = glm::lookAt(glm::vec3(1,0,0), glm::vec3(0,0,0), glm::vec3(0,1,0));
     cam.pan();
     cam.update();
 
@@ -167,7 +165,6 @@ int main(int argc, char * argv[]) {
 #include <Corrade/Utility/Arguments.h>
 #include "mtao/opengl/objects/mesh.h"
 
-#include <glm/gtc/matrix_transform.hpp> 
 using TrackerType = ElTopoTracker;
 //using TrackerType = mtao::geometry::mesh::LosToposTracker;
 

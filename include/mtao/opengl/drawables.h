@@ -108,9 +108,7 @@ namespace mtao::opengl {
                 }
                 if(point_primitive) {
                     _mesh.setCount(_mesh.vertex_Count);
-                    //_mesh.setIndexBuffer({},0,_mesh.edge_indexType,0,0);
-                    //Magnum::GL::Buffer buf(Magnum::NoCreate);
-                    //_mesh.setIndexBuffer(buf,0, Magnum::MeshIndexType{});
+                    _mesh.setIndexBuffer(_mesh.vertex_index_buffer,0,_mesh.vertex_indexType,_mesh.vertex_indexStart,_mesh.vertex_indexEnd);
                     _mesh.setPrimitive(*point_primitive);
                     _mesh.draw(_shader);
                 }
