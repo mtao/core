@@ -101,7 +101,7 @@ class grid_storage {
                     }
                 }
             }
-            a.deallocate(m_data, size);
+            a.deallocate(m_data, m_size);
         }
         m_data = new_data;
         m_size = size;
