@@ -67,8 +67,8 @@ namespace mtao::opengl {
             }
             ShaderData<ShaderType>&  data() { return _data; } 
 
-            void set_visibility(bool val) { visible = val; }
-            bool is_visible() const { return visible; }
+          [[deprecated]]  void  set_visibility(bool val) { visible = val; }
+          [[deprecated]]  bool  is_visible() const { return visible; }
 
             bool lint_buffers(){
                 bool ret = lint_vertex();
@@ -77,7 +77,7 @@ namespace mtao::opengl {
                 return ret;
             }
         private:
-            bool visible = true;
+          [[deprecated]]  bool  visible = true;
             std::optional<GL::MeshPrimitive> triangle_primitive = GL::MeshPrimitive::Triangles;
             std::optional<GL::MeshPrimitive> edge_primitive;// = GL::MeshPrimitive::Lines;
             std::optional<GL::MeshPrimitive> point_primitive;// = GL::MeshPrimitive::Lines;

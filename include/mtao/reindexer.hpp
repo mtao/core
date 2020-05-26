@@ -42,7 +42,7 @@ namespace mtao {
             std::map<IndexType,IndexType> m_forward;
         };
     template <size_t Size, typename IndexType=int>
-        struct StackedReIndexer {
+        struct [[deprecated]] StackedReIndexer {
             using RET = ReIndexer<IndexType>;
             template <size_t D>
                 void add_index(IndexType idx) {

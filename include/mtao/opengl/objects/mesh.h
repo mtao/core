@@ -4,6 +4,8 @@
 
 #include <Magnum/GL/Buffer.h>
 
+// In general this version of mesh should not be directly accessed, look to ::drawables::Mesh instead.
+// The mesh here does not have a direct means for rendering, and the ::drawables::Mesh variant pairs the mesh with a drawable
 namespace mtao::opengl::objects {
     using namespace Magnum;
 

@@ -115,7 +115,6 @@ namespace mtao::opengl {
                 name = "Mesh Visualizer Shader";
             }
             if(ImGui::TreeNode(name.c_str())) {
-                ImGui::Checkbox("Visible", &visible);
                 ImGui::ColorEdit4("Color", _data.color.data());
                 ImGui::ColorEdit4("Wireframe Color", _data.wireframe_color.data());
                 ImGui::SliderFloat("Wireframe Width", &_data.wireframe_width,0.,10.);
