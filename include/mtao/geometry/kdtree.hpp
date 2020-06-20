@@ -113,7 +113,7 @@ class KDNode {
 
         auto comp_child = [&](const std::unique_ptr<ChildNodeType>& c) {
             if (c) {
-                c->nearest(p, nearest_index, nearest_dist);
+                c->nearest_filtered(p, nearest_index, nearest_dist,filter);
             }
         };
         T ad = axis_dist(p);
