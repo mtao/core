@@ -99,6 +99,42 @@ class KDNode {
         }
     }
 
+    template <typename Derived, typename FilterFunc>
+    void nearest_filtered(const Eigen::MatrixBase<Derived>& p, size_t& nearest_index,
+                 T& nearest_dist, FilterFunc&& filter) const {
+        if(!filter(point(),index())) {
+            return;
+        }
+        T dist = (point() - p).norm();
+        if (dist < nearest_dist) {
+            nearest_index = index();
+            nearest_dist = dist;
+        }
+
+        auto comp_child = [&](const std::unique_ptr<ChildNodeType>& c) {
+            if (c) {
+                c->nearest(p, nearest_index, nearest_dist);
+            }
+        };
+        T ad = axis_dist(p);
+        bool in_nearband = nearest_dist >= std::abs(ad);
+
+        //[  node     point  child]
+        //[  node     child  point]
+        //[  point    node   child]
+        // axis nearest_dist is negative and considering going down right child
+        if (ad >= 0 || in_nearband) {
+            comp_child(right());
+        }
+        //[  point  child     node]
+        //[  child  point     node]
+        //[  child    node   point]
+        // axis nearest_dist is positive and considering going down left child
+        if (ad < 0 || in_nearband) {
+            comp_child(left());
+        }
+    }
+
     template <typename Derived>
     void nearest(const Eigen::MatrixBase<Derived>& p, size_t& nearest_index,
                  T& nearest_dist) const {
@@ -258,9 +294,23 @@ class KDTree {
         m_node->nearest(p, idx, d);
         return {idx, d};
     }
+    template <typename Derived, typename Filter>
+    std::tuple<size_t, T> nearest_filtered(
+        const typename Eigen::MatrixBase<Derived>& p, Filter&& filter) const {
+        size_t idx = 0;
+        T d = std::numeric_limits<T>::max();
+        assert(m_node);
+
+        m_node->nearest_filtered(p, idx, d, filter);
+        return {idx, d};
+    }
     template <typename Derived>
     size_t nearest_index(const typename Eigen::MatrixBase<Derived>& p) const {
         return std::get<0>(nearest(p));
+    }
+    template <typename Derived, typename Filter>
+    size_t nearest_index_filtered(const typename Eigen::MatrixBase<Derived>& p, Filter&& f) const {
+        return std::get<0>(nearest_filtered(p,f));
     }
     template <typename Derived>
     size_t nearest_distance(
@@ -271,6 +321,11 @@ class KDTree {
     const Vec& nearest_point(
         const typename Eigen::MatrixBase<Derived>& p) const {
         return point(nearest_index(p));
+    }
+    template <typename Derived, typename FilterFunc>
+    const Vec& nearest_point_filtered(
+        const typename Eigen::MatrixBase<Derived>& p, FilterFunc&& f) const {
+        return point(nearest_index_filtered(p,f));
     }
 
     operator std::string() const {

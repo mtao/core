@@ -41,6 +41,9 @@ int main(int argc, char* argv[]) {
         } else {
             // std::cout << "Scucess!" << std::endl;
         }
+        size_t kdti_f = kdt.nearest_index_filtered(v, [](const mtao::Vector<double,2>& p, int index) -> bool {
+                return p.x() > .5;
+                });
     }
     std::cout << std::string(kdt) << std::endl;
     {
