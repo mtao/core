@@ -259,6 +259,7 @@ namespace mtao { namespace geometry {
                     }
                     return 0;
                 }
+                const std::unique_ptr<NodeType>& root() const { return m_node; }
 
 
 
