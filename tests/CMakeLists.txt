@@ -32,6 +32,7 @@ ADD_CATCHTEST(geometry
     triangle_monomial_integrals_test.cpp
     dual_edge_lengths_test.cpp
     dual_volume_test.cpp
+    cell_list_test.cpp
     )
 target_link_libraries(geometry_test PRIVATE mtao::geometry)
 
