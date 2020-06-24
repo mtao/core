@@ -8,6 +8,7 @@
 #endif
 #include <string>
 #include <type_traits>
+#include <tuple>
 
 namespace mtao::types {
 class empty {};
