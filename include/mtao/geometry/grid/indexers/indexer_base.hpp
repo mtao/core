@@ -3,6 +3,7 @@
 #include <functional>
 #include <numeric>
 #include <tuple>
+#include <array>
 namespace mtao {
     namespace geometry {
         namespace grid {
