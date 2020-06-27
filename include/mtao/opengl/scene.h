@@ -1,33 +1,33 @@
-
 #pragma once
 
 #include "mtao/opengl/objects/types.h"
+#include <memory>
 
 namespace mtao::opengl {
 
+    // a scene object that is also its own root
+    // this way scenes can be elements in higher order scenes
 class Scene2D : public Magnum::SceneGraph::Scene<MatTransform2D> {
-    Magnum::Vector2 cameraPosition(const Magnum::Vector2i& position)
-        const;  //[0,1]^2 position of the camera
+    public:
     // position in 2D space with respect to the root node
     Magnum::Vector2 localPosition(const Magnum::Vector2i& position) const;
-    Object2D& root() { return _root; }
-    Magnum::SceneGraph::Camera2D& camera() { return _camera; }
-    const Object2D& root() const { return _root; }
-    const Magnum::SceneGraph::Camera2D& camera() const { return *_camera; }
-    void updateTransformation();
 
-   private:
-    Object2D _root;
-    std::shared_ptr<Camera2D> _camera;
+    virtual SceneGraph::Camera2D& activeCamera() = 0;
+
+    void drawGroup(const SceneGraph::DrawableGroup2D& group);
+    void drawGroups();
+    std::map<std::string,std::tuple<DrawableGroup2D,bool>> _draw_groups;
+
 };
 
 class Scene3D : public Magnum::SceneGraph::Scene<MatTransform3D> {
-    Object3D& root() { return _root; }
-    Magnum::SceneGraph::Camera3D& camera() { return *_camera; }
+    virtual SceneGraph::Camera3D& activeCamera() = 0;
 
-   private:
-    Object3D _root;
-    std::shared_ptr<Camera3D> _camera;
+
+
+    void drawGroup(const SceneGraph::DrawableGroup3D& group);
+    void drawGroups();
+    std::map<std::string,std::tuple<DrawableGroup3D,bool>> _draw_groups;
 };
 
 }  // namespace mtao::opengl
