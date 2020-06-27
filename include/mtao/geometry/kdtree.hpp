@@ -41,7 +41,7 @@ class KDNode {
             right() =
                 std::make_unique<ChildNodeType>(tree, std::move(*o.right()));
         }
-        for(auto&& c: children) {
+        for(auto&& c: m_children) {
             c.reset();
         }
     }
