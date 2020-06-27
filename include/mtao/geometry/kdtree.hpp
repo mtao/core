@@ -257,7 +257,7 @@ class KDTree {
         if (o.m_node) {
             m_node = std::make_unique<NodeType>(*this, std::move(*o.m_node));
         }
-        return *this;
+        o.m_node.reset();
     }
     ~KDTree() = default;
     KDTree& operator=(const KDTree&) = delete;
@@ -266,6 +266,7 @@ class KDTree {
         if (o.m_node) {
             m_node = std::make_unique<NodeType>(*this, std::move(*o.m_node));
         }
+        o.m_node.reset();
         return *this;
     }
     void reserve(size_t size) { m_points.reserve(size); }
