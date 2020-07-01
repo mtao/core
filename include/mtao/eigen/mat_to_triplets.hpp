@@ -10,7 +10,7 @@ auto mat_to_triplets(const Derived& V, typename Derived::Scalar thresh) {
     std::vector<Eigen::Triplet<Scalar>> ret;
 
     ret.reserve(V.nonZeros());
-    if constexpr (is_sparse(V)) {
+    if constexpr (is_sparse<Derived>()) {
         for (int k = 0; k < V.outerSize(); ++k) {
             for (typename Derived::InnerIterator it(V, k); it; ++it) {
                 if (std::abs(it.value()) >= thresh) {
@@ -43,7 +43,7 @@ auto mat_to_triplets(const Derived& V) {
     std::vector<Eigen::Triplet<Scalar>> ret;
 
     ret.reserve(V.nonZeros());
-    if constexpr (is_sparse(V)) {
+    if constexpr (is_sparse<Derived>()) {
         for (int k = 0; k < V.outerSize(); ++k) {
             for (typename Derived::InnerIterator it(V, k); it; ++it) {
                 ret.emplace_back(it.row(), it.col(), it.value());
