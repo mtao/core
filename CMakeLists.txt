@@ -27,7 +27,7 @@ OPTION(MTAO_USE_ELTOPO "Should we build the el topo submodule" ON)
 OPTION(MTAO_USE_LOSTOPOS "Should we build the los topos submodule" OFF)
 OPTION(MTAO_USE_OPENGL "Build opengl stuff" ON)
 # Temporary fix for having wayland support in glfw (https://github.com/glfw/glfw/issues/1655)
-OPTION(MTAO_FORCE_LOCAL_GLFW "Build our own version of GLFW" ON)
+OPTION(MTAO_FORCE_LOCAL_GLFW "Build our own version of GLFW" OFF)
 OPTION(MTAO_USE_OPENVDB "Build openvdb stuff" OFF)
 OPTION(MTAO_USE_PNGPP "Use PNG++ for screenshots" ON)
 
