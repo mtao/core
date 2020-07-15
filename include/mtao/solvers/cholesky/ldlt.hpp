@@ -34,7 +34,7 @@ struct DenseLDLT_MIC0 {
     template <typename Vector>
     void solve(const Vector& b, Vector& x) {
         x = LD.template triangularView<Eigen::UnitLower>().solve(b);
-        x.noalias() = (LD.diagonal().array().abs() > 1e-5).select(x.cwiseQuotient(LD.diagonal(),x);//safe beacuse it's a dot
+        x.noalias() = (LD.diagonal().array().abs() > 1e-5).select(x.cwiseQuotient(LD.diagonal()),x);//safe beacuse it's a dot
         LD.template triangularView<Eigen::UnitLower>().transpose().solveInPlace(x);
     }
     Matrix getA() {
