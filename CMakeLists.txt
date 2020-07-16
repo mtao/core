@@ -263,6 +263,7 @@ SET(GEOMETRY_SRCS
     include/mtao/geometry/mesh/halfedge.hpp
     include/mtao/geometry/mesh/halfedge_fv_map.hpp
     include/mtao/geometry/mesh/read_obj.hpp
+    src/geometry/mesh/ply.cpp
     #include/mtao/geometry/mesh/read_plc.hpp
     include/mtao/geometry/mesh/boundary_matrix.h
     include/mtao/geometry/mesh/boundary_facets.h
