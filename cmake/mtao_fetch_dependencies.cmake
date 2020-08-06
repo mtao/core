@@ -81,6 +81,11 @@ if(NOT fmt_FOUND)
 fetch_dep(fmt https://github.com/fmtlib/fmt.git 6.2.1 ON)
 endif()
 
+find_package(range-v3 QUIET)
+if(NOT range-v3_FOUND)
+fetch_dep(range-v3 https://github.com/ericniebler/range-v3.git 0.10.0 ON)
+endif()
+
 find_package(spdlog QUIET)
 if(NOT spdlog_FOUND)
 fetch_dep(spdlog https://github.com/gabime/spdlog.git v1.5.0 ON)

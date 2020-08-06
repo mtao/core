@@ -1,4 +1,6 @@
 #pragma once
+#include <range/v3/view/cycle.hpp>
+#include <range/v3/view/take.hpp>
 
 namespace mtao {
     namespace iterator {
@@ -67,7 +69,8 @@ namespace mtao {
             }
         template <typename Container>
             auto cycle(Container&& c) {
-                return cycle(c.begin(),c.end());
+                return ranges::views::cycle(c);
+                //return cycle(c.begin(),c.end());
             }
 
 
@@ -77,7 +80,8 @@ namespace mtao {
             }
         template <typename Container>
             auto cycle_with_offset(Container&& c, size_t offset) {
-                return cycle_with_offset(c.begin(),c.end(), offset);
+                return ranges::views::cycle(c) | ranges::views::take(offset);
+                //return cycle_with_offset(c.begin(),c.end(), offset);
             }
     }
 
