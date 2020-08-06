@@ -19,6 +19,13 @@ namespace mtao {
                                 }
                                 return *this;
                             }
+                            CycleIt& operator+=(size_t offset) {
+                                m_it+=offset;
+                                if(m_it == m_container->end_it()) {
+                                    m_it = m_container->begin_it();
+                                }
+                                return *this;
+                            }
                             bool operator!=(const CycleIt& other) const {
                                 return m_it != other.m_it;
                             }
@@ -42,6 +49,16 @@ namespace mtao {
                     const BeginIt m_begin;
                     const EndIt m_end;
             };
+        template <typename BeginIt, typename EndIt>
+            struct cycle_container_with_offset: public cycle_container<BeginIt, EndIt> {
+                using Base = cycle_container<BeginIt, EndIt>;
+                using Base::Base;
+                    cycle_container_with_offset(BeginIt&& b, EndIt&& e, size_t offset): Base(std::forward<BeginIt>(b),std::forward<EndIt>(e)), m_offset(offset) {}
+                    auto begin() { return Base::begin()+=m_offset; }
+                    auto begin() const { return Base::begin()+=m_offset; }
+                    using Base::end;
+                    size_t m_offset;
+            };
         }
 
         template <typename BeginIt, typename EndIt>
@@ -51,6 +68,16 @@ namespace mtao {
         template <typename Container>
             auto cycle(Container&& c) {
                 return cycle(c.begin(),c.end());
+            }
+
+
+        template <typename BeginIt, typename EndIt>
+            auto cycle_with_offset(BeginIt&& b, EndIt&& e, size_t offset) {
+                return detail::cycle_container_with_offset<BeginIt, EndIt>(std::forward<BeginIt>(b), std::forward<EndIt>(e), offset);
+            }
+        template <typename Container>
+            auto cycle_with_offset(Container&& c, size_t offset) {
+                return cycle_with_offset(c.begin(),c.end(), offset);
             }
     }
 

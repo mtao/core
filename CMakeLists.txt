@@ -183,7 +183,7 @@ ADD_LIBRARY(mtao_common
     )
 
 
-TARGET_LINK_LIBRARIES(mtao_common PUBLIC mtao_headers Eigen3::Eigen spdlog::spdlog)
+TARGET_LINK_LIBRARIES(mtao_common PUBLIC mtao_headers Eigen3::Eigen spdlog::spdlog fmt)
 
 if(MTAO_USE_TBB)
     TARGET_LINK_LIBRARIES(mtao_headers INTERFACE PkgConfig::tbb)
