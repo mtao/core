@@ -168,7 +168,7 @@ target_include_directories(mtao_headers INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
-TARGET_LINK_LIBRARIES(mtao_headers PUBLIC INTERFACE Eigen3::Eigen)
+TARGET_LINK_LIBRARIES(mtao_headers PUBLIC INTERFACE Eigen3::Eigen range-v3)
 
 ADD_LIBRARY(mtao_common 
     include/mtao/logging/logger.hpp
