@@ -27,4 +27,23 @@ int main() {
         fmt::print("{}\n",tup);
     }
 
+    for(auto [a,b]: interval<2>(a)) {
+        a = 2;
+    }
+    for(auto&& v: a) {
+        std::cout << v << std::endl;
+    }
+
+
+    std::iota(a.begin(),a.end(),0);
+    for(auto&& v: a) {
+        std::cout << v << std::endl;
+    }
+    for(auto [u,v]: cyclic_interval<2>(a)) {
+        u = 3;
+    }
+
+    for(auto&& v: a) {
+        std::cout << v << std::endl;
+    }
 }
