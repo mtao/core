@@ -10,7 +10,7 @@ namespace mtao::geometry::interpolation {
     template <typename RBFunc, typename PointsType, typename VecType>
         auto  radial_basis_function(RBFunc&& f, const Eigen::MatrixBase<PointsType>& P, const Eigen::MatrixBase<VecType>& v, typename PointsType::Scalar radius, bool make_pou=false) -> mtao::VectorX<typename PointsType::Scalar> {
             static_assert(std::is_same_v<typename PointsType::Scalar,typename VecType::Scalar>);
-            eigen::col_check<1>(v);
+            eigen::col_check_with_assert<1>(v);
 
             using Scalar = typename PointsType::Scalar;
             mtao::VectorX<Scalar> R(P.cols());
@@ -78,7 +78,7 @@ namespace mtao::geometry::interpolation {
     template <typename RBGrad, typename PointsType, typename VecType>
         auto  radial_basis_gradient(RBGrad&& g, const Eigen::MatrixBase<PointsType>& P, const Eigen::MatrixBase<VecType>& v, typename PointsType::Scalar radius) -> mtao::VectorX<typename PointsType::Scalar> {
             static_assert(std::is_same_v<typename PointsType::Scalar,typename VecType::Scalar>);
-            eigen::col_check<1>(v);
+            eigen::col_check_with_assert<1>(v);
 
             using Scalar = typename PointsType::Scalar;
             auto R = (P.colwise() - v).eval();

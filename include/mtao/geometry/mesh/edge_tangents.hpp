@@ -9,7 +9,7 @@ template <typename VDerived, typename EDerived>
 auto edge_tangents(const Eigen::MatrixBase<VDerived>& V,
                    const Eigen::MatrixBase<EDerived>& E,
                    bool sort_edges = false) {
-    eigen::row_check<2>(E);
+    eigen::row_check_with_assert<2>(E);
     using Scalar = typename VDerived::Scalar;
     using TType = ColVectors<Scalar, VDerived::RowsAtCompileTime>;
     TType T = TType::Zero(V.rows(), E.cols());
