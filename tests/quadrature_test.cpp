@@ -1,5 +1,6 @@
 #include <catch2/catch.hpp>
 #include <iostream>
+#include <mtao/quadrature/gauss_lobatto.hpp>
 #include <mtao/quadrature/simpsons.hpp>
 
 using namespace mtao::quadrature;
@@ -66,4 +67,29 @@ TEST_CASE("simpsons", "[quadrature]") {
     //              return (x[0] * x[0] +  x[1] * x[1] + x[2] * x[2]) < 1.0;
     //          },
     //          double(-1), double(1), /*samples=*/500) == Approx(4/3. * M_PI));
+}
+TEST_CASE("gauss_lobatto", "[quadrature]") {
+    std::cout << gauss_lobatto(
+                     [](double x) -> double { return std::pow(x, 5); }, 0.,
+                     double(1), /*samples=*/5)
+              << std::endl;
+    std::cout << gauss_lobatto(
+                     [](double x) -> double { return std::pow(x, 3); }, 0.,
+                     double(1), /*samples=*/4)
+              << std::endl;
+    std::cout << gauss_lobatto(
+                     [](double x) -> double { return std::pow(x, 4); }, 0.,
+                     double(1), /*samples=*/5)
+              << std::endl;
+    for (int k = 3; k <= 5; ++k) {
+        for (int j = 0; j < 5; ++j) {
+            for (int l = 0; l <= 2 * k - 3; ++l) {
+                double v = gauss_lobatto(
+                    [l](double x) -> double { return std::pow(x, l); }, 0.,
+                    double(j), /*samples=*/k);
+                double a = 1 / (l + 1.) * std::pow<double>(j, l + 1);
+                CHECK(v == Approx(a));
+            }
+        }
+    }
 }
