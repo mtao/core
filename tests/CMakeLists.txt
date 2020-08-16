@@ -17,22 +17,23 @@ ADD_DEFINITIONS(-g)
 
 ADD_CATCHTEST(geometry
     angle_test.cpp 
-    grid_test.cpp
-    grid_data_test.cpp
-    staggered_grid_test.cpp
-    multi_loop_test.cpp
-    staggered_grid_boundary_test.cpp
+    cell_list_test.cpp
+    centroid_test.cpp
     cyclic_order_test.cpp
-    stack_meshes_test.cpp
-    unique_simplices_test.cpp
-    edges_to_plcurves_test.cpp
-    read_obj_test.cpp
-    halfedge_topology_test.cpp
-    winding_number_test.cpp
-    triangle_monomial_integrals_test.cpp
     dual_edge_lengths_test.cpp
     dual_volume_test.cpp
-    cell_list_test.cpp
+    edges_to_plcurves_test.cpp
+    grid_data_test.cpp
+    grid_test.cpp
+    halfedge_topology_test.cpp
+    multi_loop_test.cpp
+    read_obj_test.cpp
+    stack_meshes_test.cpp
+    staggered_grid_boundary_test.cpp
+    staggered_grid_test.cpp
+    triangle_monomial_integrals_test.cpp
+    unique_simplices_test.cpp
+    winding_number_test.cpp
     )
 target_link_libraries(geometry_test PRIVATE mtao::geometry)
 
@@ -43,15 +44,15 @@ ADD_CATCHTEST(eigen
 
 ADD_CATCHTEST(linalg
     conjugate_gradient_tests.cpp
-    krylov_tests.cpp
     gram_schmidt_test.cpp
+    krylov_tests.cpp
     solver_tests.cpp
     )
 
 ADD_CATCHTEST(algebra
-    sort_with_permutation_count_test.cpp
     composite_test.cpp
     pascal_triangle_test.cpp
+    sort_with_permutation_count_test.cpp
     )
 
 ADD_CATCHTEST(simulation

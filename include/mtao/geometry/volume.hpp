@@ -173,26 +173,24 @@ template <typename ADerived, typename BDerived, typename CDerived>
 typename ADerived::Scalar triangle_area(const Eigen::MatrixBase<ADerived>& a,
                                         const Eigen::MatrixBase<BDerived>& b,
                                         const Eigen::MatrixBase<CDerived>& c) {
-    typename ADerived::Scalar v;
     if constexpr (ADerived::RowsAtCompileTime == 2) {
-        return .5 * (c-a).homogeneous().cross((b-a).homogeneous()).z();
+        return .5 * (b - a).homogeneous().cross((c - a).homogeneous()).z();
     } else if constexpr (ADerived::RowsAtCompileTime == 3) {
-        return .5 * (c-a).cross(b-a).norm();
+        return .5 * (b - a).cross(c - a).norm();
     } else if constexpr (ADerived::RowsAtCompileTime == Eigen::Dynamic) {
         if (a.rows() == 2) {
-            return .5 * (c-a).homogeneous().cross((b-a).homogeneous()).z();
+            return .5 * (b - a).homogeneous().cross((c - a).homogeneous()).z();
         } else if (a.rows() == 3) {
-            return .5 * (c-a).cross(b-a).norm();
+            return .5 * (b - a).cross(c - a).norm();
         }
     }
     // fall through is to use heron's formula
     auto l0 = (b - a).norm();
     auto l1 = (b - c).norm();
     auto l2 = (c - a).norm();
-    auto s = (l0 + l1 + l2) / 2;
-    return std::sqrt((l0 + l1 + l2) *
-                     (2 * l0 + 2 * l1 - l2)(2 * l0 - l1 + 2 * l2)(-l0 + 2 * l1 +
-                                                                  2 * l2)) /
+    // auto s = (l0 + l1 + l2) / 2;
+    return std::sqrt((l0 + l1 + l2) * (2 * l0 + 2 * l1 - l2) *
+                     (2 * l0 - l1 + 2 * l2) * (-l0 + 2 * l1 + 2 * l2)) /
            4;
 }
 
@@ -209,13 +207,13 @@ typename ADerived::Scalar tetrahedron_volume(
 template <typename ADerived, typename BDerived>
 typename ADerived::Scalar triangle_area(const Eigen::MatrixBase<ADerived>& a,
                                         const Eigen::MatrixBase<BDerived>& b) {
-    return triangle_area(ADerived::Zero(a.size()),a,b);
+    return triangle_area(ADerived::Zero(a.size()), a, b);
 }
 template <typename ADerived, typename BDerived, typename CDerived>
 typename ADerived::Scalar tetrahedron_volume(
     const Eigen::MatrixBase<ADerived>& a, const Eigen::MatrixBase<BDerived>& b,
     const Eigen::MatrixBase<CDerived>& c) {
-    return tetrahedron_volume(ADerived::Zero(a.size()),a,b,c);
+    return tetrahedron_volume(ADerived::Zero(a.size()), a, b, c);
 }
 }  // namespace geometry
 }  // namespace mtao
