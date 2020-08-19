@@ -57,4 +57,17 @@ auto gauss_lobatto(Func&& f, Scalar min, Scalar max, int n, Scalar ret = 0) {
     return halfrange * ret;
 }
 
+template <typename Derived>
+typename Derived::Scalar gauss_lobatto(const Eigen::MatrixBase<Derived>& f, typename Derived::Scalar range) {
+    auto [P, W] = gauss_lobatto_data<typename Derived::Scalar>(f.rows());
+
+    auto wm = mtao::eigen::stl2eigen(W);
+    return f.dot(wm) * range / 2.;
+}
+template <typename Scalar>
+Scalar gauss_lobatto(const std::vector<Scalar>& f, Scalar range) {
+
+    return gauss_lobatto(mtao::eigen::stl2eigen(f),range);
+}
+
 }  // namespace mtao::quadrature

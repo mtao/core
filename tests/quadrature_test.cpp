@@ -99,6 +99,9 @@ TEST_CASE("gauss_lobatto", "[quadrature]") {
     CHECK(P(1) == Approx(.5));
     CHECK(P(2) == Approx(1.));
 
+    CHECK(gauss_lobatto(mtao::Vec3d::Ones(),1) == Approx(1.));
+    CHECK(gauss_lobatto(mtao::Vec3d::Ones(),2) == Approx(2.));
+    CHECK(gauss_lobatto(mtao::VecXd::Ones(5),2) == Approx(2.));
     }
 }
 
