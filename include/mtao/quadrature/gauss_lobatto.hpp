@@ -1,11 +1,13 @@
 #pragma once
 #include "mtao/iterator/zip.hpp"
+#include "mtao/eigen/stl2eigen.hpp"
+#include <vector>
 namespace mtao::quadrature {
 // returns teh weights and points of a gauss lobatto rule on the [-1,1] interval
 // https://en.wikipedia.org/wiki/Gaussian_quadrature#Gauss%E2%80%93Lobatto_rules
 template <typename T>
-std::tuple<std::reference_wrapper<const std::vector<T>>,
-           std::reference_wrapper<const std::vector<T>>>
+std::tuple<const std::vector<T>&,
+           const std::vector<T>&>
 gauss_lobatto_data(int n = 3) {
     const static T s5 = T(1) / std::sqrt<T>(5).real();
     const static T s37 = std::sqrt<T>(T(3) / 7).real();
@@ -18,7 +20,16 @@ gauss_lobatto_data(int n = 3) {
         {T(1) / 6, T(5) / 6, T(5) / 6, T(1) / 6},
         {T(1) / 10, T(49) / 90, T(32) / 45, T(49) / 90, T(1) / 10}};
 
-    return {std::cref(points.at(n - 3)), std::cref(weights.at(n - 3))};
+    return {points.at(n - 3), weights.at(n - 3)};
+}
+
+template <typename Scalar>
+mtao::VectorX<Scalar>
+gauss_lobatto_sample_points(int n, Scalar min, Scalar max) {
+    auto&& [P, W] = gauss_lobatto_data<Scalar>(n);
+    Scalar mid = (min + max) / 2;
+    Scalar halfrange = (max - min) / 2;
+    return mtao::eigen::stl2eigen(P).array() * halfrange + mid;
 }
 
 template <typename Scalar, typename Func>

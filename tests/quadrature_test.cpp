@@ -92,4 +92,13 @@ TEST_CASE("gauss_lobatto", "[quadrature]") {
             }
         }
     }
+
+    {
+    auto P = gauss_lobatto_sample_points<double>(3,0,1);
+    CHECK(P(0) == Approx(0.));
+    CHECK(P(1) == Approx(.5));
+    CHECK(P(2) == Approx(1.));
+
+    }
 }
+
