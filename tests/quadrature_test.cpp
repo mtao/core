@@ -98,6 +98,13 @@ TEST_CASE("gauss_lobatto", "[quadrature]") {
     CHECK(P(0) == Approx(0.));
     CHECK(P(1) == Approx(.5));
     CHECK(P(2) == Approx(1.));
+    {
+    auto P = gauss_lobatto_sample_points<double>(5,0,1);
+    for(int j = 0; j < P.size(); ++j) {
+        double val = gauss_lobatto_sample_point<double>(5,0,1,j);
+    CHECK(P(j) == Approx(val));
+    }
+    }
 
     CHECK(gauss_lobatto(mtao::Vec3d::Ones(),1) == Approx(1.));
     CHECK(gauss_lobatto(mtao::Vec3d::Ones(),2) == Approx(2.));

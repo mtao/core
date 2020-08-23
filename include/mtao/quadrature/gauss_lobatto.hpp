@@ -31,6 +31,15 @@ gauss_lobatto_sample_points(int n, Scalar min, Scalar max) {
     Scalar halfrange = (max - min) / 2;
     return mtao::eigen::stl2eigen(P).array() * halfrange + mid;
 }
+template <typename Scalar>
+Scalar
+gauss_lobatto_sample_point(int n, Scalar min, Scalar max, size_t position) {
+    auto&& [P, W] = gauss_lobatto_data<Scalar>(n);
+    Scalar mid = (min + max) / 2;
+    Scalar halfrange = (max - min) / 2;
+    return P.at(position) * halfrange + mid;
+}
+
 
 template <typename Scalar, typename Func>
 auto gauss_lobatto(Func&& f, int n, Scalar ret = 0) {
