@@ -23,7 +23,7 @@ endfunction()
 
 if(NOT Eigen3_FOUND)
     set(BUILD_TESTING OFF)
-    fetch_dep(eigen https://gitlab.com/libeigen/eigen.git bcbaad6d874d451817457ae0603f953cda3c0c06 OFF)
+    fetch_dep(eigen https://gitlab.com/libeigen/eigen.git 8bb0feba OFF)
     set(EIGEN3_INCLUDE_DIR ${eigen_SOURCE_DIR})
     find_package(Eigen3 REQUIRED)
 ENDIF()

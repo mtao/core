@@ -182,6 +182,7 @@ ADD_LIBRARY(mtao_common
     src/algebra/pascal_triangle.cpp
     )
 
+set_property(TARGET mtao_common PROPERTY CXX_STANDARD 20)
 
 TARGET_LINK_LIBRARIES(mtao_common PUBLIC mtao_headers Eigen3::Eigen spdlog::spdlog fmt)
 
@@ -226,6 +227,7 @@ ADD_LIBRARY(mtao_visualization
     #Shaders
     src/opengl/shaders/vector_field.cpp
     )
+set_property(TARGET mtao_visualization PROPERTY CXX_STANDARD 20)
 if(MTAO_USE_PNGPP)
     FIND_PACKAGE(png++ REQUIRED)
     TARGET_COMPILE_DEFINITIONS(mtao_visualization PRIVATE -DMTAO_HAS_LIBPNGPP)
@@ -280,6 +282,7 @@ ENDIF(MTAO_USE_OPENGL)
 ADD_LIBRARY(mtao_geometry 
     ${GEOMETRY_SRCS}
     )
+set_property(TARGET mtao_geometry PROPERTY CXX_STANDARD 20)
 
 IF(MTAO_USE_OPENGL)
     SET(GEOMETRY_EXTRAS ${GEOMETRY_EXTRAS} ImGui::ImGui MagnumIntegration::ImGui)
