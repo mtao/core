@@ -1,6 +1,6 @@
 #pragma once
 #include <memory>
-#include <range/v3/view/subrange.hpp>
+#include <ranges>
 #include <tuple>
 #include <utility>
 
@@ -8,7 +8,7 @@ namespace mtao::iterator {
 
 template <typename BeginIt, typename EndIt>
 auto shell(BeginIt&& b, EndIt&& e) {
-    return ranges::make_subrange(b, e);
+    return std::ranges::subrange(b, e);
 }
 template <typename Container>
 auto shell(Container&& c) {
