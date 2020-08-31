@@ -40,6 +40,18 @@ gauss_lobatto_sample_point(int n, Scalar min, Scalar max, size_t position) {
     return P.at(position) * halfrange + mid;
 }
 
+template <typename Scalar>
+const auto&
+gauss_lobatto_sample_weights(int n) {
+    auto&& [P, W] = gauss_lobatto_data<Scalar>(n);
+    return W;
+}
+template <typename Scalar>
+Scalar
+gauss_lobatto_sample_weight(int n, size_t position) {
+    auto&& [P, W] = gauss_lobatto_data<Scalar>(n);
+    return W.at(position);
+}
 
 template <typename Scalar, typename Func>
 auto gauss_lobatto(Func&& f, int n, Scalar ret = 0) {

@@ -18,7 +18,9 @@ TEST_CASE("Jacobi", "[linear,solver]") {
 
     mtao::VecXd xx = mtao::solvers::linear::jacobi(A,b);
 
-    std::cout << x.transpose() << std::endl;
+    std::cout << A << std::endl;
+    std::cout << "b: "<< b.transpose() << std::endl;
+    std::cout << "x: "<< x.transpose() << std::endl;
     std::cout << xx.transpose() << std::endl;
     REQUIRE(x.isApprox(xx,1e-4));
 
