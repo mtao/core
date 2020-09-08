@@ -78,7 +78,7 @@ if(MTAO_USE_OPENGL)
 endif()
 find_package(fmt QUIET)
 if(NOT fmt_FOUND)
-fetch_dep(fmt https://github.com/fmtlib/fmt.git 6.2.1 ON)
+fetch_dep(fmt https://github.com/fmtlib/fmt.git 7.0.3 ON)
 endif()
 
 find_package(range-v3 QUIET)
