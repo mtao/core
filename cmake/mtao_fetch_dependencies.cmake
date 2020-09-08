@@ -88,7 +88,7 @@ endif()
 
 find_package(spdlog QUIET)
 if(NOT spdlog_FOUND)
-fetch_dep(spdlog https://github.com/gabime/spdlog.git v1.5.0 ON)
+fetch_dep(spdlog https://github.com/gabime/spdlog.git v1.8.0 ON)
 endif()
 
 if(MTAO_BUILD_TESTING)
