@@ -24,6 +24,9 @@ gauss_lobatto_data(int n = 3) {
         {T(1) / 6, T(5) / 6, T(5) / 6, T(1) / 6},
         {T(1) / 10, T(49) / 90, T(32) / 45, T(49) / 90, T(1) / 10}};
 
+    assert(n >= 1);
+    assert(size_t(n) <= points.size());
+
     return {points.at(n - 1), weights.at(n - 1)};
 }
 
