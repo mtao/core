@@ -46,6 +46,11 @@ if(MTAO_USE_OPENGL)
     endif()
     find_package(ImGui COMPONENTS Sources REQUIRED)
     set(ImGui_INCLUDE_DIR ${ImGui_INCLUDE_DIR} CACHE STRING "Location of the imgui library headers")
+    if(NOT DEFINED COLORMAP_SHADERS_INCLUDE_DIR)
+        fetch_dep(colormap_shaders https://github.com/kbinani/colormap-shaders.git 7ddaa34978c4729cfe6eddaf7bf68bb4831760bb OFF)
+        set(COLORMAP_SHADERS_INCLUDE_DIR ${colormap_shaders_SOURCE_DIR}/include CACHE STRING "Colormap-shaders incldue dir")
+        set(COLORMAP_SHADERS_SHADER_DIR ${colormap_shaders_SOURCE_DIR}/shaders CACHE STRING "colormap-shaders shader source dir")
+    endif()
 endif()
 
 
