@@ -1,6 +1,7 @@
 #include "mtao/opengl/objects/mesh.h"
 
 #include <Corrade/Containers/Array.h>
+#include <Corrade/Containers/StridedArrayView.h>
 #include <Magnum/MeshTools/CompressIndices.h>
 #include <Magnum/Shaders/Phong.h>
 
@@ -23,7 +24,7 @@ void AlgebraicMesh::makeVertexIndexBuffer(unsigned int size) {
     Containers::Array<char> indexData;
     std::iota(inds.begin(), inds.end(), (unsigned int)(0));
     std::tie(indexData, vertex_indexType) = MeshTools::compressIndices(
-        Corrade::Containers::StridedArrayView1D(inds));
+        Corrade::Containers::StridedArrayView1D<unsigned int>(inds));
     vertex_index_buffer.setData(indexData);
 }
 void AlgebraicMesh::setEdgeBuffer(const mtao::ColVectors<unsigned int, 2>& E) {
@@ -33,7 +34,8 @@ void AlgebraicMesh::setEdgeBuffer(const mtao::ColVectors<unsigned int, 2>& E) {
 
     edge_Count = E.size();
 
-    std::tie(indexData, edge_indexType) = MeshTools::compressIndices(ind);
+    std::tie(indexData, edge_indexType) = MeshTools::compressIndices(
+        Corrade::Containers::StridedArrayView1D<unsigned int>(inds));
     edge_index_buffer.setData(indexData);
 }
 void AlgebraicMesh::setTriangleBuffer(
@@ -43,7 +45,8 @@ void AlgebraicMesh::setTriangleBuffer(
     std::vector<unsigned int> inds(F.data(), F.data() + F.size());
     triangle_Count = F.size();
 
-    std::tie(indexData, triangle_indexType) = MeshTools::compressIndices(inds);
+    std::tie(indexData, triangle_indexType) = MeshTools::compressIndices(
+        Corrade::Containers::StridedArrayView1D<unsigned int>(inds));
 
     triangle_index_buffer.setData(indexData);
 }
