@@ -1,9 +1,9 @@
-#ifndef LOGGER_HPP
-#define LOGGER_HPP
+#ifndef MTAO_LOGGING_LOGGER_HPP
+#define MTAO_LOGGING_LOGGER_HPP
 #include <fstream>
+#include <iostream>
 #include <map>
 #include <sstream>
-#include <iostream>
 
 namespace mtao {
     namespace logging {
@@ -11,7 +11,7 @@ namespace mtao {
         enum class Level: char { Off=0, Fatal=1, Error=2, Warn=3, Info=4, Debug=5, Trace=6, All=7 };
 
         extern const std::string level_strings[int(Level::All)+1];
-        Level level_from_string(const std::string& str);
+        auto level_from_string(const std::string& str) -> Level;
 
         //WARNING! assumes default logger will always exist
         class Logger {
@@ -20,17 +20,17 @@ namespace mtao {
                     std::ofstream out;
                     Level level;
                 };
-                Logger(const std::string& alias="default", Level l = Level::Warn);
+                explicit Logger(const std::string& alias, Level l);
                 Logger(Logger&& l) = default;
-                Logger& operator=(Logger&& l) = default;
+                auto operator=(Logger&& l) -> Logger& = default;
 
-                static const std::string& log_type_string(Level l, bool color=false);
+                static auto log_type_string(Level l, bool color = false) -> const std::string&;
 
-                void add_file(const std::string& filename, Level l, bool continueFile=false);
+                void add_file(const std::string& filename, Level l, bool continueFile);
 
-                std::string decorator(Level l, bool humanReadable=false) const;
+                [[nodiscard]] static auto decorator(Level l, bool humanReadable = false)  -> std::string;
                 template <typename... Args>
-                    std::string process_line(Args&&... args) {
+                    auto process_line(Args&&... args) -> std::string {
                         std::stringstream ss;
                         ( ss << ... << args ) << std::endl;
                         return ss.str();
@@ -51,22 +51,22 @@ namespace mtao {
                 void write_line(Level l,const std::string& str);
                 void write_line(Output& output, Level l,const std::string& str);
                 //no decorator
-                void write_line_nodec(Output& output, Level l,const std::string& str);
+                static void write_line_nodec(Output& output, Level l,const std::string& str);
                 void write_line_cerr(Level l,const std::string& str);
                 void write_line_cerr_nodec(Level l,const std::string& str);
 
-                size_t current_time() const;
+                [[nodiscard]] static auto current_time()  -> size_t;
 
                 class Instance {
                     public:
                         Instance() {}
                         Instance(const Instance&) = delete;
                         Instance(Instance&&) = default;
-                        Instance(Logger* log, Level l=Level::Warn): logger(log), level(l) {}
+                        explicit Instance(Logger* log, Level l): logger(log), level(l) {}
                         ~Instance();
 
                         template <typename T>
-                            Instance& operator<<(const T& v) {
+                            auto operator<<(const T& v) -> Instance& {
                                 m_ss << v;
                                 return *this;
                             }
@@ -79,7 +79,7 @@ namespace mtao {
 
                 auto instance(Level l) { return Instance(this, l); }
                 void set_level(Level l) { m_level = l; }
-                const std::string& alias() const { return m_alias; }
+                [[nodiscard]] auto alias() const -> const std::string& { return m_alias; }
             private:
                 std::string m_alias;
                 std::map<std::string,Output> m_outputs;
@@ -91,10 +91,10 @@ namespace mtao {
         class LoggerContext {
             public:
                 LoggerContext() {}
-                LoggerContext(Logger* log, Level l=Level::Warn): m_logger(log), m_level(l) {}
+                explicit LoggerContext(Logger* log, Level l): m_logger(log), m_level(l) {}
 
                 template <typename T>
-                    LoggerContext& operator<<(const T& v) {
+                    auto operator<<(const T& v) -> LoggerContext& {
                         if(m_logger) {
                             m_logger->write(m_level,v);
                         }
@@ -109,9 +109,9 @@ namespace mtao {
 
 
                 auto instance() { return m_logger->instance(level()); }
-                Level level() const { return m_level; }
-                const std::string& alias() const { return m_logger->alias(); }
-                std::pair<std::string,Level> info() const { return {alias(),level()}; }
+                [[nodiscard]] auto level() const -> Level { return m_level; }
+                [[nodiscard]] auto alias() const -> const std::string& { return m_logger->alias(); }
+                [[nodiscard]] auto info() const -> std::pair<std::string,Level> { return {alias(),level()}; }
             private:
                 Logger* m_logger = nullptr;
                 Level m_level = Level::Info;
@@ -122,24 +122,24 @@ namespace mtao {
 
 
 
-        LoggerContext get_logger(const std::string& alias, Level l=Level::Info);
-        LoggerContext get_logger(const std::pair<std::string, Level>& pr);
-        Logger& make_file_logger(const std::string& alias="default", const std::string& filename="default.log", Level l=Level::All, bool continueFile=false);
-        Logger& make_logger(const std::string& alias="default", Level l = Level::All);
+        auto get_logger(const std::string& alias, Level l) -> LoggerContext;
+        auto get_logger(const std::pair<std::string, Level>& pr) -> LoggerContext;
+        auto make_file_logger(const std::string& alias, const std::string& filename, Level l, bool continueFile) -> Logger&;
+        auto make_logger(const std::string& alias, Level l) -> Logger&;
         extern std::map<std::string,mtao::logging::Logger> active_loggers;
         extern std::string default_log_alias;
 
-        Logger::Instance fatal();
-        Logger::Instance error();
-        Logger::Instance warn();
-        Logger::Instance info();
-        Logger::Instance debug();
-        Logger::Instance trace();
-        Logger::Instance log(Level l);
+        auto fatal() -> Logger::Instance;
+        auto error() -> Logger::Instance;
+        auto warn() -> Logger::Instance;
+        auto info() -> Logger::Instance;
+        auto debug() -> Logger::Instance;
+        auto trace() -> Logger::Instance;
+        auto log(Level l) -> Logger::Instance;
 
 
-    }
-}
+    }  // namespace logging // namespace logging
+}  // namespace mtao // namespace mtao
 
 
-#endif//LOGGER_HPP
+#endif // MTAO_LOGGING_LOGGER_HPP
