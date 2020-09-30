@@ -79,8 +79,8 @@ namespace mtao::opengl {
     };
 
     template <>
-    struct ShaderData<Shaders::MeshVisualizer>{
-        Shaders::MeshVisualizer::Flags flags = {};
+    struct ShaderData<Shaders::MeshVisualizer3D>{
+        Shaders::MeshVisualizer3D::Flags flags = {};
         Color4 color = 0x2f83cc_rgbf;
         Color4 wireframe_color = 0xdcdcdc_rgbf;
         Float wireframe_width = 1.f;

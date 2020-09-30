@@ -26,6 +26,8 @@ ADD_DEFINITIONS(-Wall)
 OPTION(MTAO_USE_ELTOPO "Should we build the el topo submodule" ON)
 OPTION(MTAO_USE_LOSTOPOS "Should we build the los topos submodule" OFF)
 OPTION(MTAO_USE_OPENGL "Build opengl stuff" ON)
+# Temporary fix for having wayland support in glfw (https://github.com/glfw/glfw/issues/1655)
+OPTION(MTAO_FORCE_LOCAL_GLFW "Build our own version of GLFW" OFF)
 OPTION(MTAO_USE_OPENVDB "Build openvdb stuff" OFF)
 OPTION(MTAO_USE_PNGPP "Use PNG++ for screenshots" ON)
 
@@ -166,7 +168,7 @@ target_include_directories(mtao_headers INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
-TARGET_LINK_LIBRARIES(mtao_headers PUBLIC INTERFACE Eigen3::Eigen)
+TARGET_LINK_LIBRARIES(mtao_headers PUBLIC INTERFACE Eigen3::Eigen range-v3)
 
 ADD_LIBRARY(mtao_common 
     include/mtao/logging/logger.hpp
@@ -181,7 +183,7 @@ ADD_LIBRARY(mtao_common
     )
 
 
-TARGET_LINK_LIBRARIES(mtao_common PUBLIC mtao_headers Eigen3::Eigen spdlog::spdlog)
+TARGET_LINK_LIBRARIES(mtao_common PUBLIC mtao_headers Eigen3::Eigen spdlog::spdlog fmt)
 
 if(MTAO_USE_TBB)
     TARGET_LINK_LIBRARIES(mtao_headers INTERFACE PkgConfig::tbb)
@@ -261,6 +263,7 @@ SET(GEOMETRY_SRCS
     include/mtao/geometry/mesh/halfedge.hpp
     include/mtao/geometry/mesh/halfedge_fv_map.hpp
     include/mtao/geometry/mesh/read_obj.hpp
+    src/geometry/mesh/ply.cpp
     #include/mtao/geometry/mesh/read_plc.hpp
     include/mtao/geometry/mesh/boundary_matrix.h
     include/mtao/geometry/mesh/boundary_facets.h

@@ -156,7 +156,7 @@ namespace mtao::opengl {
     template <>
     void Drawable<Shaders::Phong>::gui(const std::string& name);
     template <>
-    void Drawable<Shaders::MeshVisualizer>::gui(const std::string& name);
+    void Drawable<Shaders::MeshVisualizer3D>::gui(const std::string& name);
     template <>
     void Drawable<Shaders::Flat3D>::set_buffers();
     template <>
@@ -164,7 +164,7 @@ namespace mtao::opengl {
     template <>
     void Drawable<Shaders::Phong>::set_buffers();
     template <>
-    void Drawable<Shaders::MeshVisualizer>::set_buffers();
+    void Drawable<Shaders::MeshVisualizer3D>::set_buffers();
     template <>
     void Drawable<Shaders::Phong>::set_matrices(const Matrix4& transformationMatrix, SceneGraph::Camera3D& camera) ;
 

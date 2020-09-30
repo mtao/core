@@ -2,6 +2,8 @@
 #include "mtao/geometry/grid/grid_utils.h"
 #include <functional>
 #include <numeric>
+#include <tuple>
+#include <array>
 namespace mtao {
     namespace geometry {
         namespace grid {

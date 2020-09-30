@@ -1,10 +1,12 @@
+#include <spdlog/spdlog.h>
+
 #include <algorithm>
 #include <iostream>
 #include <mtao/geometry/kdtree.hpp>
 using namespace mtao::geometry;
 
 int main(int argc, char* argv[]) {
-    mtao::vector<mtao::Vector<double, 2>> vec(1000);
+    mtao::vector<mtao::Vector<double, 2>> vec(100);
 
     std::generate(vec.begin(), vec.end(),
                   []() { return mtao::Vector<double, 2>::Random().eval(); });
@@ -15,17 +17,13 @@ int main(int argc, char* argv[]) {
     std::cout << kdt.max_depth() << ", ";
     std::cout << double(kdt.max_depth()) / kdt.size() << std::endl;
 
-    kdt = KDTree<double, 2>(vec);
-    std::cout << kdt.max_depth() << ", ";
-    std::cout << double(kdt.max_depth()) / kdt.size() << std::endl;
-    std::cout << std::endl << std::endl;
-
     for (int i = 0; i < 1000; ++i) {
         auto v = mtao::Vector<double, 2>::Random().eval();
         size_t idx = 0;
+        double dist;
         {
             auto d = [&](size_t idx) { return (v - kdt.point(idx)).norm(); };
-            double dist = d(0);
+            dist = d(0);
             for (size_t i = 0; i < kdt.points().size(); ++i) {
                 double dst = d(i);
                 if (dst < dist) {
@@ -38,13 +36,20 @@ int main(int argc, char* argv[]) {
         if (idx != kdti) {
             std::cout << "FAIL!" << std::endl;
             std::cout << idx << "," << kdti << std::endl;
+            spdlog::info("Slow dist = {}, kdtree dist: {}", dist,
+                         (vec[idx] - vec[kdti]).norm());
         } else {
             // std::cout << "Scucess!" << std::endl;
         }
-        size_t kdti_f = kdt.nearest_index_filtered(v, [](const mtao::Vector<double,2>& p, int index) -> bool {
+        size_t kdti_f = kdt.nearest_index_filtered(
+            v, [](const mtao::Vector<double, 2>& p, int index) -> bool {
                 return p.x() > .5;
-                });
+            });
     }
+    kdt = KDTree<double, 2>(vec);
+    std::cout << kdt.max_depth() << ", ";
+    std::cout << double(kdt.max_depth()) / kdt.size() << std::endl;
+    std::cout << std::endl << std::endl;
     std::cout << std::string(kdt) << std::endl;
     {
         KDTree<double, 1> kdt;

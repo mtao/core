@@ -1,24 +1,16 @@
 #pragma once
-#include "zip.hpp"
-#include "range.hpp"
+#include <range/v3/view/indices.hpp>
+#include <range/v3/view/drop.hpp>
+#include <range/v3/view/zip.hpp>
 
-namespace mtao {
-    namespace iterator {
-        template <typename... T>
-            auto enumerate_offset(int start, std::initializer_list<T>&&... v) {
-                return zip(inf_range(start),v...);
-            }
-        template <typename... T>
-            auto enumerate_offset(int start, T&&... v) {
-                return zip(inf_range(start),std::forward<T>(v)...);
-            }
-        template <typename... T>
-            auto enumerate(T&&... v) {
-                return enumerate_offset(0,std::forward<T>(v)...);
-            }
-        template <typename... T>
-            auto enumerate(std::initializer_list<T>&&... v) {
-                return enumerate_offset(0,v...);
-            }
-    }
+namespace mtao::iterator {
+template <typename... T>
+auto enumerate(T&&... v) {
+    return ranges::v3::view::zip(ranges::v3::view::indices,
+                                 std::forward<T>(v)...);
 }
+template <typename... T>
+auto enumerate_offset(int start, T&&... v) {
+    return enumerate(std::forward<T>(v)...) | ranges::v3::view::drop(start);
+}
+}  // namespace mtao::iterator

@@ -25,7 +25,7 @@ Eigen::SparseMatrix<typename VDerived::Scalar> laplacian2(
     Eigen::SparseMatrix<Scalar> L(size, size);
     std::vector<Eigen::Triplet<Scalar>> trips;
     trips.reserve(4 * 3 * S.cols());
-    eigen::row_check<3>(S);
+    eigen::row_check_with_assert<3>(S);
     assert(V.cols() >= size);
 
     for (int sidx = 0; sidx < S.cols(); ++sidx) {
@@ -73,8 +73,8 @@ Eigen::SparseMatrix<typename VDerived::Scalar> laplacian3(
     std::vector<Eigen::Triplet<Scalar>> trips;
     trips.reserve(4 * 4 * S.cols());
 
-    eigen::row_check<4>(S);
-    eigen::row_check<3>(V);
+    eigen::row_check_with_assert<4>(S);
+    eigen::row_check_with_assert<3>(V);
 
     auto vols = geometry::volumes(V, S);
 

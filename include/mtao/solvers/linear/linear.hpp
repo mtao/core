@@ -70,7 +70,7 @@ struct IterativeLinearSolver
     void compute(const Matrix & A, const Vector & b) {
         _A = &A;
         _b = &b;
-        _x.resize(A.rows());
+        _x = Vector::Random(A.rows());
         compute();
     }
     void compute(const Matrix & A, const Vector & b, const Vector& x) {

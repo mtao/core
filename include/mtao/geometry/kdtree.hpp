@@ -41,6 +41,9 @@ class KDNode {
             right() =
                 std::make_unique<ChildNodeType>(tree, std::move(*o.right()));
         }
+        for(auto&& c: m_children) {
+            c.reset();
+        }
     }
 
     KDNode(const KDTree<T, D>& tree, int index)
@@ -249,7 +252,13 @@ class KDTree {
     }
     KDTree() = default;
     KDTree(const KDTree&) = delete;
-    KDTree(KDTree&&) = delete;
+    KDTree(KDTree&& o) {
+        m_points = std::move(o.m_points);
+        if (o.m_node) {
+            m_node = std::make_unique<NodeType>(*this, std::move(*o.m_node));
+        }
+        o.m_node.reset();
+    }
     ~KDTree() = default;
     KDTree& operator=(const KDTree&) = delete;
     KDTree& operator=(KDTree&& o) {
@@ -257,6 +266,7 @@ class KDTree {
         if (o.m_node) {
             m_node = std::make_unique<NodeType>(*this, std::move(*o.m_node));
         }
+        o.m_node.reset();
         return *this;
     }
     void reserve(size_t size) { m_points.reserve(size); }

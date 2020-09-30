@@ -1,5 +1,6 @@
 #pragma once
 #include "mtao/types.hpp"
+#include "mtao/type_utils.h"
 #include "mtao/iterator/enumerate.hpp"
 #include <bitset>
 namespace mtao { namespace eigen {
