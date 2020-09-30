@@ -34,6 +34,7 @@ ADD_CATCHTEST(geometry
     staggered_grid_boundary_test.cpp
     staggered_grid_test.cpp
     triangle_monomial_integrals_test.cpp
+    edge_monomial_integrals_test.cpp
     unique_simplices_test.cpp
     winding_number_test.cpp
     )

@@ -109,7 +109,7 @@ namespace mtao::opengl {
             //}
         }
     template <>
-        void Drawable<Shaders::MeshVisualizer>::gui(const std::string& name_) {
+        void Drawable<Shaders::MeshVisualizer3D>::gui(const std::string& name_) {
             std::string name = name_;
             if(name.empty()) {
                 name = "Mesh Visualizer Shader";
@@ -159,10 +159,10 @@ namespace mtao::opengl {
             }
         }
     template <>
-        void Drawable<Shaders::MeshVisualizer>::set_buffers() {
-            _mesh.addVertexBuffer(_mesh.vertex_buffer, 0, Shaders::MeshVisualizer::Position{});
+        void Drawable<Shaders::MeshVisualizer3D>::set_buffers() {
+            _mesh.addVertexBuffer(_mesh.vertex_buffer, 0, Shaders::MeshVisualizer3D::Position{});
             _shader.setColor(_data.color);
-            if(_shader.flags() & Magnum::Shaders::MeshVisualizer::Flag::Wireframe) {
+            if(_shader.flags() & Magnum::Shaders::MeshVisualizer3D::Flag::Wireframe) {
                 _shader
                 .setWireframeColor(_data.wireframe_color)
                 .setWireframeWidth(_data.wireframe_width)
