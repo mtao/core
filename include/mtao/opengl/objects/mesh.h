@@ -47,12 +47,15 @@ class AlgebraicMesh : public GL::Mesh {
         triangle_index_buffer, normal_buffer, vfield_buffer, color_buffer;
     Magnum::Int vertex_Count;
     Magnum::MeshIndexType vertex_indexType;
+    Magnum::UnsignedInt vertex_indexStart = 0, vertex_indexEnd = 0;
 
     Magnum::UnsignedInt edge_Count;
     Magnum::MeshIndexType edge_indexType;
+    Magnum::UnsignedInt edge_indexStart = 0, edge_indexEnd = 0;
 
     Magnum::UnsignedInt triangle_Count;
     Magnum::MeshIndexType triangle_indexType;
+    Magnum::UnsignedInt triangle_indexStart = 0, triangle_indexEnd = 0;
 };
 
 template <int D>

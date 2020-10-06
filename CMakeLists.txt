@@ -226,7 +226,8 @@ ADD_LIBRARY(mtao_visualization
 
     #Shaders
     src/opengl/shaders/vector_field.cpp
-    #src/opengl/shaders/polynomial_scalar_field.cpp
+    src/opengl/shaders/polynomial_scalar_field.cpp
+    src/opengl/shaders/shader_resources.cpp
     )
 set_property(TARGET mtao_visualization PROPERTY CXX_STANDARD 20)
 if(MTAO_USE_PNGPP)

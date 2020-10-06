@@ -69,12 +69,12 @@ VectorFieldShader<2>::VectorFieldShader(Magnum::UnsignedInt colorMode);
 template <>
 VectorFieldShader<3>::VectorFieldShader(Magnum::UnsignedInt colorMode);
 template <>
-void Drawable<VectorFieldShader<2>>::gui(const std::string& name_);
+void DrawableBase<VectorFieldShader<2>>::gui(const std::string& name_);
 template <>
-void Drawable<VectorFieldShader<2>>::set_buffers();
+void DrawableMesh<VectorFieldShader<2>>::set_buffers();
 template <>
-void Drawable<VectorFieldShader<3>>::gui(const std::string& name_);
+void DrawableBase<VectorFieldShader<3>>::gui(const std::string& name_);
 template <>
-void Drawable<VectorFieldShader<3>>::set_buffers();
+void DrawableMesh<VectorFieldShader<3>>::set_buffers();
 }  // namespace mtao::opengl
 
