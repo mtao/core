@@ -74,19 +74,19 @@ class MeshViewer: public mtao::opengl::Window2 {
             curve.points.emplace_back(mtao::Vec2d(-.8,-.2));
             curve.points.emplace_back(mtao::Vec2d(-.7,.8));
 
-            edge_drawable = new mtao::opengl::Drawable<Magnum::Shaders::Flat2D>{grid_mesh,_flat_shader, drawables()};
+            edge_drawable = new mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>{grid_mesh,_flat_shader, drawables()};
             edge_drawable->activate_triangles({});
             edge_drawable->activate_edges();
-            face_drawable = new mtao::opengl::Drawable<Magnum::Shaders::VertexColor2D>{grid_mesh,_vcolor_shader, gridcolor_drawgroup};
+            face_drawable = new mtao::opengl::MeshDrawable<Magnum::Shaders::VertexColor2D>{grid_mesh,_vcolor_shader, gridcolor_drawgroup};
             grid_mesh.setParent(&root());
             curve_mesh.setParent(&root());
-            curve_drawable = new mtao::opengl::Drawable<Magnum::Shaders::Flat2D>{curve_mesh,_flat_shader, drawables()};
+            curve_drawable = new mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>{curve_mesh,_flat_shader, drawables()};
             curve_drawable->deactivate();
             curve_mesh.setVertexBuffer(mtao::Vec2f::Zero().eval());
             curve_drawable->data().color = 0xff0000_rgbf;
             curve_drawable->activate_points();
             //
-            //curve_point_drawable = new mtao::opengl::Drawable<Magnum::Shaders::VertexColor2D>{curve_points,_vcolor_shader, drawables()};
+            //curve_point_drawable = new mtao::opengl::MeshDrawable<Magnum::Shaders::VertexColor2D>{curve_points,_vcolor_shader, drawables()};
             //curve_points.setVertexBuffer(mtao::Vec2f::Zero().eval());
             //curve_points.setParent(&root());
             //mtao::geometry::grid::Grid2f g(std::array<int,2>{{NI,NJ}});
@@ -109,7 +109,7 @@ class MeshViewer: public mtao::opengl::Window2 {
 
 
             //vfield_mesh.setParent(&scene());
-            //_vf_viewer = new mtao::opengl::Drawable<mtao::opengl::VectorFieldShader<2>>{vfield_mesh,_vf_shader, drawables()};
+            //_vf_viewer = new mtao::opengl::MeshDrawable<mtao::opengl::VectorFieldShader<2>>{vfield_mesh,_vf_shader, drawables()};
             update();
 
 
@@ -244,11 +244,11 @@ class MeshViewer: public mtao::opengl::Window2 {
         mtao::opengl::objects::Mesh<2> curve_mesh;
         mtao::opengl::objects::Mesh<2> curve_points;
         mtao::opengl::objects::Mesh<2> vfield_mesh;
-        mtao::opengl::Drawable<Magnum::Shaders::Flat2D>* edge_drawable = nullptr;
-        mtao::opengl::Drawable<Magnum::Shaders::VertexColor2D>* face_drawable = nullptr;
-        mtao::opengl::Drawable<Magnum::Shaders::Flat2D>* curve_drawable = nullptr;
-        mtao::opengl::Drawable<Magnum::Shaders::VertexColor2D>* curve_point_drawable = nullptr;
-        mtao::opengl::Drawable<mtao::opengl::VectorFieldShader<2>>* _vf_viewer = nullptr;
+        mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>* edge_drawable = nullptr;
+        mtao::opengl::MeshDrawable<Magnum::Shaders::VertexColor2D>* face_drawable = nullptr;
+        mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>* curve_drawable = nullptr;
+        mtao::opengl::MeshDrawable<Magnum::Shaders::VertexColor2D>* curve_point_drawable = nullptr;
+        mtao::opengl::MeshDrawable<mtao::opengl::VectorFieldShader<2>>* _vf_viewer = nullptr;
 
 
 };

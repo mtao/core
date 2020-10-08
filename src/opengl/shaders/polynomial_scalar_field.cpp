@@ -89,15 +89,42 @@ void PolynomialScalarFieldShader<D>::initialize() {
 }
 namespace internal {
 template <typename Drawable>
-void pfgui(Drawable& d, const std::string& name_) {
+void pfgui(Drawable& dr, const std::string& name_) {
     std::string name = name_;
     if (name.empty()) {
         name = "Polynomial Field Shader";
     }
     if (ImGui::TreeNode(name.c_str())) {
-        bool vis = d.is_visible();
+        bool vis = dr.is_visible();
         ImGui::Checkbox("Visible", &vis);
-        d.set_visibility(vis);
+        dr.set_visibility(vis);
+        auto& d = dr.data();
+
+        float& colormap_scale = d.colormap_scale;
+        float& colormap_shift = d.colormap_shift;
+        float& min_value = d.min_value;
+        float& max_value = d.max_value;
+        if (ImGui::InputFloat("Colormap Scale", &colormap_scale)) {
+            dr.shader().setColormapScale(colormap_scale);
+            d.update_minmax();
+        }
+        if (ImGui::InputFloat("Colormap Shift", &colormap_shift)) {
+            dr.shader().setColormapShift(colormap_shift);
+            d.update_minmax();
+        }
+        if (ImGui::InputFloat("Colormap min", &min_value)) {
+            d.update_scale_shift();
+            dr.shader().setColormapScale(colormap_scale);
+            dr.shader().setColormapShift(colormap_shift);
+        }
+        if (ImGui::InputFloat("Colormap max", &max_value)) {
+            d.update_scale_shift();
+            dr.shader().setColormapScale(colormap_scale);
+            dr.shader().setColormapShift(colormap_shift);
+        }
+        if (d.coefficients) {
+            d.coefficients->gui();
+        }
         ImGui::TreePop();
     }
 }
@@ -112,29 +139,29 @@ bool pfcgui(Coefficients& coefficients, const std::string& name_,
     if (ImGui::TreeNode(name.c_str())) {
         if (ImGui::InputInt("Degree", &coefficients.degree)) {
             ret = true;
-            // poly_shader.setDegree(coefficients.degree);
+            // dr.shader().setDegree(coefficients.degree);
         }
         if (ImGui::InputFloat2("Center", coefficients.center.data())) {
             ret = true;
-            // poly_shader.setQuadratic(coefficients.quadratic);
+            // dr.shader().setQuadratic(coefficients.quadratic);
         }
         if (ImGui::InputFloat("Scale", &coefficients.scale)) {
             ret = true;
-            // poly_shader.setQuadratic(coefficients.quadratic);
+            // dr.shader().setQuadratic(coefficients.quadratic);
         }
         if (ImGui::InputFloat("Constant", &coefficients.constant)) {
             ret = true;
-            // poly_shader.setConstant(coefficients.constant);
+            // dr.shader().setConstant(coefficients.constant);
         }
         if (ImGui::InputFloat2("Linear", coefficients.linear.data())) {
             ret = true;
-            // poly_shader.setLinear(coefficients.linear);
+            // dr.shader().setLinear(coefficients.linear);
         }
         if (ImGui::InputFloat4("Quadratic", coefficients.quadratic.data())) {
             ret = true;
-            // poly_shader.setQuadratic(coefficients.quadratic);
+            // dr.shader().setQuadratic(coefficients.quadratic);
         }
-        // poly_shader.setPolynomialCoefficients(coefficients);
+        // dr.shader().setPolynomialCoefficients(coefficients);
         ImGui::TreePop();
     }
     return ret;
@@ -161,13 +188,24 @@ bool PolynomialScalarFieldShader<3>::PolynomialCoefficients::gui(
     return internal::pfcgui(*this, name_);
 }
 template <>
-void DrawableMesh<PolynomialScalarFieldShader<2>>::set_buffers() {
+void MeshDrawable<PolynomialScalarFieldShader<2>>::set_buffers() {
+    shader().setColormapScale(data().colormap_scale);
+    shader().setColormapShift(data().colormap_shift);
+    if (data().coefficients) {
+        shader().setPolynomialCoefficients(*data().coefficients);
+    }
     _mesh.addVertexBuffer(_mesh.vertex_buffer, 0,
                           PolynomialScalarFieldShader<2>::Position{});
 }
 template <>
-void DrawableMesh<PolynomialScalarFieldShader<3>>::set_buffers() {
+void MeshDrawable<PolynomialScalarFieldShader<3>>::set_buffers() {
+    shader().setColormapScale(data().colormap_scale);
+    shader().setColormapShift(data().colormap_shift);
+    if (data().coefficients) {
+        shader().setPolynomialCoefficients(*data().coefficients);
+    }
     _mesh.addVertexBuffer(_mesh.vertex_buffer, 0,
                           PolynomialScalarFieldShader<3>::Position{});
 }
+
 }  // namespace mtao::opengl

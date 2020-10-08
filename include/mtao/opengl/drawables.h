@@ -77,7 +77,7 @@ class DrawableBase : public internal::DrawableType<ShaderType> {
     }
 };
 template <typename ShaderType>
-class DrawableMesh : public DrawableBase<ShaderType> {
+class MeshDrawable : public DrawableBase<ShaderType> {
    public:
     using Base = DrawableBase<ShaderType>;
     using Camera = Base::Camera;
@@ -87,7 +87,7 @@ class DrawableMesh : public DrawableBase<ShaderType> {
     using Base::is_visible;
     using Base::set_matrices;
     using Base::shader;
-    explicit DrawableMesh(MeshType& mesh, ShaderType& shader,
+    explicit MeshDrawable(MeshType& mesh, ShaderType& shader,
                           DrawableGroup& group)
         : Base(mesh, shader, group), _mesh(mesh) {}
 
@@ -109,9 +109,6 @@ class DrawableMesh : public DrawableBase<ShaderType> {
         triangle_primitive = p;
     }
 
-    void set_visibility(bool val) { visible = val; }
-    bool is_visible() const { return visible; }
-
     bool lint_buffers() {
         bool ret = lint_vertex();
         if (edge_primitive) {
@@ -124,7 +121,6 @@ class DrawableMesh : public DrawableBase<ShaderType> {
     }
 
    private:
-    bool visible = true;
     std::optional<GL::MeshPrimitive> triangle_primitive =
         GL::MeshPrimitive::Triangles;
     std::optional<GL::MeshPrimitive>
@@ -133,7 +129,9 @@ class DrawableMesh : public DrawableBase<ShaderType> {
         point_primitive;  // = GL::MeshPrimitive::Lines;
     MeshType& _mesh;
 
-    void draw(const TransMat& transformationMatrix, Camera& camera) override {
+   public:
+    virtual void draw(const TransMat& transformationMatrix,
+                      Camera& camera) override {
         if (!is_visible()) return;
 
         set_buffers();
@@ -174,7 +172,7 @@ class DrawableMesh : public DrawableBase<ShaderType> {
 };
 
 template <typename ShaderType>
-class DrawableView : public DrawableBase<ShaderType> {
+class ViewDrawable : public DrawableBase<ShaderType> {
    public:
     using Base = DrawableBase<ShaderType>;
     using Camera = Base::Camera;
@@ -184,7 +182,7 @@ class DrawableView : public DrawableBase<ShaderType> {
     using Base::is_visible;
     using Base::set_matrices;
     using Base::shader;
-    explicit DrawableView(MeshType& mesh, ShaderType& shader,
+    explicit ViewDrawable(MeshType& mesh, ShaderType& shader,
                           DrawableGroup& group)
         : Base(mesh, shader, group), _mesh(mesh) {}
     void gui(const std::string& name = "");
@@ -192,7 +190,8 @@ class DrawableView : public DrawableBase<ShaderType> {
    private:
     MeshType& _mesh;
 
-    void draw(const TransMat& transformationMatrix, Camera& camera) override {
+    virtual void draw(const TransMat& transformationMatrix,
+                      Camera& camera) override {
         if (!is_visible()) return;
 
         set_matrices(transformationMatrix, camera);
@@ -205,7 +204,7 @@ template <typename ShaderType, int D,
           typename TransMat = internal::TransformMatrixType<ShaderType>>
 auto make_drawable(objects::Mesh<D>& mesh, ShaderType& shader,
                    DrawableGroup& group) {
-    return new DrawableMesh<ShaderType>(mesh, shader, group);
+    return new MeshDrawable<ShaderType>(mesh, shader, group);
 }
 
 template <typename ShaderType, int D,
@@ -214,7 +213,7 @@ template <typename ShaderType, int D,
           typename TransMat = internal::TransformMatrixType<ShaderType>>
 auto make_drawable(Magnum::GL::MeshView& mesh, ShaderType& shader,
                    DrawableGroup& group) {
-    return new DrawableView<ShaderType>(mesh, shader, group);
+    return new ViewDrawable<ShaderType>(mesh, shader, group);
 }
 template <>
 void DrawableBase<Shaders::Flat2D>::gui(const std::string& name);
@@ -222,11 +221,11 @@ template <>
 void DrawableBase<Shaders::VertexColor2D>::gui(const std::string& name);
 
 template <>
-bool DrawableMesh<Shaders::VertexColor3D>::lint_buffers();
+bool MeshDrawable<Shaders::VertexColor3D>::lint_buffers();
 template <>
-bool DrawableMesh<Shaders::VertexColor2D>::lint_buffers();
+bool MeshDrawable<Shaders::VertexColor2D>::lint_buffers();
 template <>
-bool DrawableMesh<Shaders::Phong>::lint_buffers();
+bool MeshDrawable<Shaders::Phong>::lint_buffers();
 
 template <>
 void DrawableBase<Shaders::Flat3D>::gui(const std::string& name);
@@ -242,20 +241,24 @@ void DrawableBase<Shaders::Phong>::set_matrices(
     const Matrix4& transformationMatrix, SceneGraph::Camera3D& camera);
 
 template <>
-void DrawableMesh<Shaders::Flat2D>::set_buffers();
-template <>
-void DrawableMesh<Shaders::VertexColor2D>::set_buffers();
-template <>
-void DrawableMesh<Shaders::VertexColor2D>::set_buffers();
+void DrawableBase<Shaders::MeshVisualizer3D>::set_matrices(
+    const Matrix4& transformationMatrix, SceneGraph::Camera3D& camera);
 
 template <>
-void DrawableMesh<Shaders::Flat3D>::set_buffers();
+void MeshDrawable<Shaders::Flat2D>::set_buffers();
 template <>
-void DrawableMesh<Shaders::VertexColor3D>::set_buffers();
+void MeshDrawable<Shaders::VertexColor2D>::set_buffers();
 template <>
-void DrawableMesh<Shaders::Phong>::set_buffers();
+void MeshDrawable<Shaders::VertexColor2D>::set_buffers();
+
 template <>
-void DrawableMesh<Shaders::MeshVisualizer3D>::set_buffers();
+void MeshDrawable<Shaders::Flat3D>::set_buffers();
+template <>
+void MeshDrawable<Shaders::VertexColor3D>::set_buffers();
+template <>
+void MeshDrawable<Shaders::Phong>::set_buffers();
+template <>
+void MeshDrawable<Shaders::MeshVisualizer3D>::set_buffers();
 
 /*
 class ShaderPackDrawable3: public SceneGraph::Drawable3D {

@@ -30,29 +30,6 @@ class PartitionedPolynomialShadedMesh
     PartitionedPolynomialShadedMesh(DrawableGroup* group = nullptr)
         : DrawableType(*this, group) {}
 
-   private:
-    float colormap_scale;
-    float colormap_shift;
-    float min_value = -1;
-    float max_value = 1;
-
-    void update_minmax() {
-        // [-1,1] = scale * [min,max] + shift
-        // [-1-shift,1-shift] = scale * [min,max]
-        //
-        min_value = (-1 - colormap_shift) / colormap_scale;
-        max_value = (1 - colormap_shift) / colormap_scale;
-    }
-    void update_scale_shift() {
-        // [-1,1] = scale * [min,max] + shift
-        // [-1-shift,1-shift] = scale * [min,max]
-        // -(1+scale)/shift = min
-        // (1-scale)/shift = max
-
-        colormap_scale = 2 / (max_value - min_value);
-        colormap_shift = (min_value + max_value) / (min_value - max_value);
-    }
-
    public:
     void draw(const TransMat& transformationMatrix, Camera& camera) override;
     void set_offsets(const std::vector<int>& offsets);
@@ -66,6 +43,7 @@ class PartitionedPolynomialShadedMesh
    private:
     Corrade::Containers::Array<Magnum::GL::MeshView> _views;
     ShaderType _shader;
+    ShaderData<PolynomialScalarFieldShader<D>> _shader_data;
     DrawableGroup* _drawable_group;
     std::vector<typename PolynomialScalarFieldShader<D>::PolynomialCoefficients>
         _coefficients;
@@ -73,17 +51,28 @@ class PartitionedPolynomialShadedMesh
 template <int D>
 void PartitionedPolynomialShadedMesh<D>::draw(
     const TransMat& transformationMatrix, Camera& camera) {
+    _shader.setColormapScale(_shader_data.colormap_scale);
+    _shader.setColormapShift(_shader_data.colormap_shift);
+
+    using M = objects::Mesh<D>;
+    M::addVertexBuffer(M::vertex_buffer, 0,
+                       typename PolynomialScalarFieldShader<D>::Position{});
+
+    M::setIndexBuffer(M::triangle_index_buffer, 0, M::triangle_indexType,
+                      M::triangle_indexStart, M::triangle_indexEnd);
+
     // MeshType::setIndexBuffer(MeshType::triangle_index_buffer, 0,
     //                         MeshType::triangle_indexType, 0, 0);
-    return;
     MeshType::setPrimitive(GL::MeshPrimitive::Triangles);
 
     _shader.setTransformationProjectionMatrix(camera.projectionMatrix() *
                                               transformationMatrix);
 
     for (auto&& [coeffs, view] : mtao::iterator::zip(_coefficients, _views)) {
+        // spdlog::info("View count: {}", view.count());
         _shader.setPolynomialCoefficients(coeffs);
-        _shader.draw(view);
+        _shader.draw(*this);
+        //_shader.draw(view);
     }
     //_shader.draw(*this);
 }
@@ -107,21 +96,25 @@ void PartitionedPolynomialShadedMesh<D>::set_offsets(
 
 template <int D>
 void PartitionedPolynomialShadedMesh<D>::gui() {
+    float& colormap_scale = _shader_data.colormap_scale;
+    float& colormap_shift = _shader_data.colormap_shift;
+    float& min_value = _shader_data.min_value;
+    float& max_value = _shader_data.max_value;
     if (ImGui::InputFloat("Colormap Scale", &colormap_scale)) {
         _shader.setColormapScale(colormap_scale);
-        update_minmax();
+        _shader_data.update_minmax();
     }
     if (ImGui::InputFloat("Colormap Shift", &colormap_shift)) {
         _shader.setColormapShift(colormap_shift);
-        update_minmax();
+        _shader_data.update_minmax();
     }
     if (ImGui::InputFloat("Colormap min", &min_value)) {
-        update_scale_shift();
+        _shader_data.update_scale_shift();
         _shader.setColormapScale(colormap_scale);
         _shader.setColormapShift(colormap_shift);
     }
     if (ImGui::InputFloat("Colormap max", &max_value)) {
-        update_scale_shift();
+        _shader_data.update_scale_shift();
         _shader.setColormapScale(colormap_scale);
         _shader.setColormapShift(colormap_shift);
     }

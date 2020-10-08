@@ -60,17 +60,17 @@ class MeshViewer: public mtao::opengl::Window2 {
         MeshViewer(const Arguments& args): Window2(args) {
 
 
-            edge_drawable = new mtao::opengl::Drawable<Magnum::Shaders::Flat2D>{grid,_flat_shader, drawables()};
+            edge_drawable = new mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>{grid,_flat_shader, drawables()};
             edge_drawable->activate_triangles({});
             edge_drawable->activate_edges();
-            //face_drawable = new mtao::opengl::Drawable<Magnum::Shaders::VertexColor2D>{grid,_vcolor_shader, drawables()};
+            //face_drawable = new mtao::opengl::MeshDrawable<Magnum::Shaders::VertexColor2D>{grid,_vcolor_shader, drawables()};
             grid.setParent(&root());
             cursor_mesh.setParent(&scene());
-            cursor_drawable = new mtao::opengl::Drawable<Magnum::Shaders::Flat2D>{cursor_mesh,_flat_shader, drawables()};
+            cursor_drawable = new mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>{cursor_mesh,_flat_shader, drawables()};
             cursor_mesh.setVertexBuffer(mtao::Vec2f::Zero().eval());
             cursor_drawable->data().color = 0xffffff_rgbf;
             visible_grid.setParent(&scene());
-            visible_drawable = new mtao::opengl::Drawable<Magnum::Shaders::Flat2D>{visible_grid,_flat_shader, drawables()};
+            visible_drawable = new mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>{visible_grid,_flat_shader, drawables()};
             visible_drawable->data().color = 0xff0000_rgbf;
             visible_drawable->deactivate();
             visible_drawable->activate_edges();
@@ -117,10 +117,10 @@ class MeshViewer: public mtao::opengl::Window2 {
         mtao::opengl::objects::Grid<2> grid;
         mtao::opengl::objects::Mesh<2> cursor_mesh;
         mtao::opengl::objects::Grid<2> visible_grid;
-        mtao::opengl::Drawable<Magnum::Shaders::Flat2D>* edge_drawable = nullptr;
-        mtao::opengl::Drawable<Magnum::Shaders::VertexColor2D>* face_drawable = nullptr;
-        mtao::opengl::Drawable<Magnum::Shaders::Flat2D>* cursor_drawable = nullptr;
-        mtao::opengl::Drawable<Magnum::Shaders::Flat2D>* visible_drawable = nullptr;
+        mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>* edge_drawable = nullptr;
+        mtao::opengl::MeshDrawable<Magnum::Shaders::VertexColor2D>* face_drawable = nullptr;
+        mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>* cursor_drawable = nullptr;
+        mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>* visible_drawable = nullptr;
 
 
 };

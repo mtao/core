@@ -3,6 +3,7 @@
 #include <spdlog/spdlog.h>
 
 #include <Eigen/Geometry>
+#include <coroutine>
 
 #include "mtao/iterator/enumerate.hpp"
 #include "mtao/opengl/objects/mesh.h"
@@ -43,7 +44,8 @@ Corrade::Containers::Array<Magnum::GL::MeshView> PartitionedMesh<D>::views() {
         auto start = face_offsets.at(index);
         auto end = face_offsets.at(index + 1);
         view.setIndexRange(start).setCount(end - start);
-        view.setIndexRange(0).setCount(0);
+        std::cout << view.count() << std::endl;
+        // view.setIndexRange(0).setCount(0);
     }
     return views;
 }

@@ -96,7 +96,7 @@ void DrawableBase<VectorFieldShader<3>>::gui(const std::string& name_) {
     internal::vfgui(*this, name_);
 }
 template <>
-void DrawableMesh<VectorFieldShader<2>>::set_buffers() {
+void MeshDrawable<VectorFieldShader<2>>::set_buffers() {
     _mesh.addVertexBuffer(_mesh.vertex_buffer, 0,
                           VectorFieldShader<2>::Position{});
     _mesh.addVertexBuffer(_mesh.vfield_buffer, 0,
@@ -109,7 +109,7 @@ void DrawableMesh<VectorFieldShader<2>>::set_buffers() {
     }
 }
 template <>
-void DrawableMesh<VectorFieldShader<3>>::set_buffers() {
+void MeshDrawable<VectorFieldShader<3>>::set_buffers() {
     _mesh.addVertexBuffer(_mesh.vertex_buffer, 0,
                           VectorFieldShader<3>::Position{});
     _mesh.addVertexBuffer(_mesh.vfield_buffer, 0,

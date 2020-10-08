@@ -32,7 +32,7 @@ void DrawableBase<Shaders::VertexColor2D>::gui(const std::string& name_) {
     }
 }
 template <>
-void DrawableMesh<Shaders::Flat2D>::set_buffers() {
+void MeshDrawable<Shaders::Flat2D>::set_buffers() {
     _mesh.addVertexBuffer(_mesh.vertex_buffer, 0, Shaders::Flat2D::Position{});
     shader().setColor(data().color);
     if (shader().flags() & Shaders::Flat2D::Flag::AlphaMask) {
@@ -40,7 +40,7 @@ void DrawableMesh<Shaders::Flat2D>::set_buffers() {
     }
 }
 template <>
-void DrawableMesh<Shaders::VertexColor2D>::set_buffers() {
+void MeshDrawable<Shaders::VertexColor2D>::set_buffers() {
     _mesh.addVertexBuffer(_mesh.vertex_buffer, 0,
                           Shaders::VertexColor2D::Position{});
     _mesh.addVertexBuffer(_mesh.color_buffer, 0,
@@ -127,7 +127,7 @@ void DrawableBase<Shaders::MeshVisualizer3D>::gui(const std::string& name_) {
     }
 }
 template <>
-void DrawableMesh<Shaders::Flat3D>::set_buffers() {
+void MeshDrawable<Shaders::Flat3D>::set_buffers() {
     _mesh.addVertexBuffer(_mesh.vertex_buffer, 0, Shaders::Flat3D::Position{});
     shader().setColor(data().color);
     if (shader().flags() & Shaders::Flat3D::Flag::AlphaMask) {
@@ -135,14 +135,14 @@ void DrawableMesh<Shaders::Flat3D>::set_buffers() {
     }
 }
 template <>
-void DrawableMesh<Shaders::VertexColor3D>::set_buffers() {
+void MeshDrawable<Shaders::VertexColor3D>::set_buffers() {
     _mesh.addVertexBuffer(_mesh.vertex_buffer, 0,
                           Shaders::VertexColor3D::Position{});
     _mesh.addVertexBuffer(_mesh.color_buffer, 0,
                           Shaders::VertexColor3D::Color4{});
 }
 template <>
-void DrawableMesh<Shaders::Phong>::set_buffers() {
+void MeshDrawable<Shaders::Phong>::set_buffers() {
     _mesh.addVertexBuffer(_mesh.vertex_buffer, 0, Shaders::Phong::Position{});
     _mesh.addVertexBuffer(_mesh.normal_buffer, 0, Shaders::Phong::Normal{});
     shader()
@@ -165,7 +165,7 @@ void DrawableMesh<Shaders::Phong>::set_buffers() {
     }
 }
 template <>
-void DrawableMesh<Shaders::MeshVisualizer3D>::set_buffers() {
+void MeshDrawable<Shaders::MeshVisualizer3D>::set_buffers() {
     _mesh.addVertexBuffer(_mesh.vertex_buffer, 0,
                           Shaders::MeshVisualizer3D::Position{});
     shader().setColor(data().color);
@@ -191,8 +191,16 @@ void DrawableBase<Shaders::Phong>::set_matrices(
         .setNormalMatrix(transformationMatrix.rotationScaling())
         .setProjectionMatrix(camera.projectionMatrix());
 }
+
 template <>
-bool DrawableMesh<Shaders::VertexColor2D>::lint_buffers() {
+void DrawableBase<Shaders::MeshVisualizer3D>::set_matrices(
+    const Matrix4& transformationMatrix, SceneGraph::Camera3D& camera) {
+    shader()
+        .setTransformationMatrix(transformationMatrix)
+        .setProjectionMatrix(camera.projectionMatrix());
+}
+template <>
+bool MeshDrawable<Shaders::VertexColor2D>::lint_buffers() {
     bool ret = lint_vertex();
     if (edge_primitive) {
         ret &= lint_edge();
@@ -204,7 +212,7 @@ bool DrawableMesh<Shaders::VertexColor2D>::lint_buffers() {
     return ret;
 }
 template <>
-bool DrawableMesh<Shaders::VertexColor3D>::lint_buffers() {
+bool MeshDrawable<Shaders::VertexColor3D>::lint_buffers() {
     bool ret = lint_vertex();
     if (edge_primitive) {
         ret &= lint_edge();
@@ -216,7 +224,7 @@ bool DrawableMesh<Shaders::VertexColor3D>::lint_buffers() {
     return ret;
 }
 template <>
-bool DrawableMesh<Shaders::Phong>::lint_buffers() {
+bool MeshDrawable<Shaders::Phong>::lint_buffers() {
     bool ret = lint_vertex();
     if (edge_primitive) {
         ret &= lint_edge();
