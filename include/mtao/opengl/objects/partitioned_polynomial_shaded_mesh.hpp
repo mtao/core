@@ -55,11 +55,10 @@ void PartitionedPolynomialShadedMesh<D>::draw(
     _shader.setColormapShift(_shader_data.colormap_shift);
 
     using M = objects::Mesh<D>;
+
     M::addVertexBuffer(M::vertex_buffer, 0,
                        typename PolynomialScalarFieldShader<D>::Position{});
 
-    M::setIndexBuffer(M::triangle_index_buffer, 0, M::triangle_indexType,
-                      M::triangle_indexStart, M::triangle_indexEnd);
 
     // MeshType::setIndexBuffer(MeshType::triangle_index_buffer, 0,
     //                         MeshType::triangle_indexType, 0, 0);
@@ -68,10 +67,10 @@ void PartitionedPolynomialShadedMesh<D>::draw(
     _shader.setTransformationProjectionMatrix(camera.projectionMatrix() *
                                               transformationMatrix);
 
-    for (auto&& [coeffs, view] : mtao::iterator::zip(_coefficients, _views)) {
-        // spdlog::info("View count: {}", view.count());
+    //for (auto&& [index,coeffs] : mtao::iterator::enumerate(_coefficients)) {
+    for (auto&& [view,coeffs] : mtao::iterator::zip(_views,_coefficients)) {
         _shader.setPolynomialCoefficients(coeffs);
-        _shader.draw(*this);
+        _shader.draw(view);
         //_shader.draw(view);
     }
     //_shader.draw(*this);
@@ -80,6 +79,14 @@ template <int D>
 void PartitionedPolynomialShadedMesh<D>::set_offsets(
     const std::vector<int>& offsets) {
     PartitionedMesh<D>::set_offsets(offsets);
+
+    // probably better ot set the idnex buffer somewhere else, but might as well here
+    using M = objects::Mesh<D>;
+    M::setPrimitive(Magnum::GL::MeshPrimitive::Triangles);
+    M::setIndexBuffer(
+            M::triangle_index_buffer, 0, M::triangle_indexType,
+            M::triangle_indexStart, M::triangle_indexEnd);
+    M::setCount(M::triangle_Count);
     _views = PartitionedMesh<D>::views();
     _coefficients.resize(offsets.size() - 1);
     // for (auto&& view : _views) {

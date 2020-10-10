@@ -43,7 +43,7 @@ void gui_func() {
 class MeshViewer : public mtao::opengl::Window2 {
    public:
     MeshViewer(const Arguments& args)
-        : Window2(args), pmesh(&drawables()), mesh_view(pmesh) {
+        : Window2(args), pmesh(&drawables()) {
         mtao::ColVecs2f V(2, 6);
         mtao::ColVecs3i F(3, 4);
 
@@ -83,17 +83,9 @@ class MeshViewer : public mtao::opengl::Window2 {
         mesh.setParent(&root());
         pmesh.setParent(&root());
         pmesh.setCount(pmesh.triangle_Count);
-        pmesh.setIndexBuffer(
-            pmesh.triangle_index_buffer, 0, pmesh.triangle_indexType,
-            pmesh.triangle_indexStart, pmesh.triangle_indexEnd);
-        pmesh.setPrimitive(Magnum::GL::MeshPrimitive::Triangles);
         drawable->data().coefficients.emplace();
 
         pmesh.set_offsets(partitions);
-
-        // vdrawable = new mtao::opengl::ViewDrawable<
-        //    mtao::opengl::PolynomialScalarFieldShader<2>>{
-        //    mesh_view, poly_shader, drawables()};
     }
     void gui() override {
         gui_func();
@@ -112,12 +104,8 @@ class MeshViewer : public mtao::opengl::Window2 {
     mtao::opengl::PolynomialScalarFieldShader<2> poly_shader;
     mtao::opengl::objects::Mesh<2> mesh;
     mtao::opengl::objects::PartitionedPolynomialShadedMesh<2> pmesh;
-    Magnum::GL::MeshView mesh_view;
-    // mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>* drawable = nullptr;
     mtao::opengl::MeshDrawable<mtao::opengl::PolynomialScalarFieldShader<2>>*
         drawable = nullptr;
-    // mtao::opengl::MeshDrawable<mtao::opengl::PolynomialScalarFieldShader<2>>*
-    //    pdrawable = nullptr;
 };
 
 MAGNUM_APPLICATION_MAIN(MeshViewer)
