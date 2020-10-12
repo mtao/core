@@ -37,6 +37,7 @@ ADD_CATCHTEST(geometry
     edge_monomial_integrals_test.cpp
     unique_simplices_test.cpp
     winding_number_test.cpp
+    edges_to_polygons_test.cpp
     )
 target_link_libraries(geometry_test PRIVATE mtao::geometry)
 
@@ -56,6 +57,7 @@ ADD_CATCHTEST(algebra
     composite_test.cpp
     pascal_triangle_test.cpp
     sort_with_permutation_count_test.cpp
+    partial_order_to_dag_test.cpp
     )
 
 ADD_CATCHTEST(simulation
