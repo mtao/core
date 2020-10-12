@@ -18,6 +18,8 @@ struct PolygonBoundaryIndices : std::vector<int> {
     PolygonBoundaryIndices() = default;
     PolygonBoundaryIndices(const PolygonBoundaryIndices&) = default;
     PolygonBoundaryIndices(PolygonBoundaryIndices&&) = default;
+    PolygonBoundaryIndices& operator=(const PolygonBoundaryIndices&) = default;
+    PolygonBoundaryIndices& operator=(PolygonBoundaryIndices&&) = default;
     PolygonBoundaryIndices(std::vector<int> b,
                            std::set<std::vector<int>> h = {})
         : std::vector<int>{std::move(b)}, holes{std::move(h)} {}
