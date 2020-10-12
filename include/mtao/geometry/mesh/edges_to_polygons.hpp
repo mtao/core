@@ -2,6 +2,7 @@
 #include <set>
 #include <tuple>
 #include <vector>
+#include <numeric>
 
 #include "mtao/algebra/partial_order_to_dag.hpp"
 #include "mtao/geometry/mesh/edges_to_plcurves.hpp"
