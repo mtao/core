@@ -101,7 +101,7 @@ winding_number_loop_comparator<Symmetric, VDerived>::operator()(
     auto is_inside = [&](IndSet& a, const Container& B) -> bool {
         return std::all_of(a.begin(), a.end(),
                            [&](typename Container::value_type index) -> bool {
-                               return geometry::winding_number(V, B,
+                               return geometry::interior_winding_number(V, B,
                                                                V.col(index));
                            });
     };
