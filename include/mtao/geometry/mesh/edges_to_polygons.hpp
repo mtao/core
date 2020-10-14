@@ -1,8 +1,8 @@
 #pragma once
+#include <numeric>
 #include <set>
 #include <tuple>
 #include <vector>
-#include <numeric>
 
 #include "mtao/algebra/partial_order_to_dag.hpp"
 #include "mtao/geometry/mesh/edges_to_plcurves.hpp"
@@ -127,9 +127,13 @@ winding_number_loop_comparator<Symmetric, VDerived>::operator()(
     } else {
         // have to check if auniq in b (or buniq in a)
         if (is_inside(bs, a)) {
-            return std::partial_ordering::greater;
+            if(!is_inside(as,b)) {
+                return std::partial_ordering::greater;
+            }
         } else if (is_inside(as, b)) {
-            return std::partial_ordering::less;
+            if (!is_inside(bs, a)) {
+                return std::partial_ordering::less;
+            }
         }
     }
     return std::partial_ordering::unordered;
