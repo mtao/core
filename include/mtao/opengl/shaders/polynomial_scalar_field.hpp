@@ -78,7 +78,7 @@ class PolynomialScalarFieldShader : public Magnum::GL::AbstractShaderProgram {
         PolynomialScalarFieldShader<D>>::PolynomialCoefficients;
     enum : Magnum::UnsignedInt { Parula = 0, Jet = 1, Waves = 2 };
     explicit PolynomialScalarFieldShader(
-        Magnum::UnsignedInt colorMode = Parula);
+        Magnum::UnsignedInt colorMode = Jet );
 
     PolynomialScalarFieldShader& setTransformationProjectionMatrix(
         const MatType& matrix) {
