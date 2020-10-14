@@ -36,7 +36,9 @@ class PartitionedPolynomialShadedMesh
 
     std::vector<
         typename PolynomialScalarFieldShader<D>::PolynomialCoefficients>&
-    coefficients();
+    coefficients() {
+        return _coefficients;
+    }
 
     void gui();
 
@@ -59,7 +61,6 @@ void PartitionedPolynomialShadedMesh<D>::draw(
     M::addVertexBuffer(M::vertex_buffer, 0,
                        typename PolynomialScalarFieldShader<D>::Position{});
 
-
     // MeshType::setIndexBuffer(MeshType::triangle_index_buffer, 0,
     //                         MeshType::triangle_indexType, 0, 0);
     MeshType::setPrimitive(GL::MeshPrimitive::Triangles);
@@ -67,8 +68,8 @@ void PartitionedPolynomialShadedMesh<D>::draw(
     _shader.setTransformationProjectionMatrix(camera.projectionMatrix() *
                                               transformationMatrix);
 
-    //for (auto&& [index,coeffs] : mtao::iterator::enumerate(_coefficients)) {
-    for (auto&& [view,coeffs] : mtao::iterator::zip(_views,_coefficients)) {
+    // for (auto&& [index,coeffs] : mtao::iterator::enumerate(_coefficients)) {
+    for (auto&& [view, coeffs] : mtao::iterator::zip(_views, _coefficients)) {
         _shader.setPolynomialCoefficients(coeffs);
         _shader.draw(view);
         //_shader.draw(view);
@@ -80,12 +81,12 @@ void PartitionedPolynomialShadedMesh<D>::set_offsets(
     const std::vector<int>& offsets) {
     PartitionedMesh<D>::set_offsets(offsets);
 
-    // probably better ot set the idnex buffer somewhere else, but might as well here
+    // probably better ot set the idnex buffer somewhere else, but might as well
+    // here
     using M = objects::Mesh<D>;
     M::setPrimitive(Magnum::GL::MeshPrimitive::Triangles);
-    M::setIndexBuffer(
-            M::triangle_index_buffer, 0, M::triangle_indexType,
-            M::triangle_indexStart, M::triangle_indexEnd);
+    M::setIndexBuffer(M::triangle_index_buffer, 0, M::triangle_indexType,
+                      M::triangle_indexStart, M::triangle_indexEnd);
     M::setCount(M::triangle_Count);
     _views = PartitionedMesh<D>::views();
     _coefficients.resize(offsets.size() - 1);
