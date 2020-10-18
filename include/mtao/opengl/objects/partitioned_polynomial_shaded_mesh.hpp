@@ -27,8 +27,10 @@ class PartitionedPolynomialShadedMesh
     using DrawableType = internal::DrawableType<ShaderType>;
     using DrawableGroup = internal::DrawableGroupType<ShaderType>;
     using Camera = internal::CameraType<ShaderType>;
-    PartitionedPolynomialShadedMesh(DrawableGroup* group = nullptr)
-        : DrawableType(*this, group) {}
+    PartitionedPolynomialShadedMesh(
+        DrawableGroup* group = nullptr,
+        Magnum::UnsignedInt colormapMode = ShaderType::Jet)
+        : DrawableType(*this, group), _shader(colormapMode) {}
 
    public:
     void draw(const TransMat& transformationMatrix, Camera& camera) override;

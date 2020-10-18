@@ -139,29 +139,22 @@ bool pfcgui(Coefficients& coefficients, const std::string& name_,
     if (ImGui::TreeNode(name.c_str())) {
         if (ImGui::InputInt("Degree", &coefficients.degree)) {
             ret = true;
-            // dr.shader().setDegree(coefficients.degree);
         }
         if (ImGui::InputFloat2("Center", coefficients.center.data())) {
             ret = true;
-            // dr.shader().setQuadratic(coefficients.quadratic);
         }
         if (ImGui::InputFloat("Scale", &coefficients.scale)) {
             ret = true;
-            // dr.shader().setQuadratic(coefficients.quadratic);
         }
         if (ImGui::InputFloat("Constant", &coefficients.constant)) {
             ret = true;
-            // dr.shader().setConstant(coefficients.constant);
         }
         if (ImGui::InputFloat2("Linear", coefficients.linear.data())) {
             ret = true;
-            // dr.shader().setLinear(coefficients.linear);
         }
         if (ImGui::InputFloat4("Quadratic", coefficients.quadratic.data())) {
             ret = true;
-            // dr.shader().setQuadratic(coefficients.quadratic);
         }
-        // dr.shader().setPolynomialCoefficients(coefficients);
         ImGui::TreePop();
     }
     return ret;
@@ -180,12 +173,70 @@ void DrawableBase<PolynomialScalarFieldShader<3>>::gui(
 template <>
 bool PolynomialScalarFieldShader<2>::PolynomialCoefficients::gui(
     const std::string& name_) {
-    return internal::pfcgui(*this, name_);
+    std::string name = name_;
+    if (name.empty()) {
+        name = fmt::format("Polynomial Field Shader Coefficients");
+    }
+    bool ret = false;
+    if (ImGui::TreeNode(name.c_str())) {
+        if (ImGui::InputInt("Degree", &degree)) {
+            ret = true;
+        }
+        if (ImGui::InputFloat2("Center", center.data())) {
+            ret = true;
+        }
+        if (ImGui::InputFloat("Scale", &scale)) {
+            ret = true;
+        }
+        if (ImGui::InputFloat("Constant", &constant)) {
+            ret = true;
+        }
+        if (ImGui::InputFloat2("Linear", linear.data())) {
+            ret = true;
+        }
+        if (ImGui::InputFloat4("Quadratic", quadratic.data())) {
+            ret = true;
+        }
+        ImGui::TreePop();
+    }
+    return ret;
 }
 template <>
 bool PolynomialScalarFieldShader<3>::PolynomialCoefficients::gui(
     const std::string& name_) {
-    return internal::pfcgui(*this, name_);
+    std::string name = name_;
+    if (name.empty()) {
+        name = fmt::format("Polynomial Field Shader Coefficients");
+    }
+    bool ret = false;
+    if (ImGui::TreeNode(name.c_str())) {
+        if (ImGui::InputInt("Degree", &degree)) {
+            ret = true;
+        }
+        if (ImGui::InputFloat3("Center", center.data())) {
+            ret = true;
+        }
+        if (ImGui::InputFloat("Scale", &scale)) {
+            ret = true;
+        }
+        if (ImGui::InputFloat("Constant", &constant)) {
+            ret = true;
+        }
+        if (ImGui::InputFloat3("Linear", linear.data())) {
+            ret = true;
+        }
+        if (ImGui::InputFloat3("Quadratic X", quadratic.data())) {
+            ret = true;
+        }
+        if (ImGui::InputFloat3("Quadratic Y", quadratic.data()+3)) {
+            ret = true;
+        }
+        if (ImGui::InputFloat3("Quadratic Z", quadratic.data()+6)) {
+            ret = true;
+        }
+        ImGui::TreePop();
+    }
+    return ret;
 }
 template <>
 void MeshDrawable<PolynomialScalarFieldShader<2>>::set_buffers() {

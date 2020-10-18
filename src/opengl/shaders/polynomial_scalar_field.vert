@@ -21,7 +21,7 @@ void main() {
 #if defined(TWO_DIMENSIONS)
     gl_Position.xywz = vec4(transformationProjectionMatrix * vec3(position,1),0);
 #else
-    gl_Position = transformationProjectionMatrix * position;
+    gl_Position = transformationProjectionMatrix * vec4(position,1);
 #endif
     vertPos = position;
 }

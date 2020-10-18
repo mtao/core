@@ -96,7 +96,33 @@ bool interior_winding_number_iterator(const Eigen::MatrixBase<VDerived>& V,
 }
 
 template <typename PDerived, typename VDerived, typename EDerived>
-double winding_number(const Eigen::MatrixBase<VDerived>& V,
+auto mesh_winding_number(const Eigen::MatrixBase<VDerived>& V,
+        const Eigen::MatrixBase<EDerived>& E,
+        const Eigen::MatrixBase<PDerived>& p) {
+        using S = typename VDerived::Scalar;
+    if constexpr(PDerived::ColsAtCompileTime == 1) {
+        S value = 0;
+        for(int j = 0; j < E.cols(); ++j) {
+            auto e = E.col(j);
+            auto a = V.col(e(0));
+            auto b = V.col(e(1));
+
+            value += internal::winding_number::three_point_angle(a, b, p);
+        }
+        value /= 2 * M_PI;
+        return value;
+    } else {
+        mtao::Vector<S,PDerived::ColsAtCompileTime> R(p.cols());
+        for(int j = 0; j < p.cols(); ++j) {
+            R(j) = winding_number(p.col(j));
+        }
+
+        return R;
+    }
+}
+
+template <typename PDerived, typename VDerived, typename EDerived>
+double mesh_winding_number(const Eigen::MatrixBase<VDerived>& V,
                     const Eigen::MatrixBase<EDerived>& E,
                     const std::map<int, bool>& boundary_map,
                     const Eigen::MatrixBase<PDerived>& p) {
@@ -122,12 +148,21 @@ double winding_number(const Eigen::MatrixBase<VDerived>& V,
     return value;
 }
 template <typename PDerived, typename VDerived, typename EDerived>
-bool interior_winding_number(const Eigen::MatrixBase<VDerived>& V,
+bool interior_mesh_winding_number(const Eigen::MatrixBase<VDerived>& V,
                     const Eigen::MatrixBase<EDerived>& E,
                     const std::map<int, bool>& boundary_map,
                     const Eigen::MatrixBase<PDerived>& p) {
 
-    auto v = winding_number_iterator(V, E, boundary_map, p);
+    auto v = mesh_winding_number(V, E, boundary_map, p);
+    return std::abs(v) < .5;
+}
+
+template <typename PDerived, typename VDerived, typename EDerived>
+bool interior_mesh_winding_number(const Eigen::MatrixBase<VDerived>& V,
+                    const Eigen::MatrixBase<EDerived>& E,
+                    const Eigen::MatrixBase<PDerived>& p) {
+
+    auto v = mesh_winding_number(V, E, p);
     return std::abs(v) < .5;
 }
 }  // namespace mtao::geometry
