@@ -44,6 +44,8 @@ class PartitionedPolynomialShadedMesh
 
     void gui();
 
+    mtao::Vec4f get_color(double value) const;
+
    private:
     Corrade::Containers::Array<Magnum::GL::MeshView> _views;
     ShaderType _shader;
@@ -132,5 +134,32 @@ void PartitionedPolynomialShadedMesh<D>::gui() {
          mtao::iterator::enumerate(_coefficients)) {
         coefficients.gui(fmt::format("{}", index));
     }
+}
+template <int D>
+mtao::Vec4f PartitionedPolynomialShadedMesh<D>::get_color(double value) const {
+    const double scale = _shader_data.colormap_scale;
+    const double shift = _shader_data.colormap_shift;
+    value = shift + scale * value;
+    value = (value + 1) / 2;
+
+    colormap::Color c;
+    switch (_shader.colorMode()) {
+        case ShaderType::Parula:
+            c = colormap::MATLAB::Parula().getColor(value);
+            break;
+        case ShaderType::Jet:
+            c = colormap::MATLAB::Jet().getColor(value);
+            break;
+        case ShaderType::Waves:
+            c = colormap::IDL::Waves().getColor(value);
+            break;
+    }
+
+    mtao::Vec4f r;
+    r.x() = c.r;
+    r.y() = c.g;
+    r.z() = c.b;
+    r.w() = c.a;
+    return r;
 }
 }  // namespace mtao::opengl::objects

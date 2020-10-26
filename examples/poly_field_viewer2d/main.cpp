@@ -42,8 +42,7 @@ void gui_func() {
 
 class MeshViewer : public mtao::opengl::Window2 {
    public:
-    MeshViewer(const Arguments& args)
-        : Window2(args), pmesh(&drawables()) {
+    MeshViewer(const Arguments& args) : Window2(args), pmesh(&drawables()) {
         mtao::ColVecs2f V(2, 6);
         mtao::ColVecs3i F(3, 4);
 
@@ -86,11 +85,33 @@ class MeshViewer : public mtao::opengl::Window2 {
         drawable->data().coefficients.emplace();
 
         pmesh.set_offsets(partitions);
+
+        {
+            mtao::ColVecs2f V(2, 10000);
+            mtao::ColVecs4f C(4, 10000);
+            for (int j = 0; j < V.cols(); ++j) {
+                V.col(j) = bb.sample();
+                double value = V.col(j).norm();
+
+                C.col(j) = pmesh.get_color(value);
+            }
+            point_mesh.setVertexBuffer(V);
+            point_mesh.setColorBuffer(C);
+            point_mesh.setParent(&root());
+            point_drawable =
+                new mtao::opengl::MeshDrawable<Magnum::Shaders::VertexColor2D>{
+                    point_mesh, vertex_color_shader, drawables()};
+            point_drawable->deactivate();
+            point_drawable->activate_points();
+        }
     }
     void gui() override {
         gui_func();
         if (drawable) {
             drawable->gui();
+        }
+        if (point_drawable) {
+            point_drawable->gui();
         }
         pmesh.gui();
         // if (pdrawable) {
@@ -100,12 +121,15 @@ class MeshViewer : public mtao::opengl::Window2 {
     void draw() override { Window2::draw(); }
 
    private:
-    Magnum::Shaders::Flat2D flat_shader;
+    Magnum::Shaders::VertexColor2D vertex_color_shader;
     mtao::opengl::PolynomialScalarFieldShader<2> poly_shader;
     mtao::opengl::objects::Mesh<2> mesh;
+    mtao::opengl::objects::Mesh<2> point_mesh;
     mtao::opengl::objects::PartitionedPolynomialShadedMesh<2> pmesh;
     mtao::opengl::MeshDrawable<mtao::opengl::PolynomialScalarFieldShader<2>>*
         drawable = nullptr;
+    mtao::opengl::MeshDrawable<Magnum::Shaders::VertexColor2D>* point_drawable =
+        nullptr;
 };
 
 MAGNUM_APPLICATION_MAIN(MeshViewer)

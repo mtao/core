@@ -20,13 +20,13 @@ namespace mtao::opengl {
 template <>
 PolynomialScalarFieldShader<2>::PolynomialScalarFieldShader(
     Magnum::UnsignedInt colorMode)
-    : _colorMap(colorMode) {
+    : _colorMode(colorMode) {
     initialize();
 }
 template <>
 PolynomialScalarFieldShader<3>::PolynomialScalarFieldShader(
     Magnum::UnsignedInt colorMode)
-    : _colorMap(colorMode) {
+    : _colorMode(colorMode) {
     initialize();
 }
 template <int D>
@@ -44,7 +44,7 @@ void PolynomialScalarFieldShader<D>::initialize() {
     }
     vert.addSource(rs.get("polynomial_scalar_field.vert"));
     frag.addSource(rs.get("polynomial.glsl"));
-    switch (_colorMap) {
+    switch (_colorMode) {
         case Parula:
             frag.addSource(colormap::MATLAB::Parula().getSource());
             break;
@@ -228,10 +228,10 @@ bool PolynomialScalarFieldShader<3>::PolynomialCoefficients::gui(
         if (ImGui::InputFloat3("Quadratic X", quadratic.data())) {
             ret = true;
         }
-        if (ImGui::InputFloat3("Quadratic Y", quadratic.data()+3)) {
+        if (ImGui::InputFloat3("Quadratic Y", quadratic.data() + 3)) {
             ret = true;
         }
-        if (ImGui::InputFloat3("Quadratic Z", quadratic.data()+6)) {
+        if (ImGui::InputFloat3("Quadratic Z", quadratic.data() + 6)) {
             ret = true;
         }
         ImGui::TreePop();

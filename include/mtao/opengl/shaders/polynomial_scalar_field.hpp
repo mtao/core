@@ -13,6 +13,7 @@
 #include <span>
 
 #include "mtao/opengl/drawables.h"
+#include "mtao/types.hpp"
 
 namespace mtao::opengl {
 
@@ -77,8 +78,7 @@ class PolynomialScalarFieldShader : public Magnum::GL::AbstractShaderProgram {
     using PolynomialCoefficients = typename ShaderData<
         PolynomialScalarFieldShader<D>>::PolynomialCoefficients;
     enum : Magnum::UnsignedInt { Parula = 0, Jet = 1, Waves = 2 };
-    explicit PolynomialScalarFieldShader(
-        Magnum::UnsignedInt colorMode = Jet );
+    explicit PolynomialScalarFieldShader(Magnum::UnsignedInt colorMode = Jet);
 
     PolynomialScalarFieldShader& setTransformationProjectionMatrix(
         const MatType& matrix) {
@@ -139,6 +139,8 @@ class PolynomialScalarFieldShader : public Magnum::GL::AbstractShaderProgram {
         return *this;
     }
 
+    Magnum::UnsignedInt colorMode() const { return _colorMode; }
+
    private:
     void initialize();
     Magnum::Int _transformationProjectionMatrixUniform{0}, _degree, _constant,
@@ -146,7 +148,7 @@ class PolynomialScalarFieldShader : public Magnum::GL::AbstractShaderProgram {
         _colormap_shift
 
         ;
-    const Magnum::UnsignedInt _colorMap;
+    const Magnum::UnsignedInt _colorMode;
 };
 template <>
 PolynomialScalarFieldShader<2>::PolynomialScalarFieldShader(
