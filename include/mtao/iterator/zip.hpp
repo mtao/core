@@ -9,9 +9,10 @@ namespace mtao {
     namespace iterator {
 
         template <typename... Types>
-            auto zip(Types&&... t) {
-                return ranges::views::zip(std::forward<Types>(t)...);
-                //return detail::zip_container<Types...>(std::forward<Types>(t)...);
-            }
+            constexpr auto& zip = ranges::views::zip<Types>;
+            //auto zip(Types&&... t) {
+            //    return ranges::views::zip(std::forward<Types>(t)...);
+            //    //return detail::zip_container<Types...>(std::forward<Types>(t)...);
+            //}
     }
 }
