@@ -26,12 +26,13 @@ struct ShaderData<PolynomialScalarFieldShader<D>> {
         float constant = 0;
         Magnum::Math::Vector<D, float> linear;
         Magnum::Math::Matrix<D, float> quadratic;
+        // weirdly this is indexed k,i,j
         Corrade::Containers::Array<Magnum::Math::Matrix<D, float>> cubic;
         float scale = 1;
         Magnum::Math::Vector<D, float> center;
         bool gui(const std::string& name = "");
 
-        ;
+        void zero();
     };
     // for debug purposes one should change min_value/max_value with
     // update_minmax() whenever colormap_scale / colormap_shift are changed
@@ -173,6 +174,11 @@ bool PolynomialScalarFieldShader<2>::PolynomialCoefficients::gui(
 template <>
 bool PolynomialScalarFieldShader<3>::PolynomialCoefficients::gui(
     const std::string& name_);
+
+template <>
+void PolynomialScalarFieldShader<2>::PolynomialCoefficients::zero();
+template <>
+void PolynomialScalarFieldShader<3>::PolynomialCoefficients::zero();
 
 }  // namespace mtao::opengl
 

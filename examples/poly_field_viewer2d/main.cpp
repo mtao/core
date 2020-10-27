@@ -114,6 +114,12 @@ class MeshViewer : public mtao::opengl::Window2 {
             point_drawable->gui();
         }
         pmesh.gui();
+        if(drawable && ImGui::Button("Zero")) {
+            auto& coeffs = drawable->data().coefficients;
+            if(coeffs) {
+            coeffs->zero();
+            }
+        }
         // if (pdrawable) {
         //    pdrawable->gui("second");
         //}

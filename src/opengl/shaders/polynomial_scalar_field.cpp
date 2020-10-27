@@ -258,5 +258,25 @@ void MeshDrawable<PolynomialScalarFieldShader<3>>::set_buffers() {
     _mesh.addVertexBuffer(_mesh.vertex_buffer, 0,
                           PolynomialScalarFieldShader<3>::Position{});
 }
+template <>
+void PolynomialScalarFieldShader<2>::PolynomialCoefficients::zero() {
+    constant = 0;
+
+    linear = Magnum::Math::Vector<2, float>(Magnum::Math::ZeroInit);
+    quadratic = Magnum::Math::Matrix<2, float>(Magnum::Math::ZeroInit);
+    for (auto&& v : cubic) {
+        v = Magnum::Math::Matrix<2, float>(Magnum::Math::ZeroInit);
+    }
+}
+template <>
+void PolynomialScalarFieldShader<3>::PolynomialCoefficients::zero() {
+    constant = 0;
+
+    linear = Magnum::Math::Vector<3, float>(Magnum::Math::ZeroInit);
+    quadratic = Magnum::Math::Matrix<3, float>(Magnum::Math::ZeroInit);
+    for (auto&& v : cubic) {
+        v = Magnum::Math::Matrix<3, float>(Magnum::Math::ZeroInit);
+    }
+}
 
 }  // namespace mtao::opengl
