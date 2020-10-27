@@ -32,7 +32,7 @@ highp float polynomial_eval(highp vec3 p) {
 #endif
     p = p - polynomial_coefficients.center;
     p = p / polynomial_coefficients.scale;
-    highp float val = polynomial_coefficients.constant;
+    highp float val = 0;
     // ret = C + p * (L + p * (Q + p * (U)))
 
 #if defined(TWO_DIMENSIONS)
@@ -54,6 +54,7 @@ highp float polynomial_eval(highp vec3 p) {
     if(polynomial_coefficients.degree >= 1) {
         val += dot(L, p);
     }
+    val += polynomial_coefficients.constant;
     return val;
 }
 
