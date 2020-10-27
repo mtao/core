@@ -42,7 +42,8 @@ class PartitionedPolynomialShadedMesh
         return _coefficients;
     }
 
-    void gui();
+    // returns true if scaling parameters changed, not if coefficients changed
+    bool gui();
 
     mtao::Vec4f get_color(double value) const;
 
@@ -107,33 +108,39 @@ void PartitionedPolynomialShadedMesh<D>::set_offsets(
 //}
 
 template <int D>
-void PartitionedPolynomialShadedMesh<D>::gui() {
+bool PartitionedPolynomialShadedMesh<D>::gui() {
     float& colormap_scale = _shader_data.colormap_scale;
     float& colormap_shift = _shader_data.colormap_shift;
     float& min_value = _shader_data.min_value;
     float& max_value = _shader_data.max_value;
+    bool changed = false;
     if (ImGui::InputFloat("Colormap Scale", &colormap_scale)) {
         _shader.setColormapScale(colormap_scale);
         _shader_data.update_minmax();
+        changed = true;
     }
     if (ImGui::InputFloat("Colormap Shift", &colormap_shift)) {
         _shader.setColormapShift(colormap_shift);
         _shader_data.update_minmax();
+        changed = true;
     }
     if (ImGui::InputFloat("Colormap min", &min_value)) {
         _shader_data.update_scale_shift();
         _shader.setColormapScale(colormap_scale);
         _shader.setColormapShift(colormap_shift);
+        changed = true;
     }
     if (ImGui::InputFloat("Colormap max", &max_value)) {
         _shader_data.update_scale_shift();
         _shader.setColormapScale(colormap_scale);
         _shader.setColormapShift(colormap_shift);
+        changed = true;
     }
     for (auto&& [index, coefficients] :
          mtao::iterator::enumerate(_coefficients)) {
         coefficients.gui(fmt::format("{}", index));
     }
+    return changed;
 }
 template <int D>
 mtao::Vec4f PartitionedPolynomialShadedMesh<D>::get_color(double value) const {

@@ -30,6 +30,7 @@ struct ShaderData<PolynomialScalarFieldShader<D>> {
         Corrade::Containers::Array<Magnum::Math::Matrix<D, float>> cubic;
         float scale = 1;
         Magnum::Math::Vector<D, float> center;
+        // returns true if any of the parameters were changed
         bool gui(const std::string& name = "");
 
         void zero();
