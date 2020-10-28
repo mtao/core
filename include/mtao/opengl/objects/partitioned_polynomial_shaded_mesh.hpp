@@ -43,7 +43,7 @@ class PartitionedPolynomialShadedMesh
     }
 
     // returns true if scaling parameters changed, not if coefficients changed
-    bool gui();
+    bool gui(const std::string& name = "PartitionedPolyShadedMesh");
 
     mtao::Vec4f get_color(double value) const;
 
@@ -108,37 +108,43 @@ void PartitionedPolynomialShadedMesh<D>::set_offsets(
 //}
 
 template <int D>
-bool PartitionedPolynomialShadedMesh<D>::gui() {
-    float& colormap_scale = _shader_data.colormap_scale;
-    float& colormap_shift = _shader_data.colormap_shift;
-    float& min_value = _shader_data.min_value;
-    float& max_value = _shader_data.max_value;
+bool PartitionedPolynomialShadedMesh<D>::gui(const std::string& name) {
     bool changed = false;
-    if (ImGui::InputFloat("Colormap Scale", &colormap_scale)) {
-        _shader.setColormapScale(colormap_scale);
-        _shader_data.update_minmax();
-        changed = true;
-    }
-    if (ImGui::InputFloat("Colormap Shift", &colormap_shift)) {
-        _shader.setColormapShift(colormap_shift);
-        _shader_data.update_minmax();
-        changed = true;
-    }
-    if (ImGui::InputFloat("Colormap min", &min_value)) {
-        _shader_data.update_scale_shift();
-        _shader.setColormapScale(colormap_scale);
-        _shader.setColormapShift(colormap_shift);
-        changed = true;
-    }
-    if (ImGui::InputFloat("Colormap max", &max_value)) {
-        _shader_data.update_scale_shift();
-        _shader.setColormapScale(colormap_scale);
-        _shader.setColormapShift(colormap_shift);
-        changed = true;
-    }
-    for (auto&& [index, coefficients] :
-         mtao::iterator::enumerate(_coefficients)) {
-        coefficients.gui(fmt::format("{}", index));
+    if (ImGui::TreeNode(name.c_str())) {
+        float& colormap_scale = _shader_data.colormap_scale;
+        float& colormap_shift = _shader_data.colormap_shift;
+        float& min_value = _shader_data.min_value;
+        float& max_value = _shader_data.max_value;
+        if (ImGui::InputFloat("Colormap Scale", &colormap_scale)) {
+            _shader.setColormapScale(colormap_scale);
+            _shader_data.update_minmax();
+            changed = true;
+        }
+        if (ImGui::InputFloat("Colormap Shift", &colormap_shift)) {
+            _shader.setColormapShift(colormap_shift);
+            _shader_data.update_minmax();
+            changed = true;
+        }
+        if (ImGui::InputFloat("Colormap min", &min_value)) {
+            _shader_data.update_scale_shift();
+            _shader.setColormapScale(colormap_scale);
+            _shader.setColormapShift(colormap_shift);
+            changed = true;
+        }
+        if (ImGui::InputFloat("Colormap max", &max_value)) {
+            _shader_data.update_scale_shift();
+            _shader.setColormapScale(colormap_scale);
+            _shader.setColormapShift(colormap_shift);
+            changed = true;
+        }
+        if (ImGui::TreeNode("Coefficients")) {
+            for (auto&& [index, coefficients] :
+                 mtao::iterator::enumerate(_coefficients)) {
+                coefficients.gui(fmt::format("{}", index));
+            }
+            ImGui::TreePop();
+        }
+        ImGui::TreePop();
     }
     return changed;
 }
