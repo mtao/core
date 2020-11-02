@@ -46,6 +46,9 @@ class PartitionedPolynomialShadedMesh
     bool gui(const std::string& name = "PartitionedPolyShadedMesh");
 
     mtao::Vec4f get_color(double value) const;
+    const ShaderData<PolynomialScalarFieldShader<D>>& shader_data() const {
+        return _shader_data;
+    }
 
    private:
     Corrade::Containers::Array<Magnum::GL::MeshView> _views;
