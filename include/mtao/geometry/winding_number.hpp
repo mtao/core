@@ -40,10 +40,9 @@ typename ADerived::Scalar three_point_angle(
 }  // namespace internal::winding_number
 template <typename PDerived, typename VDerived, typename BeginIt,
           typename EndIt>
-typename VDerived::Scalar winding_number_iterator(const Eigen::MatrixBase<VDerived>& V,
-                                         const BeginIt& beginit,
-                                         const EndIt& endit,
-                                         const Eigen::MatrixBase<PDerived>& p) {
+typename VDerived::Scalar winding_number_iterator(
+    const Eigen::MatrixBase<VDerived>& V, const BeginIt& beginit,
+    const EndIt& endit, const Eigen::MatrixBase<PDerived>& p) {
     using S = typename VDerived::Scalar;
     S value = 0;
     auto it = beginit;
@@ -77,8 +76,9 @@ typename VDerived::Scalar winding_number(const Eigen::MatrixBase<VDerived>& V,
 template <typename PDerived, typename VDerived, typename BeginIt,
           typename EndIt>
 bool interior_winding_number_iterator(const Eigen::MatrixBase<VDerived>& V,
-                             const BeginIt& beginit, const EndIt& endit,
-                             const Eigen::MatrixBase<PDerived>& p) {
+                                      const BeginIt& beginit,
+                                      const EndIt& endit,
+                                      const Eigen::MatrixBase<PDerived>& p) {
     auto v = winding_number_iterator(V, beginit, endit, p);
     return std::abs(v) > .5;
 }
@@ -90,19 +90,19 @@ bool interior_winding_number(const Eigen::MatrixBase<VDerived>& V,
 }
 template <typename PDerived, typename VDerived>
 bool interior_winding_number_iterator(const Eigen::MatrixBase<VDerived>& V,
-                             const std::initializer_list<int>& C,
-                             const Eigen::MatrixBase<PDerived>& p) {
+                                      const std::initializer_list<int>& C,
+                                      const Eigen::MatrixBase<PDerived>& p) {
     return interior_winding_number(V, C.begin(), C.end(), p);
 }
 
 template <typename PDerived, typename VDerived, typename EDerived>
 auto mesh_winding_number(const Eigen::MatrixBase<VDerived>& V,
-        const Eigen::MatrixBase<EDerived>& E,
-        const Eigen::MatrixBase<PDerived>& p) {
-        using S = typename VDerived::Scalar;
-    if constexpr(PDerived::ColsAtCompileTime == 1) {
+                         const Eigen::MatrixBase<EDerived>& E,
+                         const Eigen::MatrixBase<PDerived>& p) {
+    using S = typename VDerived::Scalar;
+    if constexpr (PDerived::ColsAtCompileTime == 1) {
         S value = 0;
-        for(int j = 0; j < E.cols(); ++j) {
+        for (int j = 0; j < E.cols(); ++j) {
             auto e = E.col(j);
             auto a = V.col(e(0));
             auto b = V.col(e(1));
@@ -112,9 +112,9 @@ auto mesh_winding_number(const Eigen::MatrixBase<VDerived>& V,
         value /= 2 * M_PI;
         return value;
     } else {
-        mtao::Vector<S,PDerived::ColsAtCompileTime> R(p.cols());
-        for(int j = 0; j < p.cols(); ++j) {
-            R(j) = winding_number(p.col(j));
+        mtao::Vector<S, PDerived::ColsAtCompileTime> R(p.cols());
+        for (int j = 0; j < p.cols(); ++j) {
+            R(j) = mesh_winding_number(V, E, p.col(j));
         }
 
         return R;
@@ -123,9 +123,9 @@ auto mesh_winding_number(const Eigen::MatrixBase<VDerived>& V,
 
 template <typename PDerived, typename VDerived, typename EDerived>
 double mesh_winding_number(const Eigen::MatrixBase<VDerived>& V,
-                    const Eigen::MatrixBase<EDerived>& E,
-                    const std::map<int, bool>& boundary_map,
-                    const Eigen::MatrixBase<PDerived>& p) {
+                           const Eigen::MatrixBase<EDerived>& E,
+                           const std::map<int, bool>& boundary_map,
+                           const Eigen::MatrixBase<PDerived>& p) {
     using S = typename VDerived::Scalar;
     S value = 0;
     for (auto&& [idx, sgn] : boundary_map) {
@@ -142,31 +142,29 @@ double mesh_winding_number(const Eigen::MatrixBase<VDerived>& V,
         auto b = V.col(bi);
 
         value += internal::winding_number::three_point_angle(a, b, p);
-        //std::cout << "{" << value << "}";
+        // std::cout << "{" << value << "}";
     }
     value /= 2 * M_PI;
     return value;
 }
 template <typename PDerived, typename VDerived, typename EDerived>
 bool interior_mesh_winding_number(const Eigen::MatrixBase<VDerived>& V,
-                    const Eigen::MatrixBase<EDerived>& E,
-                    const std::map<int, bool>& boundary_map,
-                    const Eigen::MatrixBase<PDerived>& p) {
-
+                                  const Eigen::MatrixBase<EDerived>& E,
+                                  const std::map<int, bool>& boundary_map,
+                                  const Eigen::MatrixBase<PDerived>& p) {
     auto v = mesh_winding_number(V, E, boundary_map, p);
-    return std::abs(v) < .5;
+    return std::abs(v) > .5;
 }
 
 template <typename PDerived, typename VDerived, typename EDerived>
 auto interior_mesh_winding_number(const Eigen::MatrixBase<VDerived>& V,
-                    const Eigen::MatrixBase<EDerived>& E,
-                    const Eigen::MatrixBase<PDerived>& p) {
-
-    if constexpr(PDerived::ColsAtCompileTime == 1) {
-    auto v = mesh_winding_number(V, E, p);
-    return std::abs(v) < .5;
+                                  const Eigen::MatrixBase<EDerived>& E,
+                                  const Eigen::MatrixBase<PDerived>& p) {
+    if constexpr (PDerived::ColsAtCompileTime == 1) {
+        auto v = mesh_winding_number(V, E, p);
+        return std::abs(v) > .5;
     } else {
-        return (mesh_winding_number(V,E,p).array().abs() < 1).eval();
+        return (mesh_winding_number(V, E, p).array().abs() > .5).eval();
     }
 }
 }  // namespace mtao::geometry
