@@ -76,6 +76,8 @@ VectorFieldShader<3>::VectorFieldShader(Magnum::UnsignedInt colorMode);
 template <>
 void DrawableBase<VectorFieldShader<2>>::gui(const std::string& name_);
 template <>
+void MeshDrawable<VectorFieldShader<2>>::gui(const std::string& name_);
+template <>
 void MeshDrawable<VectorFieldShader<2>>::set_buffers();
 template <>
 void DrawableBase<VectorFieldShader<3>>::gui(const std::string& name_);

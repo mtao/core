@@ -1,5 +1,6 @@
 #include "mtao/opengl/shaders/vector_field.hpp"
 
+#include <Magnum/GL/Renderer.h>
 #include <Corrade/Containers/Reference.h>
 #include <Corrade/Utility/Resource.h>
 #include <Magnum/GL/Shader.h>
@@ -88,6 +89,22 @@ void vfgui(Drawable& d, const std::string& name_) {
         ImGui::TreePop();
     }
 }
+template <typename Drawable>
+void vfguim(Drawable& d, const std::string& name_) {
+    std::string name = name_;
+    if (name.empty()) {
+        name = "Vector Field Shader";
+    }
+    if (ImGui::TreeNode(name.c_str())) {
+        bool vis = d.is_visible();
+        ImGui::Checkbox("Visible", &vis);
+        d.set_visibility(vis);
+        ImGui::ColorEdit4("Color", d.data().color.data());
+        ImGui::InputFloat("Scale", &d.data().scale);
+        ImGui::InputFloat("Line Width", &d.line_width);
+        ImGui::TreePop();
+    }
+}
 }  // namespace internal
 template <>
 void DrawableBase<VectorFieldShader<2>>::gui(const std::string& name_) {
@@ -96,6 +113,14 @@ void DrawableBase<VectorFieldShader<2>>::gui(const std::string& name_) {
 template <>
 void DrawableBase<VectorFieldShader<3>>::gui(const std::string& name_) {
     internal::vfgui(*this, name_);
+}
+template <>
+void MeshDrawable<VectorFieldShader<2>>::gui(const std::string& name_) {
+    internal::vfguim(*this, name_);
+}
+template <>
+void MeshDrawable<VectorFieldShader<3>>::gui(const std::string& name_) {
+    internal::vfguim(*this, name_);
 }
 template <>
 void MeshDrawable<VectorFieldShader<2>>::set_buffers() {
@@ -110,6 +135,9 @@ void MeshDrawable<VectorFieldShader<2>>::set_buffers() {
                               VectorFieldShader<2>::Color4{});
     }
     shader().setScale(data().scale).setColor(data().color);
+    activate_line_width();
+
+
 }
 template <>
 void MeshDrawable<VectorFieldShader<3>>::set_buffers() {
@@ -124,5 +152,6 @@ void MeshDrawable<VectorFieldShader<3>>::set_buffers() {
                               VectorFieldShader<3>::Color4{});
     }
     shader().setScale(data().scale).setColor(data().color);
+    activate_line_width();
 }
 }  // namespace mtao::opengl

@@ -1,7 +1,9 @@
 #pragma once
+#include <spdlog/spdlog.h>
 #include <Magnum/GL/Buffer.h>
 #include <Magnum/Magnum.h>
 #include <Magnum/SceneGraph/Camera.h>
+#include <Magnum/GL/Renderer.h>
 #include <Magnum/SceneGraph/Drawable.h>
 #include <Magnum/Shaders/Flat.h>
 #include <Magnum/Shaders/Generic.h>
@@ -108,7 +110,21 @@ class MeshDrawable : public DrawableBase<ShaderType> {
                                 GL::MeshPrimitive::Triangles) {
         triangle_primitive = p;
     }
-
+    void activate_line_width() { 
+            Magnum::GL::Renderer::setLineWidth(line_width);
+    }
+    void activate_point_size() {
+            Magnum::GL::Renderer::setPointSize(point_size);
+    }
+    // sets line_width and point_size
+    void activate_active_primitive_sizes() {
+        if(edge_primitive) {
+            activate_line_width();
+        }
+        if(point_primitive) {
+            activate_point_size();
+        }
+    }
     bool lint_buffers() {
         bool ret = lint_vertex();
         if (edge_primitive) {
@@ -119,7 +135,10 @@ class MeshDrawable : public DrawableBase<ShaderType> {
         }
         return ret;
     }
+    virtual void gui(const std::string& name = "") { Base::gui(name); }
 
+    float line_width = 1.0;
+    float point_size = 1.0;
    private:
     std::optional<GL::MeshPrimitive> triangle_primitive =
         GL::MeshPrimitive::Triangles;
@@ -135,6 +154,7 @@ class MeshDrawable : public DrawableBase<ShaderType> {
         if (!is_visible()) return;
 
         set_buffers();
+        activate_active_primitive_sizes();
         set_matrices(transformationMatrix, camera);
         if (triangle_primitive) {
             _mesh.setCount(_mesh.triangle_Count);
