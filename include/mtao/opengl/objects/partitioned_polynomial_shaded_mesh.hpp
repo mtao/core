@@ -155,6 +155,13 @@ template <int D>
 mtao::Vec4f PartitionedPolynomialShadedMesh<D>::get_color(double value) const {
     const double scale = _shader_data.colormap_scale;
     const double shift = _shader_data.colormap_shift;
+    return get_color(scale, shift, value, _shader.colorMode());
+}
+
+template <int D>
+mtao::Vec4f PartitionedPolynomialShadedMesh<D>::get_color(double value) const {
+    const double scale = _shader_data.colormap_scale;
+    const double shift = _shader_data.colormap_shift;
     value = shift + scale * value;
     value = (value + 1) / 2;
 
