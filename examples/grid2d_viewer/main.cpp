@@ -652,8 +652,8 @@ class MeshViewer : public mtao::opengl::Window2 {
                              .select(bbox.min(), bbox.max());
             update();
         }
-        if (ImGui::SliderFloat("scale", &scale, 0, 2)) {
-            _vf_shader.setScale(scale);
+        if(_vf_viewer) {
+            _vf_viewer->gui();
         }
         if (edge_drawable) {
             edge_drawable->gui();

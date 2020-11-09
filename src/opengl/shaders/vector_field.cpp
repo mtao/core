@@ -83,6 +83,8 @@ void vfgui(Drawable& d, const std::string& name_) {
         bool vis = d.is_visible();
         ImGui::Checkbox("Visible", &vis);
         d.set_visibility(vis);
+        ImGui::ColorEdit4("Color", d.data().color.data());
+        ImGui::InputFloat("Scale", &d.data().scale);
         ImGui::TreePop();
     }
 }
@@ -107,6 +109,7 @@ void MeshDrawable<VectorFieldShader<2>>::set_buffers() {
         _mesh.addVertexBuffer(_mesh.color_buffer, 0,
                               VectorFieldShader<2>::Color4{});
     }
+    shader().setScale(data().scale).setColor(data().color);
 }
 template <>
 void MeshDrawable<VectorFieldShader<3>>::set_buffers() {
@@ -120,5 +123,6 @@ void MeshDrawable<VectorFieldShader<3>>::set_buffers() {
         _mesh.addVertexBuffer(_mesh.color_buffer, 0,
                               VectorFieldShader<3>::Color4{});
     }
+    shader().setScale(data().scale).setColor(data().color);
 }
 }  // namespace mtao::opengl

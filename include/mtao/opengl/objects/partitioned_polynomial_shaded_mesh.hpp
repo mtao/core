@@ -46,6 +46,7 @@ class PartitionedPolynomialShadedMesh
     bool gui(const std::string& name = "PartitionedPolyShadedMesh");
 
     mtao::Vec4f get_color(double value) const;
+static mtao::Vec4f get_color(double scale, double shift, double value, Magnum::UnsignedInt colorMode);
     const ShaderData<PolynomialScalarFieldShader<D>>& shader_data() const {
         return _shader_data;
     }
@@ -159,14 +160,12 @@ mtao::Vec4f PartitionedPolynomialShadedMesh<D>::get_color(double value) const {
 }
 
 template <int D>
-mtao::Vec4f PartitionedPolynomialShadedMesh<D>::get_color(double value) const {
-    const double scale = _shader_data.colormap_scale;
-    const double shift = _shader_data.colormap_shift;
+mtao::Vec4f PartitionedPolynomialShadedMesh<D>::get_color(double scale, double shift, double value, Magnum::UnsignedInt colorMode) {
     value = shift + scale * value;
     value = (value + 1) / 2;
 
     colormap::Color c;
-    switch (_shader.colorMode()) {
+    switch (colorMode) {
         case ShaderType::Parula:
             c = colormap::MATLAB::Parula().getColor(value);
             break;
