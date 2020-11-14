@@ -38,6 +38,7 @@ ADD_CATCHTEST(geometry
     unique_simplices_test.cpp
     winding_number_test.cpp
     edges_to_polygons_test.cpp
+    earclipping_test.cpp
     )
 target_link_libraries(geometry_test PRIVATE mtao::geometry)
 
