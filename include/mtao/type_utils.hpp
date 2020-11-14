@@ -8,8 +8,8 @@
 #include <cxxabi.h>
 #endif
 #include <string>
-#include <type_traits>
 #include <tuple>
+#include <type_traits>
 
 namespace mtao::types {
 class empty {};
@@ -106,5 +106,43 @@ constexpr static bool is_initializer_list_v = is_initializer_list<T>::value;
 template <typename T>
 using remove_cvref_t [[deprecated]] =
     std::remove_cv_t<std::remove_reference_t<T>>;
+
+//===============================================
+// Copied from https://devblogs.microsoft.com/oldnewthing/20200629-00/?p=103910
+namespace internal {
+template <typename T, typename Tuple>
+struct tuple_element_index_helper;
+template <typename T>
+struct tuple_element_index_helper<T, std::tuple<>> {
+    static constexpr std::size_t value = 0;
+};
+template <typename T, typename... Rest>
+struct tuple_element_index_helper<T, std::tuple<T, Rest...>> {
+    static constexpr std::size_t value = 0;
+    using RestTuple = std::tuple<Rest...>;
+    static_assert(tuple_element_index_helper<T, RestTuple>::value ==
+                      std::tuple_size_v<RestTuple>,
+                  "type appears more than once in tuple");
+};
+template <typename T, typename First, typename... Rest>
+struct tuple_element_index_helper<T, std::tuple<First, Rest...>> {
+    using RestTuple = std::tuple<Rest...>;
+    static constexpr std::size_t value =
+        1 + tuple_element_index_helper<T, RestTuple>::value;
+};
+
+}  // namespace internal
+template <typename T, typename Tuple>
+struct tuple_element_index {
+    static constexpr std::size_t value =
+        internal::tuple_element_index_helper<T, Tuple>::value;
+    static_assert(value < std::tuple_size_v<Tuple>,
+                  "type does not appear in tuple");
+};
+template <typename T, typename Tuple>
+inline constexpr std::size_t tuple_element_index_v =
+    tuple_element_index<T, Tuple>::value;
+//===============================================
+
 }  // namespace mtao::types
 #endif  // TYPE_UTILS_H

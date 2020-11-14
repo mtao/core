@@ -17,6 +17,10 @@ ENDFUNCTION()
 
 ADD_DEFINITIONS(-g)
 
+ADD_CATCHTEST(core
+    tuple_index_util_test.cpp
+    )
+
 ADD_CATCHTEST(geometry
     angle_test.cpp 
     cell_list_test.cpp
