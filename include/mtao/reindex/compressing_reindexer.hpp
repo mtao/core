@@ -21,8 +21,26 @@ struct CompressingReindexer
         return it->second;
     }
 
+    // a relatively efficient way to add a bunch of new indices
+    template <typename Container>
+    void add_multiple(Container&& items) {
+        reserve(size() + items.size());
+        for (auto&& item : items) {
+            add(item);
+        }
+    }
+
+    // a relatively efficient way to add a bunch of new indices
+    template <typename T>
+    void add_multiple(std::initializer_list<T> items) {
+        reserve(size() + items.size());
+        for (auto&& item : items) {
+            add(item);
+        }
+    }
+
     // something to improve adding performance
-    void reserve(size_t size) { _unindex_vec.reserve(size);}
+    void reserve(size_t size) { _unindex_vec.reserve(size); }
 
     template <typename... Args>
     size_t index(Args&&... args) {
