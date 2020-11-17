@@ -53,6 +53,9 @@ class PartitionedPolynomialShadedMesh
     }
 
     ShaderType& shader() { return _shader; }
+    Corrade::Containers::Array<Magnum::GL::MeshView>& views() const {
+        return _views;
+    }
 
    private:
     Corrade::Containers::Array<Magnum::GL::MeshView> _views;
