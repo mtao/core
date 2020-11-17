@@ -46,10 +46,13 @@ class PartitionedPolynomialShadedMesh
     bool gui(const std::string& name = "PartitionedPolyShadedMesh");
 
     mtao::Vec4f get_color(double value) const;
-static mtao::Vec4f get_color(double scale, double shift, double value, Magnum::UnsignedInt colorMode);
+    static mtao::Vec4f get_color(double scale, double shift, double value,
+                                 Magnum::UnsignedInt colorMode);
     const ShaderData<PolynomialScalarFieldShader<D>>& shader_data() const {
         return _shader_data;
     }
+
+    ShaderType& shader() { return _shader; }
 
    private:
     Corrade::Containers::Array<Magnum::GL::MeshView> _views;
@@ -160,7 +163,8 @@ mtao::Vec4f PartitionedPolynomialShadedMesh<D>::get_color(double value) const {
 }
 
 template <int D>
-mtao::Vec4f PartitionedPolynomialShadedMesh<D>::get_color(double scale, double shift, double value, Magnum::UnsignedInt colorMode) {
+mtao::Vec4f PartitionedPolynomialShadedMesh<D>::get_color(
+    double scale, double shift, double value, Magnum::UnsignedInt colorMode) {
     value = shift + scale * value;
     value = (value + 1) / 2;
 
