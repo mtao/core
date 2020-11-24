@@ -61,7 +61,7 @@ class DrawableBase : public internal::DrawableType<ShaderType> {
         : internal::DrawableType<ShaderType>{object, group}, _shader(shader) {}
     explicit DrawableBase(ObjectType& object, ShaderType& shader,
                           DrawableGroup& group)
-        : DrawableBase(object, &group, shader) {}
+        : DrawableBase(object, shader, &group) {}
     virtual void gui(const std::string& name = "");
 
     ShaderType& shader() { return _shader; }
