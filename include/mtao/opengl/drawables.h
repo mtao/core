@@ -96,7 +96,7 @@ class MeshDrawable : public DrawableBase<ShaderType> {
                           DrawableGroup& group)
         : Base(mesh, shader, group), _mesh(mesh) {}
     explicit MeshDrawable(MeshType& mesh, ShaderType& shader,
-                          DrawableGroup* group)
+                          DrawableGroup* group = nullptr)
         : Base(mesh, shader, group), _mesh(mesh) {}
 
     void deactivate() {
