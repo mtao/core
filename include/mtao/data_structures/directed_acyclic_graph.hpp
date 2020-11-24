@@ -10,6 +10,7 @@ struct DirectedAcyclicGraphNode
     : public std::enable_shared_from_this<DirectedAcyclicGraphNode<ValueType>> {
     using Ptr = std::shared_ptr<DirectedAcyclicGraphNode>;
     using PtrSet = std::set<Ptr, std::owner_less<Ptr>>;
+    using value_type = ValueType;
     ValueType value;
     PtrSet children;
 

@@ -1,15 +1,15 @@
 #pragma once
-#include <spdlog/spdlog.h>
 #include <Magnum/GL/Buffer.h>
+#include <Magnum/GL/Renderer.h>
 #include <Magnum/Magnum.h>
 #include <Magnum/SceneGraph/Camera.h>
-#include <Magnum/GL/Renderer.h>
 #include <Magnum/SceneGraph/Drawable.h>
 #include <Magnum/Shaders/Flat.h>
 #include <Magnum/Shaders/Generic.h>
 #include <Magnum/Shaders/MeshVisualizer.h>
 #include <Magnum/Shaders/Phong.h>
 #include <Magnum/Shaders/VertexColor.h>
+#include <spdlog/spdlog.h>
 
 #include "mtao/opengl/objects/mesh.h"
 #include "mtao/opengl/shaders.h"
@@ -57,8 +57,11 @@ class DrawableBase : public internal::DrawableType<ShaderType> {
     using TransMat = internal::TransformMatrixType<ShaderType>;
     using ObjectType = internal::ObjectType<ShaderType>;
     explicit DrawableBase(ObjectType& object, ShaderType& shader,
+                          DrawableGroup* group)
+        : internal::DrawableType<ShaderType>{object, group}, _shader(shader) {}
+    explicit DrawableBase(ObjectType& object, ShaderType& shader,
                           DrawableGroup& group)
-        : internal::DrawableType<ShaderType>{object, &group}, _shader(shader) {}
+        : DrawableBase(object, &group, shader) {}
     virtual void gui(const std::string& name = "");
 
     ShaderType& shader() { return _shader; }
@@ -92,6 +95,9 @@ class MeshDrawable : public DrawableBase<ShaderType> {
     explicit MeshDrawable(MeshType& mesh, ShaderType& shader,
                           DrawableGroup& group)
         : Base(mesh, shader, group), _mesh(mesh) {}
+    explicit MeshDrawable(MeshType& mesh, ShaderType& shader,
+                          DrawableGroup* group)
+        : Base(mesh, shader, group), _mesh(mesh) {}
 
     void deactivate() {
         activate_points({});
@@ -110,18 +116,18 @@ class MeshDrawable : public DrawableBase<ShaderType> {
                                 GL::MeshPrimitive::Triangles) {
         triangle_primitive = p;
     }
-    void activate_line_width() { 
-            Magnum::GL::Renderer::setLineWidth(line_width);
+    void activate_line_width() {
+        Magnum::GL::Renderer::setLineWidth(line_width);
     }
     void activate_point_size() {
-            Magnum::GL::Renderer::setPointSize(point_size);
+        Magnum::GL::Renderer::setPointSize(point_size);
     }
     // sets line_width and point_size
     void activate_active_primitive_sizes() {
-        if(edge_primitive) {
+        if (edge_primitive) {
             activate_line_width();
         }
-        if(point_primitive) {
+        if (point_primitive) {
             activate_point_size();
         }
     }
@@ -139,6 +145,7 @@ class MeshDrawable : public DrawableBase<ShaderType> {
 
     float line_width = 1.0;
     float point_size = 1.0;
+
    private:
     std::optional<GL::MeshPrimitive> triangle_primitive =
         GL::MeshPrimitive::Triangles;
