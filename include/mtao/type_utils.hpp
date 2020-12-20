@@ -12,7 +12,7 @@
 #include <type_traits>
 
 namespace mtao::types {
-[[deprecated("Should replace this with std::nullopt_t")]] class empty {};
+class [[deprecated("Should replace this with std::nullopt_t")]] empty {};
 
 // https://stackoverflow.com/questions/11251376/how-can-i-check-if-a-type-is-an-instantiation-of-a-given-class-template#comment14786989_11251408
 template <template <typename...> class Template, typename T>
