@@ -49,6 +49,7 @@ target_link_libraries(geometry_test PRIVATE mtao::geometry)
 ADD_CATCHTEST(eigen
     sparse_blocks_test.cpp
     sparse_diagonal_repmats_test.cpp
+    diagonal_to_sparse_test.cpp
     )
 
 ADD_CATCHTEST(linalg
