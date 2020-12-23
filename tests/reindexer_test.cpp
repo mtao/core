@@ -6,16 +6,37 @@
 #include <mtao/reindexer.hpp>
 
 TEST_CASE("CompressingReindexer", "[reindexer]") {
-    mtao::reindex::CompressingReindexer<size_t> a;
-    a.add(5);
-    a.add(10);
-    a.add(12);
-    a.add(10);
-    REQUIRE(a.index(5) == size_t(0));
-    REQUIRE(a.index(10) == size_t(1));
-    REQUIRE(a.index(12) == size_t(2));
-    REQUIRE(a.add(11) == size_t(3));
-    REQUIRE(a.add(5) == size_t(0));
+    {
+        mtao::reindex::CompressingReindexer<size_t> a;
+        a.add(5);
+        a.add(10);
+        a.add(12);
+        a.add(10);
+        REQUIRE(a.index(5) == size_t(0));
+        REQUIRE(a.index(10) == size_t(1));
+        REQUIRE(a.index(12) == size_t(2));
+        REQUIRE(a.add(11) == size_t(3));
+        REQUIRE(a.add(5) == size_t(0));
+    }
+    {
+        mtao::reindex::CompressingReindexer<size_t> a;
+        a.add_multiple({5, 10, 12, 10});
+        REQUIRE(a.index(5) == size_t(0));
+        REQUIRE(a.index(10) == size_t(1));
+        REQUIRE(a.index(12) == size_t(2));
+        REQUIRE(a.add(11) == size_t(3));
+        REQUIRE(a.add(5) == size_t(0));
+    }
+
+    {
+        mtao::reindex::CompressingReindexer<size_t> a;
+        a.add_multiple(std::vector{5, 10, 12, 10});
+        REQUIRE(a.index(5) == size_t(0));
+        REQUIRE(a.index(10) == size_t(1));
+        REQUIRE(a.index(12) == size_t(2));
+        REQUIRE(a.add(11) == size_t(3));
+        REQUIRE(a.add(5) == size_t(0));
+    }
 
     {
         mtao::reindex::CompressingReindexer<std::tuple<int, int>> a;

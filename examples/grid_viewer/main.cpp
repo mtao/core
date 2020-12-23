@@ -57,23 +57,23 @@ class MeshViewer : public mtao::opengl::Window3 {
         bbox.min().setConstant(-1);
         bbox.max().setConstant(1);
         mv_drawable =
-            new mtao::opengl::Drawable<Magnum::Shaders::MeshVisualizer>{
+            new mtao::opengl::MeshDrawable<Magnum::Shaders::MeshVisualizer>{
                 grid, _wireframe_shader, drawables()};
         mv_drawable->set_visibility(false);
         ;
 
-        edge_drawable = new mtao::opengl::Drawable<Magnum::Shaders::Flat3D>{
+        edge_drawable = new mtao::opengl::MeshDrawable<Magnum::Shaders::Flat3D>{
             grid, _flat_shader, drawables()};
         edge_drawable->activate_triangles({});
         edge_drawable->activate_edges();
         grid.setParent(&root());
         vfield_mesh.setParent(&root());
 #ifdef FLATIT
-        _vf_viewer = new mtao::opengl::Drawable<Magnum::Shaders::Flat3D>{
+        _vf_viewer = new mtao::opengl::MeshDrawable<Magnum::Shaders::Flat3D>{
             vfield_mesh, _flat_shader, drawables()};
 #else
         _vf_viewer =
-            new mtao::opengl::Drawable<mtao::opengl::VectorFieldShader<3>>{
+            new mtao::opengl::MeshDrawable<mtao::opengl::VectorFieldShader<3>>{
                 vfield_mesh, _vf_shader, drawables()};
 #endif
         update();
@@ -142,13 +142,13 @@ class MeshViewer : public mtao::opengl::Window3 {
     mtao::opengl::VectorFieldShader<3> _vf_shader;
     mtao::opengl::objects::Mesh<3> vfield_mesh;
     mtao::opengl::objects::Grid<3> grid;
-    mtao::opengl::Drawable<Magnum::Shaders::MeshVisualizer>* mv_drawable =
+    mtao::opengl::MeshDrawable<Magnum::Shaders::MeshVisualizer>* mv_drawable =
         nullptr;
-    mtao::opengl::Drawable<Magnum::Shaders::Flat3D>* edge_drawable = nullptr;
+    mtao::opengl::MeshDrawable<Magnum::Shaders::Flat3D>* edge_drawable = nullptr;
 #ifdef FLATIT
-    mtao::opengl::Drawable<Magnum::Shaders::Flat3D>* _vf_viewer = nullptr;
+    mtao::opengl::MeshDrawable<Magnum::Shaders::Flat3D>* _vf_viewer = nullptr;
 #else
-    mtao::opengl::Drawable<mtao::opengl::VectorFieldShader<3>>* _vf_viewer =
+    mtao::opengl::MeshDrawable<mtao::opengl::VectorFieldShader<3>>* _vf_viewer =
         nullptr;
 #endif
 };

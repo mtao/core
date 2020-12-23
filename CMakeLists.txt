@@ -14,7 +14,7 @@ SET(CMAKE_RUNTIME_OUTPUT_DIR ${PROJECT_BINARY_DIR}/bin)
 SET(CMAKE_LIBRARY_OUTPUT_DIR ${PROJECT_BINARY_DIR}/lib)
 SET(CMAKE_ARCHIVE_OUTPUT_DIR ${PROJECT_BINARY_DIR}/lib)
 
-SET(CMAKE_CXX_STANDARD 17)
+SET(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
 ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
@@ -23,6 +23,8 @@ ADD_DEFINITIONS(-Wall)
 #ADD_DEFINITIONS(-Wno-unused-variable)
 
 
+OPTION(MTAO_HIDE_DEPENDENCY_WARNINGS "Hides build warnings from dependent
+libraries" ON)
 OPTION(MTAO_USE_ELTOPO "Should we build the el topo submodule" ON)
 OPTION(MTAO_USE_LOSTOPOS "Should we build the los topos submodule" OFF)
 OPTION(MTAO_USE_OPENGL "Build opengl stuff" ON)
@@ -182,6 +184,7 @@ ADD_LIBRARY(mtao_common
     src/algebra/pascal_triangle.cpp
     )
 
+set_property(TARGET mtao_common PROPERTY CXX_STANDARD 20)
 
 TARGET_LINK_LIBRARIES(mtao_common PUBLIC mtao_headers Eigen3::Eigen spdlog::spdlog fmt)
 
@@ -225,12 +228,17 @@ ADD_LIBRARY(mtao_visualization
 
     #Shaders
     src/opengl/shaders/vector_field.cpp
+    src/opengl/shaders/polynomial_scalar_field.cpp
+    src/opengl/shaders/shader_resources.cpp
     )
+set_property(TARGET mtao_visualization PROPERTY CXX_STANDARD 20)
 if(MTAO_USE_PNGPP)
     FIND_PACKAGE(png++ REQUIRED)
     TARGET_COMPILE_DEFINITIONS(mtao_visualization PRIVATE -DMTAO_HAS_LIBPNGPP)
     TARGET_INCLUDE_DIRECTORIES(mtao_visualization PRIVATE ${png++_INCLUDE_DIRS})
 endif(MTAO_USE_PNGPP)
+
+TARGET_INCLUDE_DIRECTORIES(mtao_visualization PUBLIC ${COLORMAP_SHADERS_INCLUDE_DIR})
 
 TARGET_LINK_LIBRARIES(mtao_visualization PUBLIC mtao_common 
     Magnum::GL
@@ -280,6 +288,7 @@ ENDIF(MTAO_USE_OPENGL)
 ADD_LIBRARY(mtao_geometry 
     ${GEOMETRY_SRCS}
     )
+set_property(TARGET mtao_geometry PROPERTY CXX_STANDARD 20)
 
 IF(MTAO_USE_OPENGL)
     SET(GEOMETRY_EXTRAS ${GEOMETRY_EXTRAS} ImGui::ImGui MagnumIntegration::ImGui)

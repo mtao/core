@@ -5,15 +5,21 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 FUNCTION(ADD_MYTEST BINNAME)
     ADD_EXECUTABLE(${BINNAME} EXCLUDE_FROM_ALL ${ARGN} )
     TARGET_LINK_LIBRARIES(${BINNAME} PRIVATE mtao::common mtao::geometry OpenMP::OpenMP_CXX)
+    set_property(TARGET ${BINNAME} PROPERTY CXX_STANDARD 20)
 ENDFUNCTION()
 
 FUNCTION(ADD_CATCHTEST BINNAME)
     ADD_EXECUTABLE(${BINNAME}_test main.cpp ${ARGN})
     TARGET_LINK_LIBRARIES(${BINNAME}_test PRIVATE mtao::common Catch2::Catch2 fmt)
     add_test(NAME ${BINNAME} COMMAND ${BINNAME}_test)
+    set_property(TARGET ${BINNAME}_test PROPERTY CXX_STANDARD 20)
 ENDFUNCTION()
 
 ADD_DEFINITIONS(-g)
+
+ADD_CATCHTEST(core
+    tuple_index_util_test.cpp
+    )
 
 ADD_CATCHTEST(geometry
     angle_test.cpp 
@@ -35,12 +41,15 @@ ADD_CATCHTEST(geometry
     edge_monomial_integrals_test.cpp
     unique_simplices_test.cpp
     winding_number_test.cpp
+    edges_to_polygons_test.cpp
+    earclipping_test.cpp
     )
 target_link_libraries(geometry_test PRIVATE mtao::geometry)
 
 ADD_CATCHTEST(eigen
     sparse_blocks_test.cpp
     sparse_diagonal_repmats_test.cpp
+    diagonal_to_sparse_test.cpp
     )
 
 ADD_CATCHTEST(linalg
@@ -54,6 +63,7 @@ ADD_CATCHTEST(algebra
     composite_test.cpp
     pascal_triangle_test.cpp
     sort_with_permutation_count_test.cpp
+    partial_order_to_dag_test.cpp
     )
 
 ADD_CATCHTEST(simulation

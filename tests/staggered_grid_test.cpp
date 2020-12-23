@@ -180,7 +180,7 @@ TEST_CASE("Staggered Grid vertices 3D", "[grid][staggered_grid]") {
 
     auto g0 = sg.vertex_grid();
     auto gD = sg.cell_grid();
-    for(int j = 0; j < D; ++j) {
+    for(size_t j = 0; j < D; ++j) {
         REQUIRE(g0.shape()[j] == arr[j]);
         REQUIRE(g0.origin()(j) == Approx(0));
 

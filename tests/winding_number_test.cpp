@@ -30,6 +30,7 @@ TEST_CASE("winding numbers", "[winding_number]") {
         mtao::Vec2d p = mtao::Vec2d::Random();
         std::cout << p.transpose() << ": ";
         std::cout << winding_number(V, curve, p) << " ";
-        std::cout << winding_number(V, E, B, p) << std::endl;
+        std::cout << "BLoop: " << mesh_winding_number(V, E, B, p) << " ";
+        std::cout << "Just Edges: " << mesh_winding_number(V, E, p) << std::endl;
     }
 }

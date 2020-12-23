@@ -64,17 +64,25 @@ class VectorFieldShader : public Magnum::GL::AbstractShaderProgram {
         _normalMatrixUniform;
     const Magnum::UnsignedInt _colorMode;
 };
+template <int D>
+struct ShaderData<VectorFieldShader<D>> {
+    Color4 color = 0xff0033_rgbf;
+    float scale = 1.0;
+};
 template <>
 VectorFieldShader<2>::VectorFieldShader(Magnum::UnsignedInt colorMode);
 template <>
 VectorFieldShader<3>::VectorFieldShader(Magnum::UnsignedInt colorMode);
 template <>
-void Drawable<VectorFieldShader<2>>::gui(const std::string& name_);
+void DrawableBase<VectorFieldShader<2>>::gui(const std::string& name_);
 template <>
-void Drawable<VectorFieldShader<2>>::set_buffers();
+void MeshDrawable<VectorFieldShader<2>>::gui(const std::string& name_);
 template <>
-void Drawable<VectorFieldShader<3>>::gui(const std::string& name_);
+void MeshDrawable<VectorFieldShader<2>>::set_buffers();
 template <>
-void Drawable<VectorFieldShader<3>>::set_buffers();
+void DrawableBase<VectorFieldShader<3>>::gui(const std::string& name_);
+template <>
+void MeshDrawable<VectorFieldShader<3>>::set_buffers();
+
 }  // namespace mtao::opengl
 

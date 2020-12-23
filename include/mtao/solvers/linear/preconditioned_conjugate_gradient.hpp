@@ -67,10 +67,10 @@ private:
 };
 
 template <typename Preconditioner, typename Matrix, typename Vector>
-void PCGSolve(const Matrix & A, const Vector & b, Vector & x)
+void PCGSolve(const Matrix & A, const Vector & b, Vector & x, typename Matrix::Scalar threshold = 1e-5)
 {
     auto residual = (b-A*x).template lpNorm<Eigen::Infinity>();
-    auto solver = PCGSolver<Matrix,Vector, Preconditioner>(5*A.rows(), 1e-5*residual);
+    auto solver = PCGSolver<Matrix,Vector, Preconditioner>(5*A.rows(), threshold * residual);
     //auto solver = IterativeLinearSolver<PreconditionedConjugateGradientCapsule<Matrix,Vector, Preconditioner> >(A.rows(), 1e-5);
     solver.solve(A,b,x);
     x = solver.x();
@@ -78,21 +78,21 @@ void PCGSolve(const Matrix & A, const Vector & b, Vector & x)
 
 
 template <typename Matrix, typename Vector>
-void DenseCholeskyPCGSolve(const Matrix & A, const Vector & b, Vector & x)
+void DenseCholeskyPCGSolve(const Matrix & A, const Vector & b, Vector & x, typename Matrix::Scalar threshold = 1e-5)
 {
-    PCGSolve<cholesky::DenseLDLT_MIC0<std::decay_t<decltype(A)>> >(A,b,x);
+    PCGSolve<cholesky::DenseLDLT_MIC0<std::decay_t<decltype(A)>> >(A,b,x, threshold);
 }
 
 template <typename Matrix, typename Vector>
-void SparseCholeskyPCGSolve(const Matrix & A, const Vector & b, Vector & x)
+void SparseCholeskyPCGSolve(const Matrix & A, const Vector & b, Vector & x, typename Matrix::Scalar threshold = 1e-5)
 {
-    PCGSolve<cholesky::SparseLDLT_MIC0<Matrix,Vector> >(A,b,x);
+    PCGSolve<cholesky::SparseLDLT_MIC0<Matrix,Vector> >(A,b,x, threshold);
 
 }
 template <typename Matrix, typename Vector>
-void CholeskyPCGSolve(const Matrix & A, const Vector & b, Vector & x)
+void CholeskyPCGSolve(const Matrix & A, const Vector & b, Vector & x, typename Matrix::Scalar threshold = 1e-5)
 {
-    PCGSolve<cholesky::LDLT_MIC0<Matrix,Vector> >(A,b,x);
+    PCGSolve<cholesky::LDLT_MIC0<Matrix,Vector> >(A,b,x, threshold);
 
 }
 

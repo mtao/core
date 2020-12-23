@@ -57,7 +57,7 @@ class MeshViewer: public mtao::opengl::Window2 {
 
 
 
-        drawable = new mtao::opengl::Drawable<Magnum::Shaders::Flat2D>{mesh,flat_shader, drawables()};
+        drawable = new mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>{mesh,flat_shader, drawables()};
         drawable->activate_triangles({});
         drawable->activate_edges();
         mesh.setParent(&root());
@@ -75,7 +75,7 @@ class MeshViewer: public mtao::opengl::Window2 {
     private:
     Magnum::Shaders::Flat2D flat_shader;
     mtao::opengl::objects::Mesh<2> mesh;
-    mtao::opengl::Drawable<Magnum::Shaders::Flat2D>* drawable = nullptr;
+    mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>* drawable = nullptr;
 
 
 };

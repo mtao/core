@@ -576,25 +576,25 @@ class MeshViewer : public mtao::opengl::Window2 {
         bbox.min().setConstant(-1);
         bbox.max().setConstant(1);
 
-        edge_drawable = new mtao::opengl::Drawable<Magnum::Shaders::Flat2D>{
+        edge_drawable = new mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>{
             grid, _flat_shader, drawables()};
         edge_drawable->activate_triangles({});
         edge_drawable->activate_edges();
         // face_drawable = new
-        // mtao::opengl::Drawable<Magnum::Shaders::VertexColor2D>{grid,_vcolor_shader,
+        // mtao::opengl::MeshDrawable<Magnum::Shaders::VertexColor2D>{grid,_vcolor_shader,
         // drawables()};
         grid.setParent(&root());
         cursor_mesh.setParent(&scene());
-        cursor_drawable = new mtao::opengl::Drawable<Magnum::Shaders::Flat2D>{
+        cursor_drawable = new mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>{
             cursor_mesh, _flat_shader, drawables()};
         cursor_mesh.setVertexBuffer(mtao::Vec2f::Zero().eval());
         cursor_drawable->data().color = 0xffffff_rgbf;
         visible_grid.setParent(&scene());
-        visible_drawable = new mtao::opengl::Drawable<Magnum::Shaders::Flat2D>{
+        visible_drawable = new mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>{
             visible_grid, _flat_shader, drawables()};
         vfield_mesh.setParent(&scene());
         _vf_viewer =
-            new mtao::opengl::Drawable<mtao::opengl::VectorFieldShader<2>>{
+            new mtao::opengl::MeshDrawable<mtao::opengl::VectorFieldShader<2>>{
                 vfield_mesh, _vf_shader, drawables()};
         update();
     }
@@ -652,8 +652,8 @@ class MeshViewer : public mtao::opengl::Window2 {
                              .select(bbox.min(), bbox.max());
             update();
         }
-        if (ImGui::SliderFloat("scale", &scale, 0, 2)) {
-            _vf_shader.setScale(scale);
+        if(_vf_viewer) {
+            _vf_viewer->gui();
         }
         if (edge_drawable) {
             edge_drawable->gui();
@@ -709,12 +709,12 @@ class MeshViewer : public mtao::opengl::Window2 {
     mtao::opengl::objects::Mesh<2> cursor_mesh;
     mtao::opengl::objects::Grid<2> visible_grid;
     mtao::opengl::objects::Mesh<2> vfield_mesh;
-    mtao::opengl::Drawable<Magnum::Shaders::Flat2D>* edge_drawable = nullptr;
-    mtao::opengl::Drawable<Magnum::Shaders::VertexColor2D>* face_drawable =
+    mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>* edge_drawable = nullptr;
+    mtao::opengl::MeshDrawable<Magnum::Shaders::VertexColor2D>* face_drawable =
         nullptr;
-    mtao::opengl::Drawable<Magnum::Shaders::Flat2D>* cursor_drawable = nullptr;
-    mtao::opengl::Drawable<Magnum::Shaders::Flat2D>* visible_drawable = nullptr;
-    mtao::opengl::Drawable<mtao::opengl::VectorFieldShader<2>>* _vf_viewer =
+    mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>* cursor_drawable = nullptr;
+    mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>* visible_drawable = nullptr;
+    mtao::opengl::MeshDrawable<mtao::opengl::VectorFieldShader<2>>* _vf_viewer =
         nullptr;
 };
 

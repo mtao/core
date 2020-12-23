@@ -3,6 +3,7 @@
 #include <tuple>
 #include <vector>
 
+#include "mtao/eigen/shape_checks.hpp"
 #include "mtao/types.hpp"
 
 namespace mtao::geometry::mesh {
@@ -12,9 +13,15 @@ namespace mtao::geometry::mesh {
 // vertices have valence <=2 This function returns a collection of <vector,bool>
 // pairs where hte bool says whehter the returned curve is closed. if
 // closed_only=true then the bool is always true
+//
+// Note that this function only returns boundary curves and not polygons. Look
+// to 'edges_to_polygons.hpp' for that functionality, which simply calls this
+// funciton and does some post-processing
 template <typename EDerived>
-std::vector<std::tuple<std::vector<int>, bool>> edge_to_plcurves(
+std::vector<std::tuple<std::vector<int>, bool>> edges_to_plcurves(
     const Eigen::MatrixBase<EDerived>& E, bool closed_only = true) {
+    eigen::col_check<2>(E);
+
     std::map<int, std::array<int, 2>> adj;
     for (int i = 0; i < E.cols(); ++i) {
         auto e = E.col(i);
@@ -85,7 +92,7 @@ std::vector<std::tuple<std::vector<int>, bool>> edge_to_plcurves(
             }
 
         } while (vertex != start_vertex);
-        if(vec.size() == 1 && !closed_only) {
+        if (vec.size() == 1 && !closed_only) {
             vec.emplace_back(vertex);
             closedness = false;
         } else if (vec.size() == 2 && !closed_only) {
@@ -113,5 +120,10 @@ std::vector<std::tuple<std::vector<int>, bool>> edge_to_plcurves(
         run(start_idx, start_edge);
     }
     return ret;
-}  // namespace mtao::geometry::mesh
+}
+template <typename EDerived>
+[[deprecated]] std::vector<std::tuple<std::vector<int>, bool>> edge_to_plcurves(
+    const Eigen::MatrixBase<EDerived>& E, bool closed_only = true) {
+    return edges_to_plcurves(E, closed_only);
+}
 }  // namespace mtao::geometry::mesh

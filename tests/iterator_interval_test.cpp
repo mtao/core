@@ -14,7 +14,7 @@
 using namespace mtao::iterator;
 
 int main() {
-    std::vector<int> a(30);
+    std::vector<size_t> a(30);
     std::iota(a.begin(),a.end(),0);
     for(auto [a,b]: interval<2>(a)) {
         std::cout << a << "," << b << std::endl;
