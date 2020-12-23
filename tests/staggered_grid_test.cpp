@@ -126,7 +126,7 @@ TEST_CASE("Staggered Grid vertices 2D", "[grid][staggered_grid]") {
 
     SECTION("1Form offsets and sizes") {
         for(auto&& [i,v]: mtao::iterator::enumerate(grids)) {
-            for(size_t j = 0; j < D; ++j) {
+            for(int j = 0; j < D; ++j) {
                 if(j == i) {
                     REQUIRE(v.shape()[j] == arr[j]-1);
                     REQUIRE(v.origin()(j) == Approx(.5/(j+2)));
@@ -192,7 +192,7 @@ TEST_CASE("Staggered Grid vertices 3D", "[grid][staggered_grid]") {
         auto grids= sg.template grids<1>();
         auto ofs = sg.template offsets<1>();
         for(auto&& [i,v]: mtao::iterator::enumerate(grids)) {
-            for(size_t j = 0; j < D; ++j) {
+            for(int j = 0; j < D; ++j) {
                 if(j == i) {
                     REQUIRE(v.shape()[j] == arr[j]-1);
                     REQUIRE(v.origin()(j) == Approx(.5/(j+2)));
@@ -208,7 +208,7 @@ TEST_CASE("Staggered Grid vertices 3D", "[grid][staggered_grid]") {
         auto grids= sg.template grids<2>();
         auto ofs = sg.template offsets<2>();
         for(auto&& [i,v]: mtao::iterator::enumerate(grids)) {
-            for(size_t j = 0; j < D; ++j) {
+            for(int j = 0; j < D; ++j) {
                 if(j == i) {
                     REQUIRE(v.shape()[j] == arr[j]);
                     REQUIRE(v.origin()(j) == Approx(0));
