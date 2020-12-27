@@ -2,6 +2,18 @@
 #include "mtao/eigen/partition_matrix.hpp"
 namespace mtao::eigen {
 
+// for vector-like cases it simply generates
+// {a,b} for either
+// [ A B ]
+// or
+// [ A ]
+// [ B ]
+// the default variant takes the offsets, presumably starting with 0 and the
+// size This is equivalent to setting the boundary of partitions, i.e indices
+// {0,1,5} generates 2 partitions from [0,1) and [1,5).
+//
+// the *_from_sizes variants take the sizes of the blocks themselves
+
 template <typename Derived, typename IndexContainer>
 auto partition_vector(const Eigen::MatrixBase<Derived>& M,
                       const IndexContainer& indices) {
@@ -41,6 +53,16 @@ auto partition_vector(Eigen::PlainObjectBase<Derived>& M,
                                        std::tuple_size_v<IndexContainer> - 1>{},
             M, indices, 0, 0);
     }
+}
+template <typename Derived, typename IndexContainer>
+auto partition_vector_from_sizes(const Eigen::MatrixBase<Derived>& M,
+                                 const IndexContainer& indices) {
+    return partition_vector(M, utils::partial_sum(indices));
+}
+template <typename Derived, typename IndexContainer>
+auto partition_vector_from_sizes(Eigen::PlainObjectBase<Derived>& M,
+                                 const IndexContainer& indices) {
+    return partition_vector(M, utils::partial_sum(indices));
 }
 /*
 template <typename Derived, typename IndexContainer>
