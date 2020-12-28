@@ -6,40 +6,160 @@
 
 namespace mtao::geometry::interpolation {
 
+namespace detail {
+// each RBF  type should define some basic traits
+template <typename Type>
+struct RBFTraits {};
+
+template <template <typename> typename Template, typename Scalar_>
+struct RBFTraits<Template<Scalar_>> {
+    using Scalar = Scalar_;
+};
+
 // The common flag "make_pou" detrmines whether a RBF should be assumed to be a
 // partition of unity
+template <typename ScalarFunction, int D>
+class RadialBasisFunction {
+   public:
+    using Traits = RBFTraits<ScalarFunction>;
+    using Scalar = typename Traits::Scalar;
+    constexpr static int Dim = D;
+    using Vec = mtao::Vector<Scalar, Dim>;
+    using RowVecX = mtao::RowVectorX<Scalar>;
+    using ColVecs = mtao::ColVectors<Scalar, Dim>;
+    template <typename VecDerived, typename CDerived>
+    Scalar evaluate(const Eigen::MatrixBase<CDerived>& C, Scalar radius,
+                    const Eigen::MatrixBase<VecDerived>& p) const;
+    template <typename VecDerived, typename CDerived>
+    RowVecX evaluate_multiple(const Eigen::MatrixBase<CDerived>& C,
+                              Scalar radius,
+                              const Eigen::MatrixBase<VecDerived>& p) const;
 
-template <typename RBFunc, typename PointsType, typename VecType>
-auto radial_basis_function(RBFunc&& f, const Eigen::MatrixBase<PointsType>& P,
-                           const Eigen::MatrixBase<VecType>& v,
-                           typename PointsType::Scalar radius,
-                           bool make_pou = false)
-    -> mtao::VectorX<typename PointsType::Scalar> {
-    static_assert(
-        std::is_same_v<typename PointsType::Scalar, typename VecType::Scalar>);
-    eigen::col_check_with_assert<1>(v);
+    template <typename VecDerived, typename CDerived>
+    Vec evaluate_grad(const Eigen::MatrixBase<CDerived>& C, Scalar radius,
+                      const Eigen::MatrixBase<VecDerived>& p) const;
+    template <typename VecDerived, typename CDerived>
+    ColVecs evaluate_grad_multiple(
+        const Eigen::MatrixBase<CDerived>& C, Scalar radius,
+        const Eigen::MatrixBase<VecDerived>& p) const;
 
-    using Scalar = typename PointsType::Scalar;
-    mtao::VectorX<Scalar> R(P.cols());
-    mtao::RowVectorX<Scalar> D = (P.colwise() - v).colwise().norm() / radius;
+    // the function on R that generates the RBF
+    Scalar f(Scalar v) const { return _function.f(v); }
+    // the derivative of the function v
+    Scalar df(Scalar v) const { return _function.df(v); }
 
-    R = D.unaryExpr(f).transpose();  // / radius;
-    if (make_pou) {
-        R /= R.sum();
+    Scalar normalization(Scalar radius) const {
+        return _function.template normalization<D>(radius);
     }
-    return R;
+
+   private:
+    ScalarFunction _function;
+};
+template <typename ScalarFunction, int D>
+template <typename VecDerived, typename CDerived>
+auto RadialBasisFunction<ScalarFunction, D>::evaluate(
+    const Eigen::MatrixBase<CDerived>& C, Scalar radius,
+    const Eigen::MatrixBase<VecDerived>& P) const -> Scalar {
+    Scalar distance = (P - C).norm() / radius;
+    return f(distance) * normalization(radius);
 }
+template <typename ScalarFunction, int Dim>
+template <typename VecDerived, typename CDerived>
+auto RadialBasisFunction<ScalarFunction, Dim>::evaluate_multiple(
+    const Eigen::MatrixBase<CDerived>& C, Scalar radius,
+    const Eigen::MatrixBase<VecDerived>& P) const -> RowVecX {
+    RowVecX R(P.cols());
+    mtao::RowVectorX<Scalar> D = (P.colwise() - C).colwise().norm() / radius;
+    D.noalias() = D.unaryExpr(
+        std::bind(&RadialBasisFunction::f, this, std::placeholders::_1));
+    return D * normalization(radius);
+}
+template <typename ScalarFunction, int D>
+template <typename VecDerived, typename CDerived>
+auto RadialBasisFunction<ScalarFunction, D>::evaluate_grad(
+    const Eigen::MatrixBase<CDerived>& C, Scalar radius,
+    const Eigen::MatrixBase<VecDerived>& P) const -> Vec {
+    Vec r = P - C;
+
+    Scalar distance = r.norm();
+    r /= distance;
+    return r * df(distance) * normalization(radius);
+}
+template <typename ScalarFunction, int Dim>
+template <typename VecDerived, typename CDerived>
+auto RadialBasisFunction<ScalarFunction, Dim>::evaluate_grad_multiple(
+    const Eigen::MatrixBase<CDerived>& C, Scalar radius,
+    const Eigen::MatrixBase<VecDerived>& P) const -> ColVecs {
+    ColVecs R = (P.colwise() - C);
+    RowVecX D = R.colwise().norm();
+    R.array().rowwise() /= D.array();
+
+    R.noalias() = R * D.unaryExpr(std::bind(&RadialBasisFunction::df, this,
+                                            std::placeholders::_1))
+                          .asDiagonal();
+    return R * normalization(radius);
+}
+
+}  // namespace detail
+
+template <typename Scalar>
+struct HatScalarFunction {
+    Scalar f(Scalar x) const { return 1 - std::abs(x); }
+    Scalar df(Scalar x) const { return x < 0 ? 1 : -1; }
+    template <int D>
+    Scalar normalization(Scalar radius) const {
+        return 1;
+    }
+};
+template <typename Scalar, int D>
+using HatRadialBasisFunction =
+    detail::RadialBasisFunction<HatScalarFunction<Scalar>, D>;
+
+template <typename Scalar>
+struct GaussianScalarFunction {
+    Scalar f(Scalar v) const { return std::exp(-.5 * v * v); }
+    Scalar df(Scalar x) const { return x < 0 ? 1 : -1; }
+    template <int D>
+    Scalar normalization(Scalar radius) const {
+        return std::sqrt(2 * M_PI) * radius;
+    }
+};
+
+template <typename Scalar, int D>
+using GaussianRadialBasisFunction =
+    detail::RadialBasisFunction<GaussianScalarFunction<Scalar>, D>;
+
+template <typename Scalar>
+struct SplineGaussianScalarFunction {
+    Scalar f(Scalar v) const {
+        if (v < 1) {
+            return 1 - 1.5 * v * v + .75 * v * v * v;
+        } else if (v < 2) {
+            Scalar t = 2 - v;
+            return .25 * (t * t * t);
+        }
+    }
+    Scalar df(Scalar x) const { return x < 0 ? 1 : -1; }
+    template <int D>
+    Scalar normalization(Scalar radius) const {
+        return std::sqrt(2 * M_PI) * radius;
+    }
+};
+
+template <typename Scalar, int D>
+using SplineGaussianRadialBasisFunction =
+    detail::RadialBasisFunction<SplineGaussianScalarFunction<Scalar>, D>;
+
 template <typename PointsType, typename VecType>
 auto gaussian_rbf(const Eigen::MatrixBase<PointsType>& P,
                   const Eigen::MatrixBase<VecType>& v,
                   typename PointsType::Scalar radius, bool make_pou = false) {
     using Scalar = typename PointsType::Scalar;
-    radius /= 2;
-    auto R = radial_basis_function(
-        [](Scalar v) -> Scalar { return std::exp(-.5 * v * v); }, P, v, radius,
-        make_pou);
-    if (!make_pou) {
-        R /= (std::sqrt(2 * M_PI) * radius);
+    auto R =
+        GaussianRadialBasisFunction<Scalar, PointsType::RowsAtCompileTime>{}
+            .evaluate_multiple(v, radius, P);
+    if (make_pou) {
+        R /= R.sum();
     }
     return R;
 }
@@ -50,20 +170,11 @@ auto spline_gaussian_rbf(const Eigen::MatrixBase<PointsType>& P,
                          typename PointsType::Scalar radius,
                          bool make_pou = false) {
     using Scalar = typename PointsType::Scalar;
-    radius /= 2;
-    auto R = radial_basis_function(
-        [](Scalar v) -> Scalar {
-            if (v < 1) {
-                return 1 - 1.5 * v * v + .75 * v * v * v;
-            } else if (v < 2) {
-                Scalar t = 2 - v;
-                return .25 * (t * t * t);
-            }
-            return 0;
-        },
-        P, v, radius, make_pou);
-    if (!make_pou) {
-        R /= (M_PI * radius);
+    auto R =
+        GaussianRadialBasisFunction<Scalar, PointsType::RowsAtCompileTime>{}
+            .evaluate_multiple(v, radius, P);
+    if (make_pou) {
+        R /= R.sum();
     }
     return R;
 }
@@ -90,23 +201,6 @@ auto desbrun_spline_rbf(const Eigen::MatrixBase<PointsType>& P,
     return R;
 }
 
-template <typename RBGrad, typename PointsType, typename VecType>
-auto radial_basis_gradient(RBGrad&& g, const Eigen::MatrixBase<PointsType>& P,
-                           const Eigen::MatrixBase<VecType>& v,
-                           typename PointsType::Scalar radius)
-    -> mtao::VectorX<typename PointsType::Scalar> {
-    static_assert(
-        std::is_same_v<typename PointsType::Scalar, typename VecType::Scalar>);
-    eigen::col_check_with_assert<1>(v);
-
-    using Scalar = typename PointsType::Scalar;
-    auto R = (P.colwise() - v).eval();
-    RowVectorX<Scalar> D = R.colwise().norm();
-    R.array().rowwise() /= D.array();
-
-    R.array().rowwise() *= D.unaryExpr(g).array();
-    return R;
-}
 template <typename PointsType, typename VecType>
 auto gaussian_rbg(const Eigen::MatrixBase<PointsType>& P,
                   const Eigen::MatrixBase<VecType>& v,

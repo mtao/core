@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdlib>
+#include <limits>
 namespace mtao::iterator {
 namespace detail {
 
@@ -48,6 +49,13 @@ struct range_container {
 
     range_container(Index a, Index b, Index c)
         : m_start(a), m_end(b), m_inc(c) {}
+
+    range_container operator+(Index v) const {
+        return range_container(m_start + v, m_end + v, m_inc);
+    }
+    range_container operator-(Index v) const {
+        return range_container(m_start - v, m_end - v, m_inc);
+    }
 
    private:
     Index m_start, m_end, m_inc;

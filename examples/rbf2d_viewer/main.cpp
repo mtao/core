@@ -87,6 +87,17 @@ class MeshViewer : public mtao::opengl::Window2 {
                 return desbrun_spline_rbf(p, center, radius);
         }
     }
+    auto rbf_grad(auto&& p) const {
+        using namespace mtao::geometry::interpolation;
+
+        switch (mode) {
+            case 0:
+                return spline_gaussian_rbf_gradient(p, center, radius);
+            case 1:
+            default:
+                return desbrun_spline_rbf_gradient(p, center, radius);
+        }
+    }
     float rbf() const { return rbf(Vec2(cursor.x(), cursor.y()))(0); }
     void update() {
         auto g = mtao::geometry::grid::Grid2f::from_bbox(
