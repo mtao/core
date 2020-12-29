@@ -165,8 +165,8 @@ namespace mtao::logging {
         } 
 
             std::cerr << "Error: Logger " << alias << " not found! Making it" << std::endl;
-            //return LoggerContext(&make_logger(alias,level),level);
-            return LoggerContext();
+            return LoggerContext(&make_logger(alias,level),level);
+            //return LoggerContext();
        
     }
     auto fatal() -> Logger::Instance{ return log(Level::Fatal); }
