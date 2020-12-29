@@ -11,11 +11,14 @@ jobs:
                 name: Updating apt and install git
                 command: 'apt-get update && apt-get install -y git'
             - run:
+                name: "telling apt that we're not interactive"
+                command: 'export DEBIAN_FRONTEND=noninteractive'
+            - run:
                 name: Installing gcc g++
                 command: 'apt-get install -y gcc g++ clang'
             - run:
                 name: Installing cmake
-                command: 'DEBIAN_FRONTEND=noninteractive apt-get install -y cmake'
+                command: 'apt-get install -y cmake'
             - run:
                 name: Installing boost threads
                 command: 'apt-get install -y libboost-thread-dev'
