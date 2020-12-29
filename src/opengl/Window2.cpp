@@ -77,7 +77,6 @@ void Window2::mouseScrollEvent(MouseScrollEvent& event) {
     WindowBase::mouseScrollEvent(event);
     if (!ImGui::GetIO().WantCaptureMouse) {
         //_camera.setProjectionMatrix(Matrix3::projection({20.0f/scale, 20.0f/scale}));
-        const float oldscale = scale;
         float my_scale = (event.offset().y() > 0 ? 1 / 0.85f : 0.85f);
         scale *= my_scale;
         translation = translation / my_scale;

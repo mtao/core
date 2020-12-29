@@ -70,10 +70,9 @@ class MeshViewer : public mtao::opengl::Window2 {
             new mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>{
                 visible_grid, _flat_shader, drawables()};
         vfield_mesh.setParent(&scene());
-        //_vf_viewer =
-        //    new
-        //    mtao::opengl::MeshDrawable<mtao::opengl::VectorFieldShader<2>>{
-        //        vfield_mesh, _vf_shader, drawables()};
+        _vf_viewer =
+            new mtao::opengl::MeshDrawable<mtao::opengl::VectorFieldShader<2>>{
+                vfield_mesh, _vf_shader, drawables()};
         update();
     }
     auto rbf(auto&& p) const {
@@ -81,10 +80,18 @@ class MeshViewer : public mtao::opengl::Window2 {
 
         switch (mode) {
             case 0:
-                return spline_gaussian_rbf(p, center, radius);
-            case 1:
             default:
-                return desbrun_spline_rbf(p, center, radius);
+                return HatRadialBasisFunction<float, 2>{}.evaluate(center,
+                                                                   radius, p);
+            case 1:
+                return GaussianRadialBasisFunction<float, 2>{}.evaluate(
+                    center, radius, p);
+            case 2:
+                return SplineGaussianRadialBasisFunction<float, 2>{}.evaluate(
+                    center, radius, p);
+            case 3:
+                return DesbrunSplineRadialBasisFunction<float, 2>{}.evaluate(
+                    center, radius, p);
         }
     }
     auto rbf_grad(auto&& p) const {
@@ -92,30 +99,29 @@ class MeshViewer : public mtao::opengl::Window2 {
 
         switch (mode) {
             case 0:
-                return spline_gaussian_rbf_gradient(p, center, radius);
-            case 1:
             default:
-                return desbrun_spline_rbf_gradient(p, center, radius);
+                return HatRadialBasisFunction<float, 2>{}.evaluate_grad(
+                    center, radius, p);
+            case 1:
+                return GaussianRadialBasisFunction<float, 2>{}.evaluate_grad(
+                    center, radius, p);
+            case 2:
+                return SplineGaussianRadialBasisFunction<float, 2>{}
+                    .evaluate_grad(center, radius, p);
+            case 3:
+                return DesbrunSplineRadialBasisFunction<float, 2>{}
+                    .evaluate_grad(center, radius, p);
         }
     }
-    float rbf() const { return rbf(Vec2(cursor.x(), cursor.y()))(0); }
+    float rbf() const { return rbf(Vec2(cursor.x(), cursor.y())); }
     void update() {
         auto g = mtao::geometry::grid::Grid2f::from_bbox(
             bbox, std::array<int, 2>{{NI, NJ}});
         grid.set(g);
-        {
-            vfield_mesh.setVertexBuffer(g.vertices());
-            mtao::ColVecs2f V = g.vertices();
-            // V.array() -= .5;
-            auto x = V.row(0).eval();
-            V.row(0) = -V.row(1);
-            V.row(1) = x;
-            vfield_mesh.setVFieldBuffer(V);
-        }
         update_rbf();
 
-        //_vf_viewer->deactivate();
-        //_vf_viewer->activate_points();
+        _vf_viewer->deactivate();
+        _vf_viewer->activate_points();
         {
             auto g = mtao::geometry::grid::Grid2f(std::array<int, 2>{{2, 2}});
 
@@ -148,26 +154,32 @@ class MeshViewer : public mtao::opengl::Window2 {
 
         // auto V = g.vertices();
         auto V = g.vertices();
-
+        mtao::ColVecs2f vel = g.vertices();
         double sum = 0;
         mtao::ColVecs4f C(4, V.cols());
         for (int j = 0; j < V.cols(); ++j) {
             auto v = V.col(j);
-            float val = rbf(v)(0);
+            float val = rbf(v);
             sum += val;
             auto c = C.col(j);
             c = colormap_func(val);
+            vel.col(j) = rbf_grad(v);
         }
         sum /= V.cols();
         sum *= bbox.volume();
         std::cout << "Integrated volume: " << sum << std::endl;
         grid.setColorBuffer(C);
+        vfield_mesh.setVertexBuffer(V);
+        vfield_mesh.setVFieldBuffer(vel);
     }
     void do_animation() {}
     float scale = 1.0;
     void gui() override {
         if (ImGui::InputInt2("N", &NI)) {
             update();
+        }
+        if (ImGui::InputInt("Mode", &mode)) {
+            update_rbf();
         }
         if (ImGui::SliderFloat2("min", bbox.min().data(), -2, 2)) {
             bbox.min() = (bbox.min().array() < bbox.max().array())
