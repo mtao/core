@@ -13,6 +13,38 @@ namespace mtao::eigen {
 // {0,1,5} generates 2 partitions from [0,1) and [1,5).
 //
 // the *_from_sizes variants take the sizes of the blocks themselves
+//
+//
+// Example usage:
+// When solving pressure as a KKT problem with velocities, pressures, and constraints one obtains
+// [ M 0   Dx^T Cx^T ] [Vx]     = [vx]
+// [ 0 M   Dy^T Cy^T ] [Vy]     = [vy]
+// [ Dx Dy 0    Cp^T ] [p]      = [0]
+// [ Cx Cy Cp   0    ] [lambda] = [c]
+// - partition_matrix can be used to generate dense versions of the KKT matrix 
+/*
+int num_vx;// number of x coordinate samples
+int num_vy;// number of y coordinate samples
+int num_p;// number of pressure samples
+int num_c;// number of constraints
+
+tuple nums(num_vx,num_vy,num_p,num_c)
+
+
+Eigen::VectorXd rhs(num_vx+num_vy+num_p+num_c);
+// we can unpack each block using a structured binding
+auto [rhsx,rhsy,rhsp,rhsl] = partition_vector_from_sizes(rhs,nums);
+rhsx = vx;
+rhsy = vy;
+rhsp.setZero();
+rhsc = c;
+// alternatively we could have done 
+partition_vector_from_sizes(rhs,nums) = tuple(vx,vy,Eigen::VectorXd::Zero(num_p),c);
+
+Eigen::VectorXd x = solve(A,rhs);
+// finally we can write write directly
+std::tie(Vx,Vy,p,lambda) = partition_vector_from_sizes(x,nums);
+*/
 
 template <typename Derived, typename IndexContainer>
 auto partition_vector(const Eigen::MatrixBase<Derived>& M,
