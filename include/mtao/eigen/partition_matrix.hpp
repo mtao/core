@@ -22,6 +22,7 @@ namespace mtao::eigen {
 // {0,1,5} generates 2 partitions from [0,1) and [1,5).
 //
 // the *_from_sizes variants take the sizes of the blocks themselves
+// TODO: fix cases when empty_t is passed in
 
 namespace detail {
 
