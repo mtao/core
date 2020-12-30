@@ -1,13 +1,13 @@
 #include <iostream>
 
 #include "mtao/eigen/partition_vector.hpp"
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     Eigen::VectorXi x(5);
     x << 0, 1, 2, 3, 4;
     {
         {
             auto [a, b, c] =
-                mtao::eigen::partition_vector(x, std::tuple{0, 2, 3, 4});
+              mtao::eigen::partition_vector(x, std::tuple{ 0, 2, 3, 4 });
             a.setConstant(1);
             b.setConstant(2);
             c.setConstant(4);
@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
 
         std::cout << x.transpose() << std::endl;
         auto [a, b, c] = mtao::eigen::partition_vector(
-            const_cast<const decltype(x)&>(x), std::tuple{0, 2, 3, 4});
+          const_cast<const decltype(x) &>(x), std::tuple{ 0, 2, 3, 4 });
 
         std::cout << a.transpose() << std::endl;
         std::cout << b.transpose() << std::endl;
@@ -25,13 +25,13 @@ int main(int argc, char* argv[]) {
         std::cout << "From sizes" << std::endl;
         {
             auto [a, b] =
-                mtao::eigen::partition_vector_from_sizes(x, std::tuple{3, 2});
+              mtao::eigen::partition_vector_from_sizes(x, std::tuple{ 3, 2 });
             a.setConstant(1);
             b.setConstant(2);
         }
 
         auto [a, b] = mtao::eigen::partition_vector_from_sizes(
-            const_cast<const decltype(x)&>(x), std::tuple{3, 2});
+          const_cast<const decltype(x) &>(x), std::tuple{ 3, 2 });
 
         std::cout << a.transpose() << std::endl;
         std::cout << b.transpose() << std::endl;
@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
     Eigen::MatrixXd A(10, 10);
 
     auto [r1, r2, r3] = mtao::eigen::partition_matrix(
-        A, std::tuple{0, 3, 6, 10}, std::tuple{0, 1, 2, 3, 10});
+      A, std::tuple{ 0, 3, 6, 10 }, std::tuple{ 0, 1, 2, 3, 10 });
 
     auto [c1, c2, c3, c4] = r1;
     auto [c5, c6, c7, c8] = r2;
@@ -62,8 +62,7 @@ int main(int argc, char* argv[]) {
 
     {
         auto [r1, r2, r3] = mtao::eigen::partition_matrix_from_sizes(
-            const_cast<const decltype(A)&>(A), std::tuple{3, 3, 4},
-            std::tuple{1, 1, 1, 7});
+          const_cast<const decltype(A) &>(A), std::tuple{ 3, 3, 4 }, std::tuple{ 1, 1, 1, 7 });
 
         auto [c1, c2, c3, c4] = r1;
         auto [c5, c6, c7, c8] = r2;

@@ -12,11 +12,11 @@ TEST_CASE("triangle_centroid", "[centroid]") {
     E.col(0) << 0, 1;
     E.col(1) << 1, 2;
     E.col(2) << 2, 0;
-    std::map<int, bool> dat{{0, false}, {1, false}, {2, false}};
+    std::map<int, bool> dat{ { 0, false }, { 1, false }, { 2, false } };
     auto C = V.rowwise().mean();
 
     auto check = [&]() {
-        auto C2 = curve_centroid(V, {0, 1, 2});
+        auto C2 = curve_centroid(V, { 0, 1, 2 });
         auto C3 = centroid(V, E, dat);
 
         CHECK(C(0) == Approx(C2(0)));

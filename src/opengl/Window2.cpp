@@ -22,24 +22,24 @@ using namespace Magnum;
 using namespace Math::Literals;
 
 namespace mtao::opengl {
-Window2::Window2(const Arguments& args, GL::Version version)
-    : WindowBase(args, version),
-      _cameraObject(&_scene),
-      _camera(_cameraObject) {
+Window2::Window2(const Arguments &args, GL::Version version)
+  : WindowBase(args, version),
+    _cameraObject(&_scene),
+    _camera(_cameraObject) {
     _cameraObject.setParent(&_scene);
     _camera.setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
-        .setProjectionMatrix(Matrix3::projection({1.0f, 1.0f}))
-        .setViewport(GL::defaultFramebuffer.viewport().size());
+      .setProjectionMatrix(Matrix3::projection({ 1.0f, 1.0f }))
+      .setViewport(GL::defaultFramebuffer.viewport().size());
 
     _root.setParent(&_scene);
 }
 void Window2::draw() { _camera.draw(_drawables); }
-void Window2::viewportEvent(ViewportEvent& event) {
+void Window2::viewportEvent(ViewportEvent &event) {
     WindowBase::viewportEvent(event);
     _camera.setViewport(event.windowSize());
 }
 
-void Window2::mousePressEvent(MouseEvent& event) {
+void Window2::mousePressEvent(MouseEvent &event) {
     WindowBase::mousePressEvent(event);
     if (!ImGui::GetIO().WantCaptureMouse) {
         if (event.button() == MouseEvent::Button::Right)
@@ -47,17 +47,17 @@ void Window2::mousePressEvent(MouseEvent& event) {
     }
 }
 
-void Window2::mouseReleaseEvent(MouseEvent& event) {
+void Window2::mouseReleaseEvent(MouseEvent &event) {
     WindowBase::mouseReleaseEvent(event);
     if (event.button() == MouseEvent::Button::Right)
         _previousPosition = Vector2();
 }
-auto Window2::cameraPosition(const Vector2i& position) const -> Vector2 {
+auto Window2::cameraPosition(const Vector2i &position) const -> Vector2 {
     const Vector2 positionNormalized =
-        Vector2{position} / Vector2{_camera.viewport()};
+      Vector2{ position } / Vector2{ _camera.viewport() };
     return positionNormalized;
 }
-auto Window2::localPosition(const Vector2i& position) const -> Vector2 {
+auto Window2::localPosition(const Vector2i &position) const -> Vector2 {
     auto S = windowSize();
     Magnum::Vector3 V(cameraPosition(position), 1);
     V.x() -= .5f;
@@ -70,10 +70,10 @@ auto Window2::localPosition(const Vector2i& position) const -> Vector2 {
         V.y() *= -1;
     }
     V = cameraObject().transformation() * V;
-    return {V.x(), V.y()};
+    return { V.x(), V.y() };
 }
 
-void Window2::mouseScrollEvent(MouseScrollEvent& event) {
+void Window2::mouseScrollEvent(MouseScrollEvent &event) {
     WindowBase::mouseScrollEvent(event);
     if (!ImGui::GetIO().WantCaptureMouse) {
         //_camera.setProjectionMatrix(Matrix3::projection({20.0f/scale, 20.0f/scale}));
@@ -86,7 +86,7 @@ void Window2::mouseScrollEvent(MouseScrollEvent& event) {
     }
 }
 
-void Window2::mouseMoveEvent(MouseMoveEvent& event) {
+void Window2::mouseMoveEvent(MouseMoveEvent &event) {
     WindowBase::mouseMoveEvent(event);
     if (!(event.buttons() & MouseMoveEvent::Button::Right)) return;
 
@@ -108,7 +108,7 @@ void Window2::mouseMoveEvent(MouseMoveEvent& event) {
 
 void Window2::updateTransformation() {
     _cameraObject.resetTransformation()
-        .translate(translation)
-        .scale({scale, scale});
+      .translate(translation)
+      .scale({ scale, scale });
 }
-}  // namespace mtao::opengl
+}// namespace mtao::opengl

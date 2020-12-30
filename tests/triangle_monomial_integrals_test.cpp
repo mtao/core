@@ -12,7 +12,7 @@ TEST_CASE("triangle_monomials", "[trigonometry]") {
     // auto integrals =
     // mtao::geometry::triangle_monomial_integrals<double>(N+1);
     auto integrals2 =
-        mtao::geometry::triangle_monomial_integrals<double>(N, a, b, c);
+      mtao::geometry::triangle_monomial_integrals<double>(N, a, b, c);
 
     // for (auto&& v : integrals) {
     //    std::cout << v << " ";
@@ -23,7 +23,7 @@ TEST_CASE("triangle_monomials", "[trigonometry]") {
     //}
     // std::cout << std::endl;
 
-    for (auto&& v : integrals2) {
+    for (auto &&v : integrals2) {
         std::cout << v << " ";
     }
     std::cout << std::endl;
@@ -56,8 +56,8 @@ TEST_CASE("triangle_monomials", "[trigonometry]") {
     b << 0.0, 0.0;
     c << 0.0, 1.0;
     integrals2 =
-        mtao::geometry::triangle_monomial_integrals<double>(N, a, b, c);
-    for (auto&& v : integrals2) {
+      mtao::geometry::triangle_monomial_integrals<double>(N, a, b, c);
+    for (auto &&v : integrals2) {
         std::cout << v << " ";
     }
     std::cout << std::endl;
@@ -85,7 +85,7 @@ TEST_CASE("triangle_monomials", "[trigonometry]") {
     b << 2.0, 0.0;
     c << 0.0, 2.0;
     integrals2 =
-        mtao::geometry::triangle_monomial_integrals<double>(N, a, b, c);
+      mtao::geometry::triangle_monomial_integrals<double>(N, a, b, c);
     CHECK(get_integral(0, 0) == Approx(4 * .5));
 
     CHECK(get_integral(1, 0) == Approx(8. / 6));
@@ -143,7 +143,7 @@ TEST_CASE("triangle_monomials3", "[trigonometry]") {
     // auto integrals =
     // mtao::geometry::triangle_monomial_integrals<double>(N+1);
     auto integrals2 =
-        mtao::geometry::triangle_monomial_integrals<double>(N, a, b, c);
+      mtao::geometry::triangle_monomial_integrals<double>(N, a, b, c);
 
     // for (auto&& v : integrals) {
     //    std::cout << v << " ";
@@ -154,7 +154,7 @@ TEST_CASE("triangle_monomials3", "[trigonometry]") {
     //}
     // std::cout << std::endl;
 
-    for (auto&& v : integrals2) {
+    for (auto &&v : integrals2) {
         std::cout << v << " ";
     }
     std::cout << std::endl;
@@ -167,7 +167,7 @@ TEST_CASE("triangle_monomials3", "[trigonometry]") {
 
     CHECK(get_integral(1, 0) == Approx(1. / 6));
     CHECK(get_integral(1, 1) == Approx(1. / 6));
-    CHECK(get_integral(1, 2) == Approx(1. / 2)); // constant function
+    CHECK(get_integral(1, 2) == Approx(1. / 2));// constant function
 
     // CHECK(get_integral(2, 0) == Approx(1. / 12));
     // CHECK(get_integral(2, 1) == Approx(1. / 24));
@@ -186,31 +186,31 @@ TEST_CASE("triangle_monomials3", "[trigonometry]") {
     // CHECK(get_integral(4, 2) == Approx(1. / 180));
     // CHECK(get_integral(4, 3) == Approx(1. / 120));
     // CHECK(get_integral(4, 4) == Approx(1. / 30));
-     //for (int level = 0; level <= N; ++level) {
-     //    fmt::print("Level {}\n", level);
-     //    int off = (level * (level + 1)) / 2;
-     //   for (int j = 0; j < level + 1; ++j) {
-     //       for(int k = 0; k <= level - j; ++k) {
-     //           fmt::print("j = {}, k = {}\n", j,k);
+    //for (int level = 0; level <= N; ++level) {
+    //    fmt::print("Level {}\n", level);
+    //    int off = (level * (level + 1)) / 2;
+    //   for (int j = 0; j < level + 1; ++j) {
+    //       for(int k = 0; k <= level - j; ++k) {
+    //           fmt::print("j = {}, k = {}\n", j,k);
 
-     //           double val = 0.0;
-     //           size_t samples = 0;
-     //           for(double s = 0.0; s < 1.0; s+=.01) {
-     //               for(double t = 0.0; t < 1.0 - s; t+=.01) {
-     //                   auto v = a + s * (b-a) + (c-a) * t;
-     //                   val += std::pow<double>(v.x(),j) *
-     //                       std::pow<double>(v.y(),k)*
-     //                       std::pow<double>(v.z(),level-j-k); samples++;
-     //               }
-     //           }
-     //           val /= samples;
-     //           val *= .5 * (b-a).cross(c-a).norm();
+    //           double val = 0.0;
+    //           size_t samples = 0;
+    //           for(double s = 0.0; s < 1.0; s+=.01) {
+    //               for(double t = 0.0; t < 1.0 - s; t+=.01) {
+    //                   auto v = a + s * (b-a) + (c-a) * t;
+    //                   val += std::pow<double>(v.x(),j) *
+    //                       std::pow<double>(v.y(),k)*
+    //                       std::pow<double>(v.z(),level-j-k); samples++;
+    //               }
+    //           }
+    //           val /= samples;
+    //           val *= .5 * (b-a).cross(c-a).norm();
 
-     //           std::cout << val << ": ";
-     //           std::cout << get_integral(level,j+k) << std::endl;
-     //       }
-     //       std::cout << std::endl;
-     //   }
-     //   std::cout << std::endl;
+    //           std::cout << val << ": ";
+    //           std::cout << get_integral(level,j+k) << std::endl;
+    //       }
+    //       std::cout << std::endl;
+    //   }
+    //   std::cout << std::endl;
     //}
 }

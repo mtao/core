@@ -8,51 +8,51 @@
 
 using namespace mtao;
 
-template <int D>
+template<int D>
 void test() {
     std::cout << "Test" << std::endl;
-    std::array<int,D> arr;
-    std::iota(arr.begin(),arr.end(),3);
-    for(auto&& a: arr) {
+    std::array<int, D> arr;
+    std::iota(arr.begin(), arr.end(), 3);
+    for (auto &&a : arr) {
         std::cout << a << ",";
     }
     std::cout << std::endl;
     {
-        mtao::geometry::grid::StaggeredGrid<float,D> sg(arr);
-        std::array<int,D> r;
-        std::iota(r.begin(),r.end(),1);
+        mtao::geometry::grid::StaggeredGrid<float, D> sg(arr);
+        std::array<int, D> r;
+        std::iota(r.begin(), r.end(), 1);
         std::cout << "====0,0" << std::endl;
-        sg.template cell_vertex_looper<0>(0, r, [&](const std::array<int,D>& c) {
-                for(auto&& v: c) {
+        sg.template cell_vertex_looper<0>(0, r, [&](const std::array<int, D> &c) {
+            for (auto &&v : c) {
                 std::cout << v << ",";
+            }
+            std::cout << std::endl;
+        });
+        for (int i = 0; i < D; ++i) {
+            std::cout << "====1," << i << std::endl;
+            sg.template cell_vertex_looper<1>(i, r, [&](const std::array<int, D> &c) {
+                for (auto &&v : c) {
+                    std::cout << v << ",";
                 }
                 std::cout << std::endl;
-                });
-        for(int i = 0; i < D; ++i) {
-            std::cout << "====1," << i << std::endl;
-            sg.template cell_vertex_looper<1>(i, r, [&](const std::array<int,D>& c) {
-                    for(auto&& v: c) {
-                    std::cout << v << ",";
-                    }
-                    std::cout << std::endl;
-                    });
+            });
 
             std::cout << " => ";
-                    for(auto&& v: sg.edge(i,r)) {
-                    std::cout << v << ",";
-                    } std::cout << std::endl;
+            for (auto &&v : sg.edge(i, r)) {
+                std::cout << v << ",";
+            }
+            std::cout << std::endl;
         }
-        for(int i = 0; i < (D==2?1:D); ++i) {
+        for (int i = 0; i < (D == 2 ? 1 : D); ++i) {
             std::cout << "====2," << i << std::endl;
-            sg.template cell_vertex_looper<2>(i, r, [&](const std::array<int,D>& c) {
-                    for(auto&& v: c) {
+            sg.template cell_vertex_looper<2>(i, r, [&](const std::array<int, D> &c) {
+                for (auto &&v : c) {
                     std::cout << v << ",";
-                    }
-                    std::cout << std::endl;
-                    });
+                }
+                std::cout << std::endl;
+            });
         }
     }
-
 }
 
 int main() {

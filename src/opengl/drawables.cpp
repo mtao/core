@@ -7,8 +7,8 @@
 
 namespace mtao::opengl {
 
-template <>
-void DrawableBase<Shaders::Flat2D>::gui(const std::string& name_) {
+template<>
+void DrawableBase<Shaders::Flat2D>::gui(const std::string &name_) {
     std::string name = name_;
     if (name.empty()) {
         name = "Flat Shader";
@@ -20,8 +20,8 @@ void DrawableBase<Shaders::Flat2D>::gui(const std::string& name_) {
     }
 }
 
-template <>
-void DrawableBase<Shaders::VertexColor2D>::gui(const std::string& name_) {
+template<>
+void DrawableBase<Shaders::VertexColor2D>::gui(const std::string &name_) {
     std::string name = name_;
     if (name.empty()) {
         name = "Vertex Color Shader";
@@ -31,7 +31,7 @@ void DrawableBase<Shaders::VertexColor2D>::gui(const std::string& name_) {
         ImGui::TreePop();
     }
 }
-template <>
+template<>
 void MeshDrawable<Shaders::Flat2D>::set_buffers() {
     _mesh.addVertexBuffer(_mesh.vertex_buffer, 0, Shaders::Flat2D::Position{});
     shader().setColor(data().color);
@@ -39,16 +39,14 @@ void MeshDrawable<Shaders::Flat2D>::set_buffers() {
         shader().setAlphaMask(data().alpha_mask);
     }
 }
-template <>
+template<>
 void MeshDrawable<Shaders::VertexColor2D>::set_buffers() {
-    _mesh.addVertexBuffer(_mesh.vertex_buffer, 0,
-                          Shaders::VertexColor2D::Position{});
-    _mesh.addVertexBuffer(_mesh.color_buffer, 0,
-                          Shaders::VertexColor2D::Color4{});
+    _mesh.addVertexBuffer(_mesh.vertex_buffer, 0, Shaders::VertexColor2D::Position{});
+    _mesh.addVertexBuffer(_mesh.color_buffer, 0, Shaders::VertexColor2D::Color4{});
 }
 
-template <>
-void DrawableBase<Shaders::Flat3D>::gui(const std::string& name_) {
+template<>
+void DrawableBase<Shaders::Flat3D>::gui(const std::string &name_) {
     std::string name = name_;
     if (name.empty()) {
         name = "Flat Shader";
@@ -59,8 +57,8 @@ void DrawableBase<Shaders::Flat3D>::gui(const std::string& name_) {
         ImGui::TreePop();
     }
 }
-template <>
-void DrawableBase<Shaders::VertexColor3D>::gui(const std::string& name_) {
+template<>
+void DrawableBase<Shaders::VertexColor3D>::gui(const std::string &name_) {
     std::string name = name_;
     if (name.empty()) {
         name = "Vertex Color Shader";
@@ -70,8 +68,8 @@ void DrawableBase<Shaders::VertexColor3D>::gui(const std::string& name_) {
         ImGui::TreePop();
     }
 }
-template <>
-void DrawableBase<Shaders::Phong>::gui(const std::string& name_) {
+template<>
+void DrawableBase<Shaders::Phong>::gui(const std::string &name_) {
     std::string name = name_;
     if (name.empty()) {
         name = "Phong Shader";
@@ -96,7 +94,8 @@ void DrawableBase<Shaders::Phong>::gui(const std::string& name_) {
                     if (ImGui::BeginTabItem(ss.str().c_str())) {
                         ImGui::SliderFloat3("Light Position",
                                             data().light_positions[i].data(),
-                                            -100., 100.);
+                                            -100.,
+                                            100.);
                         ImGui::ColorEdit4("Light Color",
                                           data().light_colors[i].data());
                         ImGui::EndTabItem();
@@ -111,8 +110,8 @@ void DrawableBase<Shaders::Phong>::gui(const std::string& name_) {
     //    shader().setAlphaMask(data().alpha_mask);
     //}
 }
-template <>
-void DrawableBase<Shaders::MeshVisualizer3D>::gui(const std::string& name_) {
+template<>
+void DrawableBase<Shaders::MeshVisualizer3D>::gui(const std::string &name_) {
     std::string name = name_;
     if (name.empty()) {
         name = "Mesh Visualizer Shader";
@@ -126,7 +125,7 @@ void DrawableBase<Shaders::MeshVisualizer3D>::gui(const std::string& name_) {
         ImGui::TreePop();
     }
 }
-template <>
+template<>
 void MeshDrawable<Shaders::Flat3D>::set_buffers() {
     _mesh.addVertexBuffer(_mesh.vertex_buffer, 0, Shaders::Flat3D::Position{});
     shader().setColor(data().color);
@@ -134,72 +133,71 @@ void MeshDrawable<Shaders::Flat3D>::set_buffers() {
         shader().setAlphaMask(data().alpha_mask);
     }
 }
-template <>
+template<>
 void MeshDrawable<Shaders::VertexColor3D>::set_buffers() {
-    _mesh.addVertexBuffer(_mesh.vertex_buffer, 0,
-                          Shaders::VertexColor3D::Position{});
-    _mesh.addVertexBuffer(_mesh.color_buffer, 0,
-                          Shaders::VertexColor3D::Color4{});
+    _mesh.addVertexBuffer(_mesh.vertex_buffer, 0, Shaders::VertexColor3D::Position{});
+    _mesh.addVertexBuffer(_mesh.color_buffer, 0, Shaders::VertexColor3D::Color4{});
 }
-template <>
+template<>
 void MeshDrawable<Shaders::Phong>::set_buffers() {
     _mesh.addVertexBuffer(_mesh.vertex_buffer, 0, Shaders::Phong::Position{});
     _mesh.addVertexBuffer(_mesh.normal_buffer, 0, Shaders::Phong::Normal{});
     shader()
-        .setShininess(data().shininess)
-        .setLightPositions(data().light_positions)
-        .setLightColors(data().light_colors);
+      .setShininess(data().shininess)
+      .setLightPositions(data().light_positions)
+      .setLightColors(data().light_colors);
     if (shader().flags() & Shaders::Phong::Flag::AlphaMask) {
         shader().setAlphaMask(data().alpha_mask);
     }
     if (shader().flags() & Shaders::Phong::Flag::VertexColor) {
         _mesh.addVertexBuffer(_mesh.color_buffer, 0, Shaders::Phong::Color4{});
         shader()
-            .setAmbientColor(data().ambient_color)
-            .setSpecularColor(data().specular_color);
+          .setAmbientColor(data().ambient_color)
+          .setSpecularColor(data().specular_color);
     } else {
         shader()
-            .setDiffuseColor(data().diffuse_color)
-            .setAmbientColor(data().ambient_color)
-            .setSpecularColor(data().specular_color);
+          .setDiffuseColor(data().diffuse_color)
+          .setAmbientColor(data().ambient_color)
+          .setSpecularColor(data().specular_color);
     }
 }
-template <>
+template<>
 void MeshDrawable<Shaders::MeshVisualizer3D>::set_buffers() {
-    _mesh.addVertexBuffer(_mesh.vertex_buffer, 0,
-                          Shaders::MeshVisualizer3D::Position{});
+    _mesh.addVertexBuffer(_mesh.vertex_buffer, 0, Shaders::MeshVisualizer3D::Position{});
     shader().setColor(data().color);
     if (shader().flags() & Magnum::Shaders::MeshVisualizer3D::Flag::Wireframe) {
         shader()
-            .setWireframeColor(data().wireframe_color)
-            .setWireframeWidth(data().wireframe_width)
-            .setSmoothness(data().smoothness);
+          .setWireframeColor(data().wireframe_color)
+          .setWireframeWidth(data().wireframe_width)
+          .setSmoothness(data().smoothness);
     }
 
     if (data().viewport_size) {
         shader().setViewportSize(*data().viewport_size);
     } else {
         shader().setViewportSize(
-            Magnum::Vector2{GL::defaultFramebuffer.viewport().size()});
+          Magnum::Vector2{ GL::defaultFramebuffer.viewport().size() });
     }
 }
-template <>
+template<>
 void DrawableBase<Shaders::Phong>::set_matrices(
-    const Matrix4& transformationMatrix, SceneGraph::Camera3D& camera) {
+  const Matrix4 &transformationMatrix,
+  SceneGraph::Camera3D &camera) {
     shader()
-        .setTransformationMatrix(transformationMatrix)
-        .setNormalMatrix(transformationMatrix.rotationScaling())
-        .setProjectionMatrix(camera.projectionMatrix());
+      .setTransformationMatrix(transformationMatrix)
+      .setNormalMatrix(transformationMatrix.rotationScaling())
+      .setProjectionMatrix(camera.projectionMatrix());
 }
 
-template <>
+template<>
 void DrawableBase<Shaders::MeshVisualizer3D>::set_matrices(
-    const Matrix4& transformationMatrix, SceneGraph::Camera3D& camera) {
+  const Matrix4 &transformationMatrix,
+  SceneGraph::Camera3D &camera) {
     shader()
-        .setTransformationMatrix(transformationMatrix)
-        .setProjectionMatrix(camera.projectionMatrix());
+      .setTransformationMatrix(transformationMatrix)
+      .setProjectionMatrix(camera.projectionMatrix());
 }
-template <>
+template<>
 bool MeshDrawable<Shaders::VertexColor2D>::lint_buffers() {
     bool ret = lint_vertex();
     if (edge_primitive) {
@@ -211,7 +209,7 @@ bool MeshDrawable<Shaders::VertexColor2D>::lint_buffers() {
     ret &= lint_color();
     return ret;
 }
-template <>
+template<>
 bool MeshDrawable<Shaders::VertexColor3D>::lint_buffers() {
     bool ret = lint_vertex();
     if (edge_primitive) {
@@ -223,7 +221,7 @@ bool MeshDrawable<Shaders::VertexColor3D>::lint_buffers() {
     ret &= lint_color();
     return ret;
 }
-template <>
+template<>
 bool MeshDrawable<Shaders::Phong>::lint_buffers() {
     bool ret = lint_vertex();
     if (edge_primitive) {
@@ -235,4 +233,4 @@ bool MeshDrawable<Shaders::Phong>::lint_buffers() {
     ret &= lint_normal();
     return ret;
 }
-}  // namespace mtao::opengl
+}// namespace mtao::opengl

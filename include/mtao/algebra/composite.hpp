@@ -7,18 +7,18 @@
 // https://en.wikipedia.org/wiki/Composition_of_relations
 namespace mtao::algebra {
 
-template <typename X, typename Y, typename Z>
-auto composite(const std::set<std::tuple<X, Y>>& R,
-               const std::set<std::tuple<Y, Z>>& S)
-    -> std::set<std::tuple<X, Z>> {
+template<typename X, typename Y, typename Z>
+auto composite(const std::set<std::tuple<X, Y>> &R,
+               const std::set<std::tuple<Y, Z>> &S)
+  -> std::set<std::tuple<X, Z>> {
     std::map<Y, std::set<X>> yx;
-    for (auto&& [x, y] : R) {
+    for (auto &&[x, y] : R) {
         yx[y].emplace(x);
     }
     std::set<std::tuple<X, Z>> xz;
-    for (auto&& [y, z] : S) {
+    for (auto &&[y, z] : S) {
         if (auto it = yx.find(y); it != yx.end()) {
-            for (auto&& x : it->second) {
+            for (auto &&x : it->second) {
                 xz.emplace(x, z);
             }
         }
@@ -62,4 +62,4 @@ auto composite_with_leftovers(const std::set<std::tuple<X, X>>& R,
     return {std::move(xz), done};
 }
 */
-}  // namespace mtao::algebra
+}// namespace mtao::algebra

@@ -37,7 +37,7 @@ TEST_CASE("Vector to Diag", "[diagonal,sparse]") {
     }
     {
         auto A =
-            mtao::eigen::diagonal_to_sparse(Eigen::MatrixXd::Identity(5, 5));
+          mtao::eigen::diagonal_to_sparse(Eigen::MatrixXd::Identity(5, 5));
 
         CHECK(A.coeff(0, 0) == 1);
         CHECK(A.coeff(1, 1) == 1);
@@ -47,7 +47,7 @@ TEST_CASE("Vector to Diag", "[diagonal,sparse]") {
     }
     {
         auto A =
-            mtao::eigen::diagonal_to_sparse(3 * Eigen::Matrix3d::Identity());
+          mtao::eigen::diagonal_to_sparse(3 * Eigen::Matrix3d::Identity());
 
         CHECK(A.coeff(0, 0) == 3);
         CHECK(A.coeff(1, 1) == 3);

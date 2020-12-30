@@ -9,9 +9,10 @@
 
 namespace mtao::algebra {
 
-template <typename Container, typename ComparisonOp>
+template<typename Container, typename ComparisonOp>
 data_structures::DirectedAcyclicGraph<size_t> partial_order_to_dag(
-    const Container& container, ComparisonOp&& op = {}) {
+  const Container &container,
+  ComparisonOp &&op = {}) {
     using DAG = data_structures::DirectedAcyclicGraph<size_t>;
     using NodeType = DAG::NodeType;
 
@@ -23,11 +24,11 @@ data_structures::DirectedAcyclicGraph<size_t> partial_order_to_dag(
                                  decltype(op(std::declval<ValueType>(),
                                              std::declval<ValueType>()))>);
 
-    auto value_from_node = [&](const NodeType& node) -> const ValueType& {
+    auto value_from_node = [&](const NodeType &node) -> const ValueType & {
         return container.at(node.value);
     };
     // auto traverse_tree = [&](size_t index, const NodeType::Ptr& node_ptr) {};
-    for (auto&& [index, p] : mtao::iterator::enumerate(container)) {
+    for (auto &&[index, p] : mtao::iterator::enumerate(container)) {
         NodeType::Ptr new_node = std::make_shared<NodeType>();
         new_node->value = index;
 
@@ -35,10 +36,10 @@ data_structures::DirectedAcyclicGraph<size_t> partial_order_to_dag(
         // be costly, so lets keep track of the ones we've seen
         std::set<typename NodeType::Ptr,
                  std::owner_less<typename NodeType::Ptr>>
-            seen;
+          seen;
         seen.emplace(new_node);
-        auto scan_for_children = [&](const NodeType::Ptr& ptr) {
-            std::queue<NodeType::Ptr> queue({ptr});
+        auto scan_for_children = [&](const NodeType::Ptr &ptr) {
+            std::queue<NodeType::Ptr> queue({ ptr });
             while (!queue.empty()) {
                 auto ptr = queue.front();
                 queue.pop();
@@ -46,7 +47,7 @@ data_structures::DirectedAcyclicGraph<size_t> partial_order_to_dag(
                 if (order > 0) {
                     new_node->children.emplace(ptr);
                 } else if (order != 0) {
-                    for (auto&& c : ptr->children) {
+                    for (auto &&c : ptr->children) {
                         if (!seen.contains(c)) {
                             queue.emplace(c);
                             seen.emplace(ptr);
@@ -54,9 +55,12 @@ data_structures::DirectedAcyclicGraph<size_t> partial_order_to_dag(
                     }
                 } else {
                     spdlog::error(
-                        "partial_order_to_dag::scan_for_children hit a non-dag "
-                        "relationship {}({}) {}({})",
-                        p, index, value_from_node(*ptr), ptr->value);
+                      "partial_order_to_dag::scan_for_children hit a non-dag "
+                      "relationship {}({}) {}({})",
+                      p,
+                      index,
+                      value_from_node(*ptr),
+                      ptr->value);
                 }
             }
         };
@@ -65,15 +69,15 @@ data_structures::DirectedAcyclicGraph<size_t> partial_order_to_dag(
             continue;
         } else {
             bool has_parent = false;
-            for (auto&& root : dag.roots) {
-                const ValueType& root_val = value_from_node(*root);
+            for (auto &&root : dag.roots) {
+                const ValueType &root_val = value_from_node(*root);
 
                 std::partial_ordering order = op(p, root_val);
                 if (order < 0) {
                     // new node is within this tree, lets dig in
                     has_parent = true;
 
-                    std::queue<NodeType::Ptr> queue({root});
+                    std::queue<NodeType::Ptr> queue({ root });
 
                     while (!queue.empty()) {
                         auto ptr = queue.front();
@@ -81,9 +85,10 @@ data_structures::DirectedAcyclicGraph<size_t> partial_order_to_dag(
                         seen.emplace(ptr);
                         bool potential_child_leaf = true;
                         for (auto it = ptr->children.begin();
-                             it != ptr->children.end(); ++it) {
+                             it != ptr->children.end();
+                             ++it) {
                             std::partial_ordering order =
-                                op(p, value_from_node(**it));
+                              op(p, value_from_node(**it));
                             if (order < 0) {
                                 queue.emplace(*it);
                                 potential_child_leaf = false;
@@ -111,13 +116,14 @@ data_structures::DirectedAcyclicGraph<size_t> partial_order_to_dag(
                 } else {
                     // they are equal just toss it and emit a warning
                     spdlog::warn(
-                        "partial_order_to_dag found identical elements, "
-                        "filter "
-                        "equal elements before calling that function "
-                        "indices "
-                        "were "
-                        "{} and {}",
-                        index, root->value);
+                      "partial_order_to_dag found identical elements, "
+                      "filter "
+                      "equal elements before calling that function "
+                      "indices "
+                      "were "
+                      "{} and {}",
+                      index,
+                      root->value);
                     break;
                 }
             }
@@ -129,4 +135,4 @@ data_structures::DirectedAcyclicGraph<size_t> partial_order_to_dag(
     return dag;
 }
 
-}  // namespace mtao::algebra
+}// namespace mtao::algebra

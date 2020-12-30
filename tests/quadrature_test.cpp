@@ -7,54 +7,65 @@ using namespace mtao::quadrature;
 
 TEST_CASE("simpsons", "[quadrature]") {
     std::cout << simpsons_rule(
-                     [](double x) -> double { return std::pow(x, 5); }, 0.,
-                     double(1), /*samples=*/10)
+      [](double x) -> double { return std::pow(x, 5); }, 0., double(1), /*samples=*/10)
               << std::endl;
     std::cout << simpsons_rule(
-                     [](double x) -> double { return std::pow(x, 3); }, 0.,
-                     double(1), /*samples=*/15)
+      [](double x) -> double { return std::pow(x, 3); }, 0., double(1), /*samples=*/15)
               << std::endl;
     std::cout << simpsons_rule(
-                     [](double x) -> double { return std::pow(x, 4); }, 0.,
-                     double(1), /*samples=*/10)
+      [](double x) -> double { return std::pow(x, 4); }, 0., double(1), /*samples=*/10)
               << std::endl;
     for (int j = 0; j < 10; ++j) {
         for (int k = 0; k < 4; ++k) {
             double v = simpsons_rule(
-                [k](double x) -> double { return std::pow(x, k); }, 0.,
-                double(j), /*samples=*/k);
+              [k](double x) -> double { return std::pow(x, k); }, 0., double(j), /*samples=*/k);
             double a = 1 / (k + 1.) * std::pow<double>(j, k + 1);
             CHECK(v == Approx(a));
         }
     }
 
     CHECK(multidim_simpsons_rule<2>(
-              [](const std::array<double, 2>& x) -> double {
-                  return std::pow(x[0], 5);
-              },
-              0., double(1), /*samples=*/30) == Approx(1 / 6.));
+            [](const std::array<double, 2> &x) -> double {
+                return std::pow(x[0], 5);
+            },
+            0.,
+            double(1),
+            /*samples=*/30)
+          == Approx(1 / 6.));
 
     CHECK(multidim_simpsons_rule<2>(
-              [](const std::array<double, 2>& x) -> double {
-                  return std::pow(x[1], 5);
-              },
-              0., double(1), /*samples=*/30) == Approx(1 / 6.));
+            [](const std::array<double, 2> &x) -> double {
+                return std::pow(x[1], 5);
+            },
+            0.,
+            double(1),
+            /*samples=*/30)
+          == Approx(1 / 6.));
     CHECK(multidim_simpsons_rule<3>(
-              [](const std::array<double, 3>& x) -> double {
-                  return std::pow(x[0], 5);
-              },
-              0., double(1), /*samples=*/30) == Approx(1 / 6.));
+            [](const std::array<double, 3> &x) -> double {
+                return std::pow(x[0], 5);
+            },
+            0.,
+            double(1),
+            /*samples=*/30)
+          == Approx(1 / 6.));
 
     CHECK(multidim_simpsons_rule<3>(
-              [](const std::array<double, 3>& x) -> double {
-                  return std::pow(x[1], 5);
-              },
-              0., double(1), /*samples=*/30) == Approx(1 / 6.));
+            [](const std::array<double, 3> &x) -> double {
+                return std::pow(x[1], 5);
+            },
+            0.,
+            double(1),
+            /*samples=*/30)
+          == Approx(1 / 6.));
     CHECK(multidim_simpsons_rule<2>(
-              [](const std::array<double, 2>& x) -> double {
-                  return std::pow(x[0] * x[1], 5);
-              },
-              0., double(1), /*samples=*/30) == Approx(1 / 36.));
+            [](const std::array<double, 2> &x) -> double {
+                return std::pow(x[0] * x[1], 5);
+            },
+            0.,
+            double(1),
+            /*samples=*/30)
+          == Approx(1 / 36.));
 
     // CHECK(multidim_simpsons_rule<2>(
     //          [](const std::array<double, 2>& x) -> double {
@@ -70,23 +81,19 @@ TEST_CASE("simpsons", "[quadrature]") {
 }
 TEST_CASE("gauss_lobatto", "[quadrature]") {
     std::cout << gauss_lobatto(
-                     [](double x) -> double { return std::pow(x, 5); }, 0.,
-                     double(1), /*samples=*/5)
+      [](double x) -> double { return std::pow(x, 5); }, 0., double(1), /*samples=*/5)
               << std::endl;
     std::cout << gauss_lobatto(
-                     [](double x) -> double { return std::pow(x, 3); }, 0.,
-                     double(1), /*samples=*/4)
+      [](double x) -> double { return std::pow(x, 3); }, 0., double(1), /*samples=*/4)
               << std::endl;
     std::cout << gauss_lobatto(
-                     [](double x) -> double { return std::pow(x, 4); }, 0.,
-                     double(1), /*samples=*/5)
+      [](double x) -> double { return std::pow(x, 4); }, 0., double(1), /*samples=*/5)
               << std::endl;
     for (int k = 3; k <= 5; ++k) {
         for (int j = 0; j < 5; ++j) {
             for (int l = 0; l <= 2 * k - 3; ++l) {
                 double v = gauss_lobatto(
-                    [l](double x) -> double { return std::pow(x, l); }, 0.,
-                    double(j), /*samples=*/k);
+                  [l](double x) -> double { return std::pow(x, l); }, 0., double(j), /*samples=*/k);
                 double a = 1 / (l + 1.) * std::pow<double>(j, l + 1);
                 CHECK(v == Approx(a));
             }
@@ -94,21 +101,20 @@ TEST_CASE("gauss_lobatto", "[quadrature]") {
     }
 
     {
-    auto P = gauss_lobatto_sample_points<double>(3,0,1);
-    CHECK(P(0) == Approx(0.));
-    CHECK(P(1) == Approx(.5));
-    CHECK(P(2) == Approx(1.));
-    {
-    auto P = gauss_lobatto_sample_points<double>(5,0,1);
-    for(int j = 0; j < P.size(); ++j) {
-        double val = gauss_lobatto_sample_point<double>(5,0,1,j);
-    CHECK(P(j) == Approx(val));
-    }
-    }
+        auto P = gauss_lobatto_sample_points<double>(3, 0, 1);
+        CHECK(P(0) == Approx(0.));
+        CHECK(P(1) == Approx(.5));
+        CHECK(P(2) == Approx(1.));
+        {
+            auto P = gauss_lobatto_sample_points<double>(5, 0, 1);
+            for (int j = 0; j < P.size(); ++j) {
+                double val = gauss_lobatto_sample_point<double>(5, 0, 1, j);
+                CHECK(P(j) == Approx(val));
+            }
+        }
 
-    CHECK(gauss_lobatto(mtao::Vec3d::Ones(),1) == Approx(1.));
-    CHECK(gauss_lobatto(mtao::Vec3d::Ones(),2) == Approx(2.));
-    CHECK(gauss_lobatto(mtao::VecXd::Ones(5),2) == Approx(2.));
+        CHECK(gauss_lobatto(mtao::Vec3d::Ones(), 1) == Approx(1.));
+        CHECK(gauss_lobatto(mtao::Vec3d::Ones(), 2) == Approx(2.));
+        CHECK(gauss_lobatto(mtao::VecXd::Ones(5), 2) == Approx(2.));
     }
 }
-

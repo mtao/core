@@ -11,10 +11,10 @@ namespace mtao::geometry {
 // = 1 / ( N choose J ) for J = j+1, N = K+1 )
 // returns a linear vector [ M1 M2 M3 M4 ]
 // where |Mk| = k, Mk = [ x^k x^{k-1}y ... y^k ]
-template <typename T, typename Derived1, typename Derived2>
+template<typename T, typename Derived1, typename Derived2>
 std::vector<T> edge_monomial_integrals(size_t max_dim,
-                                       const Eigen::MatrixBase<Derived1>& a,
-                                       const Eigen::MatrixBase<Derived2>& b) {
+                                       const Eigen::MatrixBase<Derived1> &a,
+                                       const Eigen::MatrixBase<Derived2> &b) {
     // max dim + 1 dimensiosn will be used
     std::vector<T> ret;
     size_t max_integral_deg = max_dim + 1;
@@ -39,7 +39,8 @@ std::vector<T> edge_monomial_integrals(size_t max_dim,
 
             // if dim == 3 we have to do this t hird loop
             for (long long k = (Dim == 2) ? (d - j) : (d - j - 1);
-                 k >= (long long)((Dim == 2) ? (d - j) : 0); --k) {
+                 k >= (long long)((Dim == 2) ? (d - j) : 0);
+                 --k) {
                 double val = 0.0;
                 // term of (s u.x  + a.x)^j expanded
                 for (size_t m = 0; (long long)m <= j; ++m) {
@@ -47,16 +48,14 @@ std::vector<T> edge_monomial_integrals(size_t max_dim,
                     // holding s to be constant, the different ways
                     // and a.x can happen (j \choose m) (s u.x)^m
                     // a.x^(j - m)
-                    T jm_coeff = pt(j, m) * std::pow<T>(u.x(), m) *
-                                 std::pow<T>(a.x(), j - m);
+                    T jm_coeff = pt(j, m) * std::pow<T>(u.x(), m) * std::pow<T>(a.x(), j - m);
                     // term of (s u.y + a.y)^k expanded
                     for (size_t n = 0; (long long)n <= k; ++n) {
                         // =  k \choose n  (a bunch of stuff)
                         // holding s to be constant, the different ways
                         // t v.y and a.y can happen (k \choose n) {k-n
                         // \choose p} (s u.y)^n a.y^(k - n)
-                        T kn_coeff = pt(k, n) * std::pow<T>(u.y(), n) *
-                                     std::pow<T>(a.y(), k - n);
+                        T kn_coeff = pt(k, n) * std::pow<T>(u.y(), n) * std::pow<T>(a.y(), k - n);
 
                         // so we have to integrate
                         // (j \choose m){j-m \choose o} (u.x)^m (v.x)^o
@@ -86,9 +85,7 @@ std::vector<T> edge_monomial_integrals(size_t max_dim,
                                     // can happen (k \choose n) {k-n
                                     // \choose p} (s u.y)^n (t
                                     // v.y)^p a.y^(k - n - p)
-                                    T lq_coeff = pt(l, q) *
-                                                 std::pow<T>(u.z(), q) *
-                                                 std::pow<T>(a.z(), l - q);
+                                    T lq_coeff = pt(l, q) * std::pow<T>(u.z(), q) * std::pow<T>(a.z(), l - q);
                                     // (j \choose m){j-m \choose o}
                                     // (u.x)^m (v.x)^o a.x^(j - m -
                                     // o) (k \choose n){k-n \choose
@@ -118,4 +115,4 @@ std::vector<T> edge_monomial_integrals(size_t max_dim,
     }
     return ret;
 }
-}  // namespace mtao::geometry
+}// namespace mtao::geometry

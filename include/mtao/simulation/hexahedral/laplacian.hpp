@@ -9,12 +9,12 @@
 //#include "mtao/geometry/mesh/dual_volumes.hpp"
 
 namespace mtao::simulation::hexahedral {
-template <typename Scalar, int D>
+template<typename Scalar, int D>
 Eigen::Matrix<Scalar, 1 << D, 1 << D> laplacian_stencil() {
     using Vec = mtao::Vector<Scalar, D>;
     Eigen::Matrix<Scalar, 1 << D, 1 << D> S;
     S.setZero();
-    auto eval = [](int elem, const std::array<Scalar, D>& vec) {
+    auto eval = [](int elem, const std::array<Scalar, D> &vec) {
         Vec coeffs;
         Vec grad;
         for (size_t idx = 0; idx < D; ++idx) {
@@ -42,10 +42,12 @@ Eigen::Matrix<Scalar, 1 << D, 1 << D> laplacian_stencil() {
         Scalar val = Scalar(0);
 
         val = quadrature::multidim_simpsons_rule<D, Scalar>(
-            [&](const std::array<Scalar, D>& p) -> Scalar {
-                return eval(i, p).dot(eval(j, p));
-            },
-            0., 1., num_samples);
+          [&](const std::array<Scalar, D> &p) -> Scalar {
+              return eval(i, p).dot(eval(j, p));
+          },
+          0.,
+          1.,
+          num_samples);
         return val;
     };
 
@@ -76,4 +78,4 @@ Eigen::Matrix<Scalar, 1 << D, 1 << D> laplacian_stencil() {
     return S;
 }
 
-}  // namespace mtao::simulation::hexahedral
+}// namespace mtao::simulation::hexahedral

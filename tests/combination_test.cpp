@@ -7,22 +7,21 @@
 
 using namespace mtao;
 
-template <int D>
+template<int D>
 void test() {
     std::cout << "Test" << std::endl;
-    std::array<int,D> arr;
-    std::iota(arr.begin(),arr.end(),10);
+    std::array<int, D> arr;
+    std::iota(arr.begin(), arr.end(), 10);
 
-    for(int r = 0; r < D+1; ++r) {
-        for(size_t l = 0; l  < combinatorial::nCr(D,r); ++l) {
-        std::cout << " R,L:" << r<< "," << l << ": ";
-            auto b = combinatorial::nCr_mask<D>(r,l);
-            for(int i = 0; i < D; ++i) {
+    for (int r = 0; r < D + 1; ++r) {
+        for (size_t l = 0; l < combinatorial::nCr(D, r); ++l) {
+            std::cout << " R,L:" << r << "," << l << ": ";
+            auto b = combinatorial::nCr_mask<D>(r, l);
+            for (int i = 0; i < D; ++i) {
                 std::cout << int(b[i]);
             }
             std::cout << std::endl;
         }
-
     }
 }
 

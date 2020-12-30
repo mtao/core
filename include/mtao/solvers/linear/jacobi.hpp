@@ -8,18 +8,18 @@ namespace mtao::solvers::linear {
 // Dx = b - (U+L)x
 // x = D^{-1}(b - (U+L)x)
 
-template <typename MatrixType>
+template<typename MatrixType>
 class JacobiLinearSolver;
-template <typename MatrixType>
+template<typename MatrixType>
 struct solver_traits<JacobiLinearSolver<MatrixType>> {
     using Scalar = typename MatrixType::Scalar;
     using Matrix = MatrixType;
     using Vector = mtao::VectorX<Scalar>;
 };
 
-template <typename MatrixType>
+template<typename MatrixType>
 struct JacobiLinearSolver
-    : public IterativeLinearSolver<JacobiLinearSolver<MatrixType>> {
+  : public IterativeLinearSolver<JacobiLinearSolver<MatrixType>> {
     using Base = IterativeLinearSolver<JacobiLinearSolver<MatrixType>>;
     using Base::A;
     using Base::b;
@@ -41,16 +41,16 @@ struct JacobiLinearSolver
     auto D() const { return A().diagonal(); }
 };
 
-template <typename MatrixType, typename VecType>
-auto jacobi(const MatrixType& A, const VecType& b) {
+template<typename MatrixType, typename VecType>
+auto jacobi(const MatrixType &A, const VecType &b) {
     using Scalar = typename MatrixType::Scalar;
     mtao::VectorX<Scalar> x = mtao::VectorX<Scalar>::Random(A.cols());
     auto residual = (b - A * x).template lpNorm<Eigen::Infinity>();
     auto solver =
-        JacobiLinearSolver<MatrixType>(1e6 * A.rows(), 1e-5 * residual);
+      JacobiLinearSolver<MatrixType>(1e6 * A.rows(), 1e-5 * residual);
 
     solver.solve(A, b, x);
     return solver.x();
 }
 
-}  // namespace mtao::solvers::linear
+}// namespace mtao::solvers::linear

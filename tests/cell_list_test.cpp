@@ -12,13 +12,14 @@ TEST_CASE("CellList2", "[cell_list]") {
     V.array() += 1;
     V.array() /= 2;
 
-    std::cout << V << std::endl << std::endl;
-    CellList<double, 2> cell_list({{10, 10}});
+    std::cout << V << std::endl
+              << std::endl;
+    CellList<double, 2> cell_list({ { 10, 10 } });
     cell_list.construct(V);
-    cell_list.offsets.loop([&](auto&& c, int val) {
+    cell_list.offsets.loop([&](auto &&c, int val) {
         std::cout << c[0] << " " << c[1] << "] " << val << std::endl;
     });
-    for (auto&& v : cell_list.particle_table) {
+    for (auto &&v : cell_list.particle_table) {
         std::cout << v << " ";
     }
     std::cout << std::endl;
@@ -29,7 +30,8 @@ TEST_CASE("CellList2", "[cell_list]") {
         std::cout << " ======> " << v.transpose() << std::endl;
 
         cell_list.neighbor_walker(
-            [&](int idx) { std::cout << V.col(idx).transpose() << std::endl; },
-            v, .08);
+          [&](int idx) { std::cout << V.col(idx).transpose() << std::endl; },
+          v,
+          .08);
     }
 }

@@ -4,8 +4,8 @@
 #include "mtao/eigen/type_info.hpp"
 
 namespace mtao::eigen {
-template <typename Derived>
-auto mat_to_triplets(const Derived& V, typename Derived::Scalar thresh) {
+template<typename Derived>
+auto mat_to_triplets(const Derived &V, typename Derived::Scalar thresh) {
     using Scalar = typename Derived::Scalar;
     std::vector<Eigen::Triplet<Scalar>> ret;
 
@@ -24,7 +24,7 @@ auto mat_to_triplets(const Derived& V, typename Derived::Scalar thresh) {
         const int jCount = RM ? V.cols() : V.rows();
         for (int i = 0; i < iCount; ++i) {
             for (int j = 0; j < jCount; ++j) {
-                auto&& value = RM ? V(i, j) : V(j, i);
+                auto &&value = RM ? V(i, j) : V(j, i);
                 if (std::abs(value) > thresh) {
                     if constexpr (RM) {
                         ret.emplace_back(i, j, value);
@@ -37,8 +37,8 @@ auto mat_to_triplets(const Derived& V, typename Derived::Scalar thresh) {
     }
     return ret;
 }
-template <typename Derived>
-auto mat_to_triplets(const Derived& V) {
+template<typename Derived>
+auto mat_to_triplets(const Derived &V) {
     using Scalar = typename Derived::Scalar;
     std::vector<Eigen::Triplet<Scalar>> ret;
 
@@ -55,7 +55,7 @@ auto mat_to_triplets(const Derived& V) {
         const int jCount = RM ? V.cols() : V.rows();
         for (int i = 0; i < iCount; ++i) {
             for (int j = 0; j < jCount; ++j) {
-                auto&& value = RM ? V(i, j) : V(j, i);
+                auto &&value = RM ? V(i, j) : V(j, i);
                 if (value != 0) {
                     if constexpr (RM) {
                         ret.emplace_back(i, j, value);
@@ -68,4 +68,4 @@ auto mat_to_triplets(const Derived& V) {
     }
     return ret;
 }
-}  // namespace mtao::eigen
+}// namespace mtao::eigen

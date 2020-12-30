@@ -6,9 +6,10 @@
 
 namespace mtao::algebra {
 
-template <typename Container, typename ComparisonOp>
+template<typename Container, typename ComparisonOp>
 data_structures::DirectedAcyclicGraph<size_t> partial_order_to_dag(
-    const Container& container, ComparisonOp&& op = {}) {
+  const Container &container,
+  ComparisonOp &&op = {}) {
     using DAG = data_structures::DirectedAcyclicGraph<size_t>;
     using NodeType = DAG::NodeType;
 
@@ -17,16 +18,15 @@ data_structures::DirectedAcyclicGraph<size_t> partial_order_to_dag(
     // check that the return type of the operator is indeed a partial ordering
     using ValueType = typename Container::value_type;
     static_assert(
-        std::is_same_v<std::partial_ordering, op(std::declval<ValueType>(),
-                                                 std::declval<ValueType>())>);
+      std::is_same_v<std::partial_ordering, op(std::declval<ValueType>(), std::declval<ValueType>())>);
 
-    auto value_from_node = [&](const NodeType& node) -> const ValueType& {
+    auto value_from_node = [&](const NodeType &node) -> const ValueType & {
         return container.at(node.value);
     };
-    auto traverse_tree = [&](size_t index, const NodeType::Ptr& node_ptr) {};
-    for (auto&& [index, p] : mtao::iterator::enumerate(container)) {
-        NodeType::Ptr new_node{index, {}, {}};
-        for (auto&& root : dag.roots) {
+    auto traverse_tree = [&](size_t index, const NodeType::Ptr &node_ptr) {};
+    for (auto &&[index, p] : mtao::iterator::enumerate(container)) {
+        NodeType::Ptr new_node{ index, {}, {} };
+        for (auto &&root : dag.roots) {
             std::partial_ordering order = op(p, value_from_node(*root));
             if (order < 0) {
                 // new node is within this tree, lets dig in
@@ -44,10 +44,11 @@ data_structures::DirectedAcyclicGraph<size_t> partial_order_to_dag(
             } else if (order == 0) {
                 // they are equal just toss it and emit a warning
                 spdlog::warn(
-                    "partial_order_to_dag found identical elements, filter "
-                    "equal elements before calling that function indices were "
-                    "{} and {}",
-                    index, root->value);
+                  "partial_order_to_dag found identical elements, filter "
+                  "equal elements before calling that function indices were "
+                  "{} and {}",
+                  index,
+                  root->value);
                 break;
             } else {
                 dag.roots.emplace(new_node);
@@ -57,4 +58,4 @@ data_structures::DirectedAcyclicGraph<size_t> partial_order_to_dag(
     return dat;
 }
 
-}  // namespace mtao::algebra
+}// namespace mtao::algebra

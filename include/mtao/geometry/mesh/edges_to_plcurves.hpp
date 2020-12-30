@@ -17,22 +17,23 @@ namespace mtao::geometry::mesh {
 // Note that this function only returns boundary curves and not polygons. Look
 // to 'edges_to_polygons.hpp' for that functionality, which simply calls this
 // funciton and does some post-processing
-template <typename EDerived>
+template<typename EDerived>
 std::vector<std::tuple<std::vector<int>, bool>> edges_to_plcurves(
-    const Eigen::MatrixBase<EDerived>& E, bool closed_only = true) {
+  const Eigen::MatrixBase<EDerived> &E,
+  bool closed_only = true) {
     eigen::col_check<2>(E);
 
     std::map<int, std::array<int, 2>> adj;
     for (int i = 0; i < E.cols(); ++i) {
         auto e = E.col(i);
         if (auto it = adj.find(e(0)); it == adj.end()) {
-            adj[e(0)] = std::array<int, 2>{{i, -1}};
+            adj[e(0)] = std::array<int, 2>{ { i, -1 } };
         } else {
             // it->second[1] = i;
             adj[e(0)][1] = i;
         }
         if (auto it = adj.find(e(1)); it == adj.end()) {
-            adj[e(1)] = std::array<int, 2>{{i, -1}};
+            adj[e(1)] = std::array<int, 2>{ { i, -1 } };
         } else {
             // it->second[0] = i;
             adj[e(1)][1] = i;
@@ -42,7 +43,7 @@ std::vector<std::tuple<std::vector<int>, bool>> edges_to_plcurves(
     // create an orientation by running around open edges and then random edges
     std::set<int> unseen_edges;
     std::set<int> open_edges;
-    for (auto&& [k, v] : adj) {
+    for (auto &&[k, v] : adj) {
         unseen_edges.emplace(k);
         if (v[0] < 0 || v[1] < 0) {
             open_edges.emplace(k);
@@ -58,13 +59,13 @@ std::vector<std::tuple<std::vector<int>, bool>> edges_to_plcurves(
     };
     std::vector<std::tuple<std::vector<int>, bool>> ret;
     auto run = [&](const int start_vertex, const int start_edge) {
-        auto& [vec, closedness] = ret.emplace_back();
+        auto &[vec, closedness] = ret.emplace_back();
         closedness = true;
         int vertex = start_vertex;
         int edge = start_edge;
         do {
             vec.emplace_back(vertex);
-            auto&& e = E.col(edge);
+            auto &&e = E.col(edge);
             // step vertex
             if (e[0] == vertex) {
                 vertex = e[1];
@@ -74,7 +75,7 @@ std::vector<std::tuple<std::vector<int>, bool>> edges_to_plcurves(
             remove(vertex);
 
             // step edge and swap it into the right order
-            auto& de = adj[vertex];
+            auto &de = adj[vertex];
             if (de[0] != edge) {
                 std::swap(de[0], de[1]);
             }
@@ -103,7 +104,7 @@ std::vector<std::tuple<std::vector<int>, bool>> edges_to_plcurves(
         int start_idx = *open_edges.begin();
         remove(start_idx);
         int start_edge;
-        auto&& e = adj[start_idx];
+        auto &&e = adj[start_idx];
         if (e[0] == -1) {
             start_edge = e[1];
         } else {
@@ -114,16 +115,17 @@ std::vector<std::tuple<std::vector<int>, bool>> edges_to_plcurves(
     while (!unseen_edges.empty()) {
         int start_idx = *unseen_edges.begin();
         remove(start_idx);
-        auto&& e = adj[start_idx];
+        auto &&e = adj[start_idx];
         int start_edge = e[0];
 
         run(start_idx, start_edge);
     }
     return ret;
 }
-template <typename EDerived>
+template<typename EDerived>
 [[deprecated]] std::vector<std::tuple<std::vector<int>, bool>> edge_to_plcurves(
-    const Eigen::MatrixBase<EDerived>& E, bool closed_only = true) {
+  const Eigen::MatrixBase<EDerived> &E,
+  bool closed_only = true) {
     return edges_to_plcurves(E, closed_only);
 }
-}  // namespace mtao::geometry::mesh
+}// namespace mtao::geometry::mesh

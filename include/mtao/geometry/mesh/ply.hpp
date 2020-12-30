@@ -5,14 +5,16 @@
 
 namespace mtao::geometry::mesh {
 class PLY {
-   public:
-    enum class Format { ASCII, BinaryLittleEndian, BinaryBigEndian };
+  public:
+    enum class Format { ASCII,
+                        BinaryLittleEndian,
+                        BinaryBigEndian };
     struct Element;
 
     Format format;
     std::vector<Element> elements;
 
-    void write_header(std::ostream& os) const;
+    void write_header(std::ostream &os) const;
 };
 
 struct PLY::Element {
@@ -20,7 +22,7 @@ struct PLY::Element {
     std::string name;
     std::vector<Property> properties;
     size_t count;
-    void write_header(std::ostream& os) const;
+    void write_header(std::ostream &os) const;
 };
 struct PLY::Element::Property {
     enum class PropertyType {
@@ -49,7 +51,7 @@ struct PLY::Element::Property {
 
     // the count is ignored if this is not a list type
     size_t byte_size(size_t count = 1) const;
-    void write_header(std::ostream& os) const;
+    void write_header(std::ostream &os) const;
 };
 
-}  // namespace mtao::geometry::mesh
+}// namespace mtao::geometry::mesh

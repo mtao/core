@@ -6,16 +6,15 @@
 #include <algorithm>
 
 
-
-template <typename Derived, typename Derived2>
-void test_mats(const Eigen::MatrixBase<Derived>& A, const Eigen::MatrixBase<Derived2>& B) {
+template<typename Derived, typename Derived2>
+void test_mats(const Eigen::MatrixBase<Derived> &A, const Eigen::MatrixBase<Derived2> &B) {
     REQUIRE(A.rows() == B.rows());
     REQUIRE(A.cols() == B.cols());
-    if(A.rows() == B.rows() && A.cols() == B.cols()) {
-        for(int i = 0; i < A.rows(); ++i) {
-        for(int j = 0; j < B.cols(); ++j) {
-            REQUIRE(A(i,j) == Approx(B(i,j)).margin(1e-5));
-        }
+    if (A.rows() == B.rows() && A.cols() == B.cols()) {
+        for (int i = 0; i < A.rows(); ++i) {
+            for (int j = 0; j < B.cols(); ++j) {
+                REQUIRE(A(i, j) == Approx(B(i, j)).margin(1e-5));
+            }
         }
     }
 }
@@ -23,8 +22,8 @@ void test_mats(const Eigen::MatrixBase<Derived>& A, const Eigen::MatrixBase<Deri
 
 TEST_CASE("GramSchmidt", "[arnoldi]") {
 
-    for(auto&& D: {5,10,15}) {
-        Eigen::MatrixXd L(D,D);
+    for (auto &&D : { 5, 10, 15 }) {
+        Eigen::MatrixXd L(D, D);
         L.setRandom();
 
         {
@@ -32,12 +31,12 @@ TEST_CASE("GramSchmidt", "[arnoldi]") {
             auto G = mtao::linear_algebra::gram_schmidt(L);
             //std::cout << G << std::endl;
             //std::cout << (G * G.transpose()) << std::endl;
-            test_mats(G * G.transpose(),Eigen::MatrixXd::Identity(D,D));
+            test_mats(G * G.transpose(), Eigen::MatrixXd::Identity(D, D));
         }
         {
 
 
-            Eigen::MatrixXd P(D,3);
+            Eigen::MatrixXd P(D, 3);
             P.setRandom();
 
             auto PG = mtao::linear_algebra::gram_schmidt(P);

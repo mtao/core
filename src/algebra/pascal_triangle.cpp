@@ -32,8 +32,8 @@ void PascalTriangle::rebuild() {
         _entries[off + level] = 1;
         for (size_t j = 1; j < level; ++j) {
             _entries[off + j] =
-                _entries[last_off + j - 1] + _entries[last_off + j];
+              _entries[last_off + j - 1] + _entries[last_off + j];
         }
     }
 }
-}  // namespace mtao::algebra
+}// namespace mtao::algebra

@@ -7,5 +7,4 @@ int main() {
     std::cout << mtao::types::container_size(a) << " = " << a.size() << std::endl;
     int b[15];
     std::cout << mtao::types::container_size(b) << " = " << 15 << std::endl;
-
 }

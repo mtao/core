@@ -8,9 +8,9 @@
 using namespace mtao::logging;
 
 namespace {
-template <typename D, typename D2>
-void check_matrix(const Eigen::MatrixBase<D>& A,
-                  const Eigen::MatrixBase<D2>& B) {
+template<typename D, typename D2>
+void check_matrix(const Eigen::MatrixBase<D> &A,
+                  const Eigen::MatrixBase<D2> &B) {
     REQUIRE(A.cols() == B.cols());
     REQUIRE(A.rows() == B.rows());
     for (int i = 0; i < A.rows(); ++i) {
@@ -20,17 +20,17 @@ void check_matrix(const Eigen::MatrixBase<D>& A,
     }
 }
 
-template <typename D, typename D2>
-void check_hem(const Eigen::MatrixBase<D>& V, const Eigen::MatrixBase<D2>& E) {
+template<typename D, typename D2>
+void check_hem(const Eigen::MatrixBase<D> &V, const Eigen::MatrixBase<D2> &E) {
     mtao::ColVectors<float, 2> T =
-        mtao::geometry::mesh::edge_tangents(V, E, true);
+      mtao::geometry::mesh::edge_tangents(V, E, true);
     std::map<std::array<int, 2>, std::tuple<int, bool>> tangent_map;
     for (int i = 0; i < E.cols(); ++i) {
         auto e = E.col(i);
         if (e(0) > e(1)) {
-            tangent_map[std::array<int, 2>{{e(1), e(0)}}] = {i, true};
+            tangent_map[std::array<int, 2>{ { e(1), e(0) } }] = { i, true };
         } else {
-            tangent_map[std::array<int, 2>{{e(0), e(1)}}] = {i, false};
+            tangent_map[std::array<int, 2>{ { e(0), e(1) } }] = { i, false };
         }
     }
 
@@ -48,7 +48,7 @@ void check_hem(const Eigen::MatrixBase<D>& V, const Eigen::MatrixBase<D2>& E) {
         check_matrix(hem_edges, hem.edges());
     }
 }
-}  // namespace
+}// namespace
 
 TEST_CASE("TriangleFan", "[halfedge]") {
     mtao::ColVectors<float, 2> V(2, 4);
@@ -109,4 +109,3 @@ TEST_CASE("SquareWithLine", "[halfedge]") {
 
     check_hem(V, E);
 }
-

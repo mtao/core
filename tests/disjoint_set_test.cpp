@@ -7,8 +7,8 @@ DisjointSet<int> a;
 
 void print() {
 
-    for(auto&& n: a.nodes) {
-        if(n.root()) {
+    for (auto &&n : a.nodes) {
+        if (n.root()) {
             std::cout << "Root: " << n.data << std::endl;
         } else {
             std::cout << "Internal: " << n.data << " ==> " << *n.parent << std::endl;
@@ -16,7 +16,7 @@ void print() {
     }
 }
 
-int main(int argc, char * argv[]) {
+int main(int argc, char *argv[]) {
     a.add_node(0);
     a.add_node(1);
     a.add_node(2);
@@ -27,19 +27,16 @@ int main(int argc, char * argv[]) {
     a.add_node(7);
 
 
-
-    a.join(0,1);
-    a.join(0,2);
-    a.join(0,3);
-    a.join(0,4);
-    a.join(6,1);
-    a.join(5,7);
+    a.join(0, 1);
+    a.join(0, 2);
+    a.join(0, 3);
+    a.join(0, 4);
+    a.join(6, 1);
+    a.join(5, 7);
     a.reduce_all();
     print();
-    for(auto&& i: a.root_indices()) {
+    for (auto &&i : a.root_indices()) {
         std::cout << a.node(i).data << ",";
     }
     std::cout << std::endl;
-
 }
-

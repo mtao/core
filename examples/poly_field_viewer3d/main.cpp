@@ -22,21 +22,19 @@ bool save_frame = false;
 ImVec4 clear_color = ImColor(114, 144, 154);
 
 
+class MeshViewer : public mtao::opengl::Window3 {
+  public:
+    bool show_bbox_faces = false;
+    bool show_bbox_edges = true;
 
-
-class MeshViewer: public mtao::opengl::Window3 {
-    public:
-        bool show_bbox_faces = false;
-        bool show_bbox_edges = true;
-
-        MeshViewer(const Arguments& args): Window3(args), pmesh(&drawables()) {
-    //MeshViewer(const Arguments& args): Window3(args,Magnum::GL::Version::GL210), _wireframe_shader{} {
+    MeshViewer(const Arguments &args) : Window3(args), pmesh(&drawables()) {
+        //MeshViewer(const Arguments& args): Window3(args,Magnum::GL::Version::GL210), _wireframe_shader{} {
         Corrade::Utility::Arguments myargs;
-        myargs.addArgument("filename").parse(args.argc,args.argv);
+        myargs.addArgument("filename").parse(args.argc, args.argv);
         std::string filename = myargs.value("filename");
-        auto [V,F] = mtao::geometry::mesh::read_objF(filename);
+        auto [V, F] = mtao::geometry::mesh::read_objF(filename);
         auto bb = mtao::geometry::bounding_box(V);
-        mtao::Vec3f mean = (bb.min() + bb.max())/2;
+        mtao::Vec3f mean = (bb.min() + bb.max()) / 2;
         V.colwise() -= mean;
 
         pmesh.setTriangleBuffer(V, F.cast<unsigned int>());
@@ -50,9 +48,6 @@ class MeshViewer: public mtao::opengl::Window3 {
         pmesh.setCount(pmesh.triangle_Count);
 
         pmesh.set_offsets(offsets);
-
-
-
     }
     void gui() override {
         pmesh.gui();
@@ -60,13 +55,10 @@ class MeshViewer: public mtao::opengl::Window3 {
     void draw() override {
         Window3::draw();
     }
-    private:
+
+  private:
     mtao::opengl::objects::PartitionedPolynomialShadedMesh<3> pmesh;
-
-
 };
-
-
 
 
 MAGNUM_APPLICATION_MAIN(MeshViewer)

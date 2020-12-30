@@ -9,9 +9,9 @@
 using namespace mtao::data_structures;
 using namespace mtao::algebra;
 
-template <typename T, typename U>
-void divisibility_check_recurse(T& value, const U& co, std::string str = "") {
-    for (auto&& c : value.children) {
+template<typename T, typename U>
+void divisibility_check_recurse(T &value, const U &co, std::string str = "") {
+    for (auto &&c : value.children) {
         std::string v = fmt::format(str + "=>{}", co[c->value]);
         std::cout << v << std::endl;
         CHECK(co[c->value] % co[value.value] == 0);
@@ -19,10 +19,9 @@ void divisibility_check_recurse(T& value, const U& co, std::string str = "") {
         divisibility_check_recurse(*c, co, v);
     }
 }
-template <typename T, typename U>
-void divisibility_check_recurse_inv(T& value, const U& co,
-                                    std::string str = "") {
-    for (auto&& c : value.children) {
+template<typename T, typename U>
+void divisibility_check_recurse_inv(T &value, const U &co, std::string str = "") {
+    for (auto &&c : value.children) {
         std::string v = fmt::format(str + "=>{}", co[c->value]);
         std::cout << v << std::endl;
         CHECK(co[value.value] % co[c->value] == 0);
@@ -33,7 +32,7 @@ void divisibility_check_recurse_inv(T& value, const U& co,
 
 TEST_CASE("divisibility_dag", "[po_to_dag]") {
     // std::vector values{1, 2, 3, 6};
-    std::vector values{1, 2, 4, 6, 7, 8, 3};
+    std::vector values{ 1, 2, 4, 6, 7, 8, 3 };
     values.resize(100);
     std::iota(values.begin(), values.end(), 2);
     auto compare = [](int a, int b) -> std::partial_ordering {
@@ -54,15 +53,14 @@ TEST_CASE("divisibility_dag", "[po_to_dag]") {
 
     compare(3, 4);
     auto dag = partial_order_to_dag(values, compare);
-    for (auto&& r : dag.roots) {
+    for (auto &&r : dag.roots) {
         std::cout << fmt::format("{}", values[r->value]) << std::endl;
-        divisibility_check_recurse(*r, values,
-                                   fmt::format("{}", values[r->value]));
+        divisibility_check_recurse(*r, values, fmt::format("{}", values[r->value]));
     }
 }
 TEST_CASE("divisibility_dag_inv", "[po_to_dag]") {
     // std::vector values{1, 2, 3, 6};
-    std::vector values{1, 2, 4, 6, 7, 8, 3};
+    std::vector values{ 1, 2, 4, 6, 7, 8, 3 };
     values.resize(100);
     std::iota(values.begin(), values.end(), 2);
     auto compare = [](int a, int b) -> std::partial_ordering {
@@ -83,9 +81,8 @@ TEST_CASE("divisibility_dag_inv", "[po_to_dag]") {
 
     compare(3, 4);
     auto dag = partial_order_to_dag(values, compare);
-    for (auto&& r : dag.roots) {
+    for (auto &&r : dag.roots) {
         std::cout << fmt::format("inv{}", values[r->value]) << std::endl;
-        divisibility_check_recurse_inv(*r, values,
-                                       fmt::format("inv{}", values[r->value]));
+        divisibility_check_recurse_inv(*r, values, fmt::format("inv{}", values[r->value]));
     }
 }

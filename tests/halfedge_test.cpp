@@ -9,16 +9,16 @@
 using namespace mtao::logging;
 
 
-int main(int argc, char * argv[]) {
+int main(int argc, char *argv[]) {
 
-    mtao::ColVectors<float,3> V;
-    mtao::ColVectors<int,3> F;
+    mtao::ColVectors<float, 3> V;
+    mtao::ColVectors<int, 3> F;
 
     using namespace mtao::geometry::mesh;
-    if(argc == 1) {
-        std::tie(V,F) = sphere<float>(1);
+    if (argc == 1) {
+        std::tie(V, F) = sphere<float>(1);
     } else {
-        std::tie(V,F) = read_objF(argv[1]);
+        std::tie(V, F) = read_objF(argv[1]);
     }
 
 
@@ -35,35 +35,36 @@ int main(int argc, char * argv[]) {
 
     debug() << "boundary size: " << hem.boundary_size();
     auto C = hem.cell_halfedges();
-    for(size_t i = 0; i < C.size(); ++i) {
+    for (size_t i = 0; i < C.size(); ++i) {
         std::cout << F.col(i).transpose() << std::endl;
         std::cout << "=============" << std::endl;
-        cell_iterator(&hem,C[i])([&](auto&& e) {
-                std::cout << e.vertex() << " ";
-                });
+        cell_iterator(&hem, C[i])([&](auto &&e) {
+            std::cout << e.vertex() << " ";
+        });
         std::cout << std::endl;
         std::cout << "=============" << std::endl;
         auto c = hem.cell_he(C[i]);
-        for(auto&& v: c) {
+        for (auto &&v : c) {
             std::cout << v << " ";
         }
         std::cout << std::endl;
-        std::cout << std::endl << std::endl;
+        std::cout << std::endl
+                  << std::endl;
     }
     auto D = hem.vertex_halfedges();
 
-    for(size_t i = 0; i <D.size(); ++i) {
+    for (size_t i = 0; i < D.size(); ++i) {
         std::cout << "dual cell: " << i << ") ";
         auto dc = hem.dual_cell_he(D[i]);
-        for(auto&& v: dc) {
+        for (auto &&v : dc) {
             std::cout << v << " ";
         }
         std::cout << std::endl;
     }
-    for(size_t i = 0; i <D.size(); ++i) {
+    for (size_t i = 0; i < D.size(); ++i) {
         std::cout << "one ring: " << i << ") ";
         auto dc = hem.one_ring_he(D[i]);
-        for(auto&& v: dc) {
+        for (auto &&v : dc) {
             std::cout << v << " ";
         }
         std::cout << std::endl;
@@ -74,24 +75,23 @@ int main(int argc, char * argv[]) {
 
 
     std::cout << "hem corner vertex: ";
-    vertex_iterator(&hem, hem.vertex_edge(21).index())( [&](auto&& e) {
-            std::cout << "[" << e.dual_index() << " " << e.vertex() << "] ";
-            });
+    vertex_iterator(&hem, hem.vertex_edge(21).index())([&](auto &&e) {
+        std::cout << "[" << e.dual_index() << " " << e.vertex() << "] ";
+    });
     std::cout << std::endl;
 
     auto fv = fv_to_halfedge(hem);
     return 0;
 
-    for(int i = 0; i < hem.size(); ++i) {
-    if(hem.is_boundary(i)) {
-    boundary_iterator(hem.edge(i))( [&](auto&& e) {
-            std::cout << "[" << e.dual_index() << " " << e.vertex() << "] ";
+    for (int i = 0; i < hem.size(); ++i) {
+        if (hem.is_boundary(i)) {
+            boundary_iterator(hem.edge(i))([&](auto &&e) {
+                std::cout << "[" << e.dual_index() << " " << e.vertex() << "] ";
             });
-    std::cout << std::endl;
-    } else {
-        std::cout << "Boundary iterator on non-boundary edge" << std::endl;
-    }
+            std::cout << std::endl;
+        } else {
+            std::cout << "Boundary iterator on non-boundary edge" << std::endl;
+        }
     }
     return 0;
-
 }

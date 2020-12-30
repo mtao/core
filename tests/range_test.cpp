@@ -4,10 +4,10 @@
 int main() {
     using namespace mtao::iterator;
 
-    for(auto&& v: range(10)) {
+    for (auto &&v : range(10)) {
         std::cout << v << ",";
     }
-    for(auto&& v: range(0,-51,-2)) {
+    for (auto &&v : range(0, -51, -2)) {
         std::cout << v << ",";
     }
     std::cout << std::endl;

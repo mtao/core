@@ -1,150 +1,135 @@
 #include "mtao/opengl/tex.h"
-namespace mtao { namespace opengl {
-    Texture::Texture( GLint internalFormat, GLsizei w, GLsizei h, GLsizei d)
-        : w(w)
-          , h(h)
-          , d(d)
-          , m_target(h==-1?GL_TEXTURE_1D:(d==-1?GL_TEXTURE_2D:GL_TEXTURE_3D))
-          , internalFormat(internalFormat)
-          {
-              checkOpenGLErrors( "Checking error before 3D texture" );
-              glGenTextures(1,&m_id);
-              checkOpenGLErrors( "Before bind in 3D texture ctor" );
-              bind_enabled<Texture>::bind();
-              checkOpenGLErrors( "Going to set texture parameters in 3D texture ctor" );
-              glTexParameterf(m_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-              glTexParameteri(m_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-              glTexParameteri(m_target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-              glTexParameteri(m_target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-              glTexParameteri(m_target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-              checkOpenGLErrors( "Texture::Texture() just called all the glTexParameters");
-              resize(w,h,d);
-              checkOpenGLErrors( "Texture::Texture() just called member resize");
-              if( internalFormat == GL_DEPTH_COMPONENT24 )
-              {
-                  //glTexParameteri(type, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
-                  //checkOpenGLErrors("Texture::Texture() 2d, glTexParameteri setting depth texture mode to intensity");
-                  glTexParameteri( m_target, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE );
-                  checkOpenGLErrors("Texture::Texture() 2d, glTexParameteri GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE" );
-                  glTexParameteri( m_target, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL );
-                  checkOpenGLErrors("Texture::Texture() 2d, glTexParameteri GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL");
-
-              }
-          }
+namespace mtao {
+namespace opengl {
+    Texture::Texture(GLint internalFormat, GLsizei w, GLsizei h, GLsizei d)
+      : w(w), h(h), d(d), m_target(h == -1 ? GL_TEXTURE_1D : (d == -1 ? GL_TEXTURE_2D : GL_TEXTURE_3D)), internalFormat(internalFormat) {
+        checkOpenGLErrors("Checking error before 3D texture");
+        glGenTextures(1, &m_id);
+        checkOpenGLErrors("Before bind in 3D texture ctor");
+        bind_enabled<Texture>::bind();
+        checkOpenGLErrors("Going to set texture parameters in 3D texture ctor");
+        glTexParameterf(m_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(m_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(m_target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(m_target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(m_target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        checkOpenGLErrors("Texture::Texture() just called all the glTexParameters");
+        resize(w, h, d);
+        checkOpenGLErrors("Texture::Texture() just called member resize");
+        if (internalFormat == GL_DEPTH_COMPONENT24) {
+            //glTexParameteri(type, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
+            //checkOpenGLErrors("Texture::Texture() 2d, glTexParameteri setting depth texture mode to intensity");
+            glTexParameteri(m_target, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+            checkOpenGLErrors("Texture::Texture() 2d, glTexParameteri GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE");
+            glTexParameteri(m_target, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+            checkOpenGLErrors("Texture::Texture() 2d, glTexParameteri GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL");
+        }
+    }
     Texture::~Texture() {
-        glDeleteTextures(1,&m_id);
+        glDeleteTextures(1, &m_id);
         checkOpenGLErrors("Texture::~Texture() glDeleteTextures");
     }
 
     namespace texture_internal {
         GLenum internalFormatToFormat(GLint internalFormat) {
-            switch(internalFormat) {
-                case GL_DEPTH_COMPONENT24:
-                    return GL_DEPTH_COMPONENT;
-                case GL_RGBA8:
-                default:
-                    return GL_RGBA;
+            switch (internalFormat) {
+            case GL_DEPTH_COMPONENT24:
+                return GL_DEPTH_COMPONENT;
+            case GL_RGBA8:
+            default:
+                return GL_RGBA;
             }
         }
-    }
+    }// namespace texture_internal
 
     namespace texture_internal {
         GLenum internalFormatToSizeFormat(GLint internalFormat) {
-            switch(internalFormat) {
-                case GL_DEPTH_COMPONENT24:
-                    return GL_FLOAT;
-                case GL_RGBA8:
-                default:
-                    return GL_UNSIGNED_BYTE;
+            switch (internalFormat) {
+            case GL_DEPTH_COMPONENT24:
+                return GL_FLOAT;
+            case GL_RGBA8:
+            default:
+                return GL_UNSIGNED_BYTE;
             }
         }
+    }// namespace texture_internal
+
+    Texture::Texture(Texture &&t)
+      : w(t.w), h(t.h), d(t.d), m_id(t.m_id), m_target(t.m_target), internalFormat(t.internalFormat) {
     }
 
-    Texture::Texture(Texture&& t)
-        : w(t.w),h(t.h)
-          , d(t.d)
-          , m_id(t.m_id)
-          , m_target(t.m_target)
-          , internalFormat(t.internalFormat)
-    {
-    }
-
-    void Texture::resize( GLsizei w_, GLsizei h_, GLsizei d_) {
-        setData(nullptr,w_,h_,d_);
+    void Texture::resize(GLsizei w_, GLsizei h_, GLsizei d_) {
+        setData(nullptr, w_, h_, d_);
         checkOpenGLErrors("Texture::resize() glTexImage3D");
     }
 
 
-
-    void Texture::setData(const void* data, GLsizei w_, GLsizei h_, GLsizei d_)
-    {
-        w = w_>0?w_:w;
-        h = h_>0?h_:h;
-        d = d_>0?d_:d;
-        if(h_ == -1) {
-            glTexImage1D( type,                 // target
-                    0,                    // level
-                    internalFormat,       // internalFormat
-                    w,                    // width
-                    0,                    // border
-                    texture_internal::internalFormatToFormat(internalFormat),     // format
-                    texture_internal::internalFormatToSizeFormat(internalFormat), // type
-                    data );        // data
+    void Texture::setData(const void *data, GLsizei w_, GLsizei h_, GLsizei d_) {
+        w = w_ > 0 ? w_ : w;
+        h = h_ > 0 ? h_ : h;
+        d = d_ > 0 ? d_ : d;
+        if (h_ == -1) {
+            glTexImage1D(type,// target
+                         0,// level
+                         internalFormat,// internalFormat
+                         w,// width
+                         0,// border
+                         texture_internal::internalFormatToFormat(internalFormat),// format
+                         texture_internal::internalFormatToSizeFormat(internalFormat),// type
+                         data);// data
         } else {
-            if(d_ == -1) {
+            if (d_ == -1) {
 
-                glTexImage2D( type,                 // target
-                        0,                    // level
-                        internalFormat,       // internalFormat
-                        w,                    // width
-                        h,                    // height
-                        0,                    // border
-                        texture_internal::internalFormatToFormat(internalFormat),     // format
-                        texture_internal::internalFormatToSizeFormat(internalFormat), // type
-                        data );        // data
+                glTexImage2D(type,// target
+                             0,// level
+                             internalFormat,// internalFormat
+                             w,// width
+                             h,// height
+                             0,// border
+                             texture_internal::internalFormatToFormat(internalFormat),// format
+                             texture_internal::internalFormatToSizeFormat(internalFormat),// type
+                             data);// data
             } else {
-                glTexImage3D( type,                 // target
-                        0,                    // level
-                        internalFormat,       // internalFormat
-                        w,                    // width
-                        h,                    // height
-                        d,                    // depth 
-                        0,                    // border
-                        texture_internal::internalFormatToFormat(internalFormat),     // format
-                        texture_internal::internalFormatToSizeFormat(internalFormat), // type
-                        data );        // data
+                glTexImage3D(type,// target
+                             0,// level
+                             internalFormat,// internalFormat
+                             w,// width
+                             h,// height
+                             d,// depth
+                             0,// border
+                             texture_internal::internalFormatToFormat(internalFormat),// format
+                             texture_internal::internalFormatToSizeFormat(internalFormat),// type
+                             data);// data
             }
         }
         checkOpenGLErrors("Texture::setData() glTexImage?D");
     }
 
 
+    void Texture::bind(GLuint id, GLenum type) {
+        glBindTexture(type, id);
+        checkOpenGLErrors("Texture::bind() glBindTexture");
+    }
 
+    void Texture::release(GLuint id, GLenum type) {
+        glBindTexture(type, 0);
+        checkOpenGLErrors("Texture::bind() glBindTexture");
+    }
 
-        void Texture::bind(GLuint id, GLenum type) {
-            glBindTexture(type,id);
-            checkOpenGLErrors("Texture::bind() glBindTexture");
-        }
-
-        void Texture::release(GLuint id, GLenum type) {
-            glBindTexture(type,0);
-            checkOpenGLErrors("Texture::bind() glBindTexture");
-        }
-
-        namespace fbo_internal {
-            GLint attachmentToType(GLenum attachment) {
-                switch(attachment) {
-                    case GL_DEPTH_ATTACHMENT:
-                        return GL_DEPTH_COMPONENT24;
-                    case GL_COLOR_ATTACHMENT0:
-                        return GL_RGBA8;
-                    default:
-                        return GL_RGBA8;
-                }
+    namespace fbo_internal {
+        GLint attachmentToType(GLenum attachment) {
+            switch (attachment) {
+            case GL_DEPTH_ATTACHMENT:
+                return GL_DEPTH_COMPONENT24;
+            case GL_COLOR_ATTACHMENT0:
+                return GL_RGBA8;
+            default:
+                return GL_RGBA8;
             }
         }
+    }// namespace fbo_internal
 
-        /*
+    /*
         // dump the current texture to disk in a file format
         void Texture::dump( const std::string& filename )
         {
@@ -227,4 +212,5 @@ namespace mtao { namespace opengl {
     release();
     }
     */
-    }}
+}// namespace opengl
+}// namespace mtao

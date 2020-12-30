@@ -6,18 +6,17 @@
 
 namespace mtao::solvers::cholesky {
 
-template <typename Matrix>
+template<typename Matrix>
 struct DenseLDLT_MIC0 {
     typedef typename Matrix::Scalar Scalar;
-    template <typename A, typename B, typename C>
-    inline Scalar tripleVectorProduct(const A& a, const B& b, const C& c) {
+    template<typename A, typename B, typename C>
+    inline Scalar tripleVectorProduct(const A &a, const B &b, const C &c) {
         return a.cwiseProduct(b).dot(c);
     }
-    inline Scalar tripleProduct(const Matrix& a, uint i, uint j) {
-        return tripleVectorProduct(a.row(i).head(j), a.row(j).head(j),
-                                   a.diagonal().head(j));
+    inline Scalar tripleProduct(const Matrix &a, uint i, uint j) {
+        return tripleVectorProduct(a.row(i).head(j), a.row(j).head(j), a.diagonal().head(j));
     }
-    DenseLDLT_MIC0(const Matrix& A) {
+    DenseLDLT_MIC0(const Matrix &A) {
         LD = A.template triangularView<Eigen::Lower>();
         int i, j;
         for (i = 0; i < A.rows(); ++i) {
@@ -31,10 +30,10 @@ struct DenseLDLT_MIC0 {
             LD(i, i) -= tripleProduct(LD, i, i);
         }
     }
-    template <typename Vector>
-    void solve(const Vector& b, Vector& x) {
+    template<typename Vector>
+    void solve(const Vector &b, Vector &x) {
         x = LD.template triangularView<Eigen::UnitLower>().solve(b);
-        x.noalias() = (LD.diagonal().array().abs() > 1e-5).select(x.cwiseQuotient(LD.diagonal()),x);//safe beacuse it's a dot
+        x.noalias() = (LD.diagonal().array().abs() > 1e-5).select(x.cwiseQuotient(LD.diagonal()), x);//safe beacuse it's a dot
         LD.template triangularView<Eigen::UnitLower>().transpose().solveInPlace(x);
     }
     Matrix getA() {
@@ -45,19 +44,19 @@ struct DenseLDLT_MIC0 {
         return A;
     }
 
-   private:
+  private:
     Matrix LD;
 };
 
-template <typename Matrix, typename Vector>
+template<typename Matrix, typename Vector>
 struct SparseLDLT_MIC0 {
     typedef typename Matrix::Scalar Scalar;
     SparseLDLT_MIC0() {}
-    SparseLDLT_MIC0(const Matrix& A, const Vector& v) : SparseLDLT_MIC0(A) {}
-    SparseLDLT_MIC0(const Matrix& A) {
+    SparseLDLT_MIC0(const Matrix &A, const Vector &v) : SparseLDLT_MIC0(A) {}
+    SparseLDLT_MIC0(const Matrix &A) {
         // L=tril(A);
-        L = A.template triangularView<Eigen::StrictlyLower>();  // Don't copy
-                                                                // the diagonal
+        L = A.template triangularView<Eigen::StrictlyLower>();// Don't copy
+          // the diagonal
         for (int i = 0; i < L.rows(); ++i) {
             if (L.coeff(i, i) != 0) L.coeffRef(i, i) = 0;
         }
@@ -65,15 +64,14 @@ struct SparseLDLT_MIC0 {
 
         // for k=1:size(L,2)
         for (int k = 0; k < A.rows();
-             ++k)  // k is the column that we're infecting the remaining columns
-                   // with
-        {  // L(:,k)
+             ++k)// k is the column that we're infecting the remaining columns
+        // with
+        {// L(:,k)
 
             // Solidify the current column values
             //==================================
             if (D(k) == 0) continue;
-            if (Dinv(k) <
-                0.25 * D(k))  // If D has shrunk too much since it started
+            if (Dinv(k) < 0.25 * D(k))// If D has shrunk too much since it started
                 Dinv(k) = 1 / D(k);
             else
                 Dinv(k) = 1 / Dinv(k);
@@ -83,29 +81,28 @@ struct SparseLDLT_MIC0 {
             // Add k terms to all of the following columns
             //===========================================
             for (typename Matrix::InnerIterator it(L, k); it;
-                 ++it)  // -L(i,k)*D(k)*L(j,k)
+                 ++it)// -L(i,k)*D(k)*L(j,k)
             {
-                int j = it.row();  // j>k
+                int j = it.row();// j>k
                 if (j <= k) continue;
                 Scalar missing = 0;
-                Scalar multiplier = it.value();  // L(j,k)*D(k)
+                Scalar multiplier = it.value();// L(j,k)*D(k)
 
                 typename Matrix::InnerIterator k_it(L, k);
                 typename Matrix::InnerIterator j_it(L, j);
                 // move down teh column of L(:,k) to collect missing elements in
                 // the match with A(:,j) i=k_it.row()
 
-                while (k_it && k_it.row() < j) {  // L(i,k)
-                    while (j_it)                  // L(i,j) occasionally
+                while (k_it && k_it.row() < j) {// L(i,k)
+                    while (j_it)// L(i,j) occasionally
                     {
                         if (j_it.row() < k_it.row())
                             ++j_it;
-                        else if (j_it.row() ==
-                                 k_it.row())  // L(i,k) are L(i,j) are nonzero
+                        else if (j_it.row() == k_it.row())// L(i,k) are L(i,j) are nonzero
                             break;
                         else {
-                            missing += k_it.value();  // L(i,k) will fill
-                                                      // something not in L(i,j)
+                            missing += k_it.value();// L(i,k) will fill
+                              // something not in L(i,j)
                             break;
                         }
                     }
@@ -120,12 +117,11 @@ struct SparseLDLT_MIC0 {
                 while (k_it && j_it2) {
                     if (j_it2.row() < k_it.row())
                         ++j_it2;
-                    else if (j_it2.row() ==
-                             k_it.row())  // L(i,k) and L(i,j) are both nonzero,
-                                          // -=L(i,k)*L(j,k)*D(k)
+                    else if (j_it2.row() == k_it.row())// L(i,k) and L(i,j) are both nonzero,
+                    // -=L(i,k)*L(j,k)*D(k)
                     {
                         j_it2.valueRef() -=
-                            multiplier * k_it.value();  // k_it.value()=L(i,k)
+                          multiplier * k_it.value();// k_it.value()=L(i,k)
                         ++j_it2;
                         ++k_it;
                     } else {
@@ -146,11 +142,11 @@ struct SparseLDLT_MIC0 {
            std::cout << L << std::endl;
            */
     }
-    void solve(const Vector& b, Vector& x) {
+    void solve(const Vector &b, Vector &x) {
         x = L.template triangularView<Eigen::UnitLower>().solve(b);
-        x.noalias() = x.cwiseProduct(Dinv);  // safe beacuse it's a dot
+        x.noalias() = x.cwiseProduct(Dinv);// safe beacuse it's a dot
         L.transpose().template triangularView<Eigen::UnitUpper>().solveInPlace(
-            x);
+          x);
     }
     Matrix getA() {
         Matrix A = L.template triangularView<Eigen::UnitLower>();
@@ -160,16 +156,17 @@ struct SparseLDLT_MIC0 {
         return A;
     }
 
-   private:
+  private:
     Matrix L;
     Vector D, Dinv;
 };
 
-template <typename MatrixType, typename VectorType>
+template<typename MatrixType, typename VectorType>
 using LDLT_MIC0 = std::conditional_t<
-    std::is_base_of_v<Eigen::SparseMatrixBase<MatrixType>, MatrixType>,
-    SparseLDLT_MIC0<MatrixType, VectorType>, DenseLDLT_MIC0<MatrixType>>;
+  std::is_base_of_v<Eigen::SparseMatrixBase<MatrixType>, MatrixType>,
+  SparseLDLT_MIC0<MatrixType, VectorType>,
+  DenseLDLT_MIC0<MatrixType>>;
 
-}  // namespace mtao::solvers::cholesky
+}// namespace mtao::solvers::cholesky
 
 #endif

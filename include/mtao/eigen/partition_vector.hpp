@@ -14,54 +14,66 @@ namespace mtao::eigen {
 //
 // the *_from_sizes variants take the sizes of the blocks themselves
 
-template <typename Derived, typename IndexContainer>
-auto partition_vector(const Eigen::MatrixBase<Derived>& M,
-                      const IndexContainer& indices) {
+template<typename Derived, typename IndexContainer>
+auto partition_vector(const Eigen::MatrixBase<Derived> &M,
+                      const IndexContainer &indices) {
     if constexpr (Derived::RowsAtCompileTime == 1) {
         return detail::_partition_inner_stride<false>(
-            std::make_integer_sequence<int,
-                                       std::tuple_size_v<IndexContainer> - 1>{},
-            M, indices);
+          std::make_integer_sequence<int,
+                                     std::tuple_size_v<IndexContainer> - 1>{},
+          M,
+          indices);
     } else if constexpr (Derived::ColsAtCompileTime == 1) {
         return detail::_partition_inner_stride<true>(
-            std::make_integer_sequence<int,
-                                       std::tuple_size_v<IndexContainer> - 1>{},
-            M, indices);
+          std::make_integer_sequence<int,
+                                     std::tuple_size_v<IndexContainer> - 1>{},
+          M,
+          indices);
     } else {
         return detail::_partition_inner_stride<true>(
-            std::make_integer_sequence<int,
-                                       std::tuple_size_v<IndexContainer> - 1>{},
-            M, indices);
+          std::make_integer_sequence<int,
+                                     std::tuple_size_v<IndexContainer> - 1>{},
+          M,
+          indices);
     }
 }
-template <typename Derived, typename IndexContainer>
-auto partition_vector(Eigen::PlainObjectBase<Derived>& M,
-                      const IndexContainer& indices) {
+template<typename Derived, typename IndexContainer>
+auto partition_vector(Eigen::PlainObjectBase<Derived> &M,
+                      const IndexContainer &indices) {
     if constexpr (Derived::RowsAtCompileTime == 1) {
         return detail::_partition_inner_stride_writable<false>(
-            std::make_integer_sequence<int,
-                                       std::tuple_size_v<IndexContainer> - 1>{},
-            M, indices, 0, 0);
+          std::make_integer_sequence<int,
+                                     std::tuple_size_v<IndexContainer> - 1>{},
+          M,
+          indices,
+          0,
+          0);
     } else if constexpr (Derived::ColsAtCompileTime == 1) {
         return detail::_partition_inner_stride_writable<true>(
-            std::make_integer_sequence<int,
-                                       std::tuple_size_v<IndexContainer> - 1>{},
-            M, indices, 0, 0);
+          std::make_integer_sequence<int,
+                                     std::tuple_size_v<IndexContainer> - 1>{},
+          M,
+          indices,
+          0,
+          0);
     } else {
         return detail::_partition_inner_stride_writable<true>(
-            std::make_integer_sequence<int,
-                                       std::tuple_size_v<IndexContainer> - 1>{},
-            M, indices, 0, 0);
+          std::make_integer_sequence<int,
+                                     std::tuple_size_v<IndexContainer> - 1>{},
+          M,
+          indices,
+          0,
+          0);
     }
 }
-template <typename Derived, typename IndexContainer>
-auto partition_vector_from_sizes(const Eigen::MatrixBase<Derived>& M,
-                                 const IndexContainer& indices) {
+template<typename Derived, typename IndexContainer>
+auto partition_vector_from_sizes(const Eigen::MatrixBase<Derived> &M,
+                                 const IndexContainer &indices) {
     return partition_vector(M, utils::partial_sum(indices));
 }
-template <typename Derived, typename IndexContainer>
-auto partition_vector_from_sizes(Eigen::PlainObjectBase<Derived>& M,
-                                 const IndexContainer& indices) {
+template<typename Derived, typename IndexContainer>
+auto partition_vector_from_sizes(Eigen::PlainObjectBase<Derived> &M,
+                                 const IndexContainer &indices) {
     return partition_vector(M, utils::partial_sum(indices));
 }
 /*
@@ -74,4 +86,4 @@ auto partition_vector_from_size(const Eigen::MatrixBase<Derived>& M,
     return partition_vector(M, indices);
 }
 */
-}  // namespace mtao::eigen
+}// namespace mtao::eigen

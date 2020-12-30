@@ -2,40 +2,42 @@
 #include <mtao/types.h>
 
 
-namespace mtao { namespace geometry { namespace mesh {
+namespace mtao {
+namespace geometry {
+    namespace mesh {
 
-    template <int D, typename IndexType = int>
+        template<int D, typename IndexType = int>
         struct CellIndexer {
-            public:
-
-                template <typename Derived>
-                std::array<IndexType,D> sorted_facet(const Eigen::DenseBase<Derived>& f) const {
-                        std::array<IndexType,D> ret;
-                        for(IndexType i = 0; i < D; ++i) {
-                            ret[i] = f(i);
-                        }
-                        std::sort(ret.begin(),ret.end());
-                        return ret;
+          public:
+            template<typename Derived>
+            std::array<IndexType, D> sorted_facet(const Eigen::DenseBase<Derived> &f) const {
+                std::array<IndexType, D> ret;
+                for (IndexType i = 0; i < D; ++i) {
+                    ret[i] = f(i);
                 }
+                std::sort(ret.begin(), ret.end());
+                return ret;
+            }
 
-                CellIndexer(const mtao::ColVectors<IndexType,D>& F) {
-                    for(IndexType i = 0; i < F.cols(); ++i) {
-                        m_map[sorted_facet(F.col(i))] = i;
-                    }
+            CellIndexer(const mtao::ColVectors<IndexType, D> &F) {
+                for (IndexType i = 0; i < F.cols(); ++i) {
+                    m_map[sorted_facet(F.col(i))] = i;
                 }
-                template <typename Derived>
-                IndexType operator()(const Eigen::DenseBase<Derived>& f) const {
-                    return (*this)(sorted_fact(f));
-                }
-                IndexType operator()(std::array<IndexType,D> f) const {
-                    std::sort(f.begin(),f.end());
+            }
+            template<typename Derived>
+            IndexType operator()(const Eigen::DenseBase<Derived> &f) const {
+                return (*this)(sorted_fact(f));
+            }
+            IndexType operator()(std::array<IndexType, D> f) const {
+                std::sort(f.begin(), f.end());
 
-                    return m_map.at(f);
-                }
-                const auto& map() const { return m_map; }
+                return m_map.at(f);
+            }
+            const auto &map() const { return m_map; }
 
-            private:
-                std::map<std::array<IndexType,D>,IndexType> m_map;
-
+          private:
+            std::map<std::array<IndexType, D>, IndexType> m_map;
         };
-}}}
+    }// namespace mesh
+}// namespace geometry
+}// namespace mtao

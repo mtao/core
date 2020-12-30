@@ -14,24 +14,24 @@ using namespace Magnum;
 void initializer();
 namespace mtao::opengl {
 
-template <>
+template<>
 VectorFieldShader<2>::VectorFieldShader(Magnum::UnsignedInt colorMode)
-    : _colorMode(colorMode) {
+  : _colorMode(colorMode) {
     initialize();
 }
-template <>
+template<>
 VectorFieldShader<3>::VectorFieldShader(Magnum::UnsignedInt colorMode)
-    : _colorMode(colorMode) {
+  : _colorMode(colorMode) {
     initialize();
 }
-template <int D>
+template<int D>
 void VectorFieldShader<D>::initialize() {
     initializer();
     Utility::Resource rs("MtaoShaders");
 
-    GL::Shader vert{GL::Version::GL330, GL::Shader::Type::Vertex},
-        geom{GL::Version::GL330, GL::Shader::Type::Geometry},
-        frag{GL::Version::GL330, GL::Shader::Type::Fragment};
+    GL::Shader vert{ GL::Version::GL330, GL::Shader::Type::Vertex },
+      geom{ GL::Version::GL330, GL::Shader::Type::Geometry },
+      frag{ GL::Version::GL330, GL::Shader::Type::Fragment };
 
     if (_colorMode == PerVectorColors) {
         constexpr static char s[] = "#define PER_VERTEX_COLOR\n";
@@ -46,8 +46,8 @@ void VectorFieldShader<D>::initialize() {
     vert.addSource(rs.get("vector_field.vert"));
     geom.addSource(rs.get("vector_field.geom"));
     frag.addSource(rs.get("vector_field.frag"));
-    CORRADE_INTERNAL_ASSERT(GL::Shader::compile({vert, geom, frag}));
-    attachShaders({vert, geom, frag});
+    CORRADE_INTERNAL_ASSERT(GL::Shader::compile({ vert, geom, frag }));
+    attachShaders({ vert, geom, frag });
     CORRADE_INTERNAL_ASSERT(link());
     // glUseProgram(id());
     // GLchar buffer[2048];
@@ -59,11 +59,11 @@ void VectorFieldShader<D>::initialize() {
         _colorUniform = uniformLocation("color");
     }
     _transformationProjectionMatrixUniform =
-        uniformLocation("transformationProjectionMatrix");
+      uniformLocation("transformationProjectionMatrix");
 
     GLint params;
     GLuint indices;
-    const char* name[1] = {"transformationProjectionMatrix"};
+    const char *name[1] = { "transformationProjectionMatrix" };
 
     glGetUniformIndices(id(), 1, name, &indices);
 
@@ -74,84 +74,76 @@ void VectorFieldShader<D>::initialize() {
     //_normalMatrixUniform = uniformLocation("normalMatrix");
 }
 namespace internal {
-template <typename Drawable>
-void vfgui(Drawable& d, const std::string& name_) {
-    std::string name = name_;
-    if (name.empty()) {
-        name = "Vector Field Shader";
+    template<typename Drawable>
+    void vfgui(Drawable &d, const std::string &name_) {
+        std::string name = name_;
+        if (name.empty()) {
+            name = "Vector Field Shader";
+        }
+        if (ImGui::TreeNode(name.c_str())) {
+            bool vis = d.is_visible();
+            ImGui::Checkbox("Visible", &vis);
+            d.set_visibility(vis);
+            ImGui::ColorEdit4("Color", d.data().color.data());
+            ImGui::InputFloat("Scale", &d.data().scale);
+            ImGui::TreePop();
+        }
     }
-    if (ImGui::TreeNode(name.c_str())) {
-        bool vis = d.is_visible();
-        ImGui::Checkbox("Visible", &vis);
-        d.set_visibility(vis);
-        ImGui::ColorEdit4("Color", d.data().color.data());
-        ImGui::InputFloat("Scale", &d.data().scale);
-        ImGui::TreePop();
+    template<typename Drawable>
+    void vfguim(Drawable &d, const std::string &name_) {
+        std::string name = name_;
+        if (name.empty()) {
+            name = "Vector Field Shader";
+        }
+        if (ImGui::TreeNode(name.c_str())) {
+            bool vis = d.is_visible();
+            ImGui::Checkbox("Visible", &vis);
+            d.set_visibility(vis);
+            ImGui::ColorEdit4("Color", d.data().color.data());
+            ImGui::InputFloat("Scale", &d.data().scale);
+            ImGui::InputFloat("Line Width", &d.line_width);
+            ImGui::TreePop();
+        }
     }
-}
-template <typename Drawable>
-void vfguim(Drawable& d, const std::string& name_) {
-    std::string name = name_;
-    if (name.empty()) {
-        name = "Vector Field Shader";
-    }
-    if (ImGui::TreeNode(name.c_str())) {
-        bool vis = d.is_visible();
-        ImGui::Checkbox("Visible", &vis);
-        d.set_visibility(vis);
-        ImGui::ColorEdit4("Color", d.data().color.data());
-        ImGui::InputFloat("Scale", &d.data().scale);
-        ImGui::InputFloat("Line Width", &d.line_width);
-        ImGui::TreePop();
-    }
-}
-}  // namespace internal
-template <>
-void DrawableBase<VectorFieldShader<2>>::gui(const std::string& name_) {
+}// namespace internal
+template<>
+void DrawableBase<VectorFieldShader<2>>::gui(const std::string &name_) {
     internal::vfgui(*this, name_);
 }
-template <>
-void DrawableBase<VectorFieldShader<3>>::gui(const std::string& name_) {
+template<>
+void DrawableBase<VectorFieldShader<3>>::gui(const std::string &name_) {
     internal::vfgui(*this, name_);
 }
-template <>
-void MeshDrawable<VectorFieldShader<2>>::gui(const std::string& name_) {
+template<>
+void MeshDrawable<VectorFieldShader<2>>::gui(const std::string &name_) {
     internal::vfguim(*this, name_);
 }
-template <>
-void MeshDrawable<VectorFieldShader<3>>::gui(const std::string& name_) {
+template<>
+void MeshDrawable<VectorFieldShader<3>>::gui(const std::string &name_) {
     internal::vfguim(*this, name_);
 }
-template <>
+template<>
 void MeshDrawable<VectorFieldShader<2>>::set_buffers() {
-    _mesh.addVertexBuffer(_mesh.vertex_buffer, 0,
-                          VectorFieldShader<2>::Position{});
-    _mesh.addVertexBuffer(_mesh.vfield_buffer, 0,
-                          VectorFieldShader<2>::Vector{});
+    _mesh.addVertexBuffer(_mesh.vertex_buffer, 0, VectorFieldShader<2>::Position{});
+    _mesh.addVertexBuffer(_mesh.vfield_buffer, 0, VectorFieldShader<2>::Vector{});
     if (shader().colorMode() == VectorFieldShader<2>::PerVectorColors) {
         // shader().setColor(_data.color);
     } else {
-        _mesh.addVertexBuffer(_mesh.color_buffer, 0,
-                              VectorFieldShader<2>::Color4{});
+        _mesh.addVertexBuffer(_mesh.color_buffer, 0, VectorFieldShader<2>::Color4{});
     }
     shader().setScale(data().scale).setColor(data().color);
     activate_line_width();
-
-
 }
-template <>
+template<>
 void MeshDrawable<VectorFieldShader<3>>::set_buffers() {
-    _mesh.addVertexBuffer(_mesh.vertex_buffer, 0,
-                          VectorFieldShader<3>::Position{});
-    _mesh.addVertexBuffer(_mesh.vfield_buffer, 0,
-                          VectorFieldShader<3>::Vector{});
+    _mesh.addVertexBuffer(_mesh.vertex_buffer, 0, VectorFieldShader<3>::Position{});
+    _mesh.addVertexBuffer(_mesh.vfield_buffer, 0, VectorFieldShader<3>::Vector{});
     if (shader().colorMode() == VectorFieldShader<3>::PerVectorColors) {
         // shader().setColor(_data.color);
     } else {
-        _mesh.addVertexBuffer(_mesh.color_buffer, 0,
-                              VectorFieldShader<3>::Color4{});
+        _mesh.addVertexBuffer(_mesh.color_buffer, 0, VectorFieldShader<3>::Color4{});
     }
     shader().setScale(data().scale).setColor(data().color);
     activate_line_width();
 }
-}  // namespace mtao::opengl
+}// namespace mtao::opengl
