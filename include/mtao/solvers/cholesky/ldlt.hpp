@@ -71,12 +71,17 @@ struct SparseLDLT_MIC0 {
 
             // Solidify the current column values
             //==================================
-            if (D(k) == 0) continue;
+            if (std::abs(D(k)) < 1e-8) continue;
+            //std::cout << "Dinv and D: " << Dinv(k) << " " << D(k) << std::endl;
             if (Dinv(k) <
-                0.25 * D(k))  // If D has shrunk too much since it started
+                0.25 * D(k)) {  // If D has shrunk too much since it started
+                //std::cout << "From D" << std::endl;
                 Dinv(k) = 1 / D(k);
-            else
+            } else {
+                //std::cout << "From Dinv" << std::endl;
                 Dinv(k) = 1 / Dinv(k);
+            }
+            //std::cout << k << " " << Dinv(k) << std::endl;
             //            L.innerVector(k) *= Dinv(k);
             L.innerVector(k) = L.innerVector(k) * Dinv(k);
 
@@ -87,8 +92,10 @@ struct SparseLDLT_MIC0 {
             {
                 int j = it.row();  // j>k
                 if (j <= k) continue;
+                //spdlog::info("j{} k{}", j,k);
                 Scalar missing = 0;
                 Scalar multiplier = it.value();  // L(j,k)*D(k)
+                //spdlog::info("Multiplier: {}", multiplier);
 
                 typename Matrix::InnerIterator k_it(L, k);
                 typename Matrix::InnerIterator j_it(L, j);
@@ -114,6 +121,7 @@ struct SparseLDLT_MIC0 {
 
                 if (k_it && j_it.row() == j) {
                     Dinv(j) -= it.value() * multiplier;
+                //spdlog::info("Dinv({}) = {} after -= {} {}", j, Dinv(j), it.value(), multiplier);
                 }
 
                 typename Matrix::InnerIterator j_it2(L, j);
@@ -130,6 +138,7 @@ struct SparseLDLT_MIC0 {
                         ++k_it;
                     } else {
                         missing += k_it.value();
+                        //spdlog::info("Missing {} after += {}", missing, k_it.value());
                         ++k_it;
                     }
                 }
@@ -139,6 +148,7 @@ struct SparseLDLT_MIC0 {
                     ++k_it;
                 }
                 Dinv(j) -= 0.97 * missing * multiplier;
+            //spdlog::info("Dinv({}) = {} after -= .97 * {} {}", j, Dinv(j), missing, multiplier);
             }
         }
 

@@ -1,7 +1,8 @@
 #ifndef LINEAR_SOLVER_H
 #define LINEAR_SOLVER_H
-#include "mtao/types.hpp"
+#include <Eigen/Dense>
 #include <Eigen/Sparse>
+#include "mtao/types.hpp"
 #include <memory>
 
 namespace mtao::solvers::linear {
