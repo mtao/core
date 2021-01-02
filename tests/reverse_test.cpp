@@ -12,8 +12,8 @@ using namespace mtao::iterator;
 
 int main() {
     std::vector<int> a(30);
-    std::iota(a.begin(),a.end(),0);
-    for(auto&& v: reverse(a)) {
+    std::iota(a.begin(), a.end(), 0);
+    for (auto &&v : reverse(a)) {
         std::cout << v << std::endl;
     }
 

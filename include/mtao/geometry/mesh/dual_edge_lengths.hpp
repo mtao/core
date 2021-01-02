@@ -11,10 +11,10 @@ namespace mtao::geometry::mesh {
 
 // the circumcentral dual edge lengths
 // takes in vertices, cells, and boundaries
-template <typename VType, typename CellType, typename FacetType>
-auto dual_edge_lengths(const Eigen::MatrixBase<VType>& V,
-                       const Eigen::MatrixBase<CellType>& C,
-                       const Eigen::MatrixBase<FacetType>& F) {
+template<typename VType, typename CellType, typename FacetType>
+auto dual_edge_lengths(const Eigen::MatrixBase<VType> &V,
+                       const Eigen::MatrixBase<CellType> &C,
+                       const Eigen::MatrixBase<FacetType> &F) {
     auto DE = dual_edges<CellType::RowsAtCompileTime>(C, F);
     auto CC = circumcenters(V, C);
 
@@ -23,11 +23,11 @@ auto dual_edge_lengths(const Eigen::MatrixBase<VType>& V,
     for (int j = 0; j < R.size(); ++j) {
         auto de = DE.col(j);
 
-        if(de(1) == -1) {
-            if(de(0) == -1) {
+        if (de(1) == -1) {
+            if (de(0) == -1) {
                 continue;
             }
-            R(j) = (circumcenters(V,F.col(j)) - CC.col(de(0))).norm();
+            R(j) = (circumcenters(V, F.col(j)) - CC.col(de(0))).norm();
         } else {
             R(j) = (CC.col(de(1)) - CC.col(de(0))).norm();
         }
@@ -35,4 +35,4 @@ auto dual_edge_lengths(const Eigen::MatrixBase<VType>& V,
     return R;
 }
 
-}  // namespace mtao::geometry::mesh
+}// namespace mtao::geometry::mesh

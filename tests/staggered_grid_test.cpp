@@ -9,7 +9,7 @@
 
 using namespace mtao;
 
-template <int D>
+template<int D>
 void staggered_grid_test() {
     /*
     auto printArr = [&](auto&& a) {
@@ -92,17 +92,15 @@ void staggered_grid_test() {
         }
     }
     */
-
-
 }
 
 TEST_CASE("Staggered Grid vertices 2D", "[grid][staggered_grid]") {
     constexpr static int D = 2;
-    std::array<int,D> arr;
-    std::iota(arr.begin(),arr.end(),3);
-    mtao::geometry::grid::StaggeredGrid<float,D> sg(arr);
+    std::array<int, D> arr;
+    std::iota(arr.begin(), arr.end(), 3);
+    mtao::geometry::grid::StaggeredGrid<float, D> sg(arr);
 
-    auto grids= sg.template grids<1>();
+    auto grids = sg.template grids<1>();
     auto ofs = sg.template offsets<1>();
 
     REQUIRE(sg.template grids<0>().size() == 1);
@@ -111,66 +109,65 @@ TEST_CASE("Staggered Grid vertices 2D", "[grid][staggered_grid]") {
 
     assert(sg.origin().isApprox(sg.vertex_grid().origin()));
     auto dx = sg.dx();
-    REQUIRE(dx(0) == Approx(1./2));
-    REQUIRE(dx(1) == Approx(1./3));
+    REQUIRE(dx(0) == Approx(1. / 2));
+    REQUIRE(dx(1) == Approx(1. / 3));
 
     auto g0 = sg.vertex_grid();
     auto gD = sg.cell_grid();
-    for(int j = 0; j < D; ++j) {
+    for (int j = 0; j < D; ++j) {
         REQUIRE(g0.shape()[j] == arr[j]);
         REQUIRE(g0.origin()(j) == Approx(0));
 
-        REQUIRE(gD.shape()[j] == arr[j]-1);
-        REQUIRE(gD.origin()(j) == Approx(.5/(j+2)));
+        REQUIRE(gD.shape()[j] == arr[j] - 1);
+        REQUIRE(gD.origin()(j) == Approx(.5 / (j + 2)));
     }
 
     SECTION("1Form offsets and sizes") {
-        for(auto&& [i,v]: mtao::iterator::enumerate(grids)) {
-            for(int j = 0; j < D; ++j) {
-                if(j == i) {
-                    REQUIRE(v.shape()[j] == arr[j]-1);
-                    REQUIRE(v.origin()(j) == Approx(.5/(j+2)));
+        for (auto &&[i, v] : mtao::iterator::enumerate(grids)) {
+            for (int j = 0; j < D; ++j) {
+                if (j == i) {
+                    REQUIRE(v.shape()[j] == arr[j] - 1);
+                    REQUIRE(v.origin()(j) == Approx(.5 / (j + 2)));
                 } else {
                     REQUIRE(v.shape()[j] == arr[j]);
                     REQUIRE(v.origin()(j) == Approx(0));
                 }
             }
-            REQUIRE(ofs[i+1] - ofs[i] == v.size());
+            REQUIRE(ofs[i + 1] - ofs[i] == v.size());
         }
-
     }
     {
-    REQUIRE(sg.form_volumes<0>()[0] == 1);
-    auto g = sg.form_volumes<1>();
-    REQUIRE(g[0] == dx(0));
-    REQUIRE(g[1] == dx(1));
-    double pd = dx.prod();
-    REQUIRE(sg.form_volumes<2>()[0] == Approx(pd));
-    }
-    {
-
-    {
-        REQUIRE(sg.form_volumes(0)[0] == 1);
-        {
-            auto g = sg.form_volumes(1);
-            REQUIRE(g[0] == dx(0));
-            REQUIRE(g[1] == dx(1));
-        }
+        REQUIRE(sg.form_volumes<0>()[0] == 1);
+        auto g = sg.form_volumes<1>();
+        REQUIRE(g[0] == dx(0));
+        REQUIRE(g[1] == dx(1));
         double pd = dx.prod();
-        REQUIRE(sg.form_volumes(2)[0] == Approx(pd));
+        REQUIRE(sg.form_volumes<2>()[0] == Approx(pd));
     }
+    {
+
+        {
+            REQUIRE(sg.form_volumes(0)[0] == 1);
+            {
+                auto g = sg.form_volumes(1);
+                REQUIRE(g[0] == dx(0));
+                REQUIRE(g[1] == dx(1));
+            }
+            double pd = dx.prod();
+            REQUIRE(sg.form_volumes(2)[0] == Approx(pd));
+        }
     }
 }
 TEST_CASE("Staggered Grid vertices 3D", "[grid][staggered_grid]") {
     constexpr static int D = 3;
-    std::array<int,D> arr;
-    std::iota(arr.begin(),arr.end(),3);
-    mtao::geometry::grid::StaggeredGrid<float,D> sg(arr);
+    std::array<int, D> arr;
+    std::iota(arr.begin(), arr.end(), 3);
+    mtao::geometry::grid::StaggeredGrid<float, D> sg(arr);
     assert(sg.origin().isApprox(sg.vertex_grid().origin()));
     auto dx = sg.dx();
-    REQUIRE(dx(0) == Approx(1./2));
-    REQUIRE(dx(1) == Approx(1./3));
-    REQUIRE(dx(2) == Approx(1./4));
+    REQUIRE(dx(0) == Approx(1. / 2));
+    REQUIRE(dx(1) == Approx(1. / 3));
+    REQUIRE(dx(2) == Approx(1. / 4));
 
 
     REQUIRE(sg.template grids<0>().size() == 1);
@@ -180,44 +177,44 @@ TEST_CASE("Staggered Grid vertices 3D", "[grid][staggered_grid]") {
 
     auto g0 = sg.vertex_grid();
     auto gD = sg.cell_grid();
-    for(size_t j = 0; j < D; ++j) {
+    for (size_t j = 0; j < D; ++j) {
         REQUIRE(g0.shape()[j] == arr[j]);
         REQUIRE(g0.origin()(j) == Approx(0));
 
-        REQUIRE(gD.shape()[j] == arr[j]-1);
-        REQUIRE(gD.origin()(j) == Approx(.5/(j+2)));
+        REQUIRE(gD.shape()[j] == arr[j] - 1);
+        REQUIRE(gD.origin()(j) == Approx(.5 / (j + 2)));
     }
 
     SECTION("1Form offsets and sizes") {
-        auto grids= sg.template grids<1>();
+        auto grids = sg.template grids<1>();
         auto ofs = sg.template offsets<1>();
-        for(auto&& [i,v]: mtao::iterator::enumerate(grids)) {
-            for(int j = 0; j < D; ++j) {
-                if(j == i) {
-                    REQUIRE(v.shape()[j] == arr[j]-1);
-                    REQUIRE(v.origin()(j) == Approx(.5/(j+2)));
+        for (auto &&[i, v] : mtao::iterator::enumerate(grids)) {
+            for (int j = 0; j < D; ++j) {
+                if (j == i) {
+                    REQUIRE(v.shape()[j] == arr[j] - 1);
+                    REQUIRE(v.origin()(j) == Approx(.5 / (j + 2)));
                 } else {
                     REQUIRE(v.shape()[j] == arr[j]);
                     REQUIRE(v.origin()(j) == Approx(0));
                 }
             }
-            REQUIRE(ofs[i+1] - ofs[i] == v.size());
+            REQUIRE(ofs[i + 1] - ofs[i] == v.size());
         }
     }
     SECTION("2Form offsets and sizes") {
-        auto grids= sg.template grids<2>();
+        auto grids = sg.template grids<2>();
         auto ofs = sg.template offsets<2>();
-        for(auto&& [i,v]: mtao::iterator::enumerate(grids)) {
-            for(int j = 0; j < D; ++j) {
-                if(j == i) {
+        for (auto &&[i, v] : mtao::iterator::enumerate(grids)) {
+            for (int j = 0; j < D; ++j) {
+                if (j == i) {
                     REQUIRE(v.shape()[j] == arr[j]);
                     REQUIRE(v.origin()(j) == Approx(0));
                 } else {
-                    REQUIRE(v.shape()[j] == arr[j]-1);
-                    REQUIRE(v.origin()(j) == Approx(.5/(j+2)));
+                    REQUIRE(v.shape()[j] == arr[j] - 1);
+                    REQUIRE(v.origin()(j) == Approx(.5 / (j + 2)));
                 }
             }
-            REQUIRE(ofs[i+1] - ofs[i] == v.size());
+            REQUIRE(ofs[i + 1] - ofs[i] == v.size());
         }
     }
     {

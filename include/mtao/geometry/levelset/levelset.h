@@ -9,24 +9,22 @@
 namespace levelset {
 
 
-
-
-template <int _D>
+template<int _D>
 class Levelset {
-    public:
-        static constexpr int D = _D;
-        using Scalar = float;
-        using Ptr = std::shared_ptr<Levelset<D>>;
-        using LSPtr = Ptr;
+  public:
+    static constexpr int D = _D;
+    using Scalar = float;
+    using Ptr = std::shared_ptr<Levelset<D>>;
+    using LSPtr = Ptr;
 
-        using Vec = Eigen::Matrix<Scalar,D,1>;
-        using Matrix = Eigen::Matrix<Scalar,D,D>;
-        using VecRef = Eigen::Ref<Vec>;
-        using constVecRef = Eigen::Ref<const Vec>;
-        using VecVector = std::vector<Vec,Eigen::aligned_allocator<Vec> >;
-//        virtual Scalar operator()(const constVecRef& v) const ;
-        virtual Scalar operator()(const constVecRef& v,Scalar t = 0) const = 0;
-        /*
+    using Vec = Eigen::Matrix<Scalar, D, 1>;
+    using Matrix = Eigen::Matrix<Scalar, D, D>;
+    using VecRef = Eigen::Ref<Vec>;
+    using constVecRef = Eigen::Ref<const Vec>;
+    using VecVector = std::vector<Vec, Eigen::aligned_allocator<Vec>>;
+    //        virtual Scalar operator()(const constVecRef& v) const ;
+    virtual Scalar operator()(const constVecRef &v, Scalar t = 0) const = 0;
+    /*
         
         virtual Vec transform(const constVecRef& v, Scalar t = 0) const {
             return v;
@@ -35,7 +33,7 @@ class Levelset {
             return this->transform(v,-t);
         }
         */
-        /*
+    /*
         virtual Vec dfdx(const constVecRef& v,Scalar t = 0, Scalar dx=0.01) const {
             auto&& me = *this;
             Vec ret;
@@ -50,7 +48,7 @@ class Levelset {
             return ret;
         }
         */
-        /*
+    /*
         virtual Matrix dudx(const constVecRef& v,Scalar t = 0, Scalar dx=0.01) const {
             Matrix ret;
             Vec p2;
@@ -67,7 +65,7 @@ class Levelset {
             return ret;
         }
         */
-        /*
+    /*
         Scalar dfdt(const constVecRef& v,Scalar t = 0, Scalar dt=0.001) const {
             auto&& me = *this;
             return (me(v,t+dt)-me(v,t-dt))/(2*dt);
@@ -76,36 +74,36 @@ class Levelset {
             return Vec::Zero();
         }
         */
-    private:
+  private:
 };
 
 
-template <int _D>
+template<int _D>
 class ZeroLevelset;
 
-#define USE_BASE_LEVELSET_FUNCTION_DEFS(BASE) \
-    static constexpr int D = _D;\
-    using Base = BASE<D>;\
-    using LSPtr = typename Base::LSPtr;\
-    using LevelsetType = Levelset<D>;\
-    using BasePtr = typename LevelsetType::Ptr;\
-    using ZeroFunc = ZeroLevelset<D>;\
-    using Scalar = typename Base::Scalar;\
-    using Vec = typename Base::Vec;\
-    using Matrix = typename Base::Matrix;\
-    using VecRef = typename Base::VecRef;\
-    using constVecRef = typename Base::constVecRef;\
+#define USE_BASE_LEVELSET_FUNCTION_DEFS(BASE)       \
+    static constexpr int D = _D;                    \
+    using Base = BASE<D>;                           \
+    using LSPtr = typename Base::LSPtr;             \
+    using LevelsetType = Levelset<D>;               \
+    using BasePtr = typename LevelsetType::Ptr;     \
+    using ZeroFunc = ZeroLevelset<D>;               \
+    using Scalar = typename Base::Scalar;           \
+    using Vec = typename Base::Vec;                 \
+    using Matrix = typename Base::Matrix;           \
+    using VecRef = typename Base::VecRef;           \
+    using constVecRef = typename Base::constVecRef; \
     using VecVector = typename Base::VecVector;
 
-template <int _D>
-class ZeroLevelset: public Levelset<_D> {
-    public:
-        USE_BASE_LEVELSET_FUNCTION_DEFS(Levelset)
-        Scalar operator()(const constVecRef& v, Scalar t = 0) const {
-            return Scalar(0);
-        }
-        static std::shared_ptr<ZeroFunc> ptr() { return std::make_shared<ZeroLevelset<D>>();}
+template<int _D>
+class ZeroLevelset : public Levelset<_D> {
+  public:
+    USE_BASE_LEVELSET_FUNCTION_DEFS(Levelset)
+    Scalar operator()(const constVecRef &v, Scalar t = 0) const {
+        return Scalar(0);
+    }
+    static std::shared_ptr<ZeroFunc> ptr() { return std::make_shared<ZeroLevelset<D>>(); }
 };
-}
+}// namespace levelset
 
 #endif//LEVELSET_FUNC_H

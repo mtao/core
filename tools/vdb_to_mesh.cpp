@@ -5,12 +5,13 @@
 #include <mtao/iterator/enumerate.hpp>
 #include <mtao/iterator/shell.hpp>
 
-openvdb::GridBase::Ptr get_grid(const std::string& filename,
-                                const std::string& gridname = "") {
+openvdb::GridBase::Ptr get_grid(const std::string &filename,
+                                const std::string &gridname = "") {
     openvdb::io::File file(filename);
     file.open();
     for (openvdb::io::File::NameIterator nameIter = file.beginName();
-         nameIter != file.endName(); ++nameIter) {
+         nameIter != file.endName();
+         ++nameIter) {
         if (gridname.empty() || nameIter.gridName() == gridname) {
             return file.readGrid(nameIter.gridName());
         } else {
@@ -26,35 +27,25 @@ openvdb::GridBase::Ptr get_grid(const std::string& filename,
     return {};
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     cxxopts::Options options("test", "A brief description");
 
-    options.add_options()("vdb_file", "vdb grid file",
-                          cxxopts::value<std::string>())(
-        "output", "output mesh file", cxxopts::value<std::string>())(
-        "n,name", "name of the grid in the vdb_file",
-        cxxopts::value<std::string>())(
-        "t,type", "output file type [obj,ply]",
-        cxxopts::value<std::string>()->default_value("obj"))(
-        "i,isolevel", "isolevel to mesh against",
-        cxxopts::value<double>()->default_value("0.0"))(
-        "m,mask", "surface mask (another vdb grid)",
-        cxxopts::value<std::string>())(
-        "mask_name", "the name of the mask grid in the mask vdb file",
-        cxxopts::value<std::string>())(
-        "a,adaptivity", "spacial adaptivity",
-        cxxopts::value<double>()->default_value("0.0"))(
-        "f,adaptivity_file", "spacial adaptivity(another vdb grid)",
-        cxxopts::value<std::string>())(
-        "adaptivity_name",
-        "the name of the adaptivity grid in the adaptivity vdb file",
-        cxxopts::value<std::string>())(
-        "q,quads", "Output quads (only for obj)",
-        cxxopts::value<bool>()->default_value("false"))(
-        "r,relax_tris", "Relax disoriented triangles",
-        cxxopts::value<bool>()->default_value("true"))("h,help", "Print usage");
-    options.parse_positional({"vdb_file", "output"});
-    options.positional_help({"<vdb_file> <output_mesh>"});
+    options.add_options()("vdb_file", "vdb grid file", cxxopts::value<std::string>())(
+      "output", "output mesh file", cxxopts::value<std::string>())(
+      "n,name", "name of the grid in the vdb_file", cxxopts::value<std::string>())(
+      "t,type", "output file type [obj,ply]", cxxopts::value<std::string>()->default_value("obj"))(
+      "i,isolevel", "isolevel to mesh against", cxxopts::value<double>()->default_value("0.0"))(
+      "m,mask", "surface mask (another vdb grid)", cxxopts::value<std::string>())(
+      "mask_name", "the name of the mask grid in the mask vdb file", cxxopts::value<std::string>())(
+      "a,adaptivity", "spacial adaptivity", cxxopts::value<double>()->default_value("0.0"))(
+      "f,adaptivity_file", "spacial adaptivity(another vdb grid)", cxxopts::value<std::string>())(
+      "adaptivity_name",
+      "the name of the adaptivity grid in the adaptivity vdb file",
+      cxxopts::value<std::string>())(
+      "q,quads", "Output quads (only for obj)", cxxopts::value<bool>()->default_value("false"))(
+      "r,relax_tris", "Relax disoriented triangles", cxxopts::value<bool>()->default_value("true"))("h,help", "Print usage");
+    options.parse_positional({ "vdb_file", "output" });
+    options.positional_help({ "<vdb_file> <output_mesh>" });
 
     auto result = options.parse(argc, argv);
 
@@ -105,10 +96,10 @@ int main(int argc, char* argv[]) {
               << std::endl;
     if (result.count("adaptivity_file")) {
         std::string adaptivity_file =
-            result["adaptivity_file"].as<std::string>();
+          result["adaptivity_file"].as<std::string>();
         if (result.count("adaptivity_name")) {
             std::string adaptivity_name =
-                result["adaptivity_name"].as<std::string>();
+              result["adaptivity_name"].as<std::string>();
             adaptivity_grid = get_grid(adaptivity_file, adaptivity_name);
         } else {
             adaptivity_grid = get_grid(adaptivity_file);
@@ -118,11 +109,10 @@ int main(int argc, char* argv[]) {
     // openvdb::GridBase::Ptr adaptivity
     // if (result.count("bar")) bar = result["bar"].as<std::string>();
 
-    auto run = [&](auto&& grid) {
+    auto run = [&](auto &&grid) {
         using GridType = std::decay_t<decltype(grid)>;
         using Scalar = GridType::ValueType;
-        openvdb::tools::VolumeToMesh vtm(isolevel, adaptivity,
-                                         relaxDisorientedTriangles);
+        openvdb::tools::VolumeToMesh vtm(isolevel, adaptivity, relaxDisorientedTriangles);
         if (mask_grid) {
             vtm.setSurfaceMask(mask_grid);
         }
@@ -133,12 +123,12 @@ int main(int argc, char* argv[]) {
         vtm(*grid);
         mtao::ColVectors<Scalar, 3> V(3, vtm.pointListSize());
         auto pts = vtm.pointList();
-        for (auto&& [idx, pt] :
+        for (auto &&[idx, pt] :
              mtao::iterator::enumerate(mtao::iterator::shell(pts))) {
         }
         mtao::ColVectors<Scalar, 3> V(3, vtm.pointListSize());
         auto pts = vtm.pointList();
-        for (auto&& [idx, pt] :
+        for (auto &&[idx, pt] :
              mtao::iterator::enumerate(mtao::iterator::shell(pts))) {
         }
     };

@@ -23,8 +23,9 @@
 using namespace mtao::opengl;
 
 class MeshViewer : public mtao::opengl::Window3 {
-   public:
-    enum class Mode : int { Smoothing, LSReinitialization };
+  public:
+    enum class Mode : int { Smoothing,
+                            LSReinitialization };
     Mode mode = Mode::LSReinitialization;
 
     float permeability = 100.0;
@@ -40,48 +41,53 @@ class MeshViewer : public mtao::opengl::Window3 {
     Eigen::AlignedBox<float, 3> bbox;
     Eigen::SparseMatrix<float> L;
 
-    std::array<int, 3> N{{20, 20, 20}};
-    int& NI = N[0];
-    int& NJ = N[1];
-    int& NK = N[2];
+    std::array<int, 3> N{ { 20, 20, 20 } };
+    int &NI = N[0];
+    int &NJ = N[1];
+    int &NK = N[2];
     float scale = 1.0;
 
     Eigen::SimplicialLDLT<Eigen::SparseMatrix<float>> solver;
 
-    MeshViewer(const Arguments& args)
-        : Window3(args),
-          _wireframe_shader{
-              supportsGeometryShader()
-                  ? Magnum::Shaders::MeshVisualizer::Flag::Wireframe
-                  : Magnum::Shaders::MeshVisualizer::Flag{}} {
+    MeshViewer(const Arguments &args)
+      : Window3(args),
+        _wireframe_shader{
+            supportsGeometryShader()
+              ? Magnum::Shaders::MeshVisualizer::Flag::Wireframe
+              : Magnum::Shaders::MeshVisualizer::Flag{}
+        } {
         bbox.min().setConstant(-1);
         bbox.max().setConstant(1);
         mv_drawable =
-            new mtao::opengl::MeshDrawable<Magnum::Shaders::MeshVisualizer>{
-                grid, _wireframe_shader, drawables()};
+          new mtao::opengl::MeshDrawable<Magnum::Shaders::MeshVisualizer>{
+              grid, _wireframe_shader, drawables()
+          };
         mv_drawable->set_visibility(false);
         ;
 
         edge_drawable = new mtao::opengl::MeshDrawable<Magnum::Shaders::Flat3D>{
-            grid, _flat_shader, drawables()};
+            grid, _flat_shader, drawables()
+        };
         edge_drawable->activate_triangles({});
         edge_drawable->activate_edges();
         grid.setParent(&root());
         vfield_mesh.setParent(&root());
 #ifdef FLATIT
         _vf_viewer = new mtao::opengl::MeshDrawable<Magnum::Shaders::Flat3D>{
-            vfield_mesh, _flat_shader, drawables()};
+            vfield_mesh, _flat_shader, drawables()
+        };
 #else
         _vf_viewer =
-            new mtao::opengl::MeshDrawable<mtao::opengl::VectorFieldShader<3>>{
-                vfield_mesh, _vf_shader, drawables()};
+          new mtao::opengl::MeshDrawable<mtao::opengl::VectorFieldShader<3>>{
+              vfield_mesh, _vf_shader, drawables()
+          };
 #endif
         update();
     }
     void update() {
         // mtao::geometry::grid::Grid3f g(std::array<int,3>{{NI,NJ,NK}});
         auto g = mtao::geometry::grid::Grid3f::from_bbox(
-            bbox, std::array<int, 3>{{NI, NJ, NK}});
+          bbox, std::array<int, 3>{ { NI, NJ, NK } });
 
         grid.set(g);
         {
@@ -106,12 +112,12 @@ class MeshViewer : public mtao::opengl::Window3 {
         }
         if (ImGui::SliderFloat3("min", bbox.min().data(), -2, 2)) {
             bbox.min() = (bbox.min().array() < bbox.max().array())
-                             .select(bbox.min(), bbox.max());
+                           .select(bbox.min(), bbox.max());
             update();
         }
         if (ImGui::SliderFloat3("max", bbox.max().data(), -2, 2)) {
             bbox.max() = (bbox.min().array() > bbox.max().array())
-                             .select(bbox.min(), bbox.max());
+                           .select(bbox.min(), bbox.max());
             update();
         }
         if (ImGui::SliderFloat("scale", &scale, 0, 2)) {
@@ -136,20 +142,20 @@ class MeshViewer : public mtao::opengl::Window3 {
         Window3::draw();
     }
     */
-   private:
+  private:
     Magnum::Shaders::MeshVisualizer _wireframe_shader;
     Magnum::Shaders::Flat3D _flat_shader;
     mtao::opengl::VectorFieldShader<3> _vf_shader;
     mtao::opengl::objects::Mesh<3> vfield_mesh;
     mtao::opengl::objects::Grid<3> grid;
-    mtao::opengl::MeshDrawable<Magnum::Shaders::MeshVisualizer>* mv_drawable =
-        nullptr;
-    mtao::opengl::MeshDrawable<Magnum::Shaders::Flat3D>* edge_drawable = nullptr;
+    mtao::opengl::MeshDrawable<Magnum::Shaders::MeshVisualizer> *mv_drawable =
+      nullptr;
+    mtao::opengl::MeshDrawable<Magnum::Shaders::Flat3D> *edge_drawable = nullptr;
 #ifdef FLATIT
-    mtao::opengl::MeshDrawable<Magnum::Shaders::Flat3D>* _vf_viewer = nullptr;
+    mtao::opengl::MeshDrawable<Magnum::Shaders::Flat3D> *_vf_viewer = nullptr;
 #else
-    mtao::opengl::MeshDrawable<mtao::opengl::VectorFieldShader<3>>* _vf_viewer =
-        nullptr;
+    mtao::opengl::MeshDrawable<mtao::opengl::VectorFieldShader<3>> *_vf_viewer =
+      nullptr;
 #endif
 };
 

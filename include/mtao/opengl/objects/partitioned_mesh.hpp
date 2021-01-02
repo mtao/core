@@ -9,30 +9,32 @@
 
 namespace mtao::opengl::objects {
 using namespace Magnum;
-template <int D>
+template<int D>
 class PartitionedMesh : public Mesh<D> {
-   public:
+  public:
     using Mesh<D>::Mesh;
-    void set_offsets(const std::vector<int>& offsets) {
+    void set_offsets(const std::vector<int> &offsets) {
         face_offsets = offsets;
     }
 
     Magnum::GL::MeshView get(size_t index) const;
     Corrade::Containers::Array<Magnum::GL::MeshView> views();
-    std::array<int,2> range(size_t index) const;
+    std::array<int, 2> range(size_t index) const;
 
     std::vector<int> face_offsets = std::vector<int>{
-        0, 0};  // if the start/end is 0,0 then Magnum draws everything
+        0,
+        0
+    };// if the start/end is 0,0 then Magnum draws everything
 };
 
-template <int D>
-std::array<int,2> PartitionedMesh<D>::range(size_t index) const {
+template<int D>
+std::array<int, 2> PartitionedMesh<D>::range(size_t index) const {
 
     auto start = face_offsets.at(index);
     auto end = face_offsets.at(index + 1);
-    return {{start,end}};
+    return { { start, end } };
 }
-template <int D>
+template<int D>
 Magnum::GL::MeshView PartitionedMesh<D>::get(size_t index) const {
     Magnum::GL::MeshView view(*this);
 
@@ -42,17 +44,17 @@ Magnum::GL::MeshView PartitionedMesh<D>::get(size_t index) const {
     return view;
 }
 
-template <int D>
+template<int D>
 Corrade::Containers::Array<Magnum::GL::MeshView> PartitionedMesh<D>::views() {
     Corrade::Containers::Array<Magnum::GL::MeshView> views(
-        Corrade::Containers::DirectInit, face_offsets.size() - 1, *this);
+      Corrade::Containers::DirectInit, face_offsets.size() - 1, *this);
 
-    for (auto&& [index, view] : mtao::iterator::enumerate(views)) {
+    for (auto &&[index, view] : mtao::iterator::enumerate(views)) {
         auto start = face_offsets.at(index);
         auto end = face_offsets.at(index + 1);
-        view.setIndexRange(3*start).setCount(3*(end - start));
+        view.setIndexRange(3 * start).setCount(3 * (end - start));
         // view.setIndexRange(0).setCount(0);
     }
     return views;
 }
-}  // namespace mtao::opengl::objects
+}// namespace mtao::opengl::objects

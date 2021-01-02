@@ -7,12 +7,11 @@
 using namespace mtao::geometry::mesh;
 
 TEST_CASE("ClosedCurves", "[edges_to_plcurves]") {
-    auto process = [](const mtao::ColVecs2i& E) {
+    auto process = [](const mtao::ColVecs2i &E) {
         std::cout << E << std::endl;
         auto r = edge_to_plcurves(E);
-        for (auto&& [vec, closedness] : r) {
-            std::copy(vec.begin(), vec.end(),
-                      std::ostream_iterator<int>(std::cout, ","));
+        for (auto &&[vec, closedness] : r) {
+            std::copy(vec.begin(), vec.end(), std::ostream_iterator<int>(std::cout, ","));
             REQUIRE(vec.size() == E.cols());
             REQUIRE(closedness == true);
             if (closedness) {
@@ -39,17 +38,16 @@ TEST_CASE("ClosedCurves", "[edges_to_plcurves]") {
     }
 }
 TEST_CASE("OpenCurves", "[edges_to_plcurves]") {
-    auto process = [](const mtao::ColVecs2i& E) {
+    auto process = [](const mtao::ColVecs2i &E) {
         std::cout << "Edges: \n";
         std::cout << E << std::endl;
         {
-            auto r = edge_to_plcurves(E,false);
-            for (auto&& [vec, closedness] : r) {
-                std::copy(vec.begin(), vec.end(),
-                        std::ostream_iterator<int>(std::cout, ","));
+            auto r = edge_to_plcurves(E, false);
+            for (auto &&[vec, closedness] : r) {
+                std::copy(vec.begin(), vec.end(), std::ostream_iterator<int>(std::cout, ","));
                 REQUIRE(closedness == false);
                 // max is for the first case only!
-                REQUIRE(vec.size() == E.cols()+1);
+                REQUIRE(vec.size() == E.cols() + 1);
                 if (closedness) {
                     std::cout << "closed" << std::endl;
                 } else {
@@ -58,13 +56,12 @@ TEST_CASE("OpenCurves", "[edges_to_plcurves]") {
             }
         }
         {
-            auto r = edge_to_plcurves(E,true);
-            for (auto&& [vec, closedness] : r) {
-                std::copy(vec.begin(), vec.end(),
-                        std::ostream_iterator<int>(std::cout, ","));
+            auto r = edge_to_plcurves(E, true);
+            for (auto &&[vec, closedness] : r) {
+                std::copy(vec.begin(), vec.end(), std::ostream_iterator<int>(std::cout, ","));
                 REQUIRE(closedness == true);
                 // max is for the first case only!
-                REQUIRE(vec.size() == 2*E.cols());
+                REQUIRE(vec.size() == 2 * E.cols());
                 if (closedness) {
                     std::cout << "closed" << std::endl;
                 } else {

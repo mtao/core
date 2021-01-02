@@ -11,18 +11,18 @@ namespace mtao::solvers::linear {
 // Lx = b - (L+R)x
 // x = L^{-1}(b - (D+R)x)
 
-template <typename MatrixType>
+template<typename MatrixType>
 class GaussSeidelLinearSolver;
-template <typename MatrixType>
+template<typename MatrixType>
 struct solver_traits<GaussSeidelLinearSolver<MatrixType>> {
     using Scalar = typename MatrixType::Scalar;
     using Matrix = MatrixType;
     using Vector = mtao::VectorX<Scalar>;
 };
 
-template <typename MatrixType>
+template<typename MatrixType>
 struct GaussSeidelLinearSolver
-    : public IterativeLinearSolver<GaussSeidelLinearSolver<MatrixType>> {
+  : public IterativeLinearSolver<GaussSeidelLinearSolver<MatrixType>> {
     using Base = IterativeLinearSolver<GaussSeidelLinearSolver<MatrixType>>;
     using Base::A;
     using Base::b;
@@ -34,7 +34,7 @@ struct GaussSeidelLinearSolver
     void compute() {
         invdiag = A().diagonal();
         invdiag = (invdiag.array() > std::numeric_limits<Scalar>::epsilon())
-                      .select(1. / invdiag.array(), Scalar(0));
+                    .select(1. / invdiag.array(), Scalar(0));
     }
     void step() {
         // x() = b() - US() * x();
@@ -46,7 +46,7 @@ struct GaussSeidelLinearSolver
 #endif
         for (int i = 0; i < A().rows(); ++i) {
             auto Ar = A().row(i);
-            Scalar& v = x()(i);
+            Scalar &v = x()(i);
 #if defined(_MTAO_GAUSS_SEIDEL_CUSTOM_ERROR)
             Scalar old = v;
 #endif
@@ -74,14 +74,14 @@ struct GaussSeidelLinearSolver
     Scalar _error = std::numeric_limits<Scalar>::max();
 };
 
-template <typename MatrixType, typename VecType>
-auto gauss_seidel(const MatrixType& A, const VecType& b) {
+template<typename MatrixType, typename VecType>
+auto gauss_seidel(const MatrixType &A, const VecType &b) {
     using Scalar = typename MatrixType::Scalar;
     mtao::VectorX<Scalar> x = mtao::VectorX<Scalar>::Random(A.cols());
     auto residual = (b - A * x).template lpNorm<Eigen::Infinity>();
     auto solver =
-        GaussSeidelLinearSolver<MatrixType>(1e6 * A.rows(), 1e-5 * residual);
+      GaussSeidelLinearSolver<MatrixType>(1e6 * A.rows(), 1e-5 * residual);
     solver.solve(A, b, x);
     return solver.x();
 }
-}  // namespace mtao::solvers::linear
+}// namespace mtao::solvers::linear

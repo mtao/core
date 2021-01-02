@@ -14,12 +14,12 @@
 //}, x);
 
 
-namespace mtao { 
+namespace mtao {
 
-template <class... Fs>
-struct overloaded: Fs... { using Fs::operator()...; };
+template<class... Fs>
+struct overloaded : Fs... { using Fs::operator()...; };
 
-template <class... Fs>
+template<class... Fs>
 overloaded(Fs...) -> overloaded<Fs...>;
 
-}
+}// namespace mtao

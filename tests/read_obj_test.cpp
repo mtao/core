@@ -8,12 +8,12 @@ using namespace mtao::geometry::mesh;
 TEST_CASE("Read obj", "[mesh_io]") {
     {
         std::istringstream ss(
-            "v 0 1 2\n"
-            "v 3 4 5\n"
-            "\n"
-            "f 103 4/2 5\n"
-            "f 106 7 8\n"
-            "f 109/1 10/4/4 11\n");
+          "v 0 1 2\n"
+          "v 3 4 5\n"
+          "\n"
+          "f 103 4/2 5\n"
+          "f 106 7 8\n"
+          "f 109/1 10/4/4 11\n");
 
         auto [V, F] = read_objF(ss);
         REQUIRE(V.size() == 6);
@@ -52,14 +52,14 @@ TEST_CASE("Read obj", "[mesh_io]") {
 
     {
         std::istringstream ss(
-            "v 0 1\n"
-            "v 3 4\n"
-            "\n"
-            "#234\n"
-            "vf 3 4 5\n"
-            "e 103 4/2\n"
-            "e 106 7\n"
-            "e 109/1 10/4/4\n");
+          "v 0 1\n"
+          "v 3 4\n"
+          "\n"
+          "#234\n"
+          "vf 3 4 5\n"
+          "e 103 4/2\n"
+          "e 106 7\n"
+          "e 109/1 10/4/4\n");
 
         auto [V, F] = read_obj2F(ss);
         REQUIRE(V.size() == 4);

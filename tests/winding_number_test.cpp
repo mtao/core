@@ -12,7 +12,7 @@ TEST_CASE("winding numbers", "[winding_number]") {
     V.col(3) = mtao::Vec2d(0.0, 1.0);
     V.col(4) = mtao::Vec2d(0.5, 0.5);
 
-    std::vector<int> curve{0, 1, 2, 3};
+    std::vector<int> curve{ 0, 1, 2, 3 };
 
     mtao::ColVecs2i E(2, 4);
     E.col(0) << 0, 1;

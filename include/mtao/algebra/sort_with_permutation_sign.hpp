@@ -8,17 +8,17 @@ namespace mtao::algebra {
 
 // returns whether the number of sorts is even or not.
 // no swaps returns True
-template <SortType type = SortType::Bubble,
-          typename ContainerType = std::vector<int>>
-bool sort_with_permutation_sign_in_place(ContainerType& c) {
+template<SortType type = SortType::Bubble,
+         typename ContainerType = std::vector<int>>
+bool sort_with_permutation_sign_in_place(ContainerType &c) {
     return sort_with_swap_count_in_place<type>(c) % 2 == 0;
 }
-template <SortType type = SortType::Bubble,
-          typename ContainerType = std::vector<int>>
+template<SortType type = SortType::Bubble,
+         typename ContainerType = std::vector<int>>
 std::tuple<std::decay_t<ContainerType>, bool> sort_with_permutation_sign(
-    const ContainerType& c) {
+  const ContainerType &c) {
     std::decay_t<ContainerType> c2 = c;
     bool sign = sort_with_permutation_sign_in_place<type>(c2);
-    return {c2, sign};
+    return { c2, sign };
 }
-}  // namespace mtao::algebra
+}// namespace mtao::algebra

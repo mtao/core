@@ -5,13 +5,12 @@
 #include <mtao/geometry/kdtree.hpp>
 using namespace mtao::geometry;
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     mtao::vector<mtao::Vector<double, 2>> vec(100);
 
-    std::generate(vec.begin(), vec.end(),
-                  []() { return mtao::Vector<double, 2>::Random().eval(); });
+    std::generate(vec.begin(), vec.end(), []() { return mtao::Vector<double, 2>::Random().eval(); });
     KDTree<double, 2> kdt;
-    for (auto&& v : vec) {
+    for (auto &&v : vec) {
         kdt.insert(v);
     }
     std::cout << kdt.max_depth() << ", ";
@@ -36,20 +35,20 @@ int main(int argc, char* argv[]) {
         if (idx != kdti) {
             std::cout << "FAIL!" << std::endl;
             std::cout << idx << "," << kdti << std::endl;
-            spdlog::info("Slow dist = {}, kdtree dist: {}", dist,
-                         (vec[idx] - vec[kdti]).norm());
+            spdlog::info("Slow dist = {}, kdtree dist: {}", dist, (vec[idx] - vec[kdti]).norm());
         } else {
             // std::cout << "Scucess!" << std::endl;
         }
         size_t kdti_f = kdt.nearest_index_filtered(
-            v, [](const mtao::Vector<double, 2>& p, int index) -> bool {
-                return p.x() > .5;
-            });
+          v, [](const mtao::Vector<double, 2> &p, int index) -> bool {
+              return p.x() > .5;
+          });
     }
     kdt = KDTree<double, 2>(vec);
     std::cout << kdt.max_depth() << ", ";
     std::cout << double(kdt.max_depth()) / kdt.size() << std::endl;
-    std::cout << std::endl << std::endl;
+    std::cout << std::endl
+              << std::endl;
     std::cout << std::string(kdt) << std::endl;
     {
         KDTree<double, 1> kdt;
@@ -64,7 +63,7 @@ int main(int argc, char* argv[]) {
 
         kdt.nearest_point(mtao::Vector<double, 1>(.26));
     }
-    kdt.visitor([](auto&&, int index, int depth) {
+    kdt.visitor([](auto &&, int index, int depth) {
         std::cout << depth << "(" << index << ")" << std::endl;
     });
 }

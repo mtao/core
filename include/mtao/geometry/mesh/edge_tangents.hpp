@@ -5,9 +5,9 @@
 namespace mtao::geometry::mesh {
 // allows for edge sorting, useful when edges are mapped into
 // by defualt returns V(e(1)) - V(e(0))
-template <typename VDerived, typename EDerived>
-auto edge_tangents(const Eigen::MatrixBase<VDerived>& V,
-                   const Eigen::MatrixBase<EDerived>& E,
+template<typename VDerived, typename EDerived>
+auto edge_tangents(const Eigen::MatrixBase<VDerived> &V,
+                   const Eigen::MatrixBase<EDerived> &E,
                    bool sort_edges = false) {
     eigen::row_check_with_assert<2>(E);
     using Scalar = typename VDerived::Scalar;
@@ -25,4 +25,4 @@ auto edge_tangents(const Eigen::MatrixBase<VDerived>& V,
     }
     return T;
 }
-}  // namespace mtao::geometry::mesh
+}// namespace mtao::geometry::mesh

@@ -7,6 +7,4 @@ int main() {
     mtao::copyable_unique_ptr<int> b = mtao::make_copyable_unique_ptr(3);
     a = b;
     std::cout << *a << " = " << *b << std::endl;
-
-
 }

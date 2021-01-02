@@ -10,11 +10,11 @@ namespace mtao::eigen {
 // and makes
 // A   B
 // C   D
-template <typename T>
-Eigen::SparseMatrix<T> merge_sparse_blocks(const Eigen::SparseMatrix<T>& A,
-                                           const Eigen::SparseMatrix<T>& B,
-                                           const Eigen::SparseMatrix<T>& C,
-                                           const Eigen::SparseMatrix<T>& D) {
+template<typename T>
+Eigen::SparseMatrix<T> merge_sparse_blocks(const Eigen::SparseMatrix<T> &A,
+                                           const Eigen::SparseMatrix<T> &B,
+                                           const Eigen::SparseMatrix<T> &C,
+                                           const Eigen::SparseMatrix<T> &D) {
     using SPMat = Eigen::SparseMatrix<T>;
     std::vector<Eigen::Triplet<T>> triplets;
     triplets.reserve(A.nonZeros() + B.nonZeros() + C.nonZeros() + D.nonZeros());
@@ -48,8 +48,7 @@ Eigen::SparseMatrix<T> merge_sparse_blocks(const Eigen::SparseMatrix<T>& A,
     }
     for (int k = 0; k < D.outerSize(); ++k) {
         for (typename SPMat::InnerIterator it(D, k); it; ++it) {
-            triplets.emplace_back(row_offset + it.row(), col_offset + it.col(),
-                                  it.value());
+            triplets.emplace_back(row_offset + it.row(), col_offset + it.col(), it.value());
         }
     }
     Eigen::SparseMatrix<T> R(A.rows() + C.rows(), A.cols() + B.cols());
@@ -60,10 +59,10 @@ Eigen::SparseMatrix<T> merge_sparse_blocks(const Eigen::SparseMatrix<T>& A,
 // A   C
 // C^* B
 
-template <typename T>
-Eigen::SparseMatrix<T> merge_sparse_blocks(const Eigen::SparseMatrix<T>& A,
-                                           const Eigen::SparseMatrix<T>& B,
-                                           const Eigen::SparseMatrix<T>& C) {
+template<typename T>
+Eigen::SparseMatrix<T> merge_sparse_blocks(const Eigen::SparseMatrix<T> &A,
+                                           const Eigen::SparseMatrix<T> &B,
+                                           const Eigen::SparseMatrix<T> &C) {
     using SPMat = Eigen::SparseMatrix<T>;
     std::vector<Eigen::Triplet<T>> triplets;
     triplets.reserve(A.nonZeros() + B.nonZeros() + 2 * C.nonZeros());
@@ -90,8 +89,7 @@ Eigen::SparseMatrix<T> merge_sparse_blocks(const Eigen::SparseMatrix<T>& A,
 
     for (int k = 0; k < B.outerSize(); ++k) {
         for (typename SPMat::InnerIterator it(B, k); it; ++it) {
-            triplets.emplace_back(row_offset + it.row(), col_offset + it.col(),
-                                  it.value());
+            triplets.emplace_back(row_offset + it.row(), col_offset + it.col(), it.value());
         }
     }
     Eigen::SparseMatrix<T> R(A.rows() + B.rows(), A.cols() + B.cols());
@@ -99,4 +97,4 @@ Eigen::SparseMatrix<T> merge_sparse_blocks(const Eigen::SparseMatrix<T>& A,
     return R;
 }
 
-}  // namespace mtao::eigen
+}// namespace mtao::eigen

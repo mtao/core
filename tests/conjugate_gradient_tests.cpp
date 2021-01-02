@@ -11,24 +11,25 @@ using E = std::array<int, 2>;
 
 TEST_CASE("Diagonal PCG", "[pcg,linear,cholesky]") {
 
-    Eigen::MatrixXd A(10,10);
+    Eigen::MatrixXd A(10, 10);
     A.setIdentity();
 
     std::cout << A << std::endl;
     mtao::VecXd b = mtao::VecXd::Random(10);
-    std::cout << "===\n" << b.transpose() << std::endl;
+    std::cout << "===\n"
+              << b.transpose() << std::endl;
 
     mtao::VecXd x(b);
     x.setZero();
-    std::cout << "===\n" << x.transpose() << std::endl;
-    mtao::solvers::linear::CholeskyPCGSolve(A,b,x);
+    std::cout << "===\n"
+              << x.transpose() << std::endl;
+    mtao::solvers::linear::CholeskyPCGSolve(A, b, x);
 
-    REQUIRE((x-b).norm() == Approx(0));
-
+    REQUIRE((x - b).norm() == Approx(0));
 }
 TEST_CASE("Random PCG", "[pcg,linear,cholesky]") {
 
-    Eigen::MatrixXd A(10,10);
+    Eigen::MatrixXd A(10, 10);
     A.setRandom();
     A = A * A.transpose();
     A.diagonal().array() += 10;
@@ -38,34 +39,34 @@ TEST_CASE("Random PCG", "[pcg,linear,cholesky]") {
 
     mtao::VecXd x(b);
     x.setZero();
-    mtao::solvers::linear::CholeskyPCGSolve(A,b,x);
+    mtao::solvers::linear::CholeskyPCGSolve(A, b, x);
 
 
-    REQUIRE((A * x-b).norm() < 1e-5);
-
+    REQUIRE((A * x - b).norm() < 1e-5);
 }
 TEST_CASE("Diagonal Sparse PCG", "[pcg,linear,cholesky]") {
 
-    Eigen::MatrixXd _A(10,10);
+    Eigen::MatrixXd _A(10, 10);
     _A.setIdentity();
 
     Eigen::SparseMatrix<double> A = _A.sparseView();
 
     std::cout << A << std::endl;
     mtao::VecXd b = mtao::VecXd::Random(10);
-    std::cout << "===\n" << b.transpose() << std::endl;
+    std::cout << "===\n"
+              << b.transpose() << std::endl;
 
     mtao::VecXd x(b);
     x.setZero();
-    std::cout << "===\n" << x.transpose() << std::endl;
-    mtao::solvers::linear::CholeskyPCGSolve(A,b,x);
+    std::cout << "===\n"
+              << x.transpose() << std::endl;
+    mtao::solvers::linear::CholeskyPCGSolve(A, b, x);
 
-    REQUIRE((x-b).norm() == Approx(0));
-
+    REQUIRE((x - b).norm() == Approx(0));
 }
 TEST_CASE("Random Spasre PCG", "[pcg,linear,cholesky]") {
 
-    Eigen::MatrixXd _A(10,10);
+    Eigen::MatrixXd _A(10, 10);
     _A.setRandom();
     _A = _A * _A.transpose();
     _A.diagonal().array() += 10;
@@ -77,9 +78,8 @@ TEST_CASE("Random Spasre PCG", "[pcg,linear,cholesky]") {
 
     mtao::VecXd x(b);
     x.setZero();
-    mtao::solvers::linear::CholeskyPCGSolve(A,b,x);
+    mtao::solvers::linear::CholeskyPCGSolve(A, b, x);
 
 
-    REQUIRE((A * x-b).norm() < 1e-5);
-
+    REQUIRE((A * x - b).norm() < 1e-5);
 }

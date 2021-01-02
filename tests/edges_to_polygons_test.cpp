@@ -24,9 +24,9 @@ TEST_CASE("Polygon from edges", "[winding_number, holes]") {
     E.col(6) << 6, 4;
 
     auto loops = edges_to_polygons(V, E);
-    for (auto&& loop : loops) {
+    for (auto &&loop : loops) {
         spdlog::info("Loop {}", fmt::join(loop, ","));
-        for (auto&& h : loop.holes) {
+        for (auto &&h : loop.holes) {
             spdlog::info("----hole{}", fmt::join(h, ","));
         }
     }

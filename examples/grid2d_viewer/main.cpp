@@ -547,8 +547,9 @@ using namespace Magnum::Math::Literals;
 using namespace mtao::opengl;
 
 class MeshViewer : public mtao::opengl::Window2 {
-   public:
-    enum class Mode : int { Smoothing, LSReinitialization };
+  public:
+    enum class Mode : int { Smoothing,
+                            LSReinitialization };
     Mode mode = Mode::LSReinitialization;
 
     float permeability = 100.0;
@@ -564,20 +565,21 @@ class MeshViewer : public mtao::opengl::Window2 {
     Eigen::AlignedBox<float, 2> bbox;
     Eigen::SparseMatrix<float> L;
 
-    std::array<int, 2> N{{20, 20}};
-    int& NI = N[0];
-    int& NJ = N[1];
+    std::array<int, 2> N{ { 20, 20 } };
+    int &NI = N[0];
+    int &NJ = N[1];
     Vector2 cursor;
     mtao::vector<mtao::Vec2f> points;
 
     Eigen::SimplicialLDLT<Eigen::SparseMatrix<float>> solver;
 
-    MeshViewer(const Arguments& args) : Window2(args) {
+    MeshViewer(const Arguments &args) : Window2(args) {
         bbox.min().setConstant(-1);
         bbox.max().setConstant(1);
 
         edge_drawable = new mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>{
-            grid, _flat_shader, drawables()};
+            grid, _flat_shader, drawables()
+        };
         edge_drawable->activate_triangles({});
         edge_drawable->activate_edges();
         // face_drawable = new
@@ -586,31 +588,34 @@ class MeshViewer : public mtao::opengl::Window2 {
         grid.setParent(&root());
         cursor_mesh.setParent(&scene());
         cursor_drawable = new mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>{
-            cursor_mesh, _flat_shader, drawables()};
+            cursor_mesh, _flat_shader, drawables()
+        };
         cursor_mesh.setVertexBuffer(mtao::Vec2f::Zero().eval());
         cursor_drawable->data().color = 0xffffff_rgbf;
         visible_grid.setParent(&scene());
         visible_drawable = new mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>{
-            visible_grid, _flat_shader, drawables()};
+            visible_grid, _flat_shader, drawables()
+        };
         vfield_mesh.setParent(&scene());
         _vf_viewer =
-            new mtao::opengl::MeshDrawable<mtao::opengl::VectorFieldShader<2>>{
-                vfield_mesh, _vf_shader, drawables()};
+          new mtao::opengl::MeshDrawable<mtao::opengl::VectorFieldShader<2>>{
+              vfield_mesh, _vf_shader, drawables()
+          };
         update();
     }
     void update() {
         // mtao::geometry::grid::Grid2f g(std::array<int,2>{{NI,NJ,NK}});
         auto g = mtao::geometry::grid::Grid2f::from_bbox(
-            bbox, std::array<int, 2>{{NI, NJ}});
+          bbox, std::array<int, 2>{ { NI, NJ } });
 
         // auto V = g.vertices();
         // mtao::RowVectorX<float> C = V.colwise()
         grid.setColorBuffer(
-            mtao::eigen::vstack(g.vertices().array().pow(.5)
-                                //,mtao::RowVectorX<float>::Zero(g.size())
-                                ,
-                                1 - g.vertices().colwise().sum().array() / 2,
-                                mtao::RowVectorX<float>::Ones(g.size())));
+          mtao::eigen::vstack(g.vertices().array().pow(.5)
+                              //,mtao::RowVectorX<float>::Zero(g.size())
+                              ,
+                              1 - g.vertices().colwise().sum().array() / 2,
+                              mtao::RowVectorX<float>::Ones(g.size())));
         grid.set(g);
         {
             vfield_mesh.setVertexBuffer(g.vertices());
@@ -627,7 +632,7 @@ class MeshViewer : public mtao::opengl::Window2 {
         _vf_viewer->deactivate();
         _vf_viewer->activate_points();
         {
-            auto g = mtao::geometry::grid::Grid2f(std::array<int, 2>{{2, 2}});
+            auto g = mtao::geometry::grid::Grid2f(std::array<int, 2>{ { 2, 2 } });
 
             // auto V = g.vertices();
             // mtao::RowVectorX<float> C = V.colwise()
@@ -644,15 +649,15 @@ class MeshViewer : public mtao::opengl::Window2 {
         }
         if (ImGui::SliderFloat2("min", bbox.min().data(), -2, 2)) {
             bbox.min() = (bbox.min().array() < bbox.max().array())
-                             .select(bbox.min(), bbox.max());
+                           .select(bbox.min(), bbox.max());
             update();
         }
         if (ImGui::SliderFloat2("max", bbox.max().data(), -2, 2)) {
             bbox.max() = (bbox.min().array() > bbox.max().array())
-                             .select(bbox.min(), bbox.max());
+                           .select(bbox.min(), bbox.max());
             update();
         }
-        if(_vf_viewer) {
+        if (_vf_viewer) {
             _vf_viewer->gui();
         }
         if (edge_drawable) {
@@ -671,28 +676,27 @@ class MeshViewer : public mtao::opengl::Window2 {
             do_animation();
         }
         Magnum::GL::Renderer::disable(
-            Magnum::GL::Renderer::Feature::FaceCulling);
+          Magnum::GL::Renderer::Feature::FaceCulling);
         Magnum::GL::Renderer::setPointSize(10.);
         Window2::draw();
     }
 
-    void mouseMoveEvent(MouseMoveEvent& event) override {
+    void mouseMoveEvent(MouseMoveEvent &event) override {
         Window2::mouseMoveEvent(event);
         cursor = localPosition(event.position());
     }
-    void mousePressEvent(MouseEvent& event) override {
+    void mousePressEvent(MouseEvent &event) override {
         Window2::mousePressEvent(event);
         if (!ImGui::GetIO().WantCaptureMouse) {
             if (event.button() == MouseEvent::Button::Left) {
                 points.emplace_back(
-                    EigenIntegration::cast<mtao::Vec2f>(cursor));
+                  EigenIntegration::cast<mtao::Vec2f>(cursor));
                 cursor_mesh.setVertexBuffer(mtao::eigen::stl2eigen(points));
                 if (points.size() > 1) {
                     mtao::ColVecs2i E(2, points.size());
-                    E.row(0) = mtao::RowVecXi::LinSpaced(points.size(), 0,
-                                                         points.size() - 1);
+                    E.row(0) = mtao::RowVecXi::LinSpaced(points.size(), 0, points.size() - 1);
                     E.row(1).rightCols(E.cols() - 1) =
-                        E.row(0).leftCols(E.cols() - 1);
+                      E.row(0).leftCols(E.cols() - 1);
                     E(1, 0) = points.size() - 1;
                     cursor_mesh.setEdgeBuffer(E.cast<unsigned int>());
                     cursor_drawable->activate_edges();
@@ -701,7 +705,7 @@ class MeshViewer : public mtao::opengl::Window2 {
         }
     }
 
-   private:
+  private:
     Magnum::Shaders::Flat2D _flat_shader;
     Magnum::Shaders::VertexColor2D _vcolor_shader;
     mtao::opengl::VectorFieldShader<2> _vf_shader;
@@ -709,13 +713,13 @@ class MeshViewer : public mtao::opengl::Window2 {
     mtao::opengl::objects::Mesh<2> cursor_mesh;
     mtao::opengl::objects::Grid<2> visible_grid;
     mtao::opengl::objects::Mesh<2> vfield_mesh;
-    mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>* edge_drawable = nullptr;
-    mtao::opengl::MeshDrawable<Magnum::Shaders::VertexColor2D>* face_drawable =
-        nullptr;
-    mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>* cursor_drawable = nullptr;
-    mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>* visible_drawable = nullptr;
-    mtao::opengl::MeshDrawable<mtao::opengl::VectorFieldShader<2>>* _vf_viewer =
-        nullptr;
+    mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D> *edge_drawable = nullptr;
+    mtao::opengl::MeshDrawable<Magnum::Shaders::VertexColor2D> *face_drawable =
+      nullptr;
+    mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D> *cursor_drawable = nullptr;
+    mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D> *visible_drawable = nullptr;
+    mtao::opengl::MeshDrawable<mtao::opengl::VectorFieldShader<2>> *_vf_viewer =
+      nullptr;
 };
 
 MAGNUM_APPLICATION_MAIN(MeshViewer)

@@ -7,55 +7,52 @@
 
 
 namespace mtao::solvers::linear {
-template <typename MatrixType, typename VectorType, typename Preconditioner>
-    struct PCGSolver;
+template<typename MatrixType, typename VectorType, typename Preconditioner>
+struct PCGSolver;
 
-template <typename MatrixType, typename VectorType, typename Preconditioner>
-struct solver_traits<PCGSolver< MatrixType, VectorType, Preconditioner> > {
+template<typename MatrixType, typename VectorType, typename Preconditioner>
+struct solver_traits<PCGSolver<MatrixType, VectorType, Preconditioner>> {
     using Scalar = typename VectorType::Scalar;
     using Matrix = MatrixType;
     using Vector = VectorType;
 };
 
 
-template <typename MatrixType, typename VectorType, typename Preconditioner>
-struct PCGSolver: public IterativeLinearSolver<PCGSolver< MatrixType, VectorType, Preconditioner> >
-{
+template<typename MatrixType, typename VectorType, typename Preconditioner>
+struct PCGSolver : public IterativeLinearSolver<PCGSolver<MatrixType, VectorType, Preconditioner>> {
     typedef MatrixType Matrix;
     typedef VectorType Vector;
     typedef typename Vector::Scalar Scalar;
-    using Base = IterativeLinearSolver<PCGSolver< MatrixType, VectorType, Preconditioner> >;
-    using Base::A ;
-    using Base::b ;
-    using Base::x ;
+    using Base = IterativeLinearSolver<PCGSolver<MatrixType, VectorType, Preconditioner>>;
+    using Base::A;
+    using Base::b;
+    using Base::x;
     using Base::Base;
-    void compute() 
-    {
+    void compute() {
         precond = Preconditioner(A());
-        r = b()-A()*x();
-        precond->solve(r,z);
+        r = b() - A() * x();
+        precond->solve(r, z);
         p = z;
-        Ap = A()*p;
+        Ap = A() * p;
         rdz = r.dot(z);
     }
-    Scalar error()
-    {
+    Scalar error() {
         return r.template lpNorm<Eigen::Infinity>();
     }
 
-    void step()
-    {
-        alpha = (rdz)/(p.dot(Ap));
-        x()+=alpha * p;
-        r-=alpha * Ap;
-        precond->solve(r,z);
-        beta=1/rdz;
+    void step() {
+        alpha = (rdz) / (p.dot(Ap));
+        x() += alpha * p;
+        r -= alpha * Ap;
+        precond->solve(r, z);
+        beta = 1 / rdz;
         rdz = r.dot(z);
-        beta*=rdz;
-        p=z+beta*p;
-        Ap=A()*p;
+        beta *= rdz;
+        p = z + beta * p;
+        Ap = A() * p;
     }
-private:
+
+  private:
     Vector r;
     Vector z;
     Vector p;
@@ -63,42 +60,33 @@ private:
     Scalar rdz;
     Scalar alpha, beta;
     std::optional<Preconditioner> precond;
-
 };
 
-template <typename Preconditioner, typename Matrix, typename Vector>
-void PCGSolve(const Matrix & A, const Vector & b, Vector & x, typename Matrix::Scalar threshold = 1e-5)
-{
-    auto residual = (b-A*x).template lpNorm<Eigen::Infinity>();
-    auto solver = PCGSolver<Matrix,Vector, Preconditioner>(5*A.rows(), threshold * residual);
+template<typename Preconditioner, typename Matrix, typename Vector>
+void PCGSolve(const Matrix &A, const Vector &b, Vector &x, typename Matrix::Scalar threshold = 1e-5) {
+    auto residual = (b - A * x).template lpNorm<Eigen::Infinity>();
+    auto solver = PCGSolver<Matrix, Vector, Preconditioner>(5 * A.rows(), threshold * residual);
     //auto solver = IterativeLinearSolver<PreconditionedConjugateGradientCapsule<Matrix,Vector, Preconditioner> >(A.rows(), 1e-5);
-    solver.solve(A,b,x);
+    solver.solve(A, b, x);
     x = solver.x();
 }
 
 
-template <typename Matrix, typename Vector>
-void DenseCholeskyPCGSolve(const Matrix & A, const Vector & b, Vector & x, typename Matrix::Scalar threshold = 1e-5)
-{
-    PCGSolve<cholesky::DenseLDLT_MIC0<std::decay_t<decltype(A)>> >(A,b,x, threshold);
+template<typename Matrix, typename Vector>
+void DenseCholeskyPCGSolve(const Matrix &A, const Vector &b, Vector &x, typename Matrix::Scalar threshold = 1e-5) {
+    PCGSolve<cholesky::DenseLDLT_MIC0<std::decay_t<decltype(A)>>>(A, b, x, threshold);
 }
 
-template <typename Matrix, typename Vector>
-void SparseCholeskyPCGSolve(const Matrix & A, const Vector & b, Vector & x, typename Matrix::Scalar threshold = 1e-5)
-{
-    PCGSolve<cholesky::SparseLDLT_MIC0<Matrix,Vector> >(A,b,x, threshold);
-
+template<typename Matrix, typename Vector>
+void SparseCholeskyPCGSolve(const Matrix &A, const Vector &b, Vector &x, typename Matrix::Scalar threshold = 1e-5) {
+    PCGSolve<cholesky::SparseLDLT_MIC0<Matrix, Vector>>(A, b, x, threshold);
 }
-template <typename Matrix, typename Vector>
-void CholeskyPCGSolve(const Matrix & A, const Vector & b, Vector & x, typename Matrix::Scalar threshold = 1e-5)
-{
-    PCGSolve<cholesky::LDLT_MIC0<Matrix,Vector> >(A,b,x, threshold);
-
+template<typename Matrix, typename Vector>
+void CholeskyPCGSolve(const Matrix &A, const Vector &b, Vector &x, typename Matrix::Scalar threshold = 1e-5) {
+    PCGSolve<cholesky::LDLT_MIC0<Matrix, Vector>>(A, b, x, threshold);
 }
 
-}
-
-
+}// namespace mtao::solvers::linear
 
 
 #endif

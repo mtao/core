@@ -20,7 +20,7 @@ TEST_CASE("CompressingReindexer", "[reindexer]") {
     }
     {
         mtao::reindex::CompressingReindexer<size_t> a;
-        a.add_multiple({5, 10, 12, 10});
+        a.add_multiple({ 5, 10, 12, 10 });
         REQUIRE(a.index(5) == size_t(0));
         REQUIRE(a.index(10) == size_t(1));
         REQUIRE(a.index(12) == size_t(2));
@@ -30,7 +30,7 @@ TEST_CASE("CompressingReindexer", "[reindexer]") {
 
     {
         mtao::reindex::CompressingReindexer<size_t> a;
-        a.add_multiple(std::vector{5, 10, 12, 10});
+        a.add_multiple(std::vector{ 5, 10, 12, 10 });
         REQUIRE(a.index(5) == size_t(0));
         REQUIRE(a.index(10) == size_t(1));
         REQUIRE(a.index(12) == size_t(2));
@@ -59,7 +59,7 @@ TEST_CASE("OffsetReindexer", "[reindexer]") {
     REQUIRE(a.index(5) == size_t(35));
 
     {
-        mtao::reindex::StackedReindexer<int> a({20, 10, 2, 30, 5});
+        mtao::reindex::StackedReindexer<int> a({ 20, 10, 2, 30, 5 });
         REQUIRE(a.index(0, 5) == size_t(5));
         REQUIRE(a.index(0, 10) == size_t(10));
         REQUIRE(a.index(0, 12) == size_t(12));

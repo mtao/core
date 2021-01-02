@@ -43,9 +43,9 @@ class MeshViewer : public mtao::opengl::Window2 {
     using Vec2 = mtao::Vec2f;
     Eigen::AlignedBox<float, 2> bbox;
 
-    std::array<int, 2> N{{20, 20}};
-    int& NI = N[0];
-    int& NJ = N[1];
+    std::array<int, 2> N{ { 20, 20 } };
+    int &NI = N[0];
+    int &NJ = N[1];
     Vector2 cursor;
     mtao::Vec2f center = mtao::Vec2f(0.f, 0.f);
     mtao::ColVecs2f sph_P;
@@ -60,12 +60,13 @@ class MeshViewer : public mtao::opengl::Window2 {
 
     float sph_cfl() const { return radius / sph_V.colwise().norm().maxCoeff(); }
 
-    MeshViewer(const Arguments& args) : Window2(args) {
+    MeshViewer(const Arguments &args) : Window2(args) {
         bbox.min().setConstant(-1);
         bbox.max().setConstant(1);
 
         edge_drawable = new mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>{
-            grid, _flat_shader, drawables()};
+            grid, _flat_shader, drawables()
+        };
         edge_drawable->activate_triangles({});
         edge_drawable->activate_edges();
         edge_drawable->deactivate();
@@ -316,7 +317,7 @@ class MeshViewer : public mtao::opengl::Window2 {
         // mtao::geometry::grid::Grid2f
         // g(std::array<int,2>{{NI,NJ,NK}});
         auto g = mtao::geometry::grid::Grid2f::from_bbox(
-            bbox, std::array<int, 2>{{NI, NJ}});
+          bbox, std::array<int, 2>{ { NI, NJ } });
 
         auto colormap_func = get_colormap_func();
 
@@ -351,12 +352,12 @@ class MeshViewer : public mtao::opengl::Window2 {
         }
         if (ImGui::SliderFloat2("min", bbox.min().data(), -2, 2)) {
             bbox.min() = (bbox.min().array() < bbox.max().array())
-                             .select(bbox.min(), bbox.max());
+                           .select(bbox.min(), bbox.max());
             update();
         }
         if (ImGui::SliderFloat2("max", bbox.max().data(), -2, 2)) {
             bbox.max() = (bbox.min().array() > bbox.max().array())
-                             .select(bbox.min(), bbox.max());
+                           .select(bbox.min(), bbox.max());
             update();
         }
         if (ImGui::SliderFloat("Radius", &radius, -2, 2)) {
@@ -399,9 +400,7 @@ class MeshViewer : public mtao::opengl::Window2 {
             do_animation();
             update();
         }
-        ImGui::Text("Cursor Position: (%f,%f) = %f (d=%f)", cursor.x(),
-                    cursor.y(), rbf(),
-                    (mtao::Vec2f(cursor.x(), cursor.y()) - center).norm());
+        ImGui::Text("Cursor Position: (%f,%f) = %f (d=%f)", cursor.x(), cursor.y(), rbf(), (mtao::Vec2f(cursor.x(), cursor.y()) - center).norm());
     }
     void draw() override {
         if (animate) {
@@ -409,16 +408,16 @@ class MeshViewer : public mtao::opengl::Window2 {
             update();
         }
         Magnum::GL::Renderer::disable(
-            Magnum::GL::Renderer::Feature::FaceCulling);
+          Magnum::GL::Renderer::Feature::FaceCulling);
         Magnum::GL::Renderer::setPointSize(10.);
         Window2::draw();
     }
 
-    void mouseMoveEvent(MouseMoveEvent& event) override {
+    void mouseMoveEvent(MouseMoveEvent &event) override {
         Window2::mouseMoveEvent(event);
         cursor = localPosition(event.position());
     }
-    void mousePressEvent(MouseEvent& event) override {
+    void mousePressEvent(MouseEvent &event) override {
         Window2::mousePressEvent(event);
         if (!ImGui::GetIO().WantCaptureMouse) {
             if (event.button() == MouseEvent::Button::Left) {
@@ -428,7 +427,7 @@ class MeshViewer : public mtao::opengl::Window2 {
         }
     }
 
-   private:
+  private:
     Magnum::Shaders::Flat2D _flat_shader;
     Magnum::Shaders::VertexColor2D _vcolor_shader;
     mtao::opengl::VectorFieldShader<2> _vf_shader;

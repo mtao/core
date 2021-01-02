@@ -50,11 +50,12 @@ namespace mtao::geometry {
 //    }
 //    return ret;
 //}
-template <typename T, typename Derived1, typename Derived2, typename Derived3>
+template<typename T, typename Derived1, typename Derived2, typename Derived3>
 std::vector<T> triangle_monomial_integrals(
-    size_t max_dim, const Eigen::MatrixBase<Derived1>& a,
-    const Eigen::MatrixBase<Derived2>& b,
-    const Eigen::MatrixBase<Derived3>& c) {
+  size_t max_dim,
+  const Eigen::MatrixBase<Derived1> &a,
+  const Eigen::MatrixBase<Derived2> &b,
+  const Eigen::MatrixBase<Derived3> &c) {
     // max dim + 1 dimensiosn will be used
     std::vector<T> ret;
     size_t max_integral_deg = max_dim + 5;
@@ -77,7 +78,7 @@ std::vector<T> triangle_monomial_integrals(
         // int off = (d * (d + 1)) / 2;
         // for (size_t j = 0; j <= d; ++j) {
         for (long long j = d; j >= 0; --j) {
-             //std::cout << "j = " << j << " => " << std::endl;
+            //std::cout << "j = " << j << " => " << std::endl;
             //;
             // monomial is
             // (s u.x + t v.x + a.x)^j + (s u.y + t v.y + a.y)^k
@@ -86,11 +87,11 @@ std::vector<T> triangle_monomial_integrals(
             // d+0 = d => (s u.y + t v.y + a.y)^d
 
             // if dim == 3 we have to do this t hird loop
-             //for (long long k = (d - j); k >= (long long)(d - j) ; --k) {
+            //for (long long k = (d - j); k >= (long long)(d - j) ; --k) {
 
-             for (long long k = (Dim == 2)?(d - j):(d-j-1); k >= (long long)((Dim == 2) ? (d - j) : 0); --k) {
-            //for (size_t k = (Dim == 2) ? (d - j) : 0; k <= d - j; ++k) {
-             //std::cout << "k = " << k << " => " << std::endl;
+            for (long long k = (Dim == 2) ? (d - j) : (d - j - 1); k >= (long long)((Dim == 2) ? (d - j) : 0); --k) {
+                //for (size_t k = (Dim == 2) ? (d - j) : 0; k <= d - j; ++k) {
+                //std::cout << "k = " << k << " => " << std::endl;
                 double val = 0.0;
                 // term of (s u.x + t v.x + a.x)^j expanded
                 for (size_t m = 0; (long long)m <= j; ++m) {
@@ -100,10 +101,7 @@ std::vector<T> triangle_monomial_integrals(
                         // and a.x can happen (j \choose m) (s u.x)^m (t v.x)^o
                         // a.x^(j - m - o)
 
-                        T jom_coeff = pt(j, m) * pt(j - m, o) *
-                                      std::pow<T>(u.x(), m) *
-                                      std::pow<T>(v.x(), o) *
-                                      std::pow<T>(a.x(), j - m - o);
+                        T jom_coeff = pt(j, m) * pt(j - m, o) * std::pow<T>(u.x(), m) * std::pow<T>(v.x(), o) * std::pow<T>(a.x(), j - m - o);
 
                         // term of (s u.y + t v.y + a.y)^k expanded
                         for (size_t n = 0; (long long)n <= k; ++n) {
@@ -113,10 +111,7 @@ std::vector<T> triangle_monomial_integrals(
                                 // t v.y and a.y can happen (k \choose n) {k-n
                                 // \choose p} (s u.y)^n (t v.y)^p a.y^(k - n -
                                 // p)
-                                T knp_coeff = pt(k, n) * pt(k - n, p) *
-                                              std::pow<T>(u.y(), n) *
-                                              std::pow<T>(v.y(), p) *
-                                              std::pow<T>(a.y(), k - n - p);
+                                T knp_coeff = pt(k, n) * pt(k - n, p) * std::pow<T>(u.y(), n) * std::pow<T>(v.y(), p) * std::pow<T>(a.y(), k - n - p);
 
                                 // so we have to integrate
                                 // (j \choose m){j-m \choose o} (u.x)^m (v.x)^o
@@ -133,9 +128,7 @@ std::vector<T> triangle_monomial_integrals(
                                 // n+m+1+o+p}
 
                                 if constexpr (Dim == 2) {
-                                    T v = 1.0 /
-                                          ((m + n + 1.) * (m + n + o + p + 2.) *
-                                           pt(n + m + 1 + o + p, o + p));
+                                    T v = 1.0 / ((m + n + 1.) * (m + n + o + p + 2.) * pt(n + m + 1 + o + p, o + p));
                                     val += v * jom_coeff * knp_coeff;
                                 } else {
                                     // term of (s u.y + t v.y + a.y)^k expanded
@@ -151,11 +144,7 @@ std::vector<T> triangle_monomial_integrals(
                                                 // \choose p} (s u.y)^n (t
                                                 // v.y)^p a.y^(k - n - p)
                                                 T lqr_coeff =
-                                                    pt(l, q) * pt(l - q, r) *
-                                                    std::pow<T>(u.z(), q) *
-                                                    std::pow<T>(v.z(), r) *
-                                                    std::pow<T>(a.z(),
-                                                                l - q - r);
+                                                  pt(l, q) * pt(l - q, r) * std::pow<T>(u.z(), q) * std::pow<T>(v.z(), r) * std::pow<T>(a.z(), l - q - r);
                                                 // (j \choose m){j-m \choose o}
                                                 // (u.x)^m (v.x)^o a.x^(j - m -
                                                 // o) (k \choose n){k-n \choose
@@ -171,14 +160,8 @@ std::vector<T> triangle_monomial_integrals(
                                                 // (1-t)^{m+n+l+1} t^{o+p} dt
                                                 //\frac{1}{(m+n+l+1)(m+n+l+o+p+r+2){o+p+r
                                                 //\choose n+m+l+1+o+p+r}
-                                                T v = 1.0 / ((m + n + l + 1.) *
-                                                             (m + n + l + o +
-                                                              p + r + 2.) *
-                                                             pt(n + m + l + 1 +
-                                                                    o + p + r,
-                                                                o + p + r));
-                                                val += v * jom_coeff *
-                                                       knp_coeff * lqr_coeff;
+                                                T v = 1.0 / ((m + n + l + 1.) * (m + n + l + o + p + r + 2.) * pt(n + m + l + 1 + o + p + r, o + p + r));
+                                                val += v * jom_coeff * knp_coeff * lqr_coeff;
                                             }
                                         }
                                     }
@@ -195,4 +178,4 @@ std::vector<T> triangle_monomial_integrals(
     }
     return ret;
 }
-}  // namespace mtao::geometry
+}// namespace mtao::geometry
