@@ -254,9 +254,12 @@ TARGET_LINK_LIBRARIES(mtao_visualization PUBLIC mtao_common
     Corrade::Utility
     ImGui::ImGui
     ImGui::SourcesMiscCpp
-    PRIVATE OpenGL::GL GLFW::GLFW dl ${png++_LIBRARIES} 
-    Corrade::PluginManager
-    MagnumPlugins::PngImageConverter
+    PRIVATE OpenGL::GL 
+    PRIVATE GLFW::GLFW 
+    PRIVATE dl 
+    PRIVATE ${png++_LIBRARIES} 
+    PRIVATE Corrade::PluginManager
+    PRIVATE MagnumPlugins::PngImageConverter
     )
 ENDIF(MTAO_USE_OPENGL)
 
