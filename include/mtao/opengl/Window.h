@@ -19,7 +19,7 @@
 namespace mtao::opengl {
 using namespace Magnum;
 
-class WindowBase : public Magnum::Platform::Application {
+class WindowBase : public Magnum::Platform::GlfwApplication {
   public:
     explicit WindowBase(const Arguments &arguments, GL::Version = GL::Version::None);
 
@@ -30,7 +30,7 @@ class WindowBase : public Magnum::Platform::Application {
 
     void recording_gui();
     Magnum::Image2D current_frame();
-    void record_frame();
+    void record_frame_to_file();
 
     virtual void viewportEvent(ViewportEvent &event) override;
 

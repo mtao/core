@@ -47,8 +47,19 @@ namespace {
 
 Corrade::Containers::Pointer<PluginManager::Manager<Magnum::Trade::AbstractImageConverter>> manager = get_manager();
 auto get_pngimporter() {
-    Containers::Pointer<Magnum::Trade::AbstractImageConverter> image = manager->instantiate("PngImageConverter");
-    return image;
+    auto pluginlist = manager->aliasList();
+    Containers::Pointer<Magnum::Trade::AbstractImageConverter> ret;
+    bool found = false;
+    for (auto &&p : pluginlist) {
+        if (p == "PngImageConverter") {
+            found = true;
+            break;
+        }
+    }
+    if (found) {
+        ret = manager->instantiate("PngImageConverter");
+    }
+    return ret;
 }
 }// namespace
 
@@ -101,13 +112,13 @@ void WindowBase::drawEvent() {
         GL::Renderer::enable(GL::Renderer::Feature::ScissorTest);
 
         if (_recording_active && !_recording_includes_gui) {
-            record_frame();
+            record_frame_to_file();
         }
 
         _imgui.drawFrame();
 
         if (_recording_active && _recording_includes_gui) {
-            record_frame();
+            record_frame_to_file();
         }
 
         //Cleanup
@@ -201,13 +212,20 @@ bool WindowBase::supportsGeometryShader() const {
 
 void WindowBase::recording_gui() {
     ImGui::Begin("Recording");
+    if (!_image_saver) {
+        ImGui::Text("Was unable to load image loader plugin so no recording :(. Buttons are essentialy no-ops.");
+    }
     if (ImGui::Button("Capture Single Frame")) {
         _keep_recording = false;
         _recording_active = true;
     }
     if (ImGui::Checkbox("Capture", &_recording_active)) {
-        _keep_recording = true;
+        _keep_recording = _recording_active;
     }
+    //if (_recording_active) {
+    //    setMinWindowSize(framebufferSize());
+    //    setMaxWindowSize(framebufferSize());
+    //}
     ImGui::InputText("Output format", &_recording_filename_format);
     ImGui::Checkbox("Include GUI", &_recording_includes_gui);
 
@@ -218,17 +236,25 @@ Magnum::Image2D WindowBase::current_frame() {
     auto &fb = Magnum::GL::defaultFramebuffer;
     return fb.read(fb.viewport(), Magnum::Image2D{ Magnum::PixelFormat::RGBA8Unorm });
 }
-void WindowBase::record_frame() {
-    std::string filename = fmt::format(_recording_filename_format.c_str(), _recording_index);
-    auto img = current_frame();
-    if (_image_saver->exportToFile(img, filename)) {
-        spdlog::debug("Successfully wrote frame to file {}", filename);
-    _recording_index++;
+void WindowBase::record_frame_to_file() {
+    if (!_image_saver) {
+        spdlog::error("Tried to record a frame without anything to save to, nothing ");
+
     } else {
-        spdlog::warn("Failed to write frame to file {}!", filename);
+        std::string filename = fmt::format(_recording_filename_format.c_str(), _recording_index);
+        auto img = current_frame();
+        if (_image_saver->exportToFile(img, filename)) {
+            spdlog::debug("Successfully wrote frame to file {}", filename);
+            _recording_index++;
+        } else {
+            spdlog::warn("Failed to write frame to file {}!", filename);
+        }
     }
     if (!_keep_recording) {
         _recording_active = false;
+
+        //setMinWindowSize({ -1, -1 });
+        //setMaxWindowSize({ -1, -1 });
     }
 }
 
