@@ -255,11 +255,11 @@ TARGET_LINK_LIBRARIES(mtao_visualization PUBLIC mtao_common
     ImGui::ImGui
     ImGui::SourcesMiscCpp
     PRIVATE OpenGL::GL 
-    PRIVATE GLFW::GLFW 
-    PRIVATE dl 
-    PRIVATE ${png++_LIBRARIES} 
-    PRIVATE Corrade::PluginManager
-    PRIVATE MagnumPlugins::PngImageConverter
+    GLFW::GLFW 
+    dl 
+    ${png++_LIBRARIES} 
+    Corrade::PluginManager
+    MagnumPlugins::PngImageConverter
     )
 ENDIF(MTAO_USE_OPENGL)
 
