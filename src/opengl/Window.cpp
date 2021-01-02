@@ -1,5 +1,9 @@
 #include "mtao/opengl/Window.h"
+#include <Magnum/GL/BufferImage.h>
+#include <spdlog/spdlog.h>
+#include <Magnum/PixelFormat.h>
 #include <iostream>
+#include <misc/cpp/imgui_stdlib.h>
 #include <sstream>
 #include <stdexcept>
 #include <imgui.h>
@@ -11,14 +15,42 @@
 #include <mtao/logging/logger.hpp>
 #include <Magnum/GL/DefaultFramebuffer.h>
 #include <Magnum/GL/Renderer.h>
+#include <Magnum/ImageView.h>
 #include <Magnum/GL/DebugOutput.h>
+#include <Magnum/Trade/AbstractImageConverter.h>
+#include <Corrade/PluginManager/Manager.h>
+#include <Corrade/PluginManager/PluginMetadata.h>
 #include <Magnum/Math/Color.h>
 #include <iostream>
 #include <Magnum/GL/Extensions.h>
+#include <fmt/format.h>
 
 
 using namespace Magnum;
 using namespace Math::Literals;
+
+auto get_manager() {
+    Corrade::Containers::Pointer<PluginManager::Manager<Magnum::Trade::AbstractImageConverter>> manager;
+    manager.emplace();
+    CORRADE_RESOURCE_INITIALIZE(PngImageConverter);
+    spdlog::info("Searching for a png support in Magnum plugin dirs:: {}", fmt::join(Corrade::PluginManager::AbstractPlugin::pluginSearchPaths(), ","));
+    CORRADE_PLUGIN_IMPORT(PngImageConverter);
+    if (!(manager->load("PngImageConverter") & PluginManager::LoadState::Loaded)) {
+        Utility::Error{} << "The requested plugin"
+                         << "PngImageConverter"
+                         << "cannot be loaded.";
+    }
+    spdlog::info("available plugin aliases:: {}", fmt::join(manager->aliasList(), ","));
+    return manager;
+}
+namespace {
+
+Corrade::Containers::Pointer<PluginManager::Manager<Magnum::Trade::AbstractImageConverter>> manager = get_manager();
+auto get_pngimporter() {
+    Containers::Pointer<Magnum::Trade::AbstractImageConverter> image = manager->instantiate("PngImageConverter");
+    return image;
+}
+}// namespace
 
 namespace mtao::opengl {
 WindowBase::WindowBase(const Arguments &arguments, GL::Version version) : GlfwApplication{ arguments, Configuration{}.setTitle("WindowBase").setWindowFlags(Configuration::WindowFlag::Resizable), GLConfiguration{}.setVersion(version) },
@@ -35,6 +67,9 @@ WindowBase::WindowBase(const Arguments &arguments, GL::Version version) : GlfwAp
     GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
     GL::Renderer::enable(GL::Renderer::Feature::FaceCulling);
     setSwapInterval(1);
+
+
+    _image_saver = ::get_pngimporter();
     //setMinimalLoopPeriod(16);
 }
 void WindowBase::draw() {}
@@ -65,8 +100,15 @@ void WindowBase::drawEvent() {
         GL::Renderer::disable(GL::Renderer::Feature::DepthTest);
         GL::Renderer::enable(GL::Renderer::Feature::ScissorTest);
 
+        if (_recording_active && !_recording_includes_gui) {
+            record_frame();
+        }
 
         _imgui.drawFrame();
+
+        if (_recording_active && _recording_includes_gui) {
+            record_frame();
+        }
 
         //Cleanup
         GL::Renderer::disable(GL::Renderer::Feature::ScissorTest);
@@ -156,5 +198,38 @@ bool WindowBase::supportsGeometryShader() const {
     return isExtensionSupported<ShaderType>();
 }
 
+
+void WindowBase::recording_gui() {
+    ImGui::Begin("Recording");
+    if (ImGui::Button("Capture Single Frame")) {
+        _keep_recording = false;
+        _recording_active = true;
+    }
+    if (ImGui::Checkbox("Capture", &_recording_active)) {
+        _keep_recording = true;
+    }
+    ImGui::InputText("Output format", &_recording_filename_format);
+    ImGui::Checkbox("Include GUI", &_recording_includes_gui);
+
+
+    ImGui::End();
+}
+Magnum::Image2D WindowBase::current_frame() {
+    auto &fb = Magnum::GL::defaultFramebuffer;
+    return fb.read(fb.viewport(), Magnum::Image2D{ Magnum::PixelFormat::RGBA8Unorm });
+}
+void WindowBase::record_frame() {
+    std::string filename = fmt::format(_recording_filename_format.c_str(), _recording_index);
+    auto img = current_frame();
+    if (_image_saver->exportToFile(img, filename)) {
+        spdlog::debug("Successfully wrote frame to file {}", filename);
+    _recording_index++;
+    } else {
+        spdlog::warn("Failed to write frame to file {}!", filename);
+    }
+    if (!_keep_recording) {
+        _recording_active = false;
+    }
+}
 
 }// namespace mtao::opengl

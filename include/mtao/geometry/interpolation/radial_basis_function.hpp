@@ -83,38 +83,6 @@ namespace detail {
       const Eigen::MatrixBase<VecDerived> &P) const -> Vec {
         Vec r = P - C;
 
-      private:
-        ScalarFunction _function;
-    };
-    template<typename ScalarFunction, int D>
-    template<typename VecDerived, typename CDerived>
-    auto RadialBasisFunction<ScalarFunction, D>::evaluate(
-      const Eigen::MatrixBase<CDerived> &C,
-      Scalar radius,
-      const Eigen::MatrixBase<VecDerived> &P) const -> Scalar {
-        Scalar distance = (P - C).norm() / radius;
-        return f(distance) * normalization(radius);
-    }
-    template<typename ScalarFunction, int Dim>
-    template<typename VecDerived, typename CDerived>
-    auto RadialBasisFunction<ScalarFunction, Dim>::evaluate_multiple(
-      const Eigen::MatrixBase<CDerived> &C,
-      Scalar radius,
-      const Eigen::MatrixBase<VecDerived> &P) const -> RowVecX {
-        RowVecX R(P.cols());
-        mtao::RowVectorX<Scalar> D = (P.colwise() - C).colwise().norm() / radius;
-        D.noalias() = D.unaryExpr(
-          std::bind(&RadialBasisFunction::f, this, std::placeholders::_1));
-        return D * normalization(radius);
-    }
-    template<typename ScalarFunction, int D>
-    template<typename VecDerived, typename CDerived>
-    auto RadialBasisFunction<ScalarFunction, D>::evaluate_grad(
-      const Eigen::MatrixBase<CDerived> &C,
-      Scalar radius,
-      const Eigen::MatrixBase<VecDerived> &P) const -> Vec {
-        Vec r = P - C;
-
         Scalar distance = r.norm();
         r /= distance;
         return r * df(distance / radius) * normalization(radius);

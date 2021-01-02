@@ -236,6 +236,9 @@ if(MTAO_USE_PNGPP)
     FIND_PACKAGE(png++ REQUIRED)
     TARGET_COMPILE_DEFINITIONS(mtao_visualization PRIVATE -DMTAO_HAS_LIBPNGPP)
     TARGET_INCLUDE_DIRECTORIES(mtao_visualization PRIVATE ${png++_INCLUDE_DIRS})
+
+    #target_link_libraries(mtao_visualization PRIVATE
+    #    MagnumPlugins::PngImageConverter)
 endif(MTAO_USE_PNGPP)
 
 TARGET_INCLUDE_DIRECTORIES(mtao_visualization PUBLIC ${COLORMAP_SHADERS_INCLUDE_DIR})
@@ -250,7 +253,10 @@ TARGET_LINK_LIBRARIES(mtao_visualization PUBLIC mtao_common
     MagnumIntegration::ImGui
     Corrade::Utility
     ImGui::ImGui
+    ImGui::SourcesMiscCpp
     PRIVATE OpenGL::GL GLFW::GLFW dl ${png++_LIBRARIES} 
+    Corrade::PluginManager
+    MagnumPlugins::PngImageConverter
     )
 ENDIF(MTAO_USE_OPENGL)
 

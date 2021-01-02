@@ -1,9 +1,11 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 #include <Magnum/Platform/GlfwApplication.h>
+#include <Magnum/Trade/AbstractImageConverter.h>
 #include <Magnum/GL/Context.h>
 #include <Magnum/ImGuiIntegration/Context.hpp>
 #include <functional>
+#include <Magnum/Image.h>
 #include "mtao/hotkey_manager.hpp"
 #include <array>
 #include "mtao/opengl/objects/types.h"
@@ -26,6 +28,10 @@ class WindowBase : public Magnum::Platform::Application {
     virtual void draw();
     virtual void gui() = 0;
 
+    void recording_gui();
+    Magnum::Image2D current_frame();
+    void record_frame();
+
     virtual void viewportEvent(ViewportEvent &event) override;
 
     virtual void keyPressEvent(KeyEvent &event) override;
@@ -41,8 +47,15 @@ class WindowBase : public Magnum::Platform::Application {
     template<typename T>
     bool isExtensionSupported() const;
 
+
   private:
     Magnum::ImGuiIntegration::Context _imgui{ Magnum::NoCreate };
+    Containers::Pointer<Magnum::Trade::AbstractImageConverter> _image_saver = nullptr;
+    bool _recording_active = false;
+    bool _keep_recording = false;
+    bool _recording_includes_gui = false;
+    std::string _recording_filename_format = "output-{}.png";
+    size_t _recording_index = 0;
 };
 class Window2 : public WindowBase {
   public:

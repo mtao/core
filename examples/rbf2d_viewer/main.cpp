@@ -7,6 +7,9 @@
 #pragma GCC diagnostic pop
 #include <Corrade/Containers/Array.h>
 #include <Corrade/Containers/ArrayView.h>
+#include <Magnum/Trade/AbstractImageConverter.h>
+#include <Corrade/PluginManager/Manager.h>
+#include <Corrade/PluginManager/PluginMetadata.h>
 #include <Corrade/Utility/Arguments.h>
 #include <Magnum/EigenIntegration/Integration.h>
 #include <Magnum/GL/Renderer.h>
@@ -33,9 +36,27 @@ using namespace Magnum::Math::Literals;
 
 using namespace mtao::opengl;
 
+void do_thing() {
+
+    /*
+    CORRADE_RESOURCE_INITIALIZE(PngImageConverter);
+    spdlog::info("Searching for a png support in Magnum plugin dirs:: {}", fmt::join(Corrade::PluginManager::AbstractPlugin::pluginSearchPaths(), ","));
+    CORRADE_PLUGIN_IMPORT(PngImageConverter);
+    PluginManager::Manager<Magnum::Trade::AbstractImageConverter> manager;
+    if (!(manager.load("PngImageConverter") & PluginManager::LoadState::Loaded)) {
+        Utility::Error{} << "The requested plugin"
+                         << "PngImageConverter"
+                         << "cannot be loaded.";
+    }
+    Containers::Pointer<Magnum::Trade::AbstractImageConverter> image = manager.instantiate("PngImageConverter");
+    */
+    //return image;
+}
+
 class MeshViewer : public mtao::opengl::Window2 {
-   public:
-    enum class ViewMode { PointDrawing, SmoothedParticleHydrodynamics };
+  public:
+    enum class ViewMode { PointDrawing,
+                          SmoothedParticleHydrodynamics };
     ViewMode view_mode = ViewMode::SmoothedParticleHydrodynamics;
     float timestep = 0.01;
     bool animate = false;
@@ -53,14 +74,16 @@ class MeshViewer : public mtao::opengl::Window2 {
     mtao::VecXf sph_M;
     float desired_density = .8;
     float spring_constant = 10.0;
-    float radius = 0.3f;
+    float radius = 0.1f;
     float default_mass = 1.;
+    int particle_count = 1000;
 
     int rbf_mode = 3;
 
     float sph_cfl() const { return radius / sph_V.colwise().norm().maxCoeff(); }
 
     MeshViewer(const Arguments &args) : Window2(args) {
+        do_thing();
         bbox.min().setConstant(-1);
         bbox.max().setConstant(1);
 
@@ -73,73 +96,78 @@ class MeshViewer : public mtao::opengl::Window2 {
         grid.setParent(&root());
 
         face_drawable =
-            new mtao::opengl::MeshDrawable<Magnum::Shaders::VertexColor2D>{
-                grid, _vcolor_shader, drawables()};
+          new mtao::opengl::MeshDrawable<Magnum::Shaders::VertexColor2D>{
+              grid, _vcolor_shader, drawables()
+          };
         face_drawable->deactivate();
 
         visible_grid.setParent(&scene());
         visible_drawable =
-            new mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>{
-                visible_grid, _flat_shader, drawables()};
+          new mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>{
+              visible_grid, _flat_shader, drawables()
+          };
         visible_drawable->deactivate();
         vfield_mesh.setParent(&scene());
         _vf_viewer =
-            new mtao::opengl::MeshDrawable<mtao::opengl::VectorFieldShader<2>>{
-                vfield_mesh, _vf_shader, drawables()};
+          new mtao::opengl::MeshDrawable<mtao::opengl::VectorFieldShader<2>>{
+              vfield_mesh, _vf_shader, drawables()
+          };
         _vf_viewer->deactivate();
 
         sph_particle_drawable =
-            new mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>{
-                sph_mesh, _flat_shader, drawables()};
+          new mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>{
+              sph_mesh, _flat_shader, drawables()
+          };
+        sph_particle_drawable->point_size = 10;
 
         sph_velocity_drawable =
-            new mtao::opengl::MeshDrawable<mtao::opengl::VectorFieldShader<2>>{
-                sph_mesh, _vf_shader, drawables()};
+          new mtao::opengl::MeshDrawable<mtao::opengl::VectorFieldShader<2>>{
+              sph_mesh, _vf_shader, drawables()
+          };
 
         sph_mesh.setParent(&root());
-        resample_sph(1000);
+        resample_sph(particle_count);
         update();
     }
-    auto rbf(auto&& c, auto&& p) const {
+    auto rbf(auto &&c, auto &&p) const {
         using namespace mtao::geometry::interpolation;
 
         switch (rbf_mode) {
-            case 0:
-            default:
-                return HatRadialBasisFunction<float, 2>{}.evaluate(c, radius,
-                                                                   p);
-            case 1:
-                return GaussianRadialBasisFunction<float, 2>{}.evaluate(
-                    c, radius, p);
-            case 2:
-                return SplineGaussianRadialBasisFunction<float, 2>{}.evaluate(
-                    c, radius, p);
-            case 3:
-                return DesbrunSplineRadialBasisFunction<float, 2>{}.evaluate(
-                    c, radius, p);
+        case 0:
+        default:
+            return HatRadialBasisFunction<float, 2>{}.evaluate(c, radius, p);
+        case 1:
+            return GaussianRadialBasisFunction<float, 2>{}.evaluate(
+              c, radius, p);
+        case 2:
+            return SplineGaussianRadialBasisFunction<float, 2>{}.evaluate(
+              c, radius, p);
+        case 3:
+            return DesbrunSplineRadialBasisFunction<float, 2>{}.evaluate(
+              c, radius, p);
         }
     }
-    auto rbf_grad(auto&& c, auto&& p) const {
+    auto rbf_grad(auto &&c, auto &&p) const {
         using namespace mtao::geometry::interpolation;
 
         switch (rbf_mode) {
-            case 0:
-            default:
-                return HatRadialBasisFunction<float, 2>{}.evaluate_grad(
-                    c, radius, p);
-            case 1:
-                return GaussianRadialBasisFunction<float, 2>{}.evaluate_grad(
-                    c, radius, p);
-            case 2:
-                return SplineGaussianRadialBasisFunction<float, 2>{}
-                    .evaluate_grad(c, radius, p);
-            case 3:
-                return DesbrunSplineRadialBasisFunction<float, 2>{}
-                    .evaluate_grad(c, radius, p);
+        case 0:
+        default:
+            return HatRadialBasisFunction<float, 2>{}.evaluate_grad(
+              c, radius, p);
+        case 1:
+            return GaussianRadialBasisFunction<float, 2>{}.evaluate_grad(
+              c, radius, p);
+        case 2:
+            return SplineGaussianRadialBasisFunction<float, 2>{}
+              .evaluate_grad(c, radius, p);
+        case 3:
+            return DesbrunSplineRadialBasisFunction<float, 2>{}
+              .evaluate_grad(c, radius, p);
         }
     }
-    auto rbf(auto&& p) const { return rbf(center, p); }
-    auto rbf_grad(auto&& p) const { return rbf_grad(center, p); }
+    auto rbf(auto &&p) const { return rbf(center, p); }
+    auto rbf_grad(auto &&p) const { return rbf_grad(center, p); }
     float rbf() const { return rbf(Vec2(cursor.x(), cursor.y())); }
     Vec2 rbf_grad() const { return rbf_grad(Vec2(cursor.x(), cursor.y())); }
     void update() {
@@ -159,7 +187,7 @@ class MeshViewer : public mtao::opengl::Window2 {
 
         } else {
             auto g = mtao::geometry::grid::Grid2f::from_bbox(
-                bbox, std::array<int, 2>{{NI, NJ}});
+              bbox, std::array<int, 2>{ { NI, NJ } });
             grid.set(g);
             update_rbf();
 
@@ -167,7 +195,7 @@ class MeshViewer : public mtao::opengl::Window2 {
             _vf_viewer->activate_points();
             {
                 auto g =
-                    mtao::geometry::grid::Grid2f(std::array<int, 2>{{2, 2}});
+                  mtao::geometry::grid::Grid2f(std::array<int, 2>{ { 2, 2 } });
 
                 // auto V = g.vertices();
                 // mtao::RowVectorX<float> C = V.colwise()
@@ -218,8 +246,8 @@ class MeshViewer : public mtao::opengl::Window2 {
             auto p = sph_P.col(j);
             auto v = sph_V.col(j);
             for (int k = 0; k < 2; ++k) {
-                auto& p_ = p(k);
-                auto& v_ = v(k);
+                auto &p_ = p(k);
+                auto &v_ = v(k);
                 auto m_ = m(k);
                 auto M_ = M(k);
                 if (p_ < m_) {
@@ -243,10 +271,10 @@ class MeshViewer : public mtao::opengl::Window2 {
 
         for (int j = 0; j < sph_P.cols(); ++j) {
             auto pj = sph_P.col(j);
-            auto& mj = sph_M(j);
+            auto &mj = sph_M(j);
             for (int k = j + 1; k < sph_P.cols(); ++k) {
                 auto pk = sph_P.col(k);
-                auto& mk = sph_M(k);
+                auto &mk = sph_M(k);
                 float v = rbf(pj, pk);
                 rho(j) += mk * v;
                 rho(k) += mj * v;
@@ -260,10 +288,12 @@ class MeshViewer : public mtao::opengl::Window2 {
         P.setZero();
         mtao::VecXf rho = sph_densities();
         spdlog::info(
-            "Density variation: [{},{}] desired is {}, so we get a variance of "
-            "{}",
-            rho.minCoeff(), rho.maxCoeff(), desired_density,
-            (rho.array() - desired_density).pow(2).mean());
+          "Density variation: [{},{}] desired is {}, so we get a variance of "
+          "{}",
+          rho.minCoeff(),
+          rho.maxCoeff(),
+          desired_density,
+          (rho.array() - desired_density).pow(2).mean());
         for (int j = 0; j < sph_P.cols(); ++j) {
             auto pj = sph_P.col(j);
             auto Pj = P.col(j);
@@ -271,20 +301,19 @@ class MeshViewer : public mtao::opengl::Window2 {
             if (rhoj == 0) {
                 continue;
             }
-            auto& mj = sph_M(j);
+            auto &mj = sph_M(j);
             for (int k = 0; k < sph_P.cols(); ++k) {
                 if (j == k) {
                     continue;
                 }
                 auto pk = sph_P.col(k);
-                auto& mk = sph_M(k);
+                auto &mk = sph_M(k);
                 auto g = rbf_grad(pk, pj);
                 if (g.array().isFinite().all()) {
                     Pj += mk * g;
                 }
             }
-            Pj *= spring_constant * mj *
-                  std::max<float>(0, (rhoj - desired_density)) / (rhoj * rhoj);
+            Pj *= spring_constant * mj * std::max<float>(0, (rhoj - desired_density)) / (rhoj * rhoj);
         }
 
         return P;
@@ -300,9 +329,10 @@ class MeshViewer : public mtao::opengl::Window2 {
             }
             spdlog::debug("{} remaining, taking step of {}", substep);
             sph_V.row(1).array() -= substep * .1;
-            for (int j = 0; j < 30; ++j) {
+            for (int j = 0; j < 20; ++j) {
                 auto pressure = sph_pressure();
                 sph_P -= substep * substep * pressure;
+                sph_V -= substep / 20 * pressure;
                 sph_apply_bbox_bounce();
             }
             sph_V -= substep * sph_pressure();
@@ -360,7 +390,7 @@ class MeshViewer : public mtao::opengl::Window2 {
                            .select(bbox.min(), bbox.max());
             update();
         }
-        if (ImGui::SliderFloat("Radius", &radius, -2, 2)) {
+        if (ImGui::SliderFloat("Radius", &radius, 0, 1)) {
             update();
         }
         if (_vf_viewer) {
@@ -387,12 +417,11 @@ class MeshViewer : public mtao::opengl::Window2 {
         }
         if (ImGui::InputFloat("spring constant", &spring_constant)) {
         }
-        static int count = 10000;
-        if (ImGui::InputInt("SPH Particle count", &count)) {
-            resample_sph(count);
+        if (ImGui::InputInt("SPH Particle count", &particle_count)) {
+            //resample_sph(particle_count);
         }
         if (ImGui::Button("Resample")) {
-            resample_sph(count);
+            resample_sph(particle_count);
             update();
         }
         ImGui::Checkbox("animate", &animate);
@@ -400,6 +429,7 @@ class MeshViewer : public mtao::opengl::Window2 {
             do_animation();
             update();
         }
+        WindowBase::recording_gui();
         ImGui::Text("Cursor Position: (%f,%f) = %f (d=%f)", cursor.x(), cursor.y(), rbf(), (mtao::Vec2f(cursor.x(), cursor.y()) - center).norm());
     }
     void draw() override {
@@ -436,19 +466,19 @@ class MeshViewer : public mtao::opengl::Window2 {
     mtao::opengl::objects::Mesh<2> vfield_mesh;
 
     mtao::opengl::objects::Mesh<2> sph_mesh;
-    mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>* edge_drawable =
-        nullptr;
-    mtao::opengl::MeshDrawable<Magnum::Shaders::VertexColor2D>* face_drawable =
-        nullptr;
-    mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>* visible_drawable =
-        nullptr;
-    mtao::opengl::MeshDrawable<mtao::opengl::VectorFieldShader<2>>* _vf_viewer =
-        nullptr;
+    mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D> *edge_drawable =
+      nullptr;
+    mtao::opengl::MeshDrawable<Magnum::Shaders::VertexColor2D> *face_drawable =
+      nullptr;
+    mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D> *visible_drawable =
+      nullptr;
+    mtao::opengl::MeshDrawable<mtao::opengl::VectorFieldShader<2>> *_vf_viewer =
+      nullptr;
 
-    mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>* sph_particle_drawable =
-        nullptr;
-    mtao::opengl::MeshDrawable<mtao::opengl::VectorFieldShader<2>>*
-        sph_velocity_drawable = nullptr;
+    mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D> *sph_particle_drawable =
+      nullptr;
+    mtao::opengl::MeshDrawable<mtao::opengl::VectorFieldShader<2>> *
+      sph_velocity_drawable = nullptr;
 };
 
 MAGNUM_APPLICATION_MAIN(MeshViewer)
