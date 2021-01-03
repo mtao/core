@@ -107,9 +107,11 @@ void Window2::mouseMoveEvent(MouseMoveEvent &event) {
 
 void Window2::setTranslation(const Magnum::Vector2 &translation) {
     this->translation = translation;
+    updateTransformation();
 }
 void Window2::setScale(float scale) {
     this->scale = scale;
+    updateTransformation();
 }
 
 void Window2::updateTransformation() {
