@@ -70,7 +70,7 @@ struct SparseLDLT_MIC0 {
 
             // Solidify the current column values
             //==================================
-            if (std::abs(D(k)) < 1e-8) continue;
+            if (std::abs(Dinv(k)) < 1e-8) continue;
             //std::cout << "Dinv and D: " << Dinv(k) << " " << D(k) << std::endl;
             if (Dinv(k) <
                 0.25 * D(k)) {  // If D has shrunk too much since it started
@@ -79,6 +79,9 @@ struct SparseLDLT_MIC0 {
             } else {
                 //std::cout << "From Dinv" << std::endl;
                 Dinv(k) = 1 / Dinv(k);
+            }
+            if(!std::isfinite(Dinv(k))) {
+                Dinv(k) = 0;
             }
             //std::cout << k << " " << Dinv(k) << std::endl;
             //            L.innerVector(k) *= Dinv(k);
@@ -94,6 +97,7 @@ struct SparseLDLT_MIC0 {
                 //spdlog::info("j{} k{}", j,k);
                 Scalar missing = 0;
                 Scalar multiplier = it.value();// L(j,k)*D(k)
+                //spdlog::info("Multiplier!: {}", multiplier);
 
                 typename Matrix::InnerIterator k_it(L, k);
                 typename Matrix::InnerIterator j_it(L, j);
@@ -145,12 +149,11 @@ struct SparseLDLT_MIC0 {
                 }
                 Dinv(j) -= 0.97 * missing * multiplier;
             //spdlog::info("Dinv({}) = {} after -= .97 * {} {}", j, Dinv(j), missing, multiplier);
+                //std::cout << L << std::endl;
             }
         }
-
-        /*
-           std::cout << L << std::endl;
-           */
+           //std::cout << "L:\n" << L << std::endl;
+        //std::cout << "Final dinv:\n" << Dinv.transpose() << std::endl;
     }
     void solve(const Vector &b, Vector &x) {
         x = L.template triangularView<Eigen::UnitLower>().solve(b);
