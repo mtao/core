@@ -260,8 +260,14 @@ TARGET_LINK_LIBRARIES(mtao_visualization PUBLIC mtao_common
     dl 
     ${png++_LIBRARIES} 
     Corrade::PluginManager
+    )
+if(WITH_PNGIMAGECONVERTER)
+    TARGET_COMPILE_DEFINITIONS(mtao_visualization PRIVATE
+        -DMTAO_HAS_MAGNUM_PNGIMAGECONVERTER)
+    target_link_libraries(mtao_visualization PRIVATE
     MagnumPlugins::PngImageConverter
     )
+endif()
 ENDIF(MTAO_USE_OPENGL)
 
 

@@ -11,7 +11,7 @@ option(WITH_PNGIMAGECONVERTER "Build PngImageConverter plugin" ${MTAO_USE_PNGPP}
 option(WITH_EIGEN "MagnumIntegration Build EigenIntegration library" ON)
 option(WITH_IMGUI "MagnumIntegration Build ImGuiIntegration library" ON)
 
-MESSAGE(STATUS "PNGIMAGECONVERTER IS ${WITH_PNGIMAGECONVERTER} because MTAO_USE_PNGPP is ${MTAO_USE_PNGPP}")
+#MESSAGE(STATUS "PNGIMAGECONVERTER IS ${WITH_PNGIMAGECONVERTER} because MTAO_USE_PNGPP is ${MTAO_USE_PNGPP}")
 function(fetch_dep REPO_NAME GIT_REPO GIT_TAG ADD_SUBDIR)
     FetchContent_Declare(
         ${REPO_NAME}

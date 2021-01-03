@@ -32,14 +32,16 @@ using namespace Math::Literals;
 auto get_manager() {
     Corrade::Containers::Pointer<PluginManager::Manager<Magnum::Trade::AbstractImageConverter>> manager;
     manager.emplace();
+    spdlog::debug("Searching for a png support in Magnum plugin dirs:: {}", fmt::join(Corrade::PluginManager::AbstractPlugin::pluginSearchPaths(), ","));
+#if defined(MTAO_HAS_MAGNUM_PNGIMAGECONVERTER)
     CORRADE_RESOURCE_INITIALIZE(PngImageConverter);
-    spdlog::info("Searching for a png support in Magnum plugin dirs:: {}", fmt::join(Corrade::PluginManager::AbstractPlugin::pluginSearchPaths(), ","));
     CORRADE_PLUGIN_IMPORT(PngImageConverter);
     if (!(manager->load("PngImageConverter") & PluginManager::LoadState::Loaded)) {
         Utility::Error{} << "The requested plugin"
                          << "PngImageConverter"
                          << "cannot be loaded.";
     }
+#endif
     spdlog::info("available plugin aliases:: {}", fmt::join(manager->aliasList(), ","));
     return manager;
 }
