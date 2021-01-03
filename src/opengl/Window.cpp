@@ -227,10 +227,15 @@ void WindowBase::recording_gui() {
     //    setMaxWindowSize(framebufferSize());
     //}
     ImGui::InputText("Output format", &_recording_filename_format);
+    ImGui::InputInt("Frame index", &_recording_index);
     ImGui::Checkbox("Include GUI", &_recording_includes_gui);
+    ImGui::Checkbox("Automatically increment frame indices", &_auto_increment);
 
 
     ImGui::End();
+}
+void WindowBase::automatically_increment_recording_frames(bool do_it) {
+    _auto_increment = do_it;
 }
 Magnum::Image2D WindowBase::current_frame() {
     auto &fb = Magnum::GL::defaultFramebuffer;
@@ -256,6 +261,12 @@ void WindowBase::record_frame_to_file() {
         //setMinWindowSize({ -1, -1 });
         //setMaxWindowSize({ -1, -1 });
     }
+}
+void WindowBase::increment_recording_frame_index() {
+    _recording_index++;
+}
+void WindowBase::reset_recording_frame_index() {
+    _recording_index = 0;
 }
 
 }// namespace mtao::opengl

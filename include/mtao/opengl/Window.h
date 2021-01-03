@@ -47,6 +47,10 @@ class WindowBase : public Magnum::Platform::GlfwApplication {
     template<typename T>
     bool isExtensionSupported() const;
 
+    void increment_recording_frame_index();
+    void reset_recording_frame_index();
+
+    void automatically_increment_recording_frames(bool do_it);
 
   private:
     Magnum::ImGuiIntegration::Context _imgui{ Magnum::NoCreate };
@@ -54,8 +58,9 @@ class WindowBase : public Magnum::Platform::GlfwApplication {
     bool _recording_active = false;
     bool _keep_recording = false;
     bool _recording_includes_gui = false;
-    std::string _recording_filename_format = "output-{}.png";
-    size_t _recording_index = 0;
+    bool _auto_increment = true;
+    std::string _recording_filename_format = "output-{:06}.png";
+    int _recording_index = 0;
 };
 class Window2 : public WindowBase {
   public:
