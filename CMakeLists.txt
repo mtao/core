@@ -32,6 +32,7 @@ OPTION(MTAO_USE_OPENGL "Build opengl stuff" ON)
 OPTION(MTAO_FORCE_LOCAL_GLFW "Build our own version of GLFW" OFF)
 OPTION(MTAO_USE_OPENVDB "Build openvdb stuff" OFF)
 OPTION(MTAO_USE_PNGPP "Use PNG++ for screenshots" ON)
+OPTION(MTAO_USE_JSON "Use json" OFF)
 
 # https://medium.com/@alasher/colored-c-compiler-output-with-ninja-clang-gcc-10bfe7f2b949
 option (MTAO_FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only and affects global compile_options)." OFF)

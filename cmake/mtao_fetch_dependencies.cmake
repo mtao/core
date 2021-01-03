@@ -1,5 +1,8 @@
 include(FetchContent REQUIRED)
 
+set(NLOHMANN_JSON_COMMIT
+ v3.9.1
+    )
 function(fetch_dep REPO_NAME GIT_REPO GIT_TAG ADD_SUBDIR)
     FetchContent_Declare(
         ${REPO_NAME}
@@ -133,6 +136,18 @@ if(MTAO_BUILD_TESTING)
             )
 
     endif()
+endif()
+
+
+if(MTAO_USE_JSON)
+find_package(nlohmann_json QUIET)
+if(NOT nlohmann_json_FOUND)
+    # turn off the tests by default
+option(JSON_BuildTests "Build the unit tests when BUILD_TESTING is enabled." OFF)
+fetch_dep(nlohmann_json https://github.com/nlohmann/json.git 
+    ${NLOHMANN_JSON_COMMIT}
+    ON)
+endif()
 endif()
 
 if(MTAO_USE_OPENVDB)
