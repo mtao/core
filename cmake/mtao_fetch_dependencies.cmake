@@ -3,6 +3,15 @@ include(FetchContent REQUIRED)
 set(NLOHMANN_JSON_COMMIT
  v3.9.1
     )
+# MAGNUM SETTINGS
+option(BUILD_TESTS "Build tests (for mosra libs)" OFF)
+option(BUILD_PLUGINS_STATIC "Build Plugins statically " ON)
+option(WITH_PNGIMAGECONVERTER "Build PngImageConverter plugin" ${MTAO_USE_PNGPP})
+# Magnum integration options
+option(WITH_EIGEN "MagnumIntegration Build EigenIntegration library" ON)
+option(WITH_IMGUI "MagnumIntegration Build ImGuiIntegration library" ON)
+
+MESSAGE(STATUS "PNGIMAGECONVERTER IS ${WITH_PNGIMAGECONVERTER} because MTAO_USE_PNGPP is ${MTAO_USE_PNGPP}")
 function(fetch_dep REPO_NAME GIT_REPO GIT_TAG ADD_SUBDIR)
     FetchContent_Declare(
         ${REPO_NAME}
@@ -81,9 +90,6 @@ if(MTAO_USE_LOSTOPOS)
 endif()
 
 if(MTAO_USE_OPENGL)
-    option(BUILD_TESTS "Build tests (for mosra libs)" OFF)
-    option(BUILD_PLUGINS_STATIC "Build Plugins statically " ON)
-    option(WITH_PNGIMAGECONVERTER "Build PngImageConverter plugin" ${MTAO_USE_PNGPP})
     if(NOT Corrade_FOUND)
         fetch_dep(corrade https://github.com/mosra/corrade v2020.06 ON)
         #hide_dependency_warnings(Corrade )
@@ -99,8 +105,6 @@ if(MTAO_USE_OPENGL)
         endif()
     endif()
     if(NOT MagnumIntegration_FOUND)
-        option(WITH_EIGEN "MagnumIntegration Build EigenIntegration library" ON)
-        option(WITH_IMGUI "MagnumIntegration Build ImGuiIntegration library" ON)
         fetch_dep(magnum-integration https://github.com/mosra/magnum-integration v2020.06 ON)
         if(WITH_IMGUI) 
             hide_dependency_warnings(MagnumImGuiIntegration)
