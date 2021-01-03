@@ -105,6 +105,13 @@ void Window2::mouseMoveEvent(MouseMoveEvent &event) {
     redraw();
 }
 
+void Window2::setTranslation(const Magnum::Vector2 &translation) {
+    this->translation = translation;
+}
+void Window2::setScale(float scale) {
+    this->scale = scale;
+}
+
 void Window2::updateTransformation() {
     _cameraObject.resetTransformation()
       .translate(translation)

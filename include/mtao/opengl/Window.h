@@ -89,6 +89,9 @@ class Window2 : public WindowBase {
     const Magnum::SceneGraph::DrawableGroup2D &drawables() const { return _drawables; }
     void updateTransformation();
 
+    void setTranslation(const Magnum::Vector2& translation);
+    void setScale(float scale);
+
   private:
     Scene2D _scene;
     Object2D _root, _cameraObject;
