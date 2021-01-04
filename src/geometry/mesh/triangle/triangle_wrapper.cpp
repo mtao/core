@@ -2,6 +2,7 @@
 #include "mtao/geometry/mesh/triangle/mesh.h"
 #include <mtao/logging/timer.hpp>
 #include <utility>
+#include <spdlog/spdlog.h>
 #include <mtao/type_utils.h>
 using namespace mtao::logging;
 #ifdef SINGLE
@@ -111,7 +112,7 @@ void triangle_opts::parse_options(const std::string_view &sv) {
 
 
     clear();
-    std::cout << sv << std::endl;
+    spdlog::debug("Triangle called with arguments [{}]", sv);
     for (auto strit = sv.begin(); strit != sv.end(); ++strit) {
         switch (*strit) {
 
