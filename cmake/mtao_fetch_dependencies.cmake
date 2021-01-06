@@ -5,11 +5,14 @@ set(NLOHMANN_JSON_COMMIT
     )
 # MAGNUM SETTINGS
 option(BUILD_TESTS "Build tests (for mosra libs)" OFF)
+option(BUILD_TESTSUITE "Build test suite library (mosra)" OFF)
 option(BUILD_PLUGINS_STATIC "Build Plugins statically " ON)
 option(WITH_PNGIMAGECONVERTER "Build PngImageConverter plugin" ${MTAO_USE_PNGPP})
 # Magnum integration options
 option(WITH_EIGEN "MagnumIntegration Build EigenIntegration library" ON)
 option(WITH_IMGUI "MagnumIntegration Build ImGuiIntegration library" ON)
+
+option(PYILMBASE_ENABLE "Enable python bindings to pyilm" OFF)
 
 #MESSAGE(STATUS "PNGIMAGECONVERTER IS ${WITH_PNGIMAGECONVERTER} because MTAO_USE_PNGPP is ${MTAO_USE_PNGPP}")
 function(fetch_dep REPO_NAME GIT_REPO GIT_TAG ADD_SUBDIR)
@@ -91,7 +94,7 @@ endif()
 
 if(MTAO_USE_OPENGL)
     if(NOT Corrade_FOUND)
-        fetch_dep(corrade https://github.com/mosra/corrade v2020.06 ON)
+        fetch_dep(corrade https://github.com/mtao/corrade configuration_reflection ON)
         #hide_dependency_warnings(Corrade )
     endif()
     if(NOT Magnum_FOUND)
@@ -155,6 +158,10 @@ endif()
 endif()
 
 if(MTAO_USE_OPENVDB)
+    #find_package(openexr 2.5.4 QUIET)
+    #if(NOT openexr_FOUND)
+    #    fetch_dep(openexr https://github.com/AcademySoftwareFoundation/openexr v2.5.4 ON)
+    #endif()
     find_package(openvdb 7.0.0 QUIET)
     if(NOT openvdb_FOUND)
         fetch_dep(openvdb https://github.com/AcademySoftwareFoundation/openvdb v7.0.0 ON)

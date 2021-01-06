@@ -3,7 +3,8 @@ TARGET_LINK_LIBRARIES(xyz_to_arrows mtao::geometry)
 ADD_EXECUTABLE(xyz_to_balls xyz_to_balls.cpp)
 TARGET_LINK_LIBRARIES(xyz_to_balls mtao::geometry)
 ADD_EXECUTABLE(mesh_info mesh_info.cpp)
-TARGET_LINK_LIBRARIES(mesh_info mtao::geometry)
+TARGET_LINK_LIBRARIES(mesh_info mtao::geometry nlohmann_json::nlohmann_json
+    cxxopts)
 
 if(MTAO_USE_OPENVDB)
 ADD_EXECUTABLE(vdb_to_mesh vdb_to_mesh.cpp)
