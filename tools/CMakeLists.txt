@@ -6,6 +6,12 @@ ADD_EXECUTABLE(mesh_info mesh_info.cpp)
 TARGET_LINK_LIBRARIES(mesh_info mtao::geometry nlohmann_json::nlohmann_json
     cxxopts)
 
+ADD_EXECUTABLE(json_to_corrade_configuration json_to_corrade_configuration.cpp)
+TARGET_LINK_LIBRARIES(json_to_corrade_configuration mtao::common cxxopts)
+
+ADD_EXECUTABLE(corrade_configuration_to_json corrade_configuration_to_json.cpp)
+TARGET_LINK_LIBRARIES(corrade_configuration_to_json mtao::common cxxopts)
+
 if(MTAO_USE_OPENVDB)
 ADD_EXECUTABLE(vdb_to_mesh vdb_to_mesh.cpp)
 TARGET_LINK_LIBRARIES(vdb_to_mesh mtao::geometry cxxopts openvdb)

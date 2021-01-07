@@ -190,11 +190,13 @@ ADD_LIBRARY(mtao_common
     src/logging/profiler.cpp
     src/cmdline_parser.cpp
     src/algebra/pascal_triangle.cpp
+    src/utils/corrade_configuration_json_interchange.cpp
     )
 
 set_property(TARGET mtao_common PROPERTY CXX_STANDARD 20)
 
-TARGET_LINK_LIBRARIES(mtao_common PUBLIC mtao_headers Eigen3::Eigen spdlog::spdlog fmt)
+TARGET_LINK_LIBRARIES(mtao_common PUBLIC mtao_headers Eigen3::Eigen
+    spdlog::spdlog fmt Corrade::Utility)
 
 if(MTAO_USE_TBB)
     TARGET_LINK_LIBRARIES(mtao_headers INTERFACE PkgConfig::tbb)
