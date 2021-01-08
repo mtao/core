@@ -191,12 +191,13 @@ ADD_LIBRARY(mtao_common
     src/cmdline_parser.cpp
     src/algebra/pascal_triangle.cpp
     src/utils/corrade_configuration_json_interchange.cpp
+    src/utils/get_relative_path.cpp
     )
 
 set_property(TARGET mtao_common PROPERTY CXX_STANDARD 20)
 
 TARGET_LINK_LIBRARIES(mtao_common PUBLIC mtao_headers Eigen3::Eigen
-    spdlog::spdlog fmt Corrade::Utility)
+    spdlog::spdlog fmt Corrade::Utility filesystem)
 
 if(MTAO_USE_TBB)
     TARGET_LINK_LIBRARIES(mtao_headers INTERFACE PkgConfig::tbb)
