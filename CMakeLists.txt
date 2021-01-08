@@ -62,6 +62,7 @@ FIND_PACKAGE(Eigen3 3.3.3 REQUIRED)
 
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+find_package(Filesystem REQUIRED)
 
 FIND_PACKAGE(OpenMP REQUIRED)
 SET(OpenMP_TARGET OpenMP::OpenMP_CXX)
@@ -197,7 +198,7 @@ ADD_LIBRARY(mtao_common
 set_property(TARGET mtao_common PROPERTY CXX_STANDARD 20)
 
 TARGET_LINK_LIBRARIES(mtao_common PUBLIC mtao_headers Eigen3::Eigen
-    spdlog::spdlog fmt Corrade::Utility filesystem)
+    spdlog::spdlog fmt Corrade::Utility std::filesystem)
 
 if(MTAO_USE_TBB)
     TARGET_LINK_LIBRARIES(mtao_headers INTERFACE PkgConfig::tbb)
