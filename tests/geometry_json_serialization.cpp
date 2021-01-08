@@ -1,5 +1,6 @@
 #include <iostream>
 #include <mtao/json/bounding_box.hpp>
+#include <mtao/json/vector.hpp>
 
 
 int main(int argc, char *argv[]) {
@@ -31,4 +32,8 @@ int main(int argc, char *argv[]) {
         std::cout << bb.min().transpose() << std::endl;
         std::cout << bb.max().transpose() << std::endl;
     }
+
+
+    auto vec = mtao::json::json2vector<double, 3>(js["Normal"]);
+    std::cout << vec.transpose() << std::endl;
 }
