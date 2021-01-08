@@ -46,6 +46,8 @@ ADD_CATCHTEST(geometry
     )
 target_link_libraries(geometry_test PRIVATE mtao::geometry)
 
+add_mytest(geometry_json_serialization geometry_json_serialization.cpp)
+
 ADD_CATCHTEST(eigen
     sparse_blocks_test.cpp
     sparse_diagonal_repmats_test.cpp
