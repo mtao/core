@@ -19,6 +19,16 @@ int main(int argc, char *argv[]) {
     js["Normal"] = Eigen::Vector3d::UnitZ();
 
 
+    js["bbox2"] = mtao::json::bounding_box2json(bbox);
+
     std::cout << js.dump(2) << std::endl;
     //std::cout << js["Normal"].get<Eigen::Vector3d>();
+    //
+    //
+    {
+        std::cout << "Doing bbox2" << std::endl;
+        auto bb = js["bbox2"].get<Eigen::AlignedBox<double, 2>>();
+        std::cout << bb.min().transpose() << std::endl;
+        std::cout << bb.max().transpose() << std::endl;
+    }
 }
