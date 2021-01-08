@@ -1,6 +1,7 @@
 #pragma once
 #include "mtao/geometry/kdtree.hpp"
 #include <map>
+#include <set>
 #include "mtao/iterator/enumerate.hpp"
 #include "mtao/eigen/stl2eigen.hpp"
 

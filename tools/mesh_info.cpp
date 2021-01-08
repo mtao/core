@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cxxopts.hpp>
+#include <fstream>
 #include <nlohmann/json.hpp>
 #include <mtao/geometry/mesh/read_obj.hpp>
 #include <mtao/geometry/mesh/boundary_facets.h>
@@ -13,6 +14,7 @@ int main(int argc, char *argv[]) {
         ("filenames", "Arguments without options",cxxopts::value<std::vector<std::string>>())
         ("a,all", "show all statistics", cxxopts::value<bool>()->default_value("false"))
         ("j,json", "output as json", cxxopts::value<bool>()->default_value("false"))
+        ("o,output", "output filepath", cxxopts::value<std::string>())
         ("c,counts", "show element counts", cxxopts::value<bool>()->default_value("false"))
         ("b,bounding_box", "show bounding box", cxxopts::value<bool>()->default_value("false"))
         ("h,help", "Print usage");
@@ -29,6 +31,13 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
+    std::optional<std::ofstream> ofs_opt;
+    if(res.count("output"))
+    { 
+        ofs_opt.emplace(res["output"].as<std::string>().c_str());
+    }
+
+    std::ostream& os = ofs_opt? *ofs_opt : std::cout;
 
     bool use_json = res["json"].as<bool>();
     bool do_all = res["all"].as<bool>();
@@ -52,7 +61,7 @@ int main(int argc, char *argv[]) {
             if (use_json) {
 
             } else {
-                std::cout << "#V,#E,#F: " << V.cols() << "," << E.cols() << "," << F.cols() << std::endl;
+                os << "#V,#E,#F: " << V.cols() << "," << E.cols() << "," << F.cols() << std::endl;
             }
         }
         if (do_all || res["bounding_box"].as<bool>()) {
@@ -80,11 +89,11 @@ int main(int argc, char *argv[]) {
             };
                 // clang-format on
             } else {
-                std::cout << "Bounding box: " << bb.min().transpose() << " => " << bb.max().transpose() << std::endl;
+                os << "Bounding box: " << bb.min().transpose() << " => " << bb.max().transpose() << std::endl;
             }
         }
         if (use_json) {
-            std::cout << js.dump(2) << std::endl;
+            os << js.dump(2) << std::endl;
         }
     }
 }
