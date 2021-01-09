@@ -128,7 +128,9 @@ cmake_push_check_state()
 set(CMAKE_REQUIRED_QUIET ${Filesystem_FIND_QUIETLY})
 
 # All of our tests required C++17 or later
-set(CMAKE_CXX_STANDARD 17)
+if(CMAKE_CXX_STANDARD LESS 17)
+    message(FATAL_ERROR "CMAKE_CXX_STANDARD must be set to at least 17: ${CMAKE_CXX_STANDARD}")
+endif()
 
 # Normalize and check the component list we were given
 set(want_components ${Filesystem_FIND_COMPONENTS})
