@@ -80,9 +80,9 @@ template<typename ShaderType>
 class MeshDrawable : public DrawableBase<ShaderType> {
   public:
     using Base = DrawableBase<ShaderType>;
-    using Camera = Base::Camera;
-    using DrawableGroup = Base::DrawableGroup;
-    using TransMat = Base::TransMat;
+    using Camera = typename Base::Camera;
+    using DrawableGroup = typename Base::DrawableGroup;
+    using TransMat = typename Base::TransMat;
     using MeshType = objects::Mesh<Base::D>;
     using Base::is_visible;
     using Base::set_matrices;
@@ -191,9 +191,9 @@ template<typename ShaderType>
 class ViewDrawable : public DrawableBase<ShaderType> {
   public:
     using Base = DrawableBase<ShaderType>;
-    using Camera = Base::Camera;
-    using DrawableGroup = Base::DrawableGroup;
-    using TransMat = Base::TransMat;
+    using Camera = typename Base::Camera;
+    using DrawableGroup = typename Base::DrawableGroup;
+    using TransMat = typename Base::TransMat;
     using MeshType = Magnum::GL::MeshView;
     using Base::is_visible;
     using Base::set_matrices;

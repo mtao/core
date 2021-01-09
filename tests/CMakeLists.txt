@@ -140,16 +140,23 @@ ADD_MYTEST(profiler_test profiler_test.cpp)
 
 ADD_MYTEST(tuple_call_test tuple_call_test.cpp)
 
+
+
+ADD_EXECUTABLE(python_function_test EXCLUDE_FROM_ALL python_function_test.cpp)
+TARGET_LINK_LIBRARIES(python_function_test  mtao::python)
+set_target_properties(python_function_test PROPERTIES CXX_VISIBILITY_PRESET
+    hidden)
+
 ADD_EXECUTABLE(halfedge_test EXCLUDE_FROM_ALL halfedge_test.cpp)
-TARGET_LINK_LIBRARIES(halfedge_test EXCLUDE_FROM_ALL mtao::geometry)
+TARGET_LINK_LIBRARIES(halfedge_test  mtao::geometry)
 ADD_EXECUTABLE(halfedge_concentric_circle_test EXCLUDE_FROM_ALL halfedge_concentric_circle_test.cpp)
-TARGET_LINK_LIBRARIES(halfedge_concentric_circle_test EXCLUDE_FROM_ALL  mtao::geometry)
+TARGET_LINK_LIBRARIES(halfedge_concentric_circle_test   mtao::geometry)
 ADD_EXECUTABLE(strand_test EXCLUDE_FROM_ALL strand_test.cpp)
-TARGET_LINK_LIBRARIES(strand_test EXCLUDE_FROM_ALL mtao::geometry)
+TARGET_LINK_LIBRARIES(strand_test  mtao::geometry)
 ADD_EXECUTABLE(halfedge_submesh_test EXCLUDE_FROM_ALL halfedge_submesh_test.cpp)
-TARGET_LINK_LIBRARIES(halfedge_submesh_test EXCLUDE_FROM_ALL mtao::geometry)
+TARGET_LINK_LIBRARIES(halfedge_submesh_test  mtao::geometry)
 ADD_EXECUTABLE(embedded_halfedge_test EXCLUDE_FROM_ALL embedded_halfedge_test.cpp)
-TARGET_LINK_LIBRARIES(embedded_halfedge_test EXCLUDE_FROM_ALL mtao::geometry)
+TARGET_LINK_LIBRARIES(embedded_halfedge_test  mtao::geometry)
 
 #ADD_EXECUTABLE(static_iteration_test src/static_iteration_test.cpp)
 ADD_MYTEST(combination_test combination_test.cpp)

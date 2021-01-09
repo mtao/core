@@ -7,6 +7,7 @@
 #pragma GCC diagnostic pop
 #include <Corrade/Containers/Array.h>
 #include <Corrade/Containers/ArrayView.h>
+#include <misc/cpp/imgui_stdlib.h>
 #include <Corrade/Utility/Arguments.h>
 #include <Magnum/EigenIntegration/Integration.h>
 #include <Magnum/GL/Renderer.h>
@@ -24,9 +25,15 @@
 
 #include "imgui.h"
 #include "mtao/geometry/bounding_box.hpp"
+#include <pybind11/eigen.h>
 #include "mtao/geometry/mesh/boundary_facets.h"
 #include "mtao/geometry/mesh/read_obj.hpp"
 #include "mtao/opengl/drawables.h"
+
+
+#if defined(ENABLE_PYTHON_GUI)
+#include <mtao/python/load_python_function.hpp>
+#endif
 
 using namespace Magnum::Math::Literals;
 
@@ -621,9 +628,21 @@ class MeshViewer : public mtao::opengl::Window2 {
             vfield_mesh.setVertexBuffer(g.vertices());
             mtao::ColVecs2f V = g.vertices();
             // V.array() -= .5;
-            auto x = V.row(0).eval();
-            V.row(0) = -V.row(1);
-            V.row(1) = x;
+
+            if (func) {
+                try {
+                    for (int j = 0; j < V.cols(); ++j) {
+                        V.col(j) = (*func)(V.col(j)).cast<Eigen::Vector2f>();
+                    }
+                } catch (std::exception &e) {
+                    spdlog::warn(e.what());
+                    V.setZero();
+                }
+            } else {
+                auto x = V.row(0).eval();
+                V.row(0) = -V.row(1);
+                V.row(1) = x;
+            }
             vfield_mesh.setVFieldBuffer(V);
         }
 
@@ -643,6 +662,17 @@ class MeshViewer : public mtao::opengl::Window2 {
     }
     void do_animation() {}
     float scale = 1.0;
+
+#if defined(ENABLE_PYTHON_GUI)
+    void update_function(const std::string &str) {
+        if (func) {
+            func->update_function(str);
+        } else {
+            func.emplace(str);
+        }
+        update();
+    }
+#endif
     void gui() override {
         if (ImGui::InputInt2("N", &NI)) {
             update();
@@ -669,6 +699,20 @@ class MeshViewer : public mtao::opengl::Window2 {
         if (ImGui::Button("Step")) {
             do_animation();
         }
+
+
+#if defined(ENABLE_PYTHON_GUI)
+        ImGui::Begin("PythonGui");
+        //ImGui::Text
+
+        static std::string text = "def FUNC_NAME(x): return x";
+        ImGui::InputTextMultiline("Code", &text);
+        if (ImGui::Button("Activate")) {
+            update_function(text);
+        }
+        ImGui::End();
+#endif
+
         ImGui::Text("Cursor Position: (%f,%f)", cursor.x(), cursor.y());
     }
     void draw() override {
@@ -706,6 +750,9 @@ class MeshViewer : public mtao::opengl::Window2 {
     }
 
   private:
+#if defined(ENABLE_PYTHON_GUI)
+    std::optional<mtao::python::PythonFunction> func;
+#endif
     Magnum::Shaders::Flat2D _flat_shader;
     Magnum::Shaders::VertexColor2D _vcolor_shader;
     mtao::opengl::VectorFieldShader<2> _vf_shader;

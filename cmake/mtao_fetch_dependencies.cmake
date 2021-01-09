@@ -3,6 +3,7 @@ include(FetchContent REQUIRED)
 set(NLOHMANN_JSON_COMMIT
  v3.9.1
     )
+set(PYBIND_COMMIT v2.6.1)
 # MAGNUM SETTINGS
 option(BUILD_TESTS "Build tests (for mosra libs)" OFF)
 option(BUILD_TESTSUITE "Build test suite library (mosra)" OFF)
@@ -174,4 +175,11 @@ option(CXXOPTS_BUILD_TESTS "Set to ON to build cxxopts tests" OFF)
 find_package(cxxopts 2.2.0 QUIET)
 if(NOT cxxopts_FOUND)
     fetch_dep(cxxopts https://github.com/jarro2783/cxxopts v2.2.0 ON)
+endif()
+
+if(MTAO_USE_PYTHON)
+    find_package(pybind11 QUIET)
+    if(NOT pybind11_FOUND)
+        fetch_dep(pybind11 https://github.com/pybind/pybind11.git ${PYBIND_COMMIT} ON)
+    endif()
 endif()

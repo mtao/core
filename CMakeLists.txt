@@ -35,6 +35,7 @@ libraries" ON)
 OPTION(MTAO_USE_ELTOPO "Should we build the el topo submodule" ON)
 OPTION(MTAO_USE_LOSTOPOS "Should we build the los topos submodule" OFF)
 OPTION(MTAO_USE_OPENGL "Build opengl stuff" ON)
+OPTION(MTAO_USE_PYTHON "Should build python library" ON)
 # Temporary fix for having wayland support in glfw (https://github.com/glfw/glfw/issues/1655)
 OPTION(MTAO_FORCE_LOCAL_GLFW "Build our own version of GLFW" OFF)
 OPTION(MTAO_USE_OPENVDB "Build openvdb stuff" OFF)
@@ -317,6 +318,20 @@ ADD_LIBRARY(mtao_geometry
     )
 set_property(TARGET mtao_geometry PROPERTY CXX_STANDARD 20)
 
+
+
+if(MTAO_USE_PYTHON)
+add_library(mtao_python
+    src/python/load_python_function.cpp
+    )
+
+target_link_libraries(mtao_python PUBLIC pybind11::embed mtao::common)
+set_property(TARGET mtao_python PROPERTY CXX_STANDARD 20)
+#set_target_properties(mtao_python PROPERTIES CXX_VISIBILITY_PRESET hidden)
+endif()
+
+
+
 IF(MTAO_USE_OPENGL)
     SET(GEOMETRY_EXTRAS ${GEOMETRY_EXTRAS} ImGui::ImGui MagnumIntegration::ImGui)
 ENDIF(MTAO_USE_OPENGL)
@@ -346,6 +361,9 @@ endif()
 add_library(mtao::headers ALIAS mtao_headers)
 add_library(mtao::common ALIAS mtao_common)
 add_library(mtao::geometry ALIAS mtao_geometry)
+if(MTAO_USE_PYTHON)
+add_library(mtao::python ALIAS mtao_python)
+endif()
 IF(MTAO_USE_OPENGL)
   add_library(mtao::visualization ALIAS mtao_visualization)
 ENDIF(MTAO_USE_OPENGL)

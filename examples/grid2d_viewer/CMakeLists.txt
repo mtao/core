@@ -5,3 +5,8 @@ ADD_EXECUTABLE(grid2d_viewer
 ADD_DEFINITIONS(-g)
 
 TARGET_LINK_LIBRARIES(grid2d_viewer mtao::visualization)
+if(MTAO_USE_PYTHON)
+TARGET_LINK_LIBRARIES(grid2d_viewer mtao::python)
+target_compile_definitions(grid2d_viewer PRIVATE ENABLE_PYTHON_GUI)
+
+endif()
