@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
 
     std::cout << "A shape: " << A.rows() << " " << A.cols() << std::endl;
     std::cout << "B size: " << b.size() << std::endl;
-    std::cout << A << std::endl;
+    //std::cout << A << std::endl;
 
     std::cout << "Input norms: " << A.norm() << " " << b.norm() << std::endl;
 

@@ -34,6 +34,7 @@ class PythonFunction {
     pybind11::object _scope;
     pybind11::object _function;
     std::shared_ptr<pybind11::scoped_interpreter> _interpreter;
+    std::string _implementation;
 };
 
 

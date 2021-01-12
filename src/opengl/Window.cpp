@@ -113,13 +113,13 @@ void WindowBase::drawEvent() {
         GL::Renderer::disable(GL::Renderer::Feature::DepthTest);
         GL::Renderer::enable(GL::Renderer::Feature::ScissorTest);
 
-        if (_recording_active && !_recording_includes_gui) {
+        if (_recording_dirty && !_recording_includes_gui) {
             record_frame_to_file();
         }
 
         _imgui.drawFrame();
 
-        if (_recording_active && _recording_includes_gui) {
+        if (_recording_dirty && _recording_includes_gui) {
             record_frame_to_file();
         }
 
@@ -211,6 +211,9 @@ bool WindowBase::supportsGeometryShader() const {
     return isExtensionSupported<ShaderType>();
 }
 
+void WindowBase::set_recording_path(const std::string &path) {
+    _recording_path = path;
+}
 
 void WindowBase::recording_gui() {
     ImGui::Begin("Recording");
@@ -219,10 +222,10 @@ void WindowBase::recording_gui() {
     }
     if (ImGui::Button("Capture Single Frame")) {
         _keep_recording = false;
-        _recording_active = true;
+        _recording_dirty = true;
     }
-    if (ImGui::Checkbox("Capture", &_recording_active)) {
-        _keep_recording = _recording_active;
+    if (ImGui::Checkbox("Capture", &_keep_recording)) {
+        _recording_dirty = _keep_recording;
     }
     //if (_recording_active) {
     //    setMinWindowSize(framebufferSize());
@@ -252,23 +255,24 @@ void WindowBase::record_frame_to_file() {
         auto img = current_frame();
         if (_image_saver->exportToFile(img, filename)) {
             spdlog::debug("Successfully wrote frame to file {}", filename);
-            _recording_index++;
         } else {
             spdlog::warn("Failed to write frame to file {}!", filename);
         }
     }
+    if (_auto_increment) {
+        _recording_index++;
+    }
     if (!_keep_recording) {
-        _recording_active = false;
-
-        //setMinWindowSize({ -1, -1 });
-        //setMaxWindowSize({ -1, -1 });
+        _recording_dirty = false;
     }
 }
 void WindowBase::increment_recording_frame_index() {
     _recording_index++;
+    _recording_dirty = true;
 }
 void WindowBase::reset_recording_frame_index() {
     _recording_index = 0;
+    _recording_dirty = true;
 }
 
 }// namespace mtao::opengl

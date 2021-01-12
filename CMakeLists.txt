@@ -266,7 +266,7 @@ TARGET_LINK_LIBRARIES(mtao_visualization PUBLIC mtao_common
     MagnumIntegration::ImGui
     Corrade::Utility
     ImGui::ImGui
-    ImGui::SourcesMiscCpp
+    PRIVATE ImGui::SourcesMiscCpp
     PRIVATE OpenGL::GL 
     GLFW::GLFW 
     dl 

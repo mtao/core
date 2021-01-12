@@ -52,13 +52,21 @@ class WindowBase : public Magnum::Platform::GlfwApplication {
 
     void automatically_increment_recording_frames(bool do_it);
 
+
+    void set_recording_path(const std::string &path);
+
   private:
     Magnum::ImGuiIntegration::Context _imgui{ Magnum::NoCreate };
     Containers::Pointer<Magnum::Trade::AbstractImageConverter> _image_saver = nullptr;
-    bool _recording_active = false;
+    // whether we want to record the next frame
+    bool _recording_dirty = false;
+    // whether to reset the dirty bit
     bool _keep_recording = false;
-    bool _recording_includes_gui = false;
+    // whether to increment the index
     bool _auto_increment = true;
+
+    bool _recording_includes_gui = false;
+    std::string _recording_path = ".";
     std::string _recording_filename_format = "output-{:06}.png";
     int _recording_index = 0;
 };
@@ -89,7 +97,7 @@ class Window2 : public WindowBase {
     const Magnum::SceneGraph::DrawableGroup2D &drawables() const { return _drawables; }
     void updateTransformation();
 
-    void setTranslation(const Magnum::Vector2& translation);
+    void setTranslation(const Magnum::Vector2 &translation);
     void setScale(float scale);
 
   private:
