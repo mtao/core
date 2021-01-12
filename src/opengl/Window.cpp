@@ -2,6 +2,7 @@
 #include <Magnum/GL/BufferImage.h>
 #include <spdlog/spdlog.h>
 #include <filesystem>
+#include <Corrade/Containers/StridedArrayView.h>
 #include <Magnum/PixelFormat.h>
 #include <iostream>
 #include <misc/cpp/imgui_stdlib.h>
@@ -10,7 +11,8 @@
 #include <imgui.h>
 #include <vector>
 #ifdef MTAO_HAS_LIBPNGPP
-#include <png++/png.hpp>
+        #include <png++/image.hpp>
+#include <png++/rgb_pixel.hpp>
 #endif
 #include <iomanip>
 #include <mtao/logging/logger.hpp>
@@ -218,9 +220,11 @@ void WindowBase::set_recording_path(const std::string &path) {
 
 void WindowBase::recording_gui() {
     ImGui::Begin("Recording");
+    /*
     if (!_image_saver) {
         ImGui::Text("Was unable to load image loader plugin so no recording :(. Buttons are essentialy no-ops.");
     }
+    */
     if (ImGui::Button("Capture Single Frame")) {
         _keep_recording = false;
         _recording_dirty = true;
@@ -248,18 +252,28 @@ Magnum::Image2D WindowBase::current_frame() {
     return fb.read(fb.viewport(), Magnum::Image2D{ Magnum::PixelFormat::RGBA8Unorm });
 }
 void WindowBase::record_frame_to_file() {
-    if (!_image_saver) {
-        spdlog::error("Tried to record a frame without anything to save to, nothing ");
-
-    } else {
         std::string filename = std::filesystem::path(_recording_path) / fmt::format(_recording_filename_format.c_str(), _recording_index);
         auto img = current_frame();
-        if (_image_saver->exportToFile(img, filename)) {
+
+        if (_image_saver && _image_saver->exportToFile(img, filename)) {
             spdlog::debug("Successfully wrote frame to file {}", filename);
         } else {
-            spdlog::warn("Failed to write frame to file {}!", filename);
+            png::image< png::rgb_pixel > image(img.size()[0],img.size()[1]);
+            auto pixels = img.pixels();
+            for (png::uint_32 y = 0; y < image.get_height(); ++y)
+            {
+                    auto s = pixels[y];
+                for (png::uint_32 x = 0; x < image.get_width(); ++x)
+                {
+                    const auto& p = s[x];
+                    image[y][x] = png::rgb_pixel(p[0],p[1],p[2]);
+                    // non-checking equivalent of image.set_pixel(x, y, ...);
+                }
+            }
+            image.write(std::string(filename));
+
+            spdlog::warn("Wrote a frame with png++ to file {}!", filename);
         }
-    }
     if (_auto_increment) {
         increment_recording_frame_index();
     }
