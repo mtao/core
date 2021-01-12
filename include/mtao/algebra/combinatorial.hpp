@@ -15,7 +15,7 @@ namespace detail {
     // returns x*(x-1)...(x-n+1) if not rising rising (hence falling)
     template<bool Rising = true>
     constexpr size_t sequential_product(size_t x, size_t n) {
-        return n == 0? 1 : sequential_product_off_one<Rising>(x, n - 1);
+        return n == 0 ? 1 : sequential_product_off_one<Rising>(x, n - 1);
     }
 }// namespace detail
 constexpr size_t factorial(size_t n) {
