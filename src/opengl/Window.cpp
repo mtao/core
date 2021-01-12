@@ -262,7 +262,7 @@ void WindowBase::record_frame_to_file() {
             auto pixels = img.pixels();
             for (png::uint_32 y = 0; y < image.get_height(); ++y)
             {
-                    auto s = pixels[y];
+                    auto s = pixels[image.get_height() - y - 1];
                 for (png::uint_32 x = 0; x < image.get_width(); ++x)
                 {
                     const auto& p = s[x];
