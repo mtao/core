@@ -49,9 +49,11 @@ class WindowBase : public Magnum::Platform::GlfwApplication {
 
     void increment_recording_frame_index();
     void reset_recording_frame_index();
+    void set_recording_frame_index(int index);
 
     void automatically_increment_recording_frames(bool do_it);
 
+    void set_recording_frame_callback(std::optional<std::function<void(int)>>);
 
     void set_recording_path(const std::string &path);
 
@@ -69,6 +71,7 @@ class WindowBase : public Magnum::Platform::GlfwApplication {
     std::string _recording_path = ".";
     std::string _recording_filename_format = "output-{:06}.png";
     int _recording_index = 0;
+    std::optional<std::function<void(int)>> _recording_set_frame_callback;
 };
 class Window2 : public WindowBase {
   public:

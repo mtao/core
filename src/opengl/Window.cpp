@@ -1,6 +1,7 @@
 #include "mtao/opengl/Window.h"
 #include <Magnum/GL/BufferImage.h>
 #include <spdlog/spdlog.h>
+#include <filesystem>
 #include <Magnum/PixelFormat.h>
 #include <iostream>
 #include <misc/cpp/imgui_stdlib.h>
@@ -251,7 +252,7 @@ void WindowBase::record_frame_to_file() {
         spdlog::error("Tried to record a frame without anything to save to, nothing ");
 
     } else {
-        std::string filename = fmt::format(_recording_filename_format.c_str(), _recording_index);
+        std::string filename = std::filesystem::path(_recording_path) / fmt::format(_recording_filename_format.c_str(), _recording_index);
         auto img = current_frame();
         if (_image_saver->exportToFile(img, filename)) {
             spdlog::debug("Successfully wrote frame to file {}", filename);
@@ -260,22 +261,29 @@ void WindowBase::record_frame_to_file() {
         }
     }
     if (_auto_increment) {
-        _recording_index++;
+        increment_recording_frame_index();
     }
     if (!_keep_recording) {
         _recording_dirty = false;
     }
 }
+
+void WindowBase::set_recording_frame_callback(std::optional<std::function<void(int)>> f) {
+    _recording_set_frame_callback = std::move(f);
+}
 void WindowBase::increment_recording_frame_index() {
-    _recording_index++;
+    set_recording_frame_index(_recording_index + 1);
+}
+void WindowBase::reset_recording_frame_index() {
+    set_recording_frame_index(0);
+}
+void WindowBase::set_recording_frame_index(int index) {
+    _recording_index = index;
     if (_keep_recording) {
         _recording_dirty = true;
     }
-}
-void WindowBase::reset_recording_frame_index() {
-    _recording_index = 0;
-    if (_keep_recording) {
-        _recording_dirty = true;
+    if (_recording_set_frame_callback) {
+        (*_recording_set_frame_callback)(_recording_index);
     }
 }
 

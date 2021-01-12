@@ -128,6 +128,11 @@ class MeshViewer : public mtao::opengl::Window2 {
         sph_mesh.setParent(&root());
         resample_sph(particle_count);
         update();
+
+
+        set_recording_frame_callback([](int index) {
+                spdlog::info("I was asked to use frame {}", index);
+                });
     }
     auto rbf(auto &&c, auto &&p) const {
         using namespace mtao::geometry::interpolation;
