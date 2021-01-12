@@ -268,7 +268,7 @@ void WindowBase::record_frame_to_file() {
     }
 }
 
-void WindowBase::set_recording_frame_callback(std::optional<std::function<void(int)>> f) {
+void WindowBase::set_recording_frame_callback(std::optional<std::function<bool(int)>> f) {
     _recording_set_frame_callback = std::move(f);
 }
 void WindowBase::increment_recording_frame_index() {
@@ -278,12 +278,16 @@ void WindowBase::reset_recording_frame_index() {
     set_recording_frame_index(0);
 }
 void WindowBase::set_recording_frame_index(int index) {
+    int old_index = _recording_index;
     _recording_index = index;
     if (_keep_recording) {
         _recording_dirty = true;
     }
     if (_recording_set_frame_callback) {
-        (*_recording_set_frame_callback)(_recording_index);
+        if (!(*_recording_set_frame_callback)(_recording_index)) {
+            _recording_index = old_index;
+            _keep_recording = false;
+        }
     }
 }
 

@@ -130,9 +130,10 @@ class MeshViewer : public mtao::opengl::Window2 {
         update();
 
 
-        set_recording_frame_callback([](int index) {
-                spdlog::info("I was asked to use frame {}", index);
-                });
+        set_recording_frame_callback([](int index) -> bool {
+            spdlog::info("I was asked to use frame {}", index);
+            return true;
+        });
     }
     auto rbf(auto &&c, auto &&p) const {
         using namespace mtao::geometry::interpolation;
