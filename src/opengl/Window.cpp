@@ -268,11 +268,15 @@ void WindowBase::record_frame_to_file() {
 }
 void WindowBase::increment_recording_frame_index() {
     _recording_index++;
-    _recording_dirty = true;
+    if (_keep_recording) {
+        _recording_dirty = true;
+    }
 }
 void WindowBase::reset_recording_frame_index() {
     _recording_index = 0;
-    _recording_dirty = true;
+    if (_keep_recording) {
+        _recording_dirty = true;
+    }
 }
 
 }// namespace mtao::opengl
