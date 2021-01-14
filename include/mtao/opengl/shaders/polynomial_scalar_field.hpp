@@ -1,5 +1,5 @@
 #pragma once
-#include <Corrade/Containers/Array.h>
+#include <Corrade/Containers/StaticArray.h>
 #include <Corrade/Containers/ArrayView.h>
 #include <Magnum/GL/AbstractShaderProgram.h>
 #include <Magnum/Math/Color.h>
@@ -27,7 +27,7 @@ struct ShaderData<PolynomialScalarFieldShader<D>> {
         Magnum::Math::Vector<D, float> linear;
         Magnum::Math::Matrix<D, float> quadratic;
         // weirdly this is indexed k,i,j
-        Corrade::Containers::Array<Magnum::Math::Matrix<D, float>> cubic;
+        Corrade::Containers::StaticArray<D,Magnum::Math::Matrix<D, float>> cubic;
         float scale = 1;
         Magnum::Math::Vector<D, float> center;
         // returns true if any of the parameters were changed
