@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdlib>
+#include <iterator>
 #include <limits>
 namespace mtao::iterator {
 namespace detail {
@@ -56,6 +57,7 @@ namespace detail {
         range_container operator-(Index v) const {
             return range_container(m_start - v, m_end - v, m_inc);
         }
+        size_t size() const { return std::distance(m_start, m_end); }
 
       private:
         Index m_start, m_end, m_inc;

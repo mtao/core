@@ -15,12 +15,7 @@ namespace internal {
         std::set<Ptr, std::owner_less<Ptr>> children;
 
         bool is_leaf() const { return children.empty(); }
-        void fix_children_parenting() {
-            auto ptr = shared_from_this();
-            for (auto &&c : children) {
-                c.parent = ptr;
-            }
-        }
+        void fix_children_parenting();
 
         void insert_above(Ptr value);
         void insert_above(ValueType &&value);

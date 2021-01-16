@@ -26,7 +26,7 @@ std::tuple<mtao::ColVectors<float, 3>, mtao::ColVectors<int, 3>> read_objF(
 std::tuple<mtao::ColVectors<double, 3>, mtao::ColVectors<int, 3>> read_objD(
   std::istream &filename);
 
-// 2d variant of obj using e instead of f
+// 2d variant of obj using l instead of f
 std::tuple<mtao::ColVectors<float, 2>, mtao::ColVectors<int, 2>> read_obj2F(
   std::istream &filename);
 std::tuple<mtao::ColVectors<double, 2>, mtao::ColVectors<int, 2>> read_obj2D(
