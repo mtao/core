@@ -57,7 +57,7 @@ namespace detail {
         range_container operator-(Index v) const {
             return range_container(m_start - v, m_end - v, m_inc);
         }
-        size_t size() const { return std::distance(m_start, m_end); }
+        size_t size() const { return m_end - m_start; }
 
       private:
         Index m_start, m_end, m_inc;
