@@ -17,7 +17,8 @@ mtao::ColVectors<T, D> bridson_poisson_disk_sampling(const Eigen::AlignedBox<T, 
     std::mt19937 gen(rd());
 
 
-    double cell_side_length = radius / std::sqrt(D);
+    double cell_side_length = radius;
+    //double cell_side_length = radius / std::sqrt(D);
     std::array<int, D> shape;
     auto size = bounding_box.sizes();
     for (int j = 0; j < D; ++j) {
@@ -73,21 +74,24 @@ mtao::ColVectors<T, D> bridson_poisson_disk_sampling(const Eigen::AlignedBox<T, 
             }
             auto [c, q] = g.coord(n);
 
+            //std::cout << "Cell in coord " << c[0] << " " << c[1] << " (potentially index " << index << std::endl;
             auto l = c;
             auto h = c;
             for (auto &&v : l) { v--; }
-            for (auto &&v : h) { v++; }
+            for (auto &&v : h) { v += 2; }
 
 
             bool has_bad = false;
             mtao::geometry::grid::utils::multi_loop(l, h, [&](auto &&c) {
+                //std::cout << "  Checking " << c[0] << " " << c[1] << std::endl;
                 if (has_bad) {
                     return;
                 }
                 if (indices.valid_index(c)) {
                     int &idx = indices(c);
                     if (idx != -1) {
-                        if ((R.col(idx) - n).squaredNorm() > radius2) {
+                        //std::cout << "Particle " << idx << "found with distance " << (R.col(idx) - n).norm() << std::endl;
+                        if ((R.col(idx) - n).squaredNorm() < radius2) {
                             has_bad = true;
                         }
                     }
@@ -107,6 +111,12 @@ mtao::ColVectors<T, D> bridson_poisson_disk_sampling(const Eigen::AlignedBox<T, 
             active_set.erase(base_it);
         }
     }
+    //for (int j = 0; j < indices.shape()[0]; ++j) {
+    //    for (int k = 0; k < indices.shape()[1]; ++k) {
+    //        std::cout << indices(j, k) << " ";
+    //    }
+    //    std::cout << std::endl;
+    //}
     if (index < R.cols()) {
         R.conservativeResize(D, index);
     }
