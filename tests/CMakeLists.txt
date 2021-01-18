@@ -131,6 +131,7 @@ ADD_MYTEST(reindexer_test reindexer_test.cpp)
 ADD_MYTEST(stl2eigen_test stl2eigen_test.cpp)
 
 ADD_MYTEST(bounding_box_test bounding_box_test.cpp)
+ADD_MYTEST(test_poisson_disk_sampling test_poisson_disk_sampling.cpp)
 
 ADD_MYTEST(tube_creation_test tube_creation_test.cpp)
 

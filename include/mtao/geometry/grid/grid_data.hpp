@@ -166,7 +166,7 @@ namespace geometry {
 
           public:
             template<typename... Args>
-            static GridData Constant(const value_type &v, Args &&... args) {
+            static GridData Constant(const value_type &v, Args &&...args) {
                 GridData g(std::forward<Args>(args)...);
                 g.set_constant(v);
                 return g;
