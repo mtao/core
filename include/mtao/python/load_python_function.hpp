@@ -23,7 +23,8 @@ class PythonFunction {
 
     // just forward data
     template<typename... Args>
-    pybind11::object operator()(Args &&... args) const {
+    pybind11::object operator()(Args &&...args) const {
+        pybind11::gil_scoped_acquire acquire;
         return _function(std::forward<Args>(args)...);
     }
 

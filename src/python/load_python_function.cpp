@@ -57,7 +57,10 @@ std::shared_ptr<pybind11::scoped_interpreter> interpreter() {
 
 
 PythonFunction::PythonFunction(const std::string &py_code, const std::vector<std::string> &libraries) : _function_name(get_new_random_name()), _interpreter(interpreter()) {
-    _scope = pybind11::module_::import("__main__").attr("__dict__");
+    {
+        pybind11::gil_scoped_acquire acquire;
+        _scope = pybind11::module_::import("__main__").attr("__dict__");
+    }
     for (auto &&lib : libraries) {
         load_library(lib);
     }
@@ -69,8 +72,10 @@ PythonFunction::PythonFunction(const std::string &py_code, const std::vector<std
 bool PythonFunction::update_function(const std::string &py_code) {
     try {
         if (py_code.empty()) {
+            pybind11::gil_scoped_acquire acquire;
             pybind11::exec(fmt::format("def {}(p): return p\n\n", function_name()));
         } else {
+            pybind11::gil_scoped_acquire acquire;
 
             std::string str(py_code);
             for (size_t idx = 0; idx != std::string::npos;) {
@@ -95,6 +100,7 @@ bool PythonFunction::update_function(const std::string &py_code) {
 }
 bool PythonFunction::load_library(const std::string &library_name) {
     try {
+        pybind11::gil_scoped_acquire acquire;
         pybind11::exec(fmt::format("import {}\n", library_name));
         return true;
     } catch (std::exception &e) {
