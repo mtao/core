@@ -1,5 +1,6 @@
 #include "mtao/python/load_python_function.hpp"
 #include <fmt/format.h>
+#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <string>
@@ -65,27 +66,41 @@ PythonFunction::PythonFunction(const std::string &py_code, const std::vector<std
 }
 
 
-void PythonFunction::update_function(const std::string &py_code) {
-    if (py_code.empty()) {
-        pybind11::exec(fmt::format("def {}(p): return p", function_name()));
-    } else {
+bool PythonFunction::update_function(const std::string &py_code) {
+    try {
+        if (py_code.empty()) {
+            pybind11::exec(fmt::format("def {}(p): return p\n\n", function_name()));
+        } else {
 
-        std::string str(py_code);
-        for (size_t idx = 0; idx != std::string::npos;) {
-            idx = str.find("FUNC_NAME", idx);
-            if (idx == std::string::npos) {
-                break;
+            std::string str(py_code);
+            for (size_t idx = 0; idx != std::string::npos;) {
+                idx = str.find("FUNC_NAME", idx);
+                if (idx == std::string::npos) {
+                    break;
+                }
+                str.replace(idx, 9, function_name());
             }
-            str.replace(idx, 9, function_name());
+            pybind11::exec(str);
         }
-        pybind11::exec(str);
+        // some extra newlines to make sure that the user exited things properly
+        pybind11::exec("\n\n");
+
+        _function = pybind11::module_::import("__main__").attr(function_name().c_str());
+        return true;
+    } catch (std::exception &e) {
+        spdlog::warn("Failed to update function due to an error. Clearing held function:\n {}", e.what());
+        _function = {};
     }
-    // some extra newlines to make sure that the user exited things properly
-    pybind11::exec("\n\n");
-    _function = pybind11::module_::import("__main__").attr(function_name().c_str());
+    return false;
 }
-void PythonFunction::load_library(const std::string &library_name) {
-    pybind11::exec(fmt::format("import {}\n", library_name));
+bool PythonFunction::load_library(const std::string &library_name) {
+    try {
+        pybind11::exec(fmt::format("import {}\n", library_name));
+        return true;
+    } catch (std::exception &e) {
+        spdlog::warn("Failed to load a python library:\n {}", e.what());
+        return false;
+    }
 }
 
 }// namespace mtao::python

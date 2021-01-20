@@ -18,8 +18,8 @@ class PythonFunction {
     PythonFunction(const std::string &py_code = "", const std::vector<std::string> &libraries = { "numpy", "math" });
 
 
-    void update_function(const std::string &py_code);
-    void load_library(const std::string &library_name);
+    bool update_function(const std::string &py_code);
+    bool load_library(const std::string &library_name);
 
     // just forward data
     template<typename... Args>
