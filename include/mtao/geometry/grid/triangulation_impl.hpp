@@ -124,7 +124,7 @@ auto GridTriangulator<GridType>::face_loop(const std::array<size_t, D> &coord, s
 }
 template<typename GridType>
 auto GridTriangulator<GridType>::face_loop(size_t index) const -> std::array<size_t, 4> {
-    auto [coord, type] = g.form_unindex<2>(index);
+    auto [coord, type] = g.template form_unindex<2>(index);
     return face_loop(coord, type);
 }
 
