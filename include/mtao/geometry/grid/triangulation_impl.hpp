@@ -107,16 +107,16 @@ auto GridTriangulator<GridType>::face_loop(const std::array<size_t, D> &coord, s
     if constexpr (D == 2) {
 
         auto [ii, jj] = coord;
-        return std::array<size_t, 4>{ { g.index(ii, jj), g.index(ii + 1, jj), g.index(ii + 1, jj + 1), g.index(ii, jj + 1) } };
+        return std::array<size_t, 4>{ { g.index({{ii, jj}}), g.index({{ii + 1, jj}}), g.index({{ii + 1, jj + 1}}), g.index({{ii, jj + 1}}) } };
     } else if constexpr (D == 3) {
         auto [ii, jj, kk] = coord;
         switch (dim) {
         case 0:
-            return std::array<size_t, 4>{ { g.index(ii, jj, kk), g.index(ii, jj + 1, kk), g.index(ii, jj + 1, kk + 1), g.index(ii, jj, kk + 1) } };
+            return std::array<size_t, 4>{ { g.index({{ii, jj, kk}}), g.index({{ii, jj + 1, kk}}), g.index({{ii, jj + 1, kk + 1}}), g.index({{ii, jj, kk + 1}}) } };
         case 1:
-            return std::array<size_t, 4>{ { g.index(ii, jj, kk), g.index(ii, jj, kk + 1), g.index(ii + 1, jj, kk + 1), g.index(ii + 1, jj, kk) } };
+            return std::array<size_t, 4>{ { g.index({{ii, jj, kk}}), g.index({{ii, jj, kk + 1}}), g.index({{ii + 1, jj, kk + 1}}), g.index({{ii + 1, jj, kk}}) } };
         case 2:
-            return std::array<size_t, 4>{ { g.index(ii, jj, kk), g.index(ii + 1, jj, kk), g.index(ii + 1, jj + 1, kk), g.index(ii, jj + 1, kk) } };
+            return std::array<size_t, 4>{ { g.index({{ii, jj, kk}}), g.index({{ii + 1, jj, kk}}), g.index({{ii + 1, jj + 1, kk}}), g.index({{ii, jj + 1, kk}}) } };
         default:
             return {};
         }
