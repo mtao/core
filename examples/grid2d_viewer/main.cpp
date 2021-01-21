@@ -589,9 +589,7 @@ class MeshViewer : public mtao::opengl::Window2 {
         };
         edge_drawable->activate_triangles({});
         edge_drawable->activate_edges();
-        // face_drawable = new
-        // mtao::opengl::MeshDrawable<Magnum::Shaders::VertexColor2D>{grid,_vcolor_shader,
-        // drawables()};
+        face_drawable = new mtao::opengl::MeshDrawable<Magnum::Shaders::VertexColor2D>{ grid, _vcolor_shader, drawables() };
         grid.setParent(&root());
         cursor_mesh.setParent(&scene());
         cursor_drawable = new mtao::opengl::MeshDrawable<Magnum::Shaders::Flat2D>{

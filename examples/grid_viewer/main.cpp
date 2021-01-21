@@ -53,13 +53,13 @@ class MeshViewer : public mtao::opengl::Window3 {
       : Window3(args),
         _wireframe_shader{
             supportsGeometryShader()
-              ? Magnum::Shaders::MeshVisualizer::Flag::Wireframe
-              : Magnum::Shaders::MeshVisualizer::Flag{}
+              ? Magnum::Shaders::MeshVisualizer3D::Flag::Wireframe
+              : Magnum::Shaders::MeshVisualizer3D::Flag{}
         } {
         bbox.min().setConstant(-1);
         bbox.max().setConstant(1);
         mv_drawable =
-          new mtao::opengl::MeshDrawable<Magnum::Shaders::MeshVisualizer>{
+          new mtao::opengl::MeshDrawable<Magnum::Shaders::MeshVisualizer3D>{
               grid, _wireframe_shader, drawables()
           };
         mv_drawable->set_visibility(false);
@@ -82,6 +82,7 @@ class MeshViewer : public mtao::opengl::Window3 {
               vfield_mesh, _vf_shader, drawables()
           };
 #endif
+        _vf_viewer->set_visibility(false);
         update();
     }
     void update() {
@@ -129,6 +130,10 @@ class MeshViewer : public mtao::opengl::Window3 {
         if (edge_drawable) {
             edge_drawable->gui();
         }
+
+        if (_vf_viewer) {
+            _vf_viewer->gui();
+        }
         if (ImGui::Button("Step")) {
             do_animation();
         }
@@ -143,12 +148,12 @@ class MeshViewer : public mtao::opengl::Window3 {
     }
     */
   private:
-    Magnum::Shaders::MeshVisualizer _wireframe_shader;
+    Magnum::Shaders::MeshVisualizer3D _wireframe_shader;
     Magnum::Shaders::Flat3D _flat_shader;
     mtao::opengl::VectorFieldShader<3> _vf_shader;
     mtao::opengl::objects::Mesh<3> vfield_mesh;
     mtao::opengl::objects::Grid<3> grid;
-    mtao::opengl::MeshDrawable<Magnum::Shaders::MeshVisualizer> *mv_drawable =
+    mtao::opengl::MeshDrawable<Magnum::Shaders::MeshVisualizer3D> *mv_drawable =
       nullptr;
     mtao::opengl::MeshDrawable<Magnum::Shaders::Flat3D> *edge_drawable = nullptr;
 #ifdef FLATIT
