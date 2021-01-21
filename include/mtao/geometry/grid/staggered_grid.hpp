@@ -199,6 +199,7 @@ struct StaggeredGrid {
     size_t uv_index(const coord_type &idx) const {
         return staggered_index<2, 2>(idx);
     }
+    
     size_t vertex_index(const coord_type &idx) const {
         return staggered_index<0, 0>(idx);
     }
@@ -228,6 +229,13 @@ struct StaggeredGrid {
     }
     coord_type cell_unindex(size_t idx) const {
         return staggered_unindex<D, 0>(idx);
+    }
+
+    size_t index(const coord_type &idx) const {
+        return staggered_index<0, 0>(idx);
+    }
+    coord_type unindex(size_t idx) const {
+        return staggered_unindex<0, 0>(idx);
     }
 
     const coord_type &u_shape() const { return staggered_shape<1, 0>(); }
