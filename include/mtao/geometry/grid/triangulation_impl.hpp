@@ -125,7 +125,9 @@ auto GridTriangulator<GridType>::face_loop(const std::array<size_t, D> &coord, s
 template<typename GridType>
 auto GridTriangulator<GridType>::face_loop(size_t index) const -> std::array<size_t, 4> {
     auto [coord, type] = g.template form_unindex<2>(index);
-    return face_loop(coord, type);
+    std::array<size_t> c2;
+    std::copy(coord.begin(),coord.end(),c2);
+    return face_loop(c2, type);
 }
 
 }// namespace mtao::geometry::grid
