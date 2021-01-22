@@ -192,9 +192,9 @@ std::vector<T> triangle_monomial_integrals(
         auto V = (C - A).eval();
         T det = U.cross(V).norm();
 
-        std::cout << "U: " << U.transpose() << std::endl;
-        std::cout << "V: " << V.transpose() << std::endl;
-        std::cout << "A: " << A.transpose() << std::endl;
+        //std::cout << "U: " << U.transpose() << std::endl;
+        //std::cout << "V: " << V.transpose() << std::endl;
+        //std::cout << "A: " << A.transpose() << std::endl;
 
         for (int d = 0; d <= int(max_dim); ++d) {
             mtao::Vec3i exps;
