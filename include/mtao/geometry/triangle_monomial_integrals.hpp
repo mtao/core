@@ -287,7 +287,7 @@ std::vector<T> triangle_monomial_integrals(
                         }
                     }
                     //std::cout << "p^(" << exps.transpose() << ") = " << (value * det) << std::endl;
-                    std::cout << std::endl;
+                    //std::cout << std::endl;
                     ret.emplace_back(value * det);
                 }
             }
