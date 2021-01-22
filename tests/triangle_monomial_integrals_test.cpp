@@ -167,7 +167,7 @@ TEST_CASE("triangle_monomials3", "[trigonometry]") {
 
     CHECK(get_integral(1, 0) == Approx(1. / 6));
     CHECK(get_integral(1, 1) == Approx(1. / 6));
-    CHECK(get_integral(1, 2) == Approx(1. / 2));// constant function
+    CHECK(get_integral(1, 2) == Approx(0.0));// constant function
 
     // CHECK(get_integral(2, 0) == Approx(1. / 12));
     // CHECK(get_integral(2, 1) == Approx(1. / 24));

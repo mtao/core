@@ -35,10 +35,11 @@ TEST_CASE("tetrahedron_monomials", "[trigonometry]") {
         return integrals2[k];
     };
     /*
-    CHECK(get_integral(0, 0) == Approx(1 * .5));
+    CHECK(get_integral(0, 0) == Approx(1. / 6));
 
     CHECK(get_integral(1, 0) == Approx(1. / 6));
     CHECK(get_integral(1, 1) == Approx(1. / 6));
+    CHECK(get_integral(1, 2) == Approx(1. / 6));
 
     CHECK(get_integral(2, 0) == Approx(1. / 12));
     CHECK(get_integral(2, 1) == Approx(1. / 24));
