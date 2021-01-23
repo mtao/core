@@ -60,6 +60,7 @@ ADD_CATCHTEST(linalg
     gram_schmidt_test.cpp
     krylov_tests.cpp
     solver_tests.cpp
+    matrix_islands_test.cpp
     )
 
 ADD_CATCHTEST(algebra
@@ -144,10 +145,12 @@ ADD_MYTEST(tuple_call_test tuple_call_test.cpp)
 
 
 
+if(MTAO_USE_PYTHON)
 ADD_EXECUTABLE(python_function_test EXCLUDE_FROM_ALL python_function_test.cpp)
 TARGET_LINK_LIBRARIES(python_function_test  mtao::python)
 set_target_properties(python_function_test PROPERTIES CXX_VISIBILITY_PRESET
     hidden)
+endif()
 
 ADD_EXECUTABLE(halfedge_test EXCLUDE_FROM_ALL halfedge_test.cpp)
 TARGET_LINK_LIBRARIES(halfedge_test  mtao::geometry)

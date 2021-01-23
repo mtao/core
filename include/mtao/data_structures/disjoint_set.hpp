@@ -4,7 +4,9 @@
 #include <vector>
 #include <map>
 #include <optional>
+#include <set>
 #include <iostream>
+#include "mtao/iterator/enumerate.hpp"
 
 namespace mtao {
 namespace data_structures {
@@ -75,6 +77,21 @@ namespace data_structures {
             }
             return ret;
         }
+        std::vector<std::set<Data>> 
+            as_flat_sets() const {
+                std::map<Data,size_t> root_idx_map;
+                for(auto&& [idx,root]: mtao::iterator::enumerate(root_indices())) {
+                    root_idx_map[root] = idx;
+                }
+                std::vector<std::set<Data>> ret(root_idx_map.size());
+                for(auto&& [index,node]: mtao::iterator::enumerate(nodes)) {
+                    const Node& root_node = get_root_from_idx(index);
+                    size_t pool = root_idx_map.at(root_node.data);
+                    ret[pool].emplace(node.data);
+                }
+                return ret;
+
+            }
         void reduce_all() {
             for (size_t i = 0; i < nodes.size(); ++i) {
                 reduce_idx(i);
