@@ -182,7 +182,9 @@ target_include_directories(mtao_headers INTERFACE
 )
 TARGET_LINK_LIBRARIES(mtao_headers PUBLIC INTERFACE Eigen3::Eigen range-v3)
 
-ADD_LIBRARY(mtao_common 
+
+set(MTAO_COMMON_SRCS
+
     include/mtao/logging/logger.hpp
     include/mtao/logging/timer.hpp
     include/mtao/logging/profiler.hpp
@@ -192,14 +194,22 @@ ADD_LIBRARY(mtao_common
     src/logging/profiler.cpp
     src/cmdline_parser.cpp
     src/algebra/pascal_triangle.cpp
-    src/utils/corrade_configuration_json_interchange.cpp
     src/utils/get_relative_path.cpp
+    )
+
+if(MTAO_USE_JSON)
+    set(MTAO_COMMON_SRCS ${MTAO_COMMON_SRCS}
+        src/utils/corrade_configuration_json_interchange.cpp)
+endif()
+ADD_LIBRARY(mtao_common 
+    ${MTAO_COMMON_SRCS}
     )
 
 set_property(TARGET mtao_common PROPERTY CXX_STANDARD 20)
 
 TARGET_LINK_LIBRARIES(mtao_common PUBLIC mtao_headers Eigen3::Eigen
-    spdlog::spdlog fmt Corrade::Utility std::filesystem)
+    spdlog::spdlog fmt Corrade::Utility std::filesystem
+    nlohmann_json::nlohmann_json)
 
 if(MTAO_USE_TBB)
     TARGET_LINK_LIBRARIES(mtao_headers INTERFACE PkgConfig::tbb)
