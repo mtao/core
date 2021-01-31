@@ -1,12 +1,14 @@
 #include <iostream>
 #include <iterator>
 #include <array>
+#include <mutex>
 #include <mtao/geometry/grid/grid_utils.h>
 #include <set>
+#include <fmt/printf.h>
 #include <catch2/catch.hpp>
 
 
-TEST_CASE("Multi loops", "[multiloop]") {
+TEST_CASE("multi_loops", "[multiloop]") {
     std::array<int, 3> begin, end;
     std::fill(begin.begin(), begin.end(), 5);
     end[0] = 10;
@@ -25,6 +27,23 @@ TEST_CASE("Multi loops", "[multiloop]") {
                 REQUIRE(begin[j] <= idx[j]);
                 REQUIRE(idx[j] < end[j]);
             }
+        });
+        REQUIRE(seen.size() == 5 * 6 * 7);
+    }
+
+    {
+        std::set<std::array<int, 3>> seen;
+        std::mutex seen_mut;
+        mtao::geometry::grid::utils::multi_loop_parallel(begin, end, [&](auto &&idx) {
+            {
+                std::scoped_lock lock(seen_mut);
+                seen.insert(idx);
+            }
+            for (int j = 0; j < 3; ++j) {
+                REQUIRE(begin[j] <= idx[j]);
+                REQUIRE(idx[j] < end[j]);
+            }
+            //fmt::print("{} {} {}\n", idx[0], idx[1], idx[2]);
         });
         REQUIRE(seen.size() == 5 * 6 * 7);
     }
