@@ -24,7 +24,10 @@ jobs:
                 command: 'apt-get install -y libeigen3-dev libblas-dev liblapack-dev'
             - run:
                 name: Installing graphics libs
-                command: 'apt-get install -y libglfw3-dev libgl-dev libpng++-dev libxinerama-dev xorg-dev freeglut3-dev'
+                command: 'apt-get install -y libglfw3-dev libgl-dev libpng++-dev libxinerama-dev xorg-dev'
+            - run:
+                name: Installing partio libs
+                command: 'apt-get install -y python3-dev freeglut3-dev'
             - run:
                 name: Making CMake build files
                 command: 'cmake -H. -Bbuild -DBUILD_TESTING=ON -DCMAKE_BUILD_TYPE="Debug" -DMTAO_USE_PYTHON=OFF'
