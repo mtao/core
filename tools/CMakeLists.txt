@@ -18,4 +18,13 @@ TARGET_LINK_LIBRARIES(vdb_to_mesh mtao::geometry cxxopts openvdb)
 ADD_EXECUTABLE(mesh_to_vdb mesh_to_vdb.cpp)
 TARGET_LINK_LIBRARIES(mesh_to_vdb mtao::geometry cxxopts openvdb)
 endif()
+
+if(MTAO_USE_PARTIO)
+ADD_EXECUTABLE(partio_to_obj partio_to_obj.cpp)
+TARGET_LINK_LIBRARIES(partio_to_obj mtao::geometry cxxopts openvdb)
+ADD_EXECUTABLE(partio_to_arrow_obj partio_to_arrow_obj.cpp)
+TARGET_LINK_LIBRARIES(partio_to_arrow_obj mtao::geometry cxxopts openvdb tbb)
+ADD_EXECUTABLE(xyz_to_partio xyz_to_partio.cpp)
+TARGET_LINK_LIBRARIES(xyz_to_partio mtao::geometry cxxopts openvdb)
+endif()
 #Half Iex IexMath IlmThread Imath tbb

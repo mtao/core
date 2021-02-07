@@ -4,6 +4,7 @@ set(NLOHMANN_JSON_COMMIT
  v3.9.1
     )
 set(PYBIND_COMMIT v2.6.1)
+set(PARTIO_COMMIT v1.14.0)
 # MAGNUM SETTINGS
 option(BUILD_TESTS "Build tests (for mosra libs)" OFF)
 option(BUILD_TESTSUITE "Build test suite library (mosra)" OFF)
@@ -181,5 +182,13 @@ if(MTAO_USE_PYTHON)
     find_package(pybind11 QUIET)
     if(NOT pybind11_FOUND)
         fetch_dep(pybind11 https://github.com/pybind/pybind11.git ${PYBIND_COMMIT} ON)
+    endif()
+endif()
+
+if(MTAO_USE_PARTIO)
+    find_package(partio QUIET)
+    if(NOT partio_FOUND)
+        fetch_dep(partio https://github.com/wdas/partio.git ${PARTIO_COMMIT}
+            ON)
     endif()
 endif()

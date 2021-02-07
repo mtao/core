@@ -41,6 +41,7 @@ OPTION(MTAO_FORCE_LOCAL_GLFW "Build our own version of GLFW" OFF)
 OPTION(MTAO_USE_OPENVDB "Build openvdb stuff" OFF)
 OPTION(MTAO_USE_PNGPP "Use PNG++ for screenshots" ON)
 OPTION(MTAO_USE_JSON "Use json" ON)
+OPTION(MTAO_USE_PARTIO "Use partio" ON)
 
 # https://medium.com/@alasher/colored-c-compiler-output-with-ninja-clang-gcc-10bfe7f2b949
 option (MTAO_FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only and affects global compile_options)." OFF)
@@ -322,6 +323,10 @@ IF(MTAO_USE_OPENGL)
     SET(GEOMETRY_SRCS ${GEOMETRY_SRCS}
         src/geometry/mesh/triangle/triangle_wrapper_imgui.cpp)
 ENDIF(MTAO_USE_OPENGL)
+IF(MTAO_USE_PARTIO)
+    SET(GEOMETRY_SRCS ${GEOMETRY_SRCS}
+        src/geometry/point_cloud/partio_loader.cpp)
+ENDIF(MTAO_USE_PARTIO)
 
 ADD_LIBRARY(mtao_geometry 
     ${GEOMETRY_SRCS}
@@ -353,6 +358,10 @@ IF(MTAO_USE_LOSTOPOS)
 ENDIF(MTAO_USE_LOSTOPOS)
 TARGET_LINK_LIBRARIES(mtao_geometry PUBLIC mtao_common ${OpenMP_TARGET} PRIVATE triangle ${GEOMETRY_EXTRAS})
 TARGET_INCLUDE_DIRECTORIES(mtao_geometry PRIVATE ${triangle_INCLUDE_DIR})
+
+IF(MTAO_USE_PARTIO)
+    target_link_libraries(mtao_geometry PRIVATE partio)
+endif(MTAO_USE_PARTIO)
 
 
 #SET(MTAO_EXT_LIBS mtao::common mtao::opengl mtao::geometry)
