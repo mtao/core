@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <concepts>
 #if defined(MTAO_USE_RANGESv3)
 #include <ranges>
 #endif
@@ -73,20 +74,20 @@ template<typename T, int D>
 auto shell(T c[D]) {
     return shell(c, c + D);
 }
-template<typename T>
-auto shell(T *c, int D) {
-    return shell(c, c + D);
+template<typename T, std::integral Index>
+auto shell(T *c, Index D) {
+    return detail::shell_container<T *, T *>(std::forward<T *>(c), std::forward<T *>(c + D));
 }
-template<typename T>
-auto shell(const T *c, int D) {
-    return shell(c, c + D);
+template<typename T, std::integral Index>
+auto shell(const T *c, Index D) {
+    return detail::shell_container<const T *, const T *>(std::forward<const T *>(c), std::forward<const T *>(c + D));
 }
-template<typename T, typename Deleter>
-auto shell(std::unique_ptr<T[], Deleter> &c, int D) {
+template<typename T, typename Deleter, std::integral Index>
+auto shell(std::unique_ptr<T[], Deleter> &c, Index D) {
     return shell(c.get(), D);
 }
-template<typename T, typename Deleter>
-auto shell(const std::unique_ptr<T[], Deleter> &c, int D) {
+template<typename T, typename Deleter, std::integral Index>
+auto shell(const std::unique_ptr<T[], Deleter> &c, Index D) {
     return shell(c.get(), D);
 }
 }// namespace mtao::iterator

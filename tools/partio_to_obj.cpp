@@ -15,18 +15,16 @@ int main(int argc, char *argv[]) {
 
     } else {
         spdlog::info("Showing particles with velocities");
-        auto [P,V] = mtao::geometry::point_cloud::points_and_velocity_from_partio(input_filename);
+        auto [P, V] = mtao::geometry::point_cloud::points_and_velocity_from_partio(input_filename);
 
 
         int stride = P.cols();
 
-        mtao::ColVecs2i E(2,stride);
-        E.row(0) = mtao::VecXi::LinSpaced(stride,0,stride-1).transpose();
+        mtao::ColVecs2i E(2, stride);
+        E.row(0) = mtao::VecXi::LinSpaced(stride, 0, stride - 1).transpose();
         E.row(1) = stride + E.row(0).array();
 
-        std::cout << P.leftCols(20) << std::endl << std::endl;
-        std::cout << V.leftCols(20) << std::endl << std::endl;
 
-        mtao::geometry::mesh::write_objD(mtao::eigen::hstack(P,P+V), E, output_filename);
+        mtao::geometry::mesh::write_objD(mtao::eigen::hstack(P, P + V), E, output_filename);
     }
 }

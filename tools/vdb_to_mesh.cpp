@@ -1,5 +1,6 @@
 #include <openvdb/openvdb.h>
 #include <openvdb/tools/VolumeToMesh.h>
+#include <fstream>
 
 #include <cxxopts.hpp>
 #include <mtao/iterator/enumerate.hpp>
@@ -62,6 +63,7 @@ int main(int argc, char *argv[]) {
     bool quads = result["quads"].as<bool>();
     bool relaxDisorientedTriangles = result["relax_tris"].as<bool>();
     std::string vdb_file = result["vdb_file"].as<std::string>();
+    std::string output = result["output"].as<std::string>();
     std::string type = result["type"].as<std::string>();
     double isolevel = result["isolevel"].as<double>();
     double adaptivity = result["adaptivity"].as<double>();
@@ -111,7 +113,7 @@ int main(int argc, char *argv[]) {
 
     auto run = [&](auto &&grid) {
         using GridType = std::decay_t<decltype(grid)>;
-        using Scalar = GridType::ValueType;
+        using Scalar = typename GridType::ValueType;
         openvdb::tools::VolumeToMesh vtm(isolevel, adaptivity, relaxDisorientedTriangles);
         if (mask_grid) {
             vtm.setSurfaceMask(mask_grid);
@@ -120,23 +122,50 @@ int main(int argc, char *argv[]) {
             vtm.setSpatialAdaptivity(adaptivity_grid);
         }
 
-        vtm(*grid);
-        mtao::ColVectors<Scalar, 3> V(3, vtm.pointListSize());
-        auto pts = vtm.pointList();
-        for (auto &&[idx, pt] :
-             mtao::iterator::enumerate(mtao::iterator::shell(pts))) {
+        std::ofstream ofs(output);
+        vtm(grid);
+        //mtao::ColVectors<Scalar, 3> V(3, vtm.pointListSize());
+        const auto &pts = vtm.pointList();
+        for (auto &&pt :
+             mtao::iterator::shell(pts.get(), vtm.pointListSize())) {
+            //V.col(idx) << pt.x(),pt.y(),pt.z();
+            ofs << "v " << pt.x() << " " << pt.y() << " " << pt.z() << "\n";
         }
-        mtao::ColVectors<Scalar, 3> V(3, vtm.pointListSize());
-        auto pts = vtm.pointList();
-        for (auto &&[idx, pt] :
-             mtao::iterator::enumerate(mtao::iterator::shell(pts))) {
+
+        const auto &polys = vtm.polygonPoolList();
+
+        //size_t triangle_size = 0;
+        //for (auto &&poly :
+        //         mtao::iterator::shell(polys,vtm.pointListSize())) {
+        //    triangle_size += 2 * poly.numQuads() + poly.numTriangles();
+        //}
+        //mtao::ColVectors<int, 3> F(3, triangle_size);
+        //int index = 0;
+        for (auto &&poly :
+             mtao::iterator::shell(polys.get(), vtm.polygonPoolListSize())) {
+            for (size_t j = 0; j < poly.numQuads(); ++j) {
+                const auto &q = poly.quad(j);
+                //F.col(index++) << q[0], q[1], q[2];
+                //F.col(index++) << q[2], q[3], q[0];
+                if (quads) {
+                    ofs << "f " << q(0) + 1 << " " << q(1) + 1 << " " << q(2) + 1 << " " << q(3) << "\n";
+                } else {
+                    ofs << "f " << q(0) + 1 << " " << q(1) + 1 << " " << q(2) + 1 << "\n";
+                    ofs << "f " << q(2) + 1 << " " << q(3) + 1 << " " << q(0) + 1 << "\n";
+                }
+            }
+            for (size_t j = 0; j < poly.numTriangles(); ++j) {
+                const auto &t = poly.triangle(j);
+                //F.col(index++) << t[0], t[1], t[2];
+                ofs << "f " << t(0) + 1 << " " << t(1) + 1 << " " << t(2) + 1 << "\n";
+            }
         }
     };
 
     if (grid->type() == "Tree_float_5_4_3") {
-        run(std::static_pointer_cast<openvdb::FloatGrid>(grid));
+        run(*std::static_pointer_cast<openvdb::FloatGrid>(grid));
     } else if (grid->type() == "Tree_double_5_4_3") {
-        run(std::static_pointer_cast<openvdb::DoubleGrid>(grid));
+        run(*std::static_pointer_cast<openvdb::DoubleGrid>(grid));
 
     } else {
         std::cerr << "Unknown tree type! pass in float or double grids!: "

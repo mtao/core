@@ -13,19 +13,28 @@ std::array<mtao::ColVectors<T, 3>, 2> read_xyz(const std::string &filename) {
 
     std::ifstream ifs(filename);
 
-    for (std::string line; std::getline(ifs, line);) {
+    std::string line;
+    int count = 0;
+    std::getline(ifs, line);
+    count = std::stof(line);
+    // comment line
+    std::getline(ifs, line);
+    
+
+    for (int j = 0; std::getline(ifs, line) && j < count; ++j) {
         std::istringstream iss(line);
         std::vector<std::string> tokens;
         std::copy(std::istream_iterator<std::string>(iss), std::istream_iterator<std::string>(), std::back_insert_iterator<std::vector<std::string>>(tokens));
 
-        int linelen = std::min<int>(tokens.size(), 6);
+        int linelen = std::min<int>(tokens.size()-1, 6);
         if (linelen < 3) {
             continue;
         }
         min_linelen = std::min(linelen, min_linelen);
         std::array<T, 6> V;
         std::fill(V.begin(), V.end(), 0);
-        std::transform(tokens.begin(), tokens.begin() + linelen, V.begin(), [&](const std::string &s) {
+        auto startit = tokens.begin()+1;
+        std::transform(startit, tokens.begin() + linelen, V.begin(), [&](const std::string &s) {
             return std::stof(s);
         });
         lines.emplace_back(V);

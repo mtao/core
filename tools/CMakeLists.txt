@@ -26,5 +26,10 @@ ADD_EXECUTABLE(partio_to_arrow_obj partio_to_arrow_obj.cpp)
 TARGET_LINK_LIBRARIES(partio_to_arrow_obj mtao::geometry cxxopts openvdb tbb)
 ADD_EXECUTABLE(xyz_to_partio xyz_to_partio.cpp)
 TARGET_LINK_LIBRARIES(xyz_to_partio mtao::geometry cxxopts openvdb)
+
+if(MTAO_USE_OPENVDB)
+ADD_EXECUTABLE(partio_to_vdb_points partio_to_vdb_points.cpp)
+TARGET_LINK_LIBRARIES(partio_to_vdb_points mtao::geometry cxxopts openvdb)
+endif()
 endif()
 #Half Iex IexMath IlmThread Imath tbb
