@@ -7,24 +7,13 @@
 #include "mtao/algebra/partial_order_to_dag.hpp"
 #include "mtao/geometry/mesh/edges_to_plcurves.hpp"
 #include "mtao/geometry/winding_number.hpp"
+#include "mtao/geometry/mesh/polygon_boundary.hpp"
 
 namespace mtao::geometry::mesh {
 
 // converts a collection of curves represented as pairs of indices in E into a
 // collection of closed polygons. This function supports general polygons, which
 // are demarked as an outer boundary loop + the holes inside of it
-struct PolygonBoundaryIndices : std::vector<int> {
-    using std::vector<int>::vector;
-    PolygonBoundaryIndices() = default;
-    PolygonBoundaryIndices(const PolygonBoundaryIndices &) = default;
-    PolygonBoundaryIndices(PolygonBoundaryIndices &&) = default;
-    PolygonBoundaryIndices &operator=(const PolygonBoundaryIndices &) = default;
-    PolygonBoundaryIndices &operator=(PolygonBoundaryIndices &&) = default;
-    PolygonBoundaryIndices(std::vector<int> b,
-                           std::set<std::vector<int>> h = {})
-      : std::vector<int>{ std::move(b) }, holes{ std::move(h) } {}
-    std::set<std::vector<int>> holes;
-};
 template<typename VDerived>
 std::vector<PolygonBoundaryIndices> edges_to_polygons(
   const Eigen::MatrixBase<VDerived> &V,

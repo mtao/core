@@ -44,6 +44,7 @@ ADD_CATCHTEST(geometry
     winding_number_test.cpp
     edges_to_polygons_test.cpp
     earclipping_test.cpp
+    triangulation_test.cpp
     )
 target_link_libraries(geometry_test PRIVATE mtao::geometry)
 
@@ -54,6 +55,7 @@ ADD_CATCHTEST(eigen
     sparse_diagonal_repmats_test.cpp
     diagonal_to_sparse_test.cpp
     shape_check_tests.cpp
+    solid_angle_test.cpp
     )
 
 ADD_CATCHTEST(linalg
@@ -104,7 +106,6 @@ ADD_MYTEST(graph_boundary_test graph_boundary_test.cpp)
 ADD_MYTEST(sphere_test sphere_test.cpp)
 ADD_MYTEST(area_normals_test area_normals_test.cpp)
 ADD_MYTEST(mean_curvature_normals_test mean_curvature_normals_test.cpp)
-ADD_MYTEST(triangulation_test triangulation_test.cpp)
 ADD_MYTEST(vertex_normals_test vertex_normals_test.cpp)
 ADD_MYTEST(type_size_test type_size_test.cpp)
 #ADD_MYTEST(copyable_unique_ptr_test copyable_unique_ptr_test.cpp)
@@ -119,7 +120,6 @@ ADD_MYTEST(slice_filter_test slice_filter_test.cpp)
 ADD_MYTEST(barycentric_test barycentric_test.cpp)
 ADD_MYTEST(barycentric_matrix_test barycentric_matrix_test.cpp)
 #ADD_MYTEST(spherical_mean_value_test spherical_mean_value_test.cpp)
-ADD_MYTEST(solid_angle_test solid_angle_test.cpp)
 ADD_MYTEST(mesh_bary_test mesh_bary_test.cpp)
 ADD_MYTEST(kdtree_test kdtree_test.cpp)
 ADD_MYTEST(vertex_pruning_test vertex_pruning_test.cpp)

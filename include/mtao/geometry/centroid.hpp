@@ -12,6 +12,7 @@
 namespace mtao::geometry {
 /// \brief a 2D centroid evaluator for boundary curves
 /// \param V A ColVector of 2d or points
+/// In 2d this works with immersions because triangle_area is signed, in 3d not so much
 template<typename Derived, typename BeginIt, typename EndIt>
 auto curve_centroid(const Eigen::MatrixBase<Derived> &V, const BeginIt &beginit, const EndIt &endit) {
     eigen::row_check_with_throw(V, std::integer_sequence<int, 2, 3>{});
