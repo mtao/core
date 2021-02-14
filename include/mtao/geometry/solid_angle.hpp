@@ -37,6 +37,8 @@ auto solid_angle(const AType &a,
 
 template<eigen::concepts::SquareMatrix3Compatible MType>
 auto solid_angle(const MType &M) -> typename MType::Scalar {
+
+    eigen::shape_check_with_throw<3, 3>(M);
     auto num = M.determinant();
     auto B = M.transpose() * M;
     auto C = B.diagonal().cwiseSqrt().eval();
@@ -64,10 +66,13 @@ auto solid_angle_mesh(const VType &V,
 // Some convenience versions for when passing in a point to check
 template<eigen::concepts::ColVecs3Compatible VType,
          eigen::concepts::ColVecs3Compatible FType,
-         eigen::concepts::ColVecs3Compatible PType>
+         eigen::concepts::Vec3Compatible PType>
 auto solid_angle_mesh(const VType &V,
                       const FType &F,
                       const PType &p) {
+    eigen::row_check_with_throw<3>(V);
+    eigen::row_check_with_throw<3>(F);
+    eigen::shape_check_with_throw<3, 1>(p);
     return solid_angle_mesh((V.colwise() - p).eval(), F);
 }
 
@@ -75,11 +80,15 @@ template<
   eigen::concepts::Vec3Compatible AType,
   eigen::concepts::Vec3Compatible BType,
   eigen::concepts::Vec3Compatible CType,
-  eigen::concepts::Vec3Compatible DType>
+  eigen::concepts::Vec3Compatible PType>
 auto solid_angle(const AType &a,
                  const BType &b,
                  const CType &c,
-                 const DType &p) {
+                 const PType &p) {
+    eigen::shape_check_with_throw<3, 1>(a);
+    eigen::shape_check_with_throw<3, 1>(b);
+    eigen::shape_check_with_throw<3, 1>(c);
+    eigen::shape_check_with_throw<3, 1>(p);
     return solid_angle(a - p, b - p, c - p);
 }
 
@@ -87,6 +96,9 @@ template<eigen::concepts::SquareMatrix3Compatible MType, eigen::concepts::ColVec
 auto solid_angle(const MType &M,
                  const PType &p) {
     static_assert(std::is_floating_point_v<typename PType::Scalar>);
+
+    eigen::shape_check_with_throw<3, 3>(M);
+    eigen::shape_check_with_throw<3, 1>(p);
     return solid_angle((M.colwise() - p).eval());
 }
 }// namespace mtao::geometry
