@@ -1,132 +1,132 @@
 #pragma once
 #include <Eigen/Core>
-#include <cassert>
 #include "mtao/eigen/concepts.hpp"
+#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 namespace mtao::eigen {
 
 namespace concepts {
     template<int R, typename T>
-    concept RowCompatible = DenseBaseDerived<T> && (T::RowsAtCompileTime == R || T::RowsAtCompileTime == Eigen::Dynamic);
+    concept RowCompatible = DenseBaseDerived<T> && ((T::RowsAtCompileTime == R)  || (T::RowsAtCompileTime == Eigen::Dynamic));
     template<int C, typename T>
-    concept ColCompatible = DenseBaseDerived<T> && (T::ColsAtCompileTime == C || T::ColsAtCompileTime == Eigen::Dynamic);
+    concept ColCompatible = DenseBaseDerived<T> && ((T::ColsAtCompileTime == C)  || (T::ColsAtCompileTime == Eigen::Dynamic));
     template<int R, int C, typename T>
     concept ShapeCompatible = DenseBaseDerived<T> &&RowCompatible<R, T> &&ColCompatible<C, T>;
 
 
     template<typename T>
-    concept ColVecs2Compatible = RowCompatible<2, T>;
+    concept ColVecs2Compatible = MatrixBaseDerived<T> &&RowCompatible<2, T>;
     template<typename T>
-    concept ColVecs3Compatible = RowCompatible<3, T>;
+    concept ColVecs3Compatible = MatrixBaseDerived<T> &&RowCompatible<3, T>;
     template<typename T>
-    concept ColVecs4Compatible = RowCompatible<4, T>;
+    concept ColVecs4Compatible = MatrixBaseDerived<T> &&RowCompatible<4, T>;
 
 
     // TODO: will i someday figureo ut how to template this?
     template<typename T>
-    concept RowVecs2Compatible = ColCompatible<2, T>;
+    concept RowVecs2Compatible = MatrixBaseDerived<T> &&ColCompatible<2, T>;
     template<typename T>
-    concept RowVecs3Compatible = ColCompatible<3, T>;
+    concept RowVecs3Compatible = MatrixBaseDerived<T> &&ColCompatible<3, T>;
     template<typename T>
-    concept RowVecs4Compatible = ColCompatible<4, T>;
+    concept RowVecs4Compatible = MatrixBaseDerived<T> &&ColCompatible<4, T>;
+
 
     template<typename T>
-    concept Vec2Compatible = ShapeCompatible<2, 1, T>;
+    concept VecCompatible = MatrixBaseDerived<T> &&RowCompatible<1, T>;
+
     template<typename T>
-    concept Vec3Compatible = ShapeCompatible<3, 1, T>;
+    concept RowVecCompatible = ColCompatible<1, T>;
+
+    template<int R, typename T>
+    concept VecDCompatible = MatrixBaseDerived<T> &&ShapeCompatible<R, 1, T>;
+
     template<typename T>
-    concept Vec4Compatible = ShapeCompatible<4, 1, T>;
+    concept Vec2Compatible = VecDCompatible<2, T>;
+    template<typename T>
+    concept Vec3Compatible = VecDCompatible<3, T>;
+    template<typename T>
+    concept Vec4Compatible = VecDCompatible<4, T>;
+
+
+
 
 }// namespace concepts
 // These functions return in case asserts are disabled
-template<int... Cs, typename Derived>
-constexpr bool col_check_with_assert(const Eigen::MatrixBase<Derived> &N,
+template<int... Cs, typename MatType>
+requires (concepts::ColCompatible<Cs, MatType> || ... || false )
+constexpr bool col_check_oneof(const MatType &N,
                                      std::integer_sequence<int, Cs...>) {
-    constexpr int cols = Derived::ColsAtCompileTime;
-    static_assert(((cols == Cs) || ... || (cols == Eigen::Dynamic)));
+
+    constexpr int cols = MatType::ColsAtCompileTime;
     if constexpr (cols == Eigen::Dynamic) {
-        bool value = ((N.cols() == Cs) || ... || true);
-        assert(value);
-        return value;
+        return ((N.cols() == Cs) || ... || false);
     }
-    return ((Cs == cols) || ... || true);
+    return true;
 }
 
-template<int... Rs, typename Derived>
-constexpr bool row_check_with_assert(const Eigen::MatrixBase<Derived> &N,
+template<int... Rs, typename MatType>
+requires (concepts::RowCompatible<Rs, MatType> || ... || false) 
+constexpr bool row_check_oneof(const MatType &N,
                                      std::integer_sequence<int, Rs...>) {
-    constexpr int rows = Derived::RowsAtCompileTime;
-    static_assert(((rows == Rs) || ... || (rows == Eigen::Dynamic)));
+    constexpr int rows = MatType::RowsAtCompileTime;
     if constexpr (rows == Eigen::Dynamic) {
-        bool value = ((N.rows() == Rs) || ... || true);
-        assert(value);
-        return value;
+        return ((N.rows() == Rs) || ... || false);
     }
-    return ((Rs == rows) || ... || true);
-}
-template<int... Rs, int... Cs, typename Derived>
-constexpr bool shape_check_with_assert(const Eigen::MatrixBase<Derived> &N,
-                                       std::integer_sequence<int, Rs...> rows,
-                                       std::integer_sequence<int, Cs...> cols) {
-    return row_check_with_assert<Rs...>(N, rows) && col_check_with_assert<Cs...>(N, cols);
+    return true;
 }
 
-// These functions return in case asserts are disabled
-template<int... Cs, typename Derived>
-constexpr bool col_check(const Eigen::MatrixBase<Derived> &N,
-                         std::integer_sequence<int, Cs...>) {
-    constexpr int cols = Derived::ColsAtCompileTime;
-    if constexpr (cols == Eigen::Dynamic) {
-        return ((N.cols() == Cs) || ... || true);
-    }
-    return ((Cs == cols) || ... || true);
+template<int C, typename MatType>
+requires concepts::ColCompatible<C, MatType> constexpr bool col_check(const MatType &N) {
+    return col_check_oneof(N,std::integer_sequence<int,C>{});
 }
 
-template<int... Rs, typename Derived>
-constexpr bool row_check(const Eigen::MatrixBase<Derived> &N,
-                         std::integer_sequence<int, Rs...>) {
-    constexpr int rows = Derived::RowsAtCompileTime;
-    if constexpr (rows == Eigen::Dynamic) {
-        bool value = ((N.rows() == Rs) || ... || true);
-        assert(value);
-        return value;
-    }
-    return ((Rs == rows) || ... || true);
+template<int R, typename MatType>
+requires concepts::RowCompatible<R, MatType> constexpr bool row_check(const MatType &N) {
+    return row_check_oneof(N,std::integer_sequence<int,R>{});
 }
-template<int... Rs, int... Cs, typename Derived>
-constexpr bool shape_check(const Eigen::MatrixBase<Derived> &N,
-                           std::integer_sequence<int, Rs...> rows,
-                           std::integer_sequence<int, Cs...> cols) {
-    return row_check<Rs...>(N, rows) && col_check<Cs...>(N, cols);
-}
-
-// These functions return in case asserts are disabled
-template<int C, typename Derived>
-constexpr bool col_check_with_assert(const Eigen::MatrixBase<Derived> &N) {
-    return col_check_with_assert(N, std::integer_sequence<int, C>{});
-}
-
-template<int R, typename Derived>
-constexpr bool row_check_with_assert(const Eigen::MatrixBase<Derived> &N) {
-    return row_check_with_assert(N, std::integer_sequence<int, R>{});
-}
-template<int R, int C, typename Derived>
-constexpr bool shape_check_with_assert(const Eigen::MatrixBase<Derived> &N) {
-    return row_check_with_assert<R>(N) && col_check_with_assert<C>(N);
-}
-
-// These functions return in case asserts are disabled
-template<int C, typename Derived>
-constexpr bool col_check(const Eigen::MatrixBase<Derived> &N) {
-    return col_check(N, std::integer_sequence<int, C>{});
-}
-
-template<int R, typename Derived>
-constexpr bool row_check(const Eigen::MatrixBase<Derived> &N) {
-    return row_check(N, std::integer_sequence<int, R>{});
-}
-template<int R, int C, typename Derived>
-constexpr bool shape_check(const Eigen::MatrixBase<Derived> &N) {
+template<int R, int C, typename MatType>
+constexpr bool shape_check(const MatType &N) {
     return row_check<R>(N) && col_check<C>(N);
+}
+
+template<int C, typename MatType>
+requires concepts::ColCompatible<C, MatType> constexpr void col_check_with_throw(const MatType &N) {
+    if (!col_check<C>(N)) {
+        throw std::invalid_argument(fmt::format("Col check: wrong size, got {} expected {}", N.cols(), C));
+    }
+}
+
+template<int R, typename MatType>
+requires concepts::RowCompatible<R, MatType> constexpr void row_check_with_throw(const MatType &N) {
+
+    if (!row_check<R>(N)) {
+        throw std::invalid_argument(fmt::format("Row check: wrong size, got {} expected {}", N.rows(), R));
+    }
+}
+template<int R, int C, typename MatType>
+constexpr void shape_check_with_throw(const MatType &N) {
+    row_check_with_throw<R>(N) && col_check_with_throw<C>(N);
+}
+
+template<int... C, typename MatType>
+constexpr void col_check_with_throw(const MatType &N, std::integer_sequence<int,C...> Seq) {
+    if (!col_check_oneof(N, Seq)) {
+        std::string msg = fmt::format("Col check: wrong size, got {} expected one of {}", N.cols(), std::make_tuple(C...));
+        throw std::invalid_argument(msg);
+    }
+}
+
+template<int... R, typename MatType>
+constexpr void row_check_with_throw(const MatType &N,std::integer_sequence<int,R...> Seq) {
+
+    if (!row_check_oneof(N,Seq)) {
+        std::string msg = fmt::format("Row check: wrong size, got {} expected {}", N.rows(), std::make_tuple(R...));
+        throw std::invalid_argument(msg);
+    }
+}
+template<int... R, int... C, typename MatType>
+constexpr void shape_check_with_throw(const MatType &N,std::integer_sequence<int,R...> RSeq,std::integer_sequence<int,C...> CSeq) {
+    row_check_with_throw(N,RSeq) && col_check_with_throw(N,CSeq);
 }
 }// namespace mtao::eigen

@@ -53,6 +53,7 @@ ADD_CATCHTEST(eigen
     sparse_blocks_test.cpp
     sparse_diagonal_repmats_test.cpp
     diagonal_to_sparse_test.cpp
+    shape_check_tests.cpp
     )
 
 ADD_CATCHTEST(linalg

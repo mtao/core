@@ -2,6 +2,7 @@
 #define VOLUME_H
 #include <cassert>
 #include <numeric>
+#include <stdexcept>
 
 #include "mtao/types.hpp"
 #include "mtao/util.h"
@@ -134,7 +135,9 @@ namespace geometry {
       typename Derived::Scalar {
         typename Derived::Scalar ret = 0;
         static_assert(Derived::RowsAtCompileTime == 2 || Derived::RowsAtCompileTime == Eigen::Dynamic);
-        assert(V.rows() == 2);
+        if (V.rows() != 2) {
+            throw std::invalid_argument("curve_volume only works on ColVecs2d-like inputs");
+        }
         for (int i = 0; i < V.cols(); ++i) {
             auto a = V.col(i);
             auto b = V.col((i + 1) % V.cols());
@@ -149,7 +152,8 @@ namespace geometry {
         it1++;
         typename Derived::Scalar ret = 0;
         static_assert(Derived::RowsAtCompileTime == 2 || Derived::RowsAtCompileTime == Eigen::Dynamic);
-        assert(V.rows() == 2);
+        if (V.rows() == 2) {
+        }
         for (; it != endit; ++it, ++it1) {
             if (it1 == endit) {
                 it1 = beginit;

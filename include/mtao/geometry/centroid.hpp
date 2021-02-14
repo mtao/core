@@ -14,7 +14,7 @@ namespace mtao::geometry {
 /// \param V A ColVector of 2d or points
 template<typename Derived, typename BeginIt, typename EndIt>
 auto curve_centroid(const Eigen::MatrixBase<Derived> &V, const BeginIt &beginit, const EndIt &endit) {
-    eigen::row_check_with_assert(V, std::integer_sequence<int, 2, 3>{});
+    eigen::row_check_with_throw(V, std::integer_sequence<int, 2, 3>{});
 
     auto it = beginit;
     auto it1 = beginit;
@@ -56,7 +56,7 @@ template<typename Derived, typename EDerived>
 auto centroid(const Eigen::MatrixBase<Derived> &V,
               const Eigen::MatrixBase<EDerived> &E,
               const std::map<int, bool> &C) {
-    eigen::row_check_with_assert(V, std::integer_sequence<int, 2, 3>{});
+    eigen::row_check_with_throw(V, std::integer_sequence<int, 2, 3>{});
     mtao::Vector<typename Derived::Scalar, Derived::RowsAtCompileTime> ret(
       V.rows());
     typename Derived::Scalar vol = 0;

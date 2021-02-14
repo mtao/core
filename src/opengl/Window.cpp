@@ -258,6 +258,7 @@ void WindowBase::record_frame_to_file() {
         if (_image_saver && _image_saver->exportToFile(img, filename)) {
             spdlog::debug("Successfully wrote frame to file {}", filename);
         } else {
+#if defined(MTAO_HAS_LIBPNGPP)
             png::image< png::rgb_pixel > image(img.size()[0],img.size()[1]);
             auto pixels = img.pixels();
             for (png::uint_32 y = 0; y < image.get_height(); ++y)
@@ -273,6 +274,9 @@ void WindowBase::record_frame_to_file() {
             image.write(std::string(filename));
 
             spdlog::warn("Wrote a frame with png++ to file {}!", filename);
+#else
+            spdlog::error("FAiled to write an image because no output engine found (neither libpngpp or MagnumPlugins");
+#endif
         }
     if (_auto_increment) {
         increment_recording_frame_index();

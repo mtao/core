@@ -132,6 +132,7 @@ endif()
 
 find_package(spdlog 1.8.2 QUIET)
 if(NOT spdlog_FOUND)
+    set(SPDLOG_BUILD_SHARED ON)
 fetch_dep(spdlog https://github.com/gabime/spdlog.git v1.8.2 ON)
 endif()
 
