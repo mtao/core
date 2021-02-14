@@ -5,6 +5,7 @@
 #include <mtao/geometry/volume.hpp>
 #include <mtao/geometry/mesh/polygon_boundary.hpp>
 #include <mtao/geometry/mesh/polygon_boundary_triangulation.hpp>
+#include <mtao/geometry/mesh/polygon_boundary_centroid.hpp>
 
 
 TEST_CASE("convex", "[triangulation]") {
@@ -32,4 +33,17 @@ TEST_CASE("convex", "[triangulation]") {
     CHECK(V_TF == Approx(vol));
     CHECK(V_EC == Approx(vol));
     CHECK(V_T == Approx(vol));
+
+
+
+    auto cent = mtao::geometry::mesh::centroid(PBI, P);
+
+    CHECK(cent.x() == Approx(0.).margin(1e-5));
+    CHECK(cent.y() == Approx(0.).margin(1e-5));
+
+    cent = mtao::geometry::mesh::centroid(PBI, (P.array()+.5).matrix());
+
+    CHECK(cent.x() == Approx(0.5).margin(1e-5));
+    CHECK(cent.y() == Approx(0.5).margin(1e-5));
+
 }
