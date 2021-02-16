@@ -18,6 +18,15 @@ auto curve_centroid(const Eigen::MatrixBase<Derived> &V, const BeginIt &beginit,
     eigen::row_check_with_throw(V, std::integer_sequence<int, 2, 3>{});
 
     auto it = beginit;
+    if (std::distance(beginit, endit) < 3) {
+        throw std::runtime_error("Tried to triangulate a curve with less than 3 vertices");
+    }
+
+    // when the dim is not 2 we want to use an in-plane triangle fan - so we want to skip one triangle
+    // it would be nice if
+    //if constexpr (!eigen::concepts::ColVecs2Compatible<Derived>) {
+    //    ++it;
+    //}
     auto it1 = beginit;
     it1++;
     typename Derived::Scalar vol = 0;
@@ -30,8 +39,15 @@ auto curve_centroid(const Eigen::MatrixBase<Derived> &V, const BeginIt &beginit,
         }
         auto a = V.col(*it);
         auto b = V.col(*it1);
-        auto v = triangle_area(a, b);
-        ret += v * (a + b) / 3;
+        typename Derived::Scalar v;
+        if constexpr (eigen::concepts::ColVecs2Compatible<Derived>) {
+            v = triangle_area(a, b);
+            ret += v * (a + b) / 3;
+        } else {
+            auto c = V.col(*beginit);
+            v = triangle_area(a, b, c);
+            ret += v * (a + b + c) / 3;
+        }
         vol += v;
     }
     if (std::abs(vol) > 1e-10) {
@@ -53,14 +69,15 @@ auto curve_centroid(const Eigen::MatrixBase<Derived> &V,
 /// \param V The vertices as  column vector (DxN) for R^D (D=2,3)
 /// \param E the edges as a 2xN array that index into cols of V
 /// \param C a signed map into E to represent a single cell
-template<typename Derived, typename EDerived>
-auto centroid(const Eigen::MatrixBase<Derived> &V,
-              const Eigen::MatrixBase<EDerived> &E,
+template<eigen::concepts::ColVecs2Compatible Vertices, eigen::concepts::ColVecs2Compatible Edges>
+auto centroid(const Vertices &V,
+              const Edges &E,
               const std::map<int, bool> &C) {
-    eigen::row_check_with_throw(V, std::integer_sequence<int, 2, 3>{});
-    mtao::Vector<typename Derived::Scalar, Derived::RowsAtCompileTime> ret(
+    eigen::row_check_with_throw<2>(V);
+    //eigen::row_check_with_throw(V, std::integer_sequence<int, 2, 3>{});
+    mtao::Vector<typename Vertices::Scalar, Vertices::RowsAtCompileTime> ret(
       V.rows());
-    typename Derived::Scalar vol = 0;
+    typename Vertices::Scalar vol = 0;
     ret.setZero();
     for (auto &&[eidx, sgn] : C) {
         auto e = E.col(eidx);
