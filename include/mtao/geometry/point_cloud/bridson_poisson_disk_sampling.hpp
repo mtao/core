@@ -48,18 +48,25 @@ mtao::ColVectors<T, D> bridson_poisson_disk_sampling(const Eigen::AlignedBox<T, 
     indices(c) = 0;
 
 
-    std::set<int> active_set;
+    //std::set<int> active_set;
+    std::queue<int> active_set;
     active_set.emplace(0);
-    auto get_random_it = [&]() {
-        std::uniform_int_distribution<> distrib(0, active_set.size() - 1);
-        auto it = active_set.begin();
-        std::advance(it, int(distrib(gen)));
-        return it;
-    };
+    //auto get_random_it = [&]() {
+    //    std::uniform_int_distribution<> distrib(0, active_set.size() - 1);
+    //    auto it = active_set.begin();
+    //    std::advance(it, int(distrib(gen)));
+    //    return it;
+    //};
     int index = 1;
     for (; !active_set.empty() && index < R.cols();) {
-        auto base_it = get_random_it();
-        int base_index = *base_it;
+        //if (active_set.size() % 1000 == 0) {
+        //    spdlog::info("Active set size: {} at {} of {}", active_set.size(), index, R.cols());
+        //}
+        //auto base_it = get_random_it();
+        //int base_index = *base_it;
+
+        int base_index = active_set.front();
+
         auto p = R.col(base_index);
 
 
@@ -108,7 +115,7 @@ mtao::ColVectors<T, D> bridson_poisson_disk_sampling(const Eigen::AlignedBox<T, 
             }
         }
         if (k == insert_attempts) {
-            active_set.erase(base_it);
+            active_set.pop();
         }
     }
     //for (int j = 0; j < indices.shape()[0]; ++j) {
