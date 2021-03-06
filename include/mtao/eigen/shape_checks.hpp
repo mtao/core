@@ -48,11 +48,6 @@ namespace concepts {
     concept RowVecs4Compatible = MatrixBaseDerived<T> &&ColCompatible<4, T>;
 
 
-    template<typename T>
-    concept VecCompatible = MatrixBaseDerived<T> &&RowCompatible<1, T>;
-
-    template<typename T>
-    concept RowVecCompatible = ColCompatible<1, T>;
 
     template<int R, typename T>
     concept VecDCompatible = MatrixBaseDerived<T> &&ShapeCompatible<R, 1, T>;
