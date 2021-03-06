@@ -53,7 +53,9 @@ void DrawableBase<Shaders::Flat3D>::gui(const std::string &name_) {
     }
     if (ImGui::TreeNode(name.c_str())) {
         ImGui::Checkbox("Visible", &visible);
-        ImGui::ColorEdit4("Color", data().color.data());
+        if (!bool(shader().flags() & Shaders::Flat3D::Flag::VertexColor)) {
+            ImGui::ColorEdit4("Color", data().color.data());
+        }
         ImGui::TreePop();
     }
 }

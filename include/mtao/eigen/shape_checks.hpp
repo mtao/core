@@ -14,6 +14,13 @@ namespace concepts {
     template<int R, int C, typename T>
     concept ShapeCompatible = DenseBaseDerived<T> &&RowCompatible<R, T> &&ColCompatible<C, T>;
 
+
+    template<typename T>
+    concept VecCompatible = MatrixBaseDerived<T> &&ColCompatible<1, T>;
+    template<typename T>
+    concept RowVecCompatible = MatrixBaseDerived<T> &&RowCompatible<1, T>;
+
+
     template<int D, typename T>
     concept SquareMatrixDCompatible = MatrixBaseDerived<T> &&ShapeCompatible<D, D, T>;
 
@@ -49,6 +56,7 @@ namespace concepts {
 
     template<int R, typename T>
     concept VecDCompatible = MatrixBaseDerived<T> &&ShapeCompatible<R, 1, T>;
+
 
     template<typename T>
     concept Vec2Compatible = VecDCompatible<2, T>;

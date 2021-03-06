@@ -84,6 +84,9 @@ namespace eigen {
                 ccols += c.cols();
             }
         }
+        if(crows == 0 || ccols == 0) {
+            return RetCells{};
+        }
         RetCells mC(crows, ccols);
         ccols = 0;
         for (auto it = beginit; it != endit; ++it) {
@@ -111,6 +114,9 @@ namespace eigen {
                 ccols = std::max<int>(ccols, c.cols());
                 crows += c.rows();
             }
+        }
+        if(crows == 0 || ccols == 0) {
+            return RetCells{};
         }
         RetCells mC(crows, ccols);
         crows = 0;

@@ -111,7 +111,7 @@ struct MeshReader {
                             if (tokens.size() == D + 2) {
                                 int last = get_slash_token<0>(tokens.back());
                                 auto &&p = tris.back();
-                                add_valid_simplex(Tri{ { p[0], p[2], last } });
+                                add_valid_simplex(Tri{ { p[2], p[1], last } });
                             }
                         }
                     }
