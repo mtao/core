@@ -1,4 +1,10 @@
 #include "mtao/geometry/mesh/read_obj.hpp"
+#include "mtao/eigen/stl2eigen.hpp"
+#include "mtao/geometry/mesh/earclipping.hpp"
+#include <algorithm>
+#include <fmt/format.h>
+#include <spdlog/spdlog.h>
+#include <vector>
 
 #include <array>
 #include <fstream>
@@ -47,7 +53,7 @@ struct MeshReader {
     static std::array<int, D> process_simplex(TokIt begin, const TokIt &end) {
         std::array<int, D> t;
         std::transform(begin, end, t.begin(), [](const std::string &s) {
-            return get_slash_token<0>(s);
+            return get_slash_token<0>(s) - 1;
         });
         return t;
     }
@@ -103,15 +109,43 @@ struct MeshReader {
                     }
                 }
                 // 'c' + 2 == 'e'; 'c' + 3 == f, so this works!
-                if (front[0] == ('c' + D)) {
+                if (front[0] == ('c' + D) || front[0] == 'l') {
                     if (tokens.size() >= D + 1) {
-                        add_valid_simplex(process_simplex<D>(
-                          tokens.begin() + 1, tokens.begin() + D + 1));
-                        if constexpr (D == 3) {// in 3D we also work witih quads
-                            if (tokens.size() == D + 2) {
-                                int last = get_slash_token<0>(tokens.back());
-                                auto &&p = tris.back();
-                                add_valid_simplex(Tri{ { p[2], p[1], last } });
+                        if (tokens.size() == D + 1) {
+                            add_valid_simplex(process_simplex<D>(
+                              tokens.begin() + 1, tokens.begin() + D + 1));
+                        } else {
+                            std::vector<int> dat;
+                            dat.reserve(tokens.size() - 1);
+                            std::transform(tokens.begin() + 1, tokens.end(), std::back_inserter(dat), [&](const std::string &tok) {
+                                return get_slash_token<0>(tok) - 1;
+                            });
+
+                            if constexpr (D == 2) {
+                                for (size_t j = 0; j < dat.size() - 1; ++j) {
+                                    add_valid_simplex(Edge{ { dat[j], dat[j + 1] } });
+                                }
+                            } else if constexpr (D == 3) {// in 3D we also work witih polygons
+                                auto V = mtao::eigen::stl2eigen(vecs);
+                                auto a = V.col(dat[0]);
+                                auto b = V.col(dat[1]);
+                                Eigen::Matrix<T, D - 1, D> UV;
+                                auto u = UV.row(0) = (b - a).transpose();
+                                u.normalize();
+                                mtao::Vector<T, 3> N;
+                                for (size_t j = 1; j < dat.size(); ++j) {
+                                    auto c = V.col(dat[j]);
+                                    auto v = UV.row(1) = (c - a).normalized().transpose();
+                                    N = u.cross(v);
+                                    if (N.norm() > 1e-2) {
+                                        break;
+                                    }
+                                }
+                                auto F = mtao::geometry::mesh::earclipping(UV * V, dat);
+                                for (int j = 0; j < F.cols(); ++j) {
+                                    auto f = F.col(j);
+                                    add_valid_simplex(Tri{ { f(0), f(1), f(2) } });
+                                }
                             }
                         }
                     }
@@ -119,19 +153,7 @@ struct MeshReader {
             }
         }
 
-        mtao::ColVectors<T, D> V(D, vecs.size());
-        mtao::ColVectors<int, D> F(D, tris.size());
-
-        using VecD = Eigen::Matrix<T, D, 1>;
-
-        for (int i = 0; i < V.cols(); ++i) {
-            V.col(i) = Eigen::Map<VecD>(&vecs[i].front());
-        }
-
-        for (int i = 0; i < F.cols(); ++i) {
-            F.col(i) = Eigen::Map<Eigen::Array<int, D, 1>>(&tris[i].front()) - 1;// OBJ uses 1 indexing!
-        }
-        return { V, F };
+        return { mtao::eigen::stl2eigen(vecs), mtao::eigen::stl2eigen(tris) };
     }
 
     template<int D>
