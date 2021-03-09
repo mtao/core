@@ -1,6 +1,7 @@
 #pragma once
 #include <set>
 #include <algorithm>
+#include <queue>
 
 #include <algorithm>
 #include "mtao/geometry/grid/grid.h"
