@@ -120,6 +120,13 @@ struct MeshReader {
                             std::transform(tokens.begin() + 1, tokens.end(), std::back_inserter(dat), [&](const std::string &tok) {
                                 return get_slash_token<0>(tok) - 1;
                             });
+                            if(int index = *std::max_element(dat.begin(),dat.end()); index >= vecs.size()) {
+                                // output the original 1-indexed value
+                                for(auto&& v: dat) {
+                                    v++;
+                                }
+                                throw std::out_of_range(fmt::format("read_obj recieved a request to access for index {} in face with indices {} but has only seen {} vertices thusfar (line was [{}])", index, fmt::join(dat,","), vecs.size(), line));
+                            }
 
                             if constexpr (D == 2) {
                                 for (size_t j = 0; j < dat.size() - 1; ++j) {

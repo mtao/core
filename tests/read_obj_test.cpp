@@ -38,16 +38,16 @@ TEST_CASE("Read obj", "[mesh_io]") {
     {
         std::istringstream ss("f 103 1 2 3\n");
 
-        auto [V, F] = read_objF(ss);
-        REQUIRE(V.size() == 0);
-        REQUIRE(F.size() == 6);
+        REQUIRE_THROWS(read_objF(ss));
+        //REQUIRE(V.size() == 0);
+        //REQUIRE(F.size() == 6);
 
-        REQUIRE(F(0, 0) == 102);
-        REQUIRE(F(1, 0) == 0);
-        REQUIRE(F(2, 0) == 1);
-        REQUIRE(F(0, 1) == 102);
-        REQUIRE(F(1, 1) == 1);
-        REQUIRE(F(2, 1) == 2);
+        //REQUIRE(F(0, 0) == 102);
+        //REQUIRE(F(1, 0) == 0);
+        //REQUIRE(F(2, 0) == 1);
+        //REQUIRE(F(0, 1) == 102);
+        //REQUIRE(F(1, 1) == 1);
+        //REQUIRE(F(2, 1) == 2);
     }
 
     {
