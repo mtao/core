@@ -13,6 +13,12 @@ std::tuple<mtao::ColVectors<float, 3>, mtao::ColVectors<int, 3>> read_objF(
 std::tuple<mtao::ColVectors<double, 3>, mtao::ColVectors<int, 3>> read_objD(
   const std::string &filename);
 
+// simple OBJ loader, supports quads
+std::tuple<mtao::ColVectors<float, 3>, mtao::ColVectors<int, 3>, mtao::ColVectors<int,2>> read_objF_with_edges(
+  const std::string &filename);
+std::tuple<mtao::ColVectors<double, 3>, mtao::ColVectors<int, 3>, mtao::ColVectors<int,2>> read_objD_with_edges(
+  const std::string &filename);
+
 // 2d variant of obj using e instead of f
 std::tuple<mtao::ColVectors<float, 2>, mtao::ColVectors<int, 2>> read_obj2F(
   const std::string &filename);
@@ -21,9 +27,9 @@ std::tuple<mtao::ColVectors<double, 2>, mtao::ColVectors<int, 2>> read_obj2D(
 
 //  ==============================================
 // read a buffer directly, more for testing
-std::tuple<mtao::ColVectors<float, 3>, mtao::ColVectors<int, 3>> read_objF(
+std::tuple<mtao::ColVectors<float, 3>, mtao::ColVectors<int, 3>, mtao::ColVectors<int,2>> read_objF(
   std::istream &filename);
-std::tuple<mtao::ColVectors<double, 3>, mtao::ColVectors<int, 3>> read_objD(
+std::tuple<mtao::ColVectors<double, 3>, mtao::ColVectors<int, 3>, mtao::ColVectors<int,2>> read_objD(
   std::istream &filename);
 
 // 2d variant of obj using l instead of f

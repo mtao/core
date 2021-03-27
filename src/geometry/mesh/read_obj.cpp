@@ -19,7 +19,7 @@ template<typename T>
 struct MeshReader {
     using Vec = std::array<T, 3>;
     using Tri = std::array<int, 3>;
-    using Edge = std::array<int, 2>;
+    using Seg = std::array<int, 2>;
     using TokIt = std::vector<std::string>::const_iterator;
 
     template<int D>
@@ -58,7 +58,7 @@ struct MeshReader {
         return t;
     }
 
-    static Edge process_edge(TokIt begin, const TokIt &end) {
+    static Seg process_edge(TokIt begin, const TokIt &end) {
         return process_simplex<2>(begin, end);
     }
 
@@ -67,17 +67,19 @@ struct MeshReader {
     }
 
     template<int D>
-    static std::tuple<mtao::ColVectors<T, D>, mtao::ColVectors<int, D>>
+    static std::tuple<mtao::ColVectors<T, D>, mtao::ColVectors<int, 3>, mtao::ColVectors<int, 2>>
       read_objD(std::istream &ifs) {
-        using Simp = std::array<int, D>;
         using Vec = std::array<T, D>;
         std::vector<Vec> vecs;
-        std::vector<Simp> tris;
+        std::vector<Tri> tris;
+        std::vector<Seg> segs;
 
-        auto add_valid_simplex = [&](const Simp &t) {
-            auto check = [](const std::array<int, D> &s) -> bool {
-                for (int j = 0; j < D - 1; ++j) {
-                    for (int k = j + 1; k < D; ++k) {
+        auto add_valid_simplex = [&](const auto &t) {
+            using AT = std::decay_t<decltype(t)>;
+            auto check = [](const auto &s) -> bool {
+                constexpr static int size = std::tuple_size_v<AT>;
+                for (int j = 0; j < size - 1; ++j) {
+                    for (int k = j + 1; k < size; ++k) {
                         if (s[j] == s[k]) {
                             return false;
                         }
@@ -86,7 +88,67 @@ struct MeshReader {
                 return true;
             };
             if (check(t)) {
-                tris.emplace_back(t);
+                if constexpr (std::is_same_v<AT, Tri>) {
+                    tris.emplace_back(t);
+                } else if constexpr (std::is_same_v<AT, Seg>) {
+                    segs.emplace_back(t);
+                }
+            }
+        };
+
+        auto process_a_simplex = [&](const std::vector<std::string> &tokens, auto &&dim) {
+            constexpr static int Dim = std::decay_t<decltype(dim)>::value;
+            if (tokens.size() >= Dim + 1) {
+                if (tokens.size() == Dim + 1) {
+                    add_valid_simplex(process_simplex<Dim>(
+                      tokens.begin() + 1, tokens.begin() + Dim + 1));
+                } else {
+                    std::vector<int> dat;
+                    dat.reserve(tokens.size() - 1);
+                    std::transform(tokens.begin() + 1, tokens.end(), std::back_inserter(dat), [&](const std::string &tok) {
+                        return get_slash_token<0>(tok) - 1;
+                    });
+                    if (int index = *std::max_element(dat.begin(), dat.end()); index >= int(vecs.size())) {
+                        // output the original 1-indexed value
+                        for (auto &&v : dat) {
+                            v++;
+                        }
+                        throw std::out_of_range(fmt::format("read_obj recieved a request to access for index {} in face with indices {} but has only seen {} vertices thusfar (line was [{}])", index, fmt::join(dat, ","), vecs.size(), fmt::join(tokens, " ")));
+                    }
+
+                    if constexpr (Dim == 2) {
+                        for (size_t j = 0; j < dat.size() - 1; ++j) {
+                            add_valid_simplex(Seg{ { dat[j], dat[j + 1] } });
+                        }
+                    } else if constexpr (Dim == 3) {// in 3D we also work witih polygons
+                        auto V = mtao::eigen::stl2eigen(vecs);
+
+                        mtao::ColVectors<int, 3> F;
+                        if constexpr (D == 3) {
+                            auto a = V.col(dat[0]);
+                            auto b = V.col(dat[1]);
+                            Eigen::Matrix<T, 2, Dim> UV;
+                            auto u = UV.row(0) = (b - a).transpose();
+                            u.normalize();
+                            mtao::Vector<T, 3> N;
+                            for (size_t j = 1; j < dat.size(); ++j) {
+                                auto c = V.col(dat[j]);
+                                auto v = UV.row(1) = (c - a).normalized().transpose();
+                                N = u.cross(v);
+                                if (N.norm() > 1e-2) {
+                                    break;
+                                }
+                            }
+                            F = mtao::geometry::mesh::earclipping(UV * V, dat);
+                        } else if constexpr (D == 2) {
+                            F = mtao::geometry::mesh::earclipping(V, dat);
+                        }
+                        for (int j = 0; j < F.cols(); ++j) {
+                            auto f = F.col(j);
+                            add_valid_simplex(Tri{ { f(0), f(1), f(2) } });
+                        }
+                    }
+                }
             }
         };
 
@@ -109,62 +171,20 @@ struct MeshReader {
                     }
                 }
                 // 'c' + 2 == 'e'; 'c' + 3 == f, so this works!
-                if (front[0] == ('c' + D) || front[0] == 'l') {
-                    if (tokens.size() >= D + 1) {
-                        if (tokens.size() == D + 1) {
-                            add_valid_simplex(process_simplex<D>(
-                              tokens.begin() + 1, tokens.begin() + D + 1));
-                        } else {
-                            std::vector<int> dat;
-                            dat.reserve(tokens.size() - 1);
-                            std::transform(tokens.begin() + 1, tokens.end(), std::back_inserter(dat), [&](const std::string &tok) {
-                                return get_slash_token<0>(tok) - 1;
-                            });
-                            if(int index = *std::max_element(dat.begin(),dat.end()); index >= vecs.size()) {
-                                // output the original 1-indexed value
-                                for(auto&& v: dat) {
-                                    v++;
-                                }
-                                throw std::out_of_range(fmt::format("read_obj recieved a request to access for index {} in face with indices {} but has only seen {} vertices thusfar (line was [{}])", index, fmt::join(dat,","), vecs.size(), line));
-                            }
+                if (front[0] == 'e' || front[0] == 'l') {
 
-                            if constexpr (D == 2) {
-                                for (size_t j = 0; j < dat.size() - 1; ++j) {
-                                    add_valid_simplex(Edge{ { dat[j], dat[j + 1] } });
-                                }
-                            } else if constexpr (D == 3) {// in 3D we also work witih polygons
-                                auto V = mtao::eigen::stl2eigen(vecs);
-                                auto a = V.col(dat[0]);
-                                auto b = V.col(dat[1]);
-                                Eigen::Matrix<T, D - 1, D> UV;
-                                auto u = UV.row(0) = (b - a).transpose();
-                                u.normalize();
-                                mtao::Vector<T, 3> N;
-                                for (size_t j = 1; j < dat.size(); ++j) {
-                                    auto c = V.col(dat[j]);
-                                    auto v = UV.row(1) = (c - a).normalized().transpose();
-                                    N = u.cross(v);
-                                    if (N.norm() > 1e-2) {
-                                        break;
-                                    }
-                                }
-                                auto F = mtao::geometry::mesh::earclipping(UV * V, dat);
-                                for (int j = 0; j < F.cols(); ++j) {
-                                    auto f = F.col(j);
-                                    add_valid_simplex(Tri{ { f(0), f(1), f(2) } });
-                                }
-                            }
-                        }
-                    }
+                    process_a_simplex(tokens, std::integral_constant<int, 2>{});
+                } else if (front[0] == 'f') {
+                    process_a_simplex(tokens, std::integral_constant<int, 3>{});
                 }
             }
         }
 
-        return { mtao::eigen::stl2eigen(vecs), mtao::eigen::stl2eigen(tris) };
+        return { mtao::eigen::stl2eigen(vecs), mtao::eigen::stl2eigen(tris), mtao::eigen::stl2eigen(segs) };
     }
 
     template<int D>
-    static std::tuple<mtao::ColVectors<T, D>, mtao::ColVectors<int, D>>
+    static std::tuple<mtao::ColVectors<T, D>, mtao::ColVectors<int, 3>, mtao::ColVectors<int, 2>>
       read_objD(const std::string &filename) {
         std::ifstream ifs(filename);
         return read_objD<D>(ifs);
@@ -175,37 +195,52 @@ struct MeshReader {
 namespace mtao::geometry::mesh {
 std::tuple<mtao::ColVectors<double, 3>, mtao::ColVectors<int, 3>> read_objD(
   const std::string &filename) {
-    return MeshReader<double>::read_objD<3>(filename);
+    auto [V, F, E] = read_objD_with_edges(filename);
+    return { V, F };
 }
 std::tuple<mtao::ColVectors<float, 3>, mtao::ColVectors<int, 3>> read_objF(
+  const std::string &filename) {
+    auto [V, F, E] = read_objF_with_edges(filename);
+    return { V, F };
+}
+
+std::tuple<mtao::ColVectors<double, 3>, mtao::ColVectors<int, 3>, mtao::ColVectors<int, 2>> read_objD_with_edges(
+  const std::string &filename) {
+    return MeshReader<double>::read_objD<3>(filename);
+}
+std::tuple<mtao::ColVectors<float, 3>, mtao::ColVectors<int, 3>, mtao::ColVectors<int, 2>> read_objF_with_edges(
   const std::string &filename) {
     return MeshReader<float>::read_objD<3>(filename);
 }
 
 std::tuple<mtao::ColVectors<double, 2>, mtao::ColVectors<int, 2>> read_obj2D(
   const std::string &filename) {
-    return MeshReader<double>::read_objD<2>(filename);
+    auto [V, F, E] = MeshReader<double>::read_objD<2>(filename);
+    return { V, E };
 }
 std::tuple<mtao::ColVectors<float, 2>, mtao::ColVectors<int, 2>> read_obj2F(
   const std::string &filename) {
-    return MeshReader<float>::read_objD<2>(filename);
+    auto [V, F, E] = MeshReader<float>::read_objD<2>(filename);
+    return { V, E };
 }
 
-std::tuple<mtao::ColVectors<double, 3>, mtao::ColVectors<int, 3>> read_objD(
+std::tuple<mtao::ColVectors<double, 3>, mtao::ColVectors<int, 3>, mtao::ColVectors<int, 2>> read_objD(
   std::istream &is) {
     return MeshReader<double>::read_objD<3>(is);
 }
-std::tuple<mtao::ColVectors<float, 3>, mtao::ColVectors<int, 3>> read_objF(
+std::tuple<mtao::ColVectors<float, 3>, mtao::ColVectors<int, 3>, mtao::ColVectors<int, 2>> read_objF(
   std::istream &is) {
     return MeshReader<float>::read_objD<3>(is);
 }
 
 std::tuple<mtao::ColVectors<double, 2>, mtao::ColVectors<int, 2>> read_obj2D(
   std::istream &is) {
-    return MeshReader<double>::read_objD<2>(is);
+    auto [V, F, E] = MeshReader<double>::read_objD<2>(is);
+    return { V, E };
 }
 std::tuple<mtao::ColVectors<float, 2>, mtao::ColVectors<int, 2>> read_obj2F(
   std::istream &is) {
-    return MeshReader<float>::read_objD<2>(is);
+    auto [V, F, E] = MeshReader<float>::read_objD<2>(is);
+    return { V, E };
 }
 }// namespace mtao::geometry::mesh
