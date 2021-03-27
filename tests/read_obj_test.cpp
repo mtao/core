@@ -15,7 +15,7 @@ TEST_CASE("Read obj", "[mesh_io]") {
           "f 106 7 8\n"
           "f 109/1 10/4/4 11\n");
 
-        auto [V, F] = read_objF(ss);
+        auto [V, F, E] = read_objF(ss);
         REQUIRE(V.size() == 6);
         REQUIRE(F.size() == 9);
         REQUIRE(V(0, 0) == 0);
