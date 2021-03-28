@@ -302,6 +302,7 @@ SET(GEOMETRY_SRCS
     src/geometry/mesh/read_obj.cpp
     src/geometry/point_cloud/read_xyz.cpp
     src/geometry/mesh/write_obj.cpp
+    src/geometry/mesh/boundary_elements.cpp
     #src/geometry/mesh/read_ply.cpp
     src/geometry/mesh/write_ply.cpp
     src/geometry/mesh/triangle/triangle_wrapper.cpp

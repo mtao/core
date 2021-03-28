@@ -1,113 +1,54 @@
 #pragma once
 
-#include <mtao/types.h>
-#include <Eigen/Sparse>
+#include "mtao/types.hpp"
 #include <vector>
 #include <set>
-#include <mtao/geometry/mesh/cell_indexer.h>
+#include <map>
+#include "mtao/geometry/mesh/simplex_boundary_indices.hpp"
+#include "mtao/iterator/enumerate.hpp"
+#include "mtao/eigen/stl2eigen.hpp"
+
+namespace mtao::geometry::mesh {
+
+// Given a boundary_index->sign representation of a mesh compute the cell boundaries
+// Non-matching boundaries are counted
+std::set<int> boundary_element_indices(const std::vector<std::map<int, bool>> &cells);
 
 
-//Takes a mesh C and its faces F and creates a matrix where each entry (i,j) points to the face comprised of every vertex except hte one at that index. i.e C(i,j) \cap F(R(i,j)) = C(j)
-//R is the returned value
-namespace mtao {
-namespace geometry {
-    namespace mesh {
+// Given a colvectors mapping simplex indices into boundary simplex indices, constructs the list of boundary simplex indices that lie on the boundary of the simplicial complex
+template<typename CellBoundary>
+std::set<int> boundary_element_indices(const Eigen::MatrixBase<CellBoundary> &CB);
 
-        namespace internal {
-            template<bool Primal, typename Derived>
-            std::vector<std::set<int>> boundary_elements_impl(const Eigen::SparseCompressedBase<Derived> &B) {
-                using II = typename Derived::InnerIterator;
-                std::vector<std::set<int>> ret(Primal ? B.cols() : B.rows());
-                for (int o = 0; o < B.outerSize(); ++o) {
-                    for (II it(B, o); it; ++it) {
-                        if constexpr (Primal) {
-                            ret[it.col()].insert(it.row());
-                        } else {
-                            ret[it.row()].insert(it.col());
-                        }
-                    }
-                }
-                return ret;
-            }
-        }// namespace internal
 
-        template<typename Derived>
-        std::vector<std::set<int>> boundary_elements(const Eigen::SparseCompressedBase<Derived> &B) {
-            return internal::boundary_elements_impl<true>(B);
+// Given a colvectors of simplices and colvector of boundary simplices, constructs the list of boundary simplex indices that lie on the boundary of the simplicial complex
+template<typename CellType, typename FacetType>
+std::set<int> boundary_element_indices(const Eigen::MatrixBase<CellType> &C, const Eigen::MatrixBase<FacetType> &F);
+
+template<typename CellType, typename FacetType>
+[[deprecated]] CellType boundary_elements(const Eigen::MatrixBase<CellType> &C, const Eigen::MatrixBase<FacetType> &F) {
+    return simplex_boundary_indices(C, F);
+}
+
+
+template<typename CellType, typename FacetType>
+std::set<int> boundary_element_indices(const Eigen::MatrixBase<CellType> &C, const Eigen::MatrixBase<FacetType> &F) {
+    auto BE = simplex_boundary_indices(C, F);
+    return boundary_element_indices(BE);
+}
+
+template<typename BoundaryElements>
+std::set<int> boundary_element_indices(const Eigen::MatrixBase<BoundaryElements> &BE) {
+    std::vector<int> counts(BE.maxCoeff() + 1, 0);
+    for (int j = 0; j < BE.size(); ++j) {
+        counts[BE(j)]++;
+    }
+    std::set<int> good_counts;
+    for (auto &&[idx, count] : mtao::iterator::enumerate(counts)) {
+        if (count == 1) {
+            good_counts.emplace(idx);
         }
+    }
+    return good_counts;
+}
 
-        template<typename Derived>
-        std::vector<std::set<int>> coboundary_elements(const Eigen::SparseCompressedBase<Derived> &B) {
-            return internal::boundary_elements_impl<false>(B);
-        }
-
-
-        template<int CellSize, typename CellType, typename FacetType>
-        auto boundary_elements_sized(const Eigen::MatrixBase<CellType> &C, const Eigen::MatrixBase<FacetType> &F) {
-
-
-            constexpr static int FacetSize = CellSize - 1;
-
-            static_assert((FacetSize == FacetType::RowsAtCompileTime) || (FacetType::RowsAtCompileTime == Eigen::Dynamic));
-            static_assert(CellSize == FacetSize + 1);
-
-            using Index = typename CellType::Scalar;
-
-            using FacetArray = typename std::array<Index, FacetSize>;
-
-            using FacetVector = typename mtao::Vector<Index, FacetSize>;
-
-            CellIndexer<FacetSize> fi(F);
-
-            using RetType = Eigen::Matrix<Index, CellType::RowsAtCompileTime, CellType::ColsAtCompileTime>;
-
-
-            RetType R = CellType::Constant(C.rows(), C.cols(), -1);
-
-            FacetArray f;
-            Eigen::Map<FacetVector> fm(f.data());
-            FacetArray f2;
-            Eigen::Map<FacetVector> fm2(f2.data());
-            for (int i = 0; i < C.cols(); ++i) {
-                auto c = C.col(i);
-                Index cs = c.sum();
-
-                std::map<int, int> cm;
-                for (int i = 0; i < c.rows(); ++i) {
-                    cm[c(i)] = i;
-                }
-                auto r = R.col(i);
-
-                fm = c.template topRows<FacetSize>();
-                for (int j = 0; j < CellSize; ++j) {
-                    fm2 = fm;
-                    int fidx = fi(f2);
-                    auto f = F.col(fidx);
-
-
-                    r(cm[cs - f.sum()]) = fidx;
-
-
-                    auto unused = (j + FacetSize) % CellSize;
-                    fm(j % FacetSize) = c(unused);
-                }
-            }
-
-            return R;
-        }
-
-        template<typename CellType, typename FacetType>
-        CellType boundary_elements(const Eigen::MatrixBase<CellType> &C, const Eigen::MatrixBase<FacetType> &F) {
-
-            constexpr static int CellSize = CellType::RowsAtCompileTime;
-            constexpr static int FacetSize = FacetType::RowsAtCompileTime;
-
-            static_assert(CellSize == FacetSize + 1);
-
-            return boundary_elements_sized<CellSize>(C, F);
-        }
-
-
-    }// namespace mesh
-}// namespace geometry
-}// namespace mtao
+}// namespace mtao::geometry::mesh

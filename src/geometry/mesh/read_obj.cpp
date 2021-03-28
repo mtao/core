@@ -26,7 +26,15 @@ struct MeshReader {
 
     static std::array<T, D> process_vertex(TokIt begin, const TokIt &end) {
         std::array<T, D> v;
-        std::transform(begin, end, v.begin(), [](const std::string &s) { return std::stod(s); });
+        auto dist = std::distance(begin, end);
+        if (dist > D) {
+            std::transform(begin, begin + D, v.begin(), [](const std::string &s) { return std::stod(s); });
+        } else {
+            std::transform(begin, end, v.begin(), [](const std::string &s) { return std::stod(s); });
+            if (dist < D) {
+                std::fill(v.begin() + dist, v.end(), 0);
+            }
+        }
 
         /*
            size_t dist = std::distance(begin,end);

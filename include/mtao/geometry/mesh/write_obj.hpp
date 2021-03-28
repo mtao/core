@@ -15,8 +15,13 @@ namespace mtao::geometry::mesh {
 
 void write_objF(const mtao::ColVectors<float, 3> &V, const mtao::ColVectors<int, 3> &F, const std::string &filename);
 void write_objD(const mtao::ColVectors<double, 3> &V, const mtao::ColVectors<int, 3> &F, const std::string &filename);
+
+void write_objF(const mtao::ColVectors<float, 3> &V, const mtao::ColVectors<int, 3> &F , const mtao::ColVectors<int,2>& E, const std::string &filename);
+void write_objD(const mtao::ColVectors<double, 3> &V, const mtao::ColVectors<int, 3> &F, const mtao::ColVectors<int,2>& E, const std::string &filename);
+
 void write_objF(const mtao::ColVectors<float, 3> &V, const mtao::ColVectors<int, 2> &E, const std::string &filename);
 void write_objD(const mtao::ColVectors<double, 3> &V, const mtao::ColVectors<int, 2> &E, const std::string &filename);
+
 
 }// namespace mtao::geometry::mesh
 

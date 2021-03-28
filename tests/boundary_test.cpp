@@ -2,7 +2,7 @@
 
 #include <mtao/geometry/mesh/boundary_facets.h>
 #include <mtao/geometry/mesh/boundary_matrix.h>
-#include <mtao/geometry/mesh/boundary_elements.h>
+#include <mtao/geometry/mesh/simplex_boundary_indices.hpp>
 #include <mtao/iterator/enumerate.hpp>
 #include <iterator>
 
@@ -21,7 +21,7 @@ int main() {
         std::cout << B << std::endl
                   << std::endl;
 
-        auto bm = mtao::geometry::mesh::boundary_elements(B);
+        auto bm = mtao::geometry::mesh::simplex_boundary_indices(B);
         std::cout << "Boundary elements: " << std::endl;
         for (auto &&[idx, elems] : mtao::iterator::enumerate(bm)) {
             std::cout << idx << ") ";
@@ -30,13 +30,13 @@ int main() {
         }
         std::cout << std::endl;
         std::cout << "Coboundary elements: " << std::endl;
-        auto cbm = mtao::geometry::mesh::coboundary_elements(B);
+        auto cbm = mtao::geometry::mesh::simplex_coboundary_indices(B);
         for (auto &&[idx, elems] : mtao::iterator::enumerate(cbm)) {
             std::cout << idx << ") ";
             std::copy(elems.begin(), elems.end(), std::ostream_iterator<int>(std::cout, ", "));
             std::cout << std::endl;
         }
-        std::cout << mtao::geometry::mesh::boundary_elements(E, P) << std::endl;
+        std::cout << mtao::geometry::mesh::simplex_boundary_indices(E, P) << std::endl;
     }
     std::cout << "=====" << std::endl;
     {
@@ -62,20 +62,20 @@ int main() {
                   << std::endl;
         std::cout << B2 * B << std::endl
                   << std::endl;
-        auto bm = mtao::geometry::mesh::boundary_elements(B);
+        auto bm = mtao::geometry::mesh::simplex_boundary_indices(B);
         for (auto &&[idx, elems] : mtao::iterator::enumerate(bm)) {
             std::cout << idx << ") ";
             std::copy(elems.begin(), elems.end(), std::ostream_iterator<int>(std::cout, ", "));
             std::cout << std::endl;
         }
         std::cout << std::endl;
-        auto cbm = mtao::geometry::mesh::coboundary_elements(B);
+        auto cbm = mtao::geometry::mesh::simplex_coboundary_indices(B);
         for (auto &&[idx, elems] : mtao::iterator::enumerate(cbm)) {
             std::cout << idx << ") ";
             std::copy(elems.begin(), elems.end(), std::ostream_iterator<int>(std::cout, ", "));
             std::cout << std::endl;
         }
-        std::cout << mtao::geometry::mesh::boundary_elements(T, E) << std::endl;
+        std::cout << mtao::geometry::mesh::simplex_boundary_indices(T, E) << std::endl;
     }
     std::cout << "=====" << std::endl;
     {
@@ -87,32 +87,37 @@ int main() {
 
         std::cout << T << std::endl;
         auto F = mtao::geometry::mesh::boundary_facets(T);
+        std::cout << "Triangles" << std::endl;
         std::cout << F << std::endl;
         auto E = mtao::geometry::mesh::boundary_facets(F);
+        std::cout << "Edges" << std::endl;
         std::cout << E << std::endl;
         auto B = mtao::geometry::mesh::boundary_matrix<float>(T, F);
         auto B2 = mtao::geometry::mesh::boundary_matrix<float>(F, E);
+        std::cout << "Tet -> triangle boundary" << std::endl;
         std::cout << B << std::endl
                   << std::endl;
+        std::cout << "Face-> Edge" << std::endl;
         std::cout << B2 << std::endl
                   << std::endl;
+        std::cout << "Cell-> Edge (should be 0)" << std::endl;
         std::cout << B2 * B << std::endl
                   << std::endl;
-        auto bm = mtao::geometry::mesh::boundary_elements(B);
+        auto bm = mtao::geometry::mesh::simplex_boundary_indices(B);
         for (auto &&[idx, elems] : mtao::iterator::enumerate(bm)) {
             std::cout << idx << ") ";
             std::copy(elems.begin(), elems.end(), std::ostream_iterator<int>(std::cout, ", "));
             std::cout << std::endl;
         }
         std::cout << std::endl;
-        auto cbm = mtao::geometry::mesh::coboundary_elements(B);
+        auto cbm = mtao::geometry::mesh::simplex_coboundary_indices(B);
         for (auto &&[idx, elems] : mtao::iterator::enumerate(cbm)) {
             std::cout << idx << ") ";
             std::copy(elems.begin(), elems.end(), std::ostream_iterator<int>(std::cout, ", "));
             std::cout << std::endl;
         }
-        std::cout << mtao::geometry::mesh::boundary_elements(T, F) << std::endl;
+        std::cout << mtao::geometry::mesh::simplex_boundary_indices(T, F) << std::endl;
         std::cout << "=====" << std::endl;
-        std::cout << mtao::geometry::mesh::boundary_elements_sized<4>(Eigen::MatrixXi(T), Eigen::MatrixXi(F)) << std::endl;
+        std::cout << mtao::geometry::mesh::simplex_boundary_indices_sized<4>(Eigen::MatrixXi(T), Eigen::MatrixXi(F)) << std::endl;
     }
 }

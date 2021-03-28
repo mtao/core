@@ -27,6 +27,7 @@ ADD_CATCHTEST(geometry
     centroid_test.cpp
     cyclic_order_test.cpp
     dual_edge_lengths_test.cpp
+    boundary_elements_test.cpp
     dual_volume_test.cpp
     edges_to_plcurves_test.cpp
     grid_data_test.cpp
