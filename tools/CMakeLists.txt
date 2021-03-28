@@ -6,6 +6,10 @@ ADD_EXECUTABLE(mesh_info mesh_info.cpp)
 TARGET_LINK_LIBRARIES(mesh_info mtao::geometry nlohmann_json::nlohmann_json
     cxxopts)
 
+ADD_EXECUTABLE(add_boundary_to_obj add_boundary_to_obj.cpp)
+TARGET_LINK_LIBRARIES(add_boundary_to_obj mtao::geometry nlohmann_json::nlohmann_json
+    cxxopts)
+
 ADD_EXECUTABLE(json_to_corrade_configuration json_to_corrade_configuration.cpp)
 TARGET_LINK_LIBRARIES(json_to_corrade_configuration mtao::common cxxopts)
 
