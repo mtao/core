@@ -4,6 +4,7 @@
 #include <memory>
 #include <algorithm>
 #include "mtao/geometry/mesh/boundary_facets.h"
+#include <mtao/geometry/mesh/boundary_elements.h>
 #include "mtao/geometry/mesh/read_obj.hpp"
 #include "mtao/geometry/bounding_box.hpp"
 #include "mtao/opengl/drawables.h"
@@ -43,6 +44,25 @@ class MeshViewer : public mtao::opengl::Window3 {
   public:
     bool show_bbox_faces = false;
     bool show_bbox_edges = true;
+    bool show_open_boundaries = true;
+
+
+    void update_edges() {
+        auto F = mesh.getTriangleBuffer();
+        auto E = mtao::geometry::mesh::boundary_facets(F);
+        if(show_open_boundaries) {
+            auto boundary_edges = mtao::geometry::mesh::boundary_element_indices(F, E);
+            mtao::ColVectors<uint32_t,2> EE(2,boundary_edges.size());
+            for(auto&& [idx,eidx]: mtao::iterator::enumerate(boundary_edges)){
+                EE.col(idx) = E.col(eidx);
+            }
+
+            mesh.setEdgeBuffer(EE);
+        } else {
+            mesh.setEdgeBuffer(E);
+        }
+    }
+
 
     MeshViewer(const Arguments &args) : Window3(args), _wireframe_shader{ supportsGeometryShader() ? Magnum::Shaders::MeshVisualizer3D::Flag::Wireframe : Magnum::Shaders::MeshVisualizer3D::Flag{} } {
         //MeshViewer(const Arguments& args): Window3(args,Magnum::GL::Version::GL210), _wireframe_shader{} {
@@ -112,6 +132,9 @@ class MeshViewer : public mtao::opengl::Window3 {
         bbox.setParent(&root());
         bbox_drawable->deactivate();
         bbox_drawable->activate_edges();
+
+        update_edges();
+
     }
     void gui() override {
         gui_func();
@@ -129,6 +152,9 @@ class MeshViewer : public mtao::opengl::Window3 {
         }
         if (point_drawable) {
             point_drawable->gui("Point");
+        }
+        if (ImGui::Checkbox("Show Bounadry Edges", &show_open_boundaries)) {
+            update_edges();
         }
 
         if (ImGui::Checkbox("BBox Faces", &show_bbox_faces)) {

@@ -13,6 +13,8 @@ class AlgebraicMesh : public GL::Mesh {
     AlgebraicMesh(const mtao::ColVectors<unsigned int, 3> &F);
     AlgebraicMesh(const mtao::ColVectors<unsigned int, 2> &E);
     void makeVertexIndexBuffer(unsigned int size);
+    mtao::ColVectors<unsigned int, 3> getTriangleBuffer() ;
+    mtao::ColVectors<unsigned int, 2> getEdgeBuffer() ;
     void setTriangleBuffer(const mtao::ColVectors<unsigned int, 3> &F);
     void setEdgeBuffer(const mtao::ColVectors<unsigned int, 2> &E);
 
@@ -23,10 +25,9 @@ class AlgebraicMesh : public GL::Mesh {
           Containers::ArrayView<const float>{ V.data(), size_t(V.size()) });
     }
     void setVertexBuffer(const Containers::ArrayView<const float> &V,
-                         int count = 1) {
-        makeVertexIndexBuffer(count);
-        vertex_buffer.setData(V);
-    }
+                         int count = 1);
+    Eigen::MatrixXf getVertexData(int D) ;
+
     template<typename Derived>
     void setColorBuffer(const Eigen::PlainObjectBase<Derived> &V) {
         color_buffer.setData(
@@ -83,6 +84,9 @@ class Mesh : public MeshObject<D> {
     }
     void setVertexBuffer(const Containers::ArrayView<const float> &V) {
         setVertexBuffer(V, V.size() / D);
+    }
+    Eigen::MatrixXf getVertexData() {
+        return AlgebraicMesh::getVertexData(D);
     }
     template<typename T>
     void setVertexBuffer(const Math::Vector<D, T> &V) {

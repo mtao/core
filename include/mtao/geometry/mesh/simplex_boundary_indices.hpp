@@ -67,7 +67,7 @@ auto simplex_boundary_indices_sized(const Eigen::MatrixBase<CellType> &C, const 
 
     using FacetVector = typename mtao::Vector<Index, FacetSize>;
 
-    CellIndexer<FacetSize> fi(F);
+    CellIndexer<FacetSize, Index> fi(F);
 
     using RetType = Eigen::Matrix<Index, CellType::RowsAtCompileTime, CellType::ColsAtCompileTime>;
 

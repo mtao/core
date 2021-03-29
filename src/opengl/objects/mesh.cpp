@@ -50,6 +50,64 @@ void AlgebraicMesh::setTriangleBuffer(
 
     triangle_index_buffer.setData(indexData);
 }
+    void AlgebraicMesh::setVertexBuffer(const Containers::ArrayView<const float> &V,
+                         int count ) {
+        makeVertexIndexBuffer(count);
+        vertex_buffer.setData(V);
+    }
+    Eigen::MatrixXf AlgebraicMesh::getVertexData(int D) {
+        auto dat = vertex_buffer.data();
+        return Eigen::Map<const Eigen::MatrixXf>(reinterpret_cast<const float*>(dat.data()),D,vertex_Count);
+    }
+
+    mtao::ColVectors<unsigned int, 3> AlgebraicMesh::getTriangleBuffer() {
+
+        auto dat = triangle_index_buffer.data();
+        switch(triangle_indexType) {
+            case Magnum::MeshIndexType::UnsignedByte:
+                {
+        return Eigen::Map<const mtao::MatrixX<uint8_t>>(reinterpret_cast<const uint8_t*>(dat.data()),3,triangle_Count/3).cast<unsigned int>();
+
+                }
+            case Magnum::MeshIndexType::UnsignedShort:
+                {
+        return Eigen::Map<const mtao::MatrixX<uint16_t>>(reinterpret_cast<const uint16_t*>(dat.data()),3,triangle_Count/3).cast<unsigned int>();
+                }
+            case Magnum::MeshIndexType::UnsignedInt:
+                {
+        return Eigen::Map<const mtao::MatrixX<uint32_t>>(reinterpret_cast<const uint32_t*>(dat.data()),3,triangle_Count/3);
+                }
+
+            default:
+                return {};
+
+        }
+
+    }
+    mtao::ColVectors<unsigned int, 2> AlgebraicMesh::getEdgeBuffer() {
+
+        auto dat = edge_index_buffer.data();
+        switch(edge_indexType) {
+            case Magnum::MeshIndexType::UnsignedByte:
+                {
+        return Eigen::Map<const mtao::MatrixX<uint8_t>>(reinterpret_cast<const uint8_t*>(dat.data()),2,edge_Count/2).cast<unsigned int>();
+
+                }
+            case Magnum::MeshIndexType::UnsignedShort:
+                {
+        return Eigen::Map<const mtao::MatrixX<uint16_t>>(reinterpret_cast<const uint16_t*>(dat.data()),2,edge_Count/2).cast<unsigned int>();
+                }
+            case Magnum::MeshIndexType::UnsignedInt:
+                {
+        return Eigen::Map<const mtao::MatrixX<uint32_t>>(reinterpret_cast<const uint32_t*>(dat.data()),2,edge_Count/2);
+                }
+
+            default:
+                return {};
+
+        }
+    }
+
 template<>
 void Mesh<3>::setTriangleBuffer(const ColVecs &V,
                                 const mtao::ColVectors<unsigned int, 3> &F) {
