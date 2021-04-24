@@ -42,6 +42,7 @@ OPTION(MTAO_USE_OPENVDB "Build openvdb stuff" OFF)
 OPTION(MTAO_USE_PNGPP "Use PNG++ for screenshots" ON)
 OPTION(MTAO_USE_JSON "Use json" ON)
 OPTION(MTAO_USE_PARTIO "Use partio" ON)
+OPTION(MTAO_BUILD_STATIC "Build static libraries" OFF)
 
 # https://medium.com/@alasher/colored-c-compiler-output-with-ninja-clang-gcc-10bfe7f2b949
 option (MTAO_FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only and affects global compile_options)." OFF)
@@ -59,6 +60,11 @@ FIND_PACKAGE(Eigen3 3.3.3 REQUIRED)
 
 
 
+if(MTAO_BUILD_STATIC)
+    set(MTAO_LIBRARY_TYPE STATIC)
+else()
+    set(MTAO_LIBRARY_TYPE SHARED)
+endif()
 
 # Include dirs
 
@@ -202,7 +208,7 @@ if(MTAO_USE_JSON)
     set(MTAO_COMMON_SRCS ${MTAO_COMMON_SRCS}
         src/utils/corrade_configuration_json_interchange.cpp)
 endif()
-ADD_LIBRARY(mtao_common 
+ADD_LIBRARY(mtao_common ${MTAO_LIBRARY_TYPE}
     ${MTAO_COMMON_SRCS}
     )
 
@@ -220,7 +226,7 @@ endif()
 IF(MTAO_USE_OPENGL)
     CORRADE_ADD_RESOURCE(MtaoShaders ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/shaders/resources.conf)
 
-ADD_LIBRARY(mtao_visualization 
+ADD_LIBRARY(mtao_visualization ${MTAO_LIBRARY_TYPE}
     ${MtaoShaders}
     ${COMMON_HEADERS}
     src/opengl/Window.cpp
@@ -330,7 +336,7 @@ IF(MTAO_USE_PARTIO)
         src/geometry/point_cloud/partio_loader.cpp)
 ENDIF(MTAO_USE_PARTIO)
 
-ADD_LIBRARY(mtao_geometry 
+ADD_LIBRARY(mtao_geometry ${MTAO_LIBRARY_TYPE}
     ${GEOMETRY_SRCS}
     )
 set_property(TARGET mtao_geometry PROPERTY CXX_STANDARD 20)
