@@ -4,7 +4,7 @@ jobs:
     build:
         docker:
             #- image: "cimg/base:2020.01"
-            - image: "ubuntu:devel"
+            - image: "ubuntu:20.10"
         steps:
             - checkout
             - run:
