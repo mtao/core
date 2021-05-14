@@ -78,9 +78,7 @@ std::decay_t<typename XType::EvalReturnType> ArnoldiPolynomial<T, D>::operator()
     for (int k = 0; k < degree() - 1; ++k) {
         auto w = W.col(k + 1);
         w = XDiag * W.col(k);
-        for (int j = 0; j < k; ++j) {
-            w -= _H(j, k) * W.col(j);
-        }
+        w -= W.leftCols(k) * _H.col(k).head(k);
         w /= _H(k + 1, k);
     }
 
