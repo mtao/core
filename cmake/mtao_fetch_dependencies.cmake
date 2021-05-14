@@ -4,7 +4,7 @@ set(NLOHMANN_JSON_COMMIT
  v3.9.1
     )
 set(PYBIND_COMMIT v2.6.1)
-set(PARTIO_COMMIT v1.14.0)
+set(PARTIO_COMMIT b8cc9e28e1032a839c07f4e95f29eeee2d28c959)
 # MAGNUM SETTINGS
 option(BUILD_TESTS "Build tests (for mosra libs)" OFF)
 option(BUILD_TESTSUITE "Build test suite library (mosra)" OFF)
@@ -189,7 +189,7 @@ endif()
 if(MTAO_USE_PARTIO)
     find_package(partio QUIET)
     if(NOT partio_FOUND)
-        fetch_dep(partio https://github.com/wdas/partio.git ${PARTIO_COMMIT}
+        fetch_dep(partio https://github.com/mtao/partio.git ${PARTIO_COMMIT}
             ON)
     endif()
 endif()
