@@ -34,9 +34,10 @@ struct ArnoldiPolynomial {
 template<typename Vec, typename Vec2>
 ArnoldiPolynomial(const Vec &, const Vec2 &, int) -> ArnoldiPolynomial<typename Vec::Scalar, Vec::RowsAtCompileTime>;
 
+
 template<typename T, int D>
 template<eigen::concepts::VecCompatible XType, eigen::concepts::VecCompatible FType>
-ArnoldiPolynomial<T, D>::ArnoldiPolynomial(const XType &X, const FType &F, int n) : _C(n), _H(HessenbergeMatrix::Zero(n + 1, n)) {
+ArnoldiPolynomial<T, D>::ArnoldiPolynomial(const XType &X, const FType &F, int n) : _C(IsDynamic ? n : D), _H(HessenbergeMatrix::Zero((IsDynamic ? n : D) + 1, (IsDynamic ? n : D))) {
 
     const int M = X.size();
     const T Msqrt = std::sqrt<T>(M).real();
@@ -83,7 +84,7 @@ std::decay_t<typename XType::EvalReturnType> ArnoldiPolynomial<T, D>::operator()
         w /= _H(k + 1, k);
     }
 
-    return (W * _C).eval();
+    return W * _C;
 }
 }// namespace mtao::polynomials
 
