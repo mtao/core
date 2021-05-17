@@ -10,7 +10,19 @@
 int main(int argc, char *argv[]) {
     cxxopts::Options options("test", "A brief description");
 
-    options.add_options()("mesh_file", "mesh grid file", cxxopts::value<std::string>())("output", "output vdb file", cxxopts::value<std::string>())("n,name", "name of the grid in the vdb_file", cxxopts::value<std::string>()->default_value("grid"))("t,type", "output vdb grid [sdf,df,levelset]", cxxopts::value<std::string>()->default_value("sdf"))("f,float_type", "output type of the vdb grid [float,double]", cxxopts::value<std::string>()->default_value("float"))("w,half-width", "half-width of levelsets, for distance functions this is also the bandwidth", cxxopts::value<double>()->default_value("3"))("i,interior_width", "Interior band-width for the narrow band", cxxopts::value<double>()->default_value("3"))("e,exterior_width", "Exterior band-width for the narrow band", cxxopts::value<double>()->default_value("3"))("v,voxel_size", "Size of a voxel", cxxopts::value<double>()->default_value(".5"))("h,help", "Print usage");
+    // clang-format off
+    options.add_options()
+        ("mesh_file", "mesh grid file", cxxopts::value<std::string>())
+        ("output", "output vdb file", cxxopts::value<std::string>())
+        ("n,name", "name of the grid in the vdb_file", cxxopts::value<std::string>()->default_value("grid"))
+        ("t,type", "output vdb grid [sdf,df,levelset]", cxxopts::value<std::string>()->default_value("sdf"))
+        ("f,float_type", "output type of the vdb grid [float,double]", cxxopts::value<std::string>()->default_value("float"))
+        ("w,half-width", "half-width of levelsets, for distance functions this is also the bandwidth", cxxopts::value<double>()->default_value("3"))
+        ("i,interior_width", "Interior band-width for the narrow band", cxxopts::value<double>()->default_value("3"))
+        ("e,exterior_width", "Exterior band-width for the narrow band", cxxopts::value<double>()->default_value("3"))
+        ("v,voxel_size", "Size of a voxel", cxxopts::value<double>()->default_value(".5"))
+        ("h,help", "Print usage");
+    // clang-format on
     options.parse_positional({ "mesh_file", "output" });
     options.positional_help({ "<mesh_file> <output_grid>" });
 
