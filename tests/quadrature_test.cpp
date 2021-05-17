@@ -80,6 +80,16 @@ TEST_CASE("simpsons", "[quadrature]") {
     //          double(-1), double(1), /*samples=*/500) == Approx(4/3. * M_PI));
 }
 TEST_CASE("gauss_lobatto", "[quadrature]") {
+
+    for(int j = 3; j <= 7; ++j) {
+        auto [P,W] = gauss_lobatto_data<double>(j);
+        double v = 0;
+        for(auto&& w: W) {
+            v += w;
+        }
+                CHECK(v == Approx(2.0));
+    }
+
     std::cout << gauss_lobatto(
       [](double x) -> double { return std::pow(x, 5); }, 0., double(1), /*samples=*/5)
               << std::endl;
@@ -89,8 +99,8 @@ TEST_CASE("gauss_lobatto", "[quadrature]") {
     std::cout << gauss_lobatto(
       [](double x) -> double { return std::pow(x, 4); }, 0., double(1), /*samples=*/5)
               << std::endl;
-    for (int k = 3; k <= 5; ++k) {
-        for (int j = 0; j < 5; ++j) {
+    for (int k = 3; k <= 7; ++k) {
+        for (int j = 0; j < 2*k-3; ++j) {
             for (int l = 0; l <= 2 * k - 3; ++l) {
                 double v = gauss_lobatto(
                   [l](double x) -> double { return std::pow(x, l); }, 0., double(j), /*samples=*/k);
