@@ -3,6 +3,8 @@
 #include "mtao/eigen/shape_checks.hpp"
 
 
+// NOTE: if you wish to use custom attributes you want to include partio_loader_impl.hpp
+// this design is so that we can avoid designing
 namespace Partio {
 class ParticlesData;
 class ParticlesDataMutable;
