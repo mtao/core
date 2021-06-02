@@ -24,14 +24,12 @@ void PartioFileWriter::set_attribute(const std::string &name, const T &V) {
     constexpr static int D = T::RowsAtCompileTime;
 
     Partio::ParticleAttributeType type = type_to_partio_scalar<Scalar>();
-    int dim = D;
 
     if constexpr (D == 3 && std::is_same_v<Scalar, float>) {
         type = Partio::ParticleAttributeType::VECTOR;
-        dim = 1;
     }
     Partio::ParticleAttribute attr = _handle->addAttribute(
-      name.c_str(), type, dim);
+      name.c_str(), type, D);
     update_size(V.cols());
     auto it = _handle->begin();
     for (int j = 0; j < V.cols(); ++j, ++it) {
