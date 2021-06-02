@@ -25,11 +25,14 @@ endif()
 
 if(MTAO_USE_PARTIO)
 ADD_EXECUTABLE(partio_to_obj partio_to_obj.cpp)
-TARGET_LINK_LIBRARIES(partio_to_obj mtao::geometry cxxopts openvdb)
+TARGET_LINK_LIBRARIES(partio_to_obj mtao::geometry cxxopts )
 ADD_EXECUTABLE(partio_to_arrow_obj partio_to_arrow_obj.cpp)
-TARGET_LINK_LIBRARIES(partio_to_arrow_obj mtao::geometry cxxopts openvdb tbb)
+TARGET_LINK_LIBRARIES(partio_to_arrow_obj mtao::geometry cxxopts tbb)
 ADD_EXECUTABLE(xyz_to_partio xyz_to_partio.cpp)
-TARGET_LINK_LIBRARIES(xyz_to_partio mtao::geometry cxxopts openvdb)
+TARGET_LINK_LIBRARIES(xyz_to_partio mtao::geometry cxxopts)
+
+ADD_EXECUTABLE(partio_to_ply partio_to_ply.cpp)
+TARGET_LINK_LIBRARIES(partio_to_ply mtao::geometry cxxopts tbb)
 
 if(MTAO_USE_OPENVDB)
 ADD_EXECUTABLE(partio_to_vdb_points partio_to_vdb_points.cpp)

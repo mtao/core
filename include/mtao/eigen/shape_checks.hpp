@@ -7,6 +7,19 @@
 namespace mtao::eigen {
 
 namespace concepts {
+
+    template<typename T>
+    concept RowStaticCompatible = DenseBaseDerived<T> && (T::RowsAtCompileTime != Eigen::Dynamic);
+
+    template<typename T>
+    concept ColStaticCompatible = DenseBaseDerived<T> && (T::ColsAtCompileTime != Eigen::Dynamic);
+
+    template<typename T>
+    concept RowDynamicCompatible = DenseBaseDerived<T> && (T::RowsAtCompileTime == Eigen::Dynamic);
+
+    template<typename T>
+    concept ColDynamicCompatible = DenseBaseDerived<T> && (T::ColsAtCompileTime == Eigen::Dynamic);
+
     template<int R, typename T>
     concept RowCompatible = DenseBaseDerived<T> && ((T::RowsAtCompileTime == R) || (T::RowsAtCompileTime == Eigen::Dynamic));
     template<int C, typename T>
@@ -20,6 +33,11 @@ namespace concepts {
     template<typename T>
     concept RowVecCompatible = MatrixBaseDerived<T> &&RowCompatible<1, T>;
 
+    template<typename T>
+    concept VecXCompatible = MatrixBaseDerived<T> &&RowDynamicCompatible<T>;
+    template<typename T>
+    concept RowVecXCompatible = MatrixBaseDerived<T> &&ColDynamicCompatible<T>;
+
 
     template<int D, typename T>
     concept SquareMatrixDCompatible = MatrixBaseDerived<T> &&ShapeCompatible<D, D, T>;
@@ -30,6 +48,11 @@ namespace concepts {
     concept SquareMatrix3Compatible = MatrixBaseDerived<T> &&SquareMatrixDCompatible<3, T>;
     template<typename T>
     concept SquareMatrix4Compatible = MatrixBaseDerived<T> &&SquareMatrixDCompatible<4, T>;
+
+    template<typename T>
+    concept RowVecsDCompatible = MatrixBaseDerived<T> &&ColStaticCompatible<T>;
+    template<typename T>
+    concept ColVecsDCompatible = MatrixBaseDerived<T> &&RowStaticCompatible<T>;
 
     template<typename T>
     concept ColVecs2Compatible = MatrixBaseDerived<T> &&RowCompatible<2, T>;
@@ -46,7 +69,6 @@ namespace concepts {
     concept RowVecs3Compatible = MatrixBaseDerived<T> &&ColCompatible<3, T>;
     template<typename T>
     concept RowVecs4Compatible = MatrixBaseDerived<T> &&ColCompatible<4, T>;
-
 
 
     template<int R, typename T>

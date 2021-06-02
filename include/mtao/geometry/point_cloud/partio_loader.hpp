@@ -1,5 +1,6 @@
 #pragma once
 #include "mtao/types.hpp"
+#include "mtao/eigen/shape_checks.hpp"
 
 
 namespace Partio {
@@ -21,6 +22,12 @@ struct PartioFileWriter {
     void update_size(int size);
     void write();
 
+    template<eigen::concepts::ColVecsDCompatible T>
+    void set_attribute(const std::string &name, const T &V);
+
+    template<eigen::concepts::VecXCompatible T>
+    void set_attribute(const std::string &name, const T &V);
+
   private:
     std::string _filename;
     Partio::ParticlesDataMutable *_handle;
@@ -34,14 +41,26 @@ struct PartioFileReader {
     mtao::ColVecs3d velocities() const;
     mtao::ColVecs4d colors() const;
     mtao::VecXd radii() const;
+    mtao::VecXd densities() const;
     mtao::VecXi ids() const;
+
+
+    template<typename T, int D>
+    mtao::ColVectors<T, D> vector_attribute(const std::string &name) const;
+    template<typename T>
+    mtao::VectorX<T> attribute(const std::string &name) const;
     bool has_positions() const;
     bool has_velocities() const;
     bool has_colors() const;
+    bool has_densities() const;
     bool has_radii() const;
     bool has_ids() const;
 
     int particle_count() const;
+
+
+    template<typename T, int D = 1>
+    bool has_attribute(const std::string &name) const;
 
 
   private:

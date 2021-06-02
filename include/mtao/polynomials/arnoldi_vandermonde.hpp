@@ -1,5 +1,7 @@
 #pragma once
+#include <iomanip>
 #include "mtao/types.hpp"
+#include <iostream>
 #include "mtao/eigen/shape_checks.hpp"
 #include <numeric>
 
@@ -15,6 +17,7 @@ struct ArnoldiPolynomial {
     using Scalar = T;
 
     using Vector = std::conditional_t<IsDynamic, mtao::VectorX<T>, mtao::Vector<T, D>>;
+    using CoeffVector = std::conditional_t<IsDynamic, mtao::VectorX<T>, mtao::Vector<T, D + 1>>;
     using HessenbergeMatrix = std::conditional_t<IsDynamic, mtao::MatrixX<T>, Eigen::Matrix<T, D + 1, D>>;
 
     template<eigen::concepts::VecCompatible XType, eigen::concepts::VecCompatible FType>
@@ -26,9 +29,9 @@ struct ArnoldiPolynomial {
     std::decay_t<typename XType::EvalReturnType> operator()(const XType &v) const;
 
 
-    int degree() const { return _C.size(); }
+    int degree() const { return _H.cols(); }
 
-    Vector _C;//coefficients
+    CoeffVector _C;//coefficients
     HessenbergeMatrix _H;//hessenberg matrix
 };
 template<typename Vec, typename Vec2>
@@ -37,26 +40,40 @@ ArnoldiPolynomial(const Vec &, const Vec2 &, int) -> ArnoldiPolynomial<typename 
 
 template<typename T, int D>
 template<eigen::concepts::VecCompatible XType, eigen::concepts::VecCompatible FType>
-ArnoldiPolynomial<T, D>::ArnoldiPolynomial(const XType &X, const FType &F, int n) : _C(IsDynamic ? n : D), _H(HessenbergeMatrix::Zero((IsDynamic ? n : D) + 1, (IsDynamic ? n : D))) {
+ArnoldiPolynomial<T, D>::ArnoldiPolynomial(const XType &X, const FType &F, int n) : _C(IsDynamic ? n + 1 : D + 1), _H(HessenbergeMatrix::Zero((IsDynamic ? n : D) + 1, (IsDynamic ? n : D))) {
 
     const int M = X.size();
     const T Msqrt = std::sqrt<T>(M).real();
-    mtao::ColVectors<T, XType::RowsAtCompileTime> Q(M, degree());
+    mtao::ColVectors<T, XType::RowsAtCompileTime> Q(M, degree() + 1);
+    Q.setZero();
     Q.col(0).setOnes();
     auto XDiag = X.asDiagonal();
-    for (int k = 0; k < degree() - 1; ++k) {
+    // for each degree,
+    for (int k = 0; k < degree(); ++k) {
         auto q = Q.col(k + 1);
         q = XDiag * Q.col(k);
-        for (int j = 0; j < k; ++j) {
+        for (int j = 0; j <= k; ++j) {
             auto qj = Q.col(j);
             const Scalar h = _H(j, k) = qj.dot(q) / M;
+            //std::cout << q.transpose() << "\n"
+            //          << qj.transpose() << std::endl;
             q = q - h * qj;
         }
         const T h = _H(k + 1, k) = q.norm() / Msqrt;
+        //std::cout << std::setprecision(15) << h << std::endl;
         q /= h;
+        //std::cout << Q.leftCols(k + 2) << std::endl;
+        //std::cout << _H << std::endl
+        //          << std::endl;
     }
-    _C.noalias() = Q.colPivHouseholderQr().solve(F);// disable aliasing to disallow size changes
+    //std::cout << _H << std::endl;
+    if (Q.rows() == Q.cols()) {
+        _C.noalias() = Q.lu().solve(F);
+    } else {
+        _C.noalias() = Q.householderQr().solve(F);
+    }
 }
+
 
 template<typename T, int D>
 T ArnoldiPolynomial<T, D>::operator()(T v) const {
@@ -70,15 +87,18 @@ template<typename T, int D>
 template<eigen::concepts::VecCompatible XType>
 std::decay_t<typename XType::EvalReturnType> ArnoldiPolynomial<T, D>::operator()(const XType &X) const {
 
-    mtao::ColVectors<T, XType::RowsAtCompileTime> W(X.size(), degree());
+    mtao::ColVectors<T, XType::RowsAtCompileTime> W(X.size(), degree() + 1);
 
     W.setZero();
     W.col(0).setOnes();
     auto XDiag = X.asDiagonal();
-    for (int k = 0; k < degree() - 1; ++k) {
+    for (int k = 0; k < degree(); ++k) {
         auto w = W.col(k + 1);
         w = XDiag * W.col(k);
-        w -= W.leftCols(k) * _H.col(k).head(k);
+        for (int j = 0; j <= k; ++j) {
+            auto wj = W.col(j);
+            w = w - _H(j, k) * wj;
+        }
         w /= _H(k + 1, k);
     }
 
