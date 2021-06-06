@@ -24,6 +24,9 @@ TARGET_LINK_LIBRARIES(mesh_to_vdb mtao::geometry cxxopts openvdb)
 endif()
 
 if(MTAO_USE_PARTIO)
+ADD_EXECUTABLE(partio_sequence_to_streamlines partio_sequence_to_streamlines.cpp)
+TARGET_LINK_LIBRARIES(partio_sequence_to_streamlines mtao::geometry cxxopts )
+
 ADD_EXECUTABLE(partio_to_obj partio_to_obj.cpp)
 TARGET_LINK_LIBRARIES(partio_to_obj mtao::geometry cxxopts )
 ADD_EXECUTABLE(partio_to_arrow_obj partio_to_arrow_obj.cpp)
