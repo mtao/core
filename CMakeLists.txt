@@ -368,7 +368,7 @@ TARGET_LINK_LIBRARIES(mtao_geometry PUBLIC mtao_common ${OpenMP_TARGET} PRIVATE 
 TARGET_INCLUDE_DIRECTORIES(mtao_geometry PRIVATE ${triangle_INCLUDE_DIR})
 
 IF(MTAO_USE_PARTIO)
-    target_link_libraries(mtao_geometry PRIVATE partio)
+    target_link_libraries(mtao_geometry PUBLIC partio)
 endif(MTAO_USE_PARTIO)
 
 
