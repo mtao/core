@@ -60,15 +60,24 @@ int main(int argc, char *argv[]) {
         spdlog::info("Just testing for available files with the format");
     }
     int max_file_index = 0;
+    int first_output_file = 0;
     for (max_file_index = 0;; ++max_file_index) {
         std::string input_path_str = fmt::format(input_format, max_file_index);
         std::filesystem::path current_input_path = input_path_str;
+
         if (!std::filesystem::exists(current_input_path)) {
             break;
         } else {
 
             if (test_files) {
                 spdlog::info("{}", std::string(current_input_path));
+            } else if (avoid_overwritting) {
+                // if we're not overwriting then figure out when we need to start caching
+                std::string output_path_str = fmt::format(output_format, max_file_index);
+                std::filesystem::path current_output_path = output_path_str;
+                if (!std::filesystem::exists(current_input_path)) {
+                    first_output_file = max_file_index;
+                }
             }
         }
     }
@@ -80,7 +89,7 @@ int main(int argc, char *argv[]) {
     bool do_slice = (dim >= -1) && (thickness > 0);
 
     spdlog::info("Going to go through {} frames", max_file_index);
-    for (int index = 0; index < max_file_index; ++index) {
+    for (int index = avoid_overwritting ? std::max<int>(0, first_output_file - count) : 0; index < max_file_index; ++index) {
         spdlog::info("Making file for obj {}", index);
         int min_index = std::max<int>(0, index - count + 1);
         // load the newest file
@@ -95,7 +104,7 @@ int main(int argc, char *argv[]) {
 
         if (avoid_overwritting && std::filesystem::exists(current_output_path)) {
             continue;
-        } 
+        }
         std::ofstream ofs(current_output_path);
 
         int global_index = 1;
@@ -112,42 +121,42 @@ int main(int argc, char *argv[]) {
 
             if (use_it) {
                 int global_stop = index - min_index + global_index;
-                mtao::ColVecs3d pts(3,count);
+                mtao::ColVecs3d pts(3, count);
                 int ptssize = 0;
                 for (int subindex = min_index; subindex <= index; ++subindex) {
                     int cache_index = subindex % count;
                     //std::cout << cache_filenames[cache_index] << " ";
                     const auto &P = cache[cache_index];
                     if (pidx < P.cols()) {
-                    pts.col(ptssize++ ) = P.col(pidx);
+                        pts.col(ptssize++) = P.col(pidx);
                         //ofs << "v " << P.col(pidx).transpose() << std::endl;
                     } else {
                         global_stop--;
                     }
                 }
-                if(pts.size() == 1) {
+                if (pts.size() == 1) {
                     use_it = false;
                 }
 
-                for(int j = 0; j < ptssize-1; ++j) {
-                    auto a =pts.col(j);
-                    auto b =pts.col(j+1);
-                    if((a-b).norm() > lasers_filter) {
+                for (int j = 0; j < ptssize - 1; ++j) {
+                    auto a = pts.col(j);
+                    auto b = pts.col(j + 1);
+                    if ((a - b).norm() > lasers_filter) {
                         use_it = false;
                     }
                 }
-                if(use_it) {
-                    for(int j = 0; j < ptssize; ++j) {
+                if (use_it) {
+                    for (int j = 0; j < ptssize; ++j) {
                         ofs << "v " << pts.col(j).transpose() << "\n";
                     }
-                //spdlog::info("line indices: {} => {}", global_index, global_stop);
-                ofs << "l ";
-                for (; global_index <= global_stop; ++global_index) {
-                    //std::cout << global_index << std::endl;
-                    ofs << global_index << " ";
-                }
-                ofs << std::endl;
-                //std::cout << std::endl;
+                    //spdlog::info("line indices: {} => {}", global_index, global_stop);
+                    ofs << "l ";
+                    for (; global_index <= global_stop; ++global_index) {
+                        //std::cout << global_index << std::endl;
+                        ofs << global_index << " ";
+                    }
+                    ofs << std::endl;
+                    //std::cout << std::endl;
                 }
             }
         }
