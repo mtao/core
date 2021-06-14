@@ -4,7 +4,7 @@ set(NLOHMANN_JSON_COMMIT
  v3.9.1
     )
 set(PYBIND_COMMIT v2.6.1)
-set(PARTIO_COMMIT b8cc9e28e1032a839c07f4e95f29eeee2d28c959)
+set(PARTIO_COMMIT  461a53e2e1ba4dc6110e78ebfab2e184ac5d0204)
 # MAGNUM SETTINGS
 option(BUILD_TESTS "Build tests (for mosra libs)" OFF)
 option(BUILD_TESTSUITE "Build test suite library (mosra)" OFF)
@@ -94,11 +94,12 @@ if(MTAO_USE_LOSTOPOS)
     fetch_dep(lostopos https://github.com/mtao/LosTopos.git 577636bfff2d72acf264c631610b345b61d797c2 ON)
 endif()
 
-if(MTAO_USE_OPENGL)
+
     if(NOT Corrade_FOUND)
         fetch_dep(corrade https://github.com/mtao/corrade configuration_reflection ON)
         #hide_dependency_warnings(Corrade )
     endif()
+if(MTAO_USE_OPENGL)
     if(NOT Magnum_FOUND)
         option(WITH_GLFWAPPLICATION "Build GlfwApplication library" ON)
         fetch_dep(magnum https://github.com/mosra/magnum v2020.06 ON)
