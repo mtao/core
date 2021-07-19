@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
 
     bool help_out = result.count("help");
     bool test_files = result.count("test");
-    bool avoid_overwritting = result.count("avoid-overwriting");
+    bool avoid_overwriting = result.count("avoid-overwriting");
     if (!bool(result.count("input_format"))) {
         help_out = true;
     }
@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
 
             if (test_files) {
                 spdlog::info("{}", std::string(current_input_path));
-            } else if (avoid_overwritting) {
+            } else if (avoid_overwriting) {
                 // if we're not overwriting then figure out when we need to start caching
                 std::string output_path_str = fmt::format(output_format, max_file_index);
                 std::filesystem::path current_output_path = output_path_str;
@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
     bool do_slice = (dim >= -1) && (thickness > 0);
 
     spdlog::info("Going to go through {} frames", max_file_index);
-    for (int index = avoid_overwritting ? std::max<int>(0, first_output_file - count) : 0; index < max_file_index; ++index) {
+    for (int index = avoid_overwriting ? std::max<int>(0, first_output_file - count) : 0; index < max_file_index; ++index) {
         spdlog::info("Making file for obj {}", index);
         int min_index = std::max<int>(0, index - count + 1);
         // load the newest file
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
         auto &P = cache[cache_index] = mtao::geometry::point_cloud::points_from_partio(std::filesystem::absolute(current_input_path));
         cache_filenames[cache_index] = current_input_path;
 
-        if (avoid_overwritting && std::filesystem::exists(current_output_path)) {
+        if (avoid_overwriting && std::filesystem::exists(current_output_path)) {
             continue;
         }
         std::ofstream ofs(current_output_path);

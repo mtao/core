@@ -252,6 +252,7 @@ ADD_LIBRARY(mtao_visualization ${MTAO_LIBRARY_TYPE}
     include/mtao/hotkey_manager.hpp
 
     src/opengl/objects/mesh.cpp
+    src/opengl/objects/plane.cpp
     src/opengl/shaders.cpp
     src/opengl/drawables.cpp
 
