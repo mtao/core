@@ -42,6 +42,7 @@ OPTION(MTAO_USE_OPENVDB "Build openvdb stuff" OFF)
 OPTION(MTAO_USE_PNGPP "Use PNG++ for screenshots" ON)
 OPTION(MTAO_USE_JSON "Use json" ON)
 OPTION(MTAO_USE_PARTIO "Use partio" ON)
+OPTION(MTAO_USE_IGL "Use libigl" ON)
 OPTION(MTAO_BUILD_STATIC "Build static libraries" ON)
 
 # https://medium.com/@alasher/colored-c-compiler-output-with-ninja-clang-gcc-10bfe7f2b949
@@ -290,6 +291,7 @@ TARGET_LINK_LIBRARIES(mtao_visualization PUBLIC mtao_common
     dl 
     ${png++_LIBRARIES} 
     Corrade::PluginManager
+    mtao::geometry
     )
 if(WITH_PNGIMAGECONVERTER)
     TARGET_COMPILE_DEFINITIONS(mtao_visualization PRIVATE
