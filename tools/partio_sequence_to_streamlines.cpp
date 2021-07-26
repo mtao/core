@@ -1,4 +1,3 @@
-
 #include <mtao/geometry/point_cloud/partio_loader.hpp>
 #include <iostream>
 #include <fstream>
@@ -75,7 +74,9 @@ int main(int argc, char *argv[]) {
                 // if we're not overwriting then figure out when we need to start caching
                 std::string output_path_str = fmt::format(output_format, max_file_index);
                 std::filesystem::path current_output_path = output_path_str;
-                if (!std::filesystem::exists(current_input_path)) {
+                spdlog::info("Checking for overwrites in {} ({})", std::string(current_input_path), output_path_str);
+                if (!std::filesystem::exists(current_output_path)) {
+                    spdlog::info("Found an input file without an output file, {}", max_file_index);
                     first_output_file = max_file_index;
                 }
             }
@@ -88,8 +89,9 @@ int main(int argc, char *argv[]) {
     std::vector<std::string> cache_filenames(count);
     bool do_slice = (dim >= -1) && (thickness > 0);
 
-    spdlog::info("Going to go through {} frames", max_file_index);
-    for (int index = avoid_overwritting ? std::max<int>(0, first_output_file - count) : 0; index < max_file_index; ++index) {
+    int starting_index = avoid_overwritting ? std::max<int>(0, first_output_file - count) : 0;
+    spdlog::info("Going to go through {} frames starting at {}", max_file_index, starting_index);
+    for (int index = starting_index ; index < max_file_index; ++index) {
         spdlog::info("Making file for obj {}", index);
         int min_index = std::max<int>(0, index - count + 1);
         // load the newest file
