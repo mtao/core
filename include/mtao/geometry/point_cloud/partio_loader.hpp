@@ -57,6 +57,7 @@ struct PartioFileReader {
     bool has_densities() const;
     bool has_radii() const;
     bool has_ids() const;
+    std::vector<std::string> attributes() const;
 
     int particle_count() const;
 

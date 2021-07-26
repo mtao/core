@@ -51,6 +51,18 @@ int PartioFileReader::particle_count() const {
 }
 
 
+std::vector<std::string> PartioFileReader::attributes() const {
+    int num_attrs = _handle->numAttributes();
+    std::vector<std::string> attr_names(num_attrs);
+    for (int j = 0; j < num_attrs; ++j) {
+        Partio::ParticleAttribute attr;
+        _handle->attributeInfo(j, attr);
+        attr_names[j] = attr.name;
+    }
+    return attr_names;
+}
+
+
 mtao::ColVecs3d PartioFileReader::positions() const {
     return vector_attribute<float, 3>("position").cast<double>();
 }
