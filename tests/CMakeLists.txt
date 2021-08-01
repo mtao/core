@@ -86,9 +86,9 @@ ADD_CATCHTEST(reindex
     reindexer_test.cpp
     )
 if(MTAO_USE_TBB)
-ADD_CATCHTEST(tbb
-    tbb_parloop_test.cpp 
-    )
+    #ADD_CATCHTEST(tbb
+    #    tbb_parloop_test.cpp 
+    #    )
 endif()
 
 # TODO: make the following into proper tests

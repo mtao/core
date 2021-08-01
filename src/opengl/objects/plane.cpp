@@ -55,8 +55,8 @@ void Plane::update() {
 
     P = ((U * P.row(0) + V * P.row(1)).colwise() + O).eval();
 
-    Mesh<3>::setVertexBuffer(P);
-    Mesh<3>::setTriangleBuffer(F.template cast<unsigned int>());
+
+    Mesh<3>::setTriangleBuffer(P,F.template cast<unsigned int>());
 }
 
 mtao::Vec4f Plane::get_equation() const {

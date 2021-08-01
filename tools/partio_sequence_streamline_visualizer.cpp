@@ -41,8 +41,8 @@ struct Particles {
     Particles &operator=(Particles &&) = default;
     Particles(const std::filesystem::path &filepath);
     mtao::ColVecs3d positions_from_indices(const std::vector<int> &P) const;
+    mtao::ColVecs3d velocities_from_indices(const std::vector<int> &P) const;
     mtao::VecXd densities_from_indices(const std::vector<int> &P) const;
-    bool density_colors = true;
 
     int count() const {
         return positions.cols();
@@ -93,8 +93,6 @@ struct MeshFilter : public Filter {
     float mesh_distance = .1;
     MeshFilter(const Eigen::MatrixXf &V, const Eigen::MatrixXi &F) : V(std::move(V)), F(std::move(F)) {
 
-        std::cout << this->V.rows() << ":" << this->V.cols() << std::endl;
-        std::cout << this->F.rows() << ":" << this->F.cols() << std::endl;
         aabb.init(V, F);
     }
     BoolVec particle_mask(const Particles &p) const override {
@@ -104,8 +102,6 @@ struct MeshFilter : public Filter {
 
 
         auto P = p.positions.transpose().cast<float>().eval();
-        std::cout << P.rows() << std::endl;
-        std::cout << V.rows() << std::endl;
         aabb.squared_distance(V, F, P, sqrD, I, C);
         spdlog::info("Got squared dist");
         return sqrD.array() < mesh_distance * mesh_distance;
@@ -139,6 +135,10 @@ Particles::Particles(const std::filesystem::path &filepath) {
     positions = pfr.positions();
     velocities = pfr.velocities();
 }
+
+mtao::ColVecs3d Particles::velocities_from_indices(const std::vector<int> &P) const {
+    return mtao::eigen::col_slice(velocities, P);
+}
 mtao::ColVecs3d Particles::positions_from_indices(const std::vector<int> &P) const {
     return mtao::eigen::col_slice(positions, P);
 }
@@ -150,6 +150,10 @@ class MeshViewer : public mtao::opengl::Window3 {
     std::filesystem::path base_dir;
     std::string relative_format = "frame_{}/particles.bgeo.gz";
     std::vector<Particles> particles;
+    enum ParticleColorMode : char { All,
+                                    Selected,
+                                    Density };
+    ParticleColorMode particle_color_mode = ParticleColorMode::All;
 
 
     std::vector<int> active_indices;
@@ -179,6 +183,8 @@ class MeshViewer : public mtao::opengl::Window3 {
 
     const Particles &frame_particles(int index) const;
     mtao::ColVecs3d frame_positions(int index) const;
+    mtao::ColVecs3d frame_velocities(int index) const;
+    mtao::VecXd frame_densities(int index) const;
     bool frame_exists(int index) const;
     int frame_file_count() const;
 
@@ -223,6 +229,12 @@ const Particles &MeshViewer::frame_particles(int index) const {
 }
 mtao::ColVecs3d MeshViewer::frame_positions(int index) const {
     return frame_particles(index).positions_from_indices(active_indices);
+}
+mtao::ColVecs3d MeshViewer::frame_velocities(int index) const {
+    return frame_particles(index).velocities_from_indices(active_indices);
+}
+mtao::VecXd MeshViewer::frame_densities(int index) const {
+    return frame_particles(index).densities_from_indices(active_indices);
 }
 
 bool MeshViewer::frame_exists(int index) const {
@@ -338,22 +350,13 @@ void MeshViewer::select_particles(std::vector<int> &&indices, bool set_active) {
     if (set_active) {
 
         active_indices = std::move(indices);
+        particle_color_mode = ParticleColorMode::All;
         current_frame_updated();
-        mtao::ColVecs4f C(4, active_indices.size());
-        C.setOnes();
-        point_mesh.setColorBuffer(C);
     } else {
 
         reset_all_indices();
-        mtao::ColVecs4f C(4, active_indices.size());
-        C.setZero();
-
-        for (auto &&idx : indices) {
-            C.col(idx).setConstant(1);
-        }
-
-        C.row(3).setConstant(1);
-        point_mesh.setColorBuffer(C);
+        particle_color_mode = ParticleColorMode::Selected;
+        current_frame_updated();
     }
 }
 
@@ -374,12 +377,35 @@ void MeshViewer::set_frame(int index) {
         point_drawable->set_visibility(true);
         auto current_positions = frame_positions(index).cast<float>().eval();
         point_mesh.setVertexBuffer(current_positions);
+        mtao::ColVecs4f C(4, current_positions.cols());
+        C.row(3).setConstant(1);
+        auto RGB = C.topRows<3>();
+        switch (particle_color_mode) {
+        case ParticleColorMode::Selected: {
+            RGB.setZero();
+            for (auto &&idx : active_indices) {
+                RGB.col(idx).setConstant(1);
+            }
+            break;
+        }
+        case ParticleColorMode::Density: {
+            RGB.rowwise() = frame_densities(index).transpose().cast<float>();
+            break;
+        }
+        default:
+        case ParticleColorMode::All: {
+            RGB.setOnes();
+            break;
+        }
+        }
+        point_mesh.setColorBuffer(C);
     }
 }
 
 void MeshViewer::initialize_drawables() {
 
     point_drawable = new mtao::opengl::MeshDrawable<Magnum::Shaders::VertexColor3D>{ point_mesh, _vcolor_shader, drawables() };
+    point_drawable->point_size = 3.0;
     point_drawable->deactivate();
     point_drawable->activate_points();
     point_mesh.setParent(&root());
@@ -392,6 +418,7 @@ void MeshViewer::initialize_drawables() {
             V.row(2) *= -1;
             mesh_filter = std::make_shared<MeshFilter>(V.transpose(), F.transpose());
 
+            spdlog::info("Loading a mesh with {} vertices and {} faces", V.cols(), F.cols());
             mesh.setTriangleBuffer(V, F.cast<unsigned int>());
 
             mesh_drawable = new mtao::opengl::MeshDrawable<Magnum::Shaders::Phong>{ mesh, _phong_shader, drawables() };
@@ -411,6 +438,11 @@ void MeshViewer::initialize_drawables() {
     intersection_filter = std::make_shared<IntersectionFilter>();
     intersection_filter->filters.emplace_back(plane_filter);
     intersection_filter->filters.emplace_back(mesh_filter);
+
+
+    //_plane_viewer->deactivate();
+    //point_drawable->deactivate();
+    //mesh_drawable->deactivate();
 }
 
 MAGNUM_APPLICATION_MAIN(MeshViewer)
