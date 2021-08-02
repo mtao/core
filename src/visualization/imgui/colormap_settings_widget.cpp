@@ -13,7 +13,8 @@ bool ColorMapSettingsWidget::gui() {
         static const char *items[] = {
             "Parula",
             "Jet",
-            "Waves"
+            "Waves",
+            "Winter",
         };
         int m = static_cast<char>(type);
         ret |= ImGui::Combo("Type", &m, items, IM_ARRAYSIZE(items));
@@ -55,6 +56,10 @@ mtao::Vec4d ColorMapSettingsWidget::get_color(double x) const {
     }
     case ColorMapType::Waves: {
         c = colormap::transform::LavaWaves().getColor(x);
+        break;
+    }
+    case ColorMapType::Winter: {
+        c = colormap::MATLAB::Winter().getColor(x);
         break;
     }
     }

@@ -8,7 +8,8 @@ struct ColorMapSettingsWidget : public IntervalScalerSettingsWidget {
     mtao::ColVecs3d colormap(const mtao::VecXd &d) const;
     enum ColorMapType : char { Parula = 0,
                                Jet = 1,
-                               Waves = 2 };
+                               Waves = 2,
+                               Winter = 3 };
 
     bool gui();
 
