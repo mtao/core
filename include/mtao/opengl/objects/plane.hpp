@@ -1,7 +1,6 @@
 #pragma once
 #include "mtao/opengl/objects/mesh.h"
 #include <Eigen/Geometry>
-#include <Eigen/src/Core/util/Memory.h>
 
 
 namespace mtao::opengl::objects {

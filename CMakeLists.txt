@@ -254,6 +254,7 @@ ADD_LIBRARY(mtao_visualization ${MTAO_LIBRARY_TYPE}
 
     src/opengl/objects/mesh.cpp
     src/opengl/objects/plane.cpp
+    src/opengl/objects/sphere.cpp
     src/opengl/shaders.cpp
     src/opengl/drawables.cpp
     src/visualization/imgui/interval_scaler_settings_widget.cpp
@@ -309,6 +310,7 @@ ENDIF(MTAO_USE_OPENGL)
 
 SET(GEOMETRY_SRCS
     src/geometry/mesh/shapes/cube.cpp
+    src/geometry/mesh/shapes/tube.cpp
     src/geometry/mesh/halfedge.cpp
     src/geometry/mesh/halfedge_fv_map.cpp
     src/geometry/mesh/read_obj.cpp

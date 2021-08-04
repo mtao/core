@@ -47,7 +47,12 @@ TARGET_LINK_LIBRARIES(partio_to_vdb_points mtao::geometry cxxopts openvdb)
 endif()
 
 if(MTAO_USE_OPENGL)
-ADD_EXECUTABLE(partio_sequence_streamline_visualizer partio_sequence_streamline_visualizer.cpp)
+ADD_EXECUTABLE(partio_sequence_streamline_visualizer partio_sequence_streamline_visualizer.cpp
+    partio_sequence_streamline_visualizer/filter.cpp
+    partio_sequence_streamline_visualizer/viewer.cpp
+    partio_sequence_streamline_visualizer/particles.cpp
+
+    )
 TARGET_LINK_LIBRARIES(partio_sequence_streamline_visualizer mtao::geometry cxxopts mtao::visualization std::filesystem igl::core tbb)
 endif()
 endif()

@@ -89,9 +89,9 @@ int main(int argc, char *argv[]) {
     std::vector<std::string> cache_filenames(count);
     bool do_slice = (dim >= -1) && (thickness > 0);
 
-    int starting_index = avoid_overwritting ? std::max<int>(0, first_output_file - count) : 0;
+    int starting_index = avoid_overwriting ? std::max<int>(0, first_output_file - count) : 0;
     spdlog::info("Going to go through {} frames starting at {}", max_file_index, starting_index);
-    for (int index = starting_index ; index < max_file_index; ++index) {
+    for (int index = starting_index; index < max_file_index; ++index) {
         spdlog::info("Making file for obj {}", index);
         int min_index = std::max<int>(0, index - count + 1);
         // load the newest file
