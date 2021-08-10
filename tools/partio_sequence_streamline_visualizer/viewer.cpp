@@ -7,6 +7,7 @@
 #include <fmt/format.h>
 #include <tbb/parallel_for.h>
 #include <mtao/geometry/mesh/read_obj.hpp>
+#include <mtao/geometry/mesh/shapes/tube.hpp>
 
 std::filesystem::path MeshViewer::mesh_path() const {
     return base_dir / "mesh.obj";
@@ -88,10 +89,17 @@ void MeshViewer::gui() {
     }
     if (tail_size) {
         if (ImGui::InputInt("Tail size", &*tail_size)) {
-            tail_size = std::max<int>(0, *tail_size);
+            tail_size = std::max<int>(2, *tail_size);
             current_frame_updated();
         }
         if (ImGui::Checkbox("Tube Geometry", &pipe_geometry)) {
+            current_frame_updated();
+        }
+        if (ImGui::InputInt("Tube subdivision", &tube_subdivisions)) {
+            tube_subdivisions = std::max<int>(3, tube_subdivisions);
+            current_frame_updated();
+        }
+        if (ImGui::InputFloat("Tube radius", &tube_radius)) {
             current_frame_updated();
         }
         if (ImGui::Button("Show Points")) {
@@ -173,6 +181,32 @@ void MeshViewer::gui() {
             ImGui::TreePop();
         }
     }
+    if (prune_filter) {
+        if (ImGui::TreeNode("Prune Filter")) {
+            if (prune_filter->gui()) {
+                select_particles_from_prune(false);
+            }
+
+            if (ImGui::Button("Select Particles")) {
+                select_particles_from_prune(true);
+            }
+
+            ImGui::TreePop();
+        }
+    }
+    if (range_filter) {
+        if (ImGui::TreeNode("Range Filter")) {
+            if (range_filter->gui()) {
+                select_particles_from_range(false);
+            }
+
+            if (ImGui::Button("Select Particles")) {
+                select_particles_from_range(true);
+            }
+
+            ImGui::TreePop();
+        }
+    }
     if (intersection_filter) {
         if (ImGui::TreeNode("All Filter")) {
             if (intersection_filter->gui()) {
@@ -231,6 +265,20 @@ void MeshViewer::select_particles_from_plane(bool set_active) {
     auto indices = plane_filter->selected_particles(frame_particles(current_frame));
     select_particles(std::move(indices), set_active);
 }
+void MeshViewer::select_particles_from_prune(bool set_active) {
+    if (current_frame < 0) {
+        return;
+    }
+    auto indices = prune_filter->selected_particles(frame_particles(current_frame));
+    select_particles(std::move(indices), set_active);
+}
+void MeshViewer::select_particles_from_range(bool set_active) {
+    if (current_frame < 0) {
+        return;
+    }
+    auto indices = range_filter->selected_particles(frame_particles(current_frame));
+    select_particles(std::move(indices), set_active);
+}
 
 void MeshViewer::select_particles_from_all(bool set_active) {
     if (current_frame < 0) {
@@ -242,6 +290,7 @@ void MeshViewer::select_particles_from_all(bool set_active) {
 
 void MeshViewer::select_particles(std::vector<int> &&indices, bool set_active) {
 
+    tail_size = {};
     show_all_particles = !set_active;
     active_indices = std::move(indices);
     if (set_active) {
@@ -291,35 +340,116 @@ std::tuple<mtao::ColVecs3d, mtao::VecXd> MeshViewer::get_pos_scalar(int index) c
     }
     return ret;
 }
-std::tuple<mtao::ColVecs3d, mtao::VecXd, mtao::ColVecs3i> MeshViewer::get_pos_scalar_tubes(int index) const {
+
+std::vector<std::tuple<mtao::ColVecs3d, mtao::VecXd>> MeshViewer::get_pos_scalar_tail(int index) const {
 
     int last_index = index + 2;
     if (this->tail_size) {
         last_index = *this->tail_size + index;
     }
-    last_index = std::max<int>(particles.size(), last_index);
+    last_index = std::min<int>(particles.size(), last_index);
     int tail_size = last_index - index;
     auto [VF, FF] = get_pos_scalar(index);
-    std::vector<mtao::ColVecs3d> Vs(VF.cols());
-    std::vector<mtao::VecXd> Fs(FF.cols());
-    for (auto &&[idx, V, F] : mtao::iterator::enumerate(Vs, Fs)) {
+
+
+    std::vector<std::tuple<mtao::ColVecs3d, mtao::VecXd>> ret(VF.cols());
+    for (auto &&[idx, pr] : mtao::iterator::enumerate(ret)) {
+        auto &[V, F] = pr;
         V.resize(3, tail_size);
         V.col(0) = VF.col(idx);
         F.resize(tail_size);
         F(0) = FF(idx);
     }
     for (int j = 1; j < tail_size; ++j) {
-        auto [VF, FF] = get_pos_scalar(index);
-        for (auto &&[idx, V, F] : mtao::iterator::enumerate(Vs, Fs)) {
+        auto [VF, FF] = get_pos_scalar(index + j);
+        for (auto &&[idx, pr] : mtao::iterator::enumerate(ret)) {
+            auto &[V, F] = pr;
             V.col(j) = VF.col(idx);
             F(j) = FF(idx);
         }
     }
-    mtao::geometry::mesh::shapes::internal::TubeConstructor tc{ tube_radius, tube_subdivisions, true, true };
-std::tuple<mtao::ColVecs3d, mtao::VecXd, mtao::ColVecs3i>
 
-    for(
-    tc.tube(
+    return ret;
+}
+
+std::tuple<mtao::ColVecs3d, mtao::VecXd, mtao::ColVecs2i> MeshViewer::get_pos_scalar_lines(int index) const {
+    auto tails = get_pos_scalar_tail(index);
+
+    std::vector<mtao::ColVecs3d> tV(tails.size());
+    std::vector<mtao::VecXd> tF(tails.size());
+    std::vector<mtao::ColVecs2i> tE(tails.size());
+
+    int offset = 0;
+    for (auto &&[TV, TF, TE, pr] : mtao::iterator::zip(tV, tF, tE, tails)) {
+        auto &[V, F] = pr;
+
+        TV = V;
+        TF = F;
+        TE.resize(2, TV.cols() - 1);
+        for (int j = 0; j < TE.cols(); ++j) {
+            auto e = TE.col(j);
+            int val = j + offset;
+            e << val, val + 1;
+        }
+
+        offset += TV.cols();
+    }
+    std::tuple<mtao::ColVecs3d, mtao::VecXd, mtao::ColVecs2i> ret;
+    {
+        std::get<0>(ret) = mtao::eigen::hstack_iter(tV.begin(), tV.end());
+        std::get<1>(ret) = mtao::eigen::vstack_iter(tF.begin(), tF.end());
+        std::get<2>(ret) = mtao::eigen::hstack_iter(tE.begin(), tE.end());
+        const auto &[V, F, T] = ret;
+        spdlog::info("vertices {} function {} edges {}", V.cols(), F.size(), T.cols());
+    }
+    return ret;
+}
+
+std::tuple<mtao::ColVecs3d, mtao::VecXd, mtao::ColVecs3i> MeshViewer::get_pos_scalar_tubes(int index) const {
+
+    auto tails = get_pos_scalar_tail(index);
+
+    mtao::geometry::mesh::shapes::internal::TubeConstructor tc{ tube_radius, tube_subdivisions, true, true };
+    std::tuple<mtao::ColVecs3d, mtao::VecXd, mtao::ColVecs3i> ret;
+
+    //std::vector<std::tuple<mtao::ColVecs3d, mtao::VecXd, mtao::ColVecs3i>> single_tubes(Vs.size());
+    std::vector<mtao::ColVecs3d> tV(tails.size());
+    std::vector<mtao::VecXd> tF(tails.size());
+    std::vector<mtao::ColVecs3i> tT(tails.size());
+
+    int offset = 0;
+    for (auto &&[TV, TF, TT, pr] : mtao::iterator::zip(tV, tF, tT, tails)) {
+        auto &[V, F] = pr;
+
+        //std::cout << "Input Vertices\n"
+        //          << V << std::endl;
+        TV = tc.create_vertices(V);
+        TF = tc.create_per_ring_data_rows(F);
+        TT = tc.create_triangulation(V.cols());
+        if (TT.maxCoeff() > TV.cols()) {
+            spdlog::info("Triangle indices are bad, too big ({} > {})", TT.maxCoeff(), TV.cols());
+        }
+        if (TT.minCoeff() < 0) {
+            spdlog::info("Triangle small index found: {}", TT.minCoeff());
+        }
+        TT.array() += offset;
+
+        offset += TV.cols();
+    }
+    {
+        std::get<0>(ret) = mtao::eigen::hstack_iter(tV.begin(), tV.end());
+        std::get<1>(ret) = mtao::eigen::vstack_iter(tF.begin(), tF.end());
+        std::get<2>(ret) = mtao::eigen::hstack_iter(tT.begin(), tT.end());
+        const auto &[V, F, T] = ret;
+        spdlog::info("vertices {} function {} triangles {}", V.cols(), F.size(), T.cols());
+        //std::cout << "V:\n"
+        //          << V << std::endl;
+        //std::cout << "F:\n"
+        //          << F << std::endl;
+        //std::cout << "T:\n"
+        //          << T << std::endl;
+    }
+    return ret;
 }
 
 void MeshViewer::draw() {
@@ -340,8 +470,24 @@ void MeshViewer::set_frame(int index) {
         point_drawable->set_visibility(false);
         tube_drawable->set_visibility(true);
 
+        if (pipe_geometry) {
+            tube_drawable->deactivate();
+            tube_drawable->activate_triangles();
+            auto [V, F, T] = get_pos_scalar_tubes(index);
 
-        //std::vector<std::tuple<mtao::ColVecs3f, mtao::VecXd>> col_vel
+            tube_mesh.setTriangleBuffer(V.cast<float>().eval(), T.cast<unsigned int>().eval());
+            mtao::ColVecs4f C = colmap_widget.get_rgba(F.cast<float>().eval());
+            tube_mesh.setColorBuffer(C);
+        } else {
+            tube_drawable->deactivate();
+            tube_drawable->activate_edges();
+            auto [V, F, E] = get_pos_scalar_lines(index);
+
+            tube_mesh.setEdgeBuffer(V.cast<float>().eval(), E.cast<unsigned int>().eval());
+            mtao::ColVecs4f C = colmap_widget.get_rgba(F.cast<float>().eval());
+            std::cout << std::endl;
+            tube_mesh.setColorBuffer(C);
+        }
 
 
     } else {
@@ -366,6 +512,7 @@ void MeshViewer::initialize_drawables() {
 
     tube_drawable = new mtao::opengl::MeshDrawable<Magnum::Shaders::VertexColor3D>{ tube_mesh, _vcolor_shader, drawables() };
     tube_drawable->deactivate();
+    tube_drawable->activate_triangles();
     tube_mesh.setParent(&root());
     {
         auto p = mesh_path();
@@ -399,10 +546,15 @@ void MeshViewer::initialize_drawables() {
     _plane_viewer->data().diffuse_color = { .32, .32, .32, 1. };
     _plane_viewer->data().ambient_color = { .32, .32, .32, 1. };
 
+    range_filter = std::make_shared<RangeFilter>();
+    prune_filter = std::make_shared<PruneFilter>();
+
     intersection_filter = std::make_shared<IntersectionFilter>();
     intersection_filter->filters.emplace_back("Plane", plane_filter, false);
     intersection_filter->filters.emplace_back("Mesh", mesh_filter, false);
     intersection_filter->filters.emplace_back("Sphere", sphere_filter, false);
+    intersection_filter->filters.emplace_back("Range", range_filter, false);
+    intersection_filter->filters.emplace_back("Prune", prune_filter, false);
 
 
     //_plane_viewer->deactivate();

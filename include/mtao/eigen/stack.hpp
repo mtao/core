@@ -6,6 +6,10 @@
 #include <type_traits>
 #include <utility>
 #include <algorithm>
+#if defined(__cpp_lib_ranges)
+#include <ranges>
+#include "mtao/eigen/concepts.hpp"
+#endif
 
 
 namespace mtao {
@@ -129,5 +133,13 @@ namespace eigen {
         }
         return mC;
     }
+
+#if defined(__cpp_lib_ranges)
+
+    //template <typename T> requires std::ranges::bidirectional_range<T>> && std::DenseBaseDerived<T::value_type>
+    //    void f() {
+    //    }
+
+#endif
 }// namespace eigen
 }// namespace mtao

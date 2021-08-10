@@ -3,7 +3,7 @@ namespace mtao::geometry::mesh::shapes::internal {
 mtao::ColVecs3i TubeConstructor::create_triangulation(int segment_count) const {
 
     mtao::ColVecs3i RF(3, 2 * (segment_count - 1) * subdivisions);
-    for (int i = 0; i < segment_count; ++i) {
+    for (int i = 0; i < segment_count - 1; ++i) {
 
         auto f = RF.block(0, 2 * subdivisions * i, RF.rows(), 2 * subdivisions);
         for (int j = 0; j < subdivisions; ++j) {

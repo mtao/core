@@ -36,6 +36,20 @@ struct MeshFilter : public Filter {
     bool gui() override;
 };
 
+// prunes a random subset of particles
+struct PruneFilter : public Filter {
+    BoolVec particle_mask(const Particles &p) const override;
+    bool gui() override;
+    float percentage = .5f;
+};
+
+// prunes velocities outside of a specified range
+struct RangeFilter : public Filter {
+    BoolVec particle_mask(const Particles &p) const override;
+    bool gui() override;
+    std::array<float, 2> range = std::array<float, 2>{ { 0.f, 1.f } };
+};
+
 struct IntersectionFilter : public Filter {
     std::vector<std::tuple<std::string, std::shared_ptr<Filter>, bool>> filters;
     BoolVec particle_mask(const Particles &p) const override;

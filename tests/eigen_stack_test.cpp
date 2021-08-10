@@ -35,4 +35,15 @@ int main() {
               << hstack(Eigen::Vector3f::UnitX(), Eigen::Vector2f::UnitY(), Eigen::Vector3f::UnitZ()).transpose() << "\n]" << std::endl;
     std::cout << "C Splice [\n"
               << types::getTypeName(hstack(Eigen::Vector3f::UnitX(), Eigen::Vector2f::UnitY(), Eigen::Vector3f::UnitZ())) << "\n]" << std::endl;
+
+
+
+
+    std::vector<std::tuple<mtao::ColVecs3d,int>> vals;
+    for(int j = 0; j < 10; ++j) {
+        auto& [V,i] = vals.emplace_back();
+        i = j;
+        V.resize(3,5);
+        V.setConstant(j);
+    }
 }

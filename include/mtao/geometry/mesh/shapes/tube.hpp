@@ -15,6 +15,8 @@ namespace internal {
         mtao::ColVectors<T, 3> create_vertices(const mtao::ColVectors<T, 3> &P) const;
         template<typename T, int D>
         mtao::ColVectors<T, D> create_per_ring_data(const mtao::ColVectors<T, D> &P) const;
+        template<typename T, int D>
+        mtao::RowVectors<T, D> create_per_ring_data_rows(const mtao::RowVectors<T, D> &P) const;
         mtao::ColVecs3i create_triangulation(int segment_count) const;
     };
 
@@ -46,7 +48,22 @@ namespace internal {
             auto r = RV.block(0, voff, RV.rows(), subdivisions);
             r.colwise() = p;
         }
+        return RV;
     }
+    template<typename T, int D>
+    mtao::RowVectors<T, D> TubeConstructor::create_per_ring_data_rows(const mtao::RowVectors<T, D> &P) const {
+
+        using RVec = mtao::RowVectors<T, D>;
+        RVec RV(subdivisions * P.rows(), D);
+        for (int i = 0; i < P.rows(); ++i) {
+            auto p = P.row(i);
+            int voff = subdivisions * i;
+            auto r = RV.block(voff, 0, subdivisions, RV.cols());
+            r.rowwise() = p;
+        }
+        return RV;
+    }
+
     template<typename T>
     mtao::ColVectors<T, 3> TubeConstructor::create_vertices(const mtao::ColVectors<T, 3> &P) const {
 

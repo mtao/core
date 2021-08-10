@@ -28,7 +28,7 @@ class MeshViewer : public mtao::opengl::Window3 {
     std::optional<int> tail_size;
     bool pipe_geometry = false;
     float tube_radius = .1;
-    float tube_subdivisions = 3;
+    int tube_subdivisions = 3;
 
     int current_frame = -1;
 
@@ -56,6 +56,9 @@ class MeshViewer : public mtao::opengl::Window3 {
     std::shared_ptr<MeshFilter> mesh_filter;
     std::shared_ptr<IntersectionFilter> intersection_filter;
 
+    std::shared_ptr<PruneFilter> prune_filter;
+    std::shared_ptr<RangeFilter> range_filter;
+
   public:
     MeshViewer(const Arguments &args);
     void gui() override;
@@ -65,7 +68,10 @@ class MeshViewer : public mtao::opengl::Window3 {
     mtao::ColVecs3d frame_velocities(int index) const;
 
     std::tuple<mtao::ColVecs3d, mtao::VecXd> get_pos_scalar(int index) const;
+    std::vector<std::tuple<mtao::ColVecs3d, mtao::VecXd>> get_pos_scalar_tail(int index) const;
+
     std::tuple<mtao::ColVecs3d, mtao::VecXd, mtao::ColVecs3i> get_pos_scalar_tubes(int index) const;
+    std::tuple<mtao::ColVecs3d, mtao::VecXd, mtao::ColVecs2i> get_pos_scalar_lines(int index) const;
     mtao::VecXd frame_densities(int index) const;
     bool frame_exists(int index) const;
     int frame_file_count() const;
@@ -83,6 +89,8 @@ class MeshViewer : public mtao::opengl::Window3 {
     void select_particles_from_plane(bool set_active);
     void select_particles_from_sphere(bool set_active);
     void select_particles_from_mesh(bool set_active);
+    void select_particles_from_range(bool set_active);
+    void select_particles_from_prune(bool set_active);
 
     void select_particles_from_all(bool set_active);
 

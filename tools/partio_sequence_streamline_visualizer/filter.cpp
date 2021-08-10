@@ -45,6 +45,7 @@ MeshFilter::MeshFilter(const Eigen::MatrixXf &V, const Eigen::MatrixXi &F) : V(s
 
     aabb.init(V, F);
 }
+
 auto MeshFilter::particle_mask(const Particles &p) const -> BoolVec {
     Eigen::MatrixXf C;
     mtao::VecXf sqrD;
@@ -78,5 +79,36 @@ bool IntersectionFilter::gui() {
     for (auto &&[name, filter, active] : filters) {
         changed |= ImGui::Checkbox(name.c_str(), &active);
     }
+    return changed;
+}
+
+auto PruneFilter::particle_mask(const Particles &p) const -> BoolVec {
+
+
+    mtao::VecXf vec = Eigen::VectorXf::Random(p.count()).eval();
+    vec = (vec.array() + 1.f) / 2.f;
+    return vec.array() < percentage;
+}
+bool PruneFilter::gui() {
+    bool changed = false;
+    changed |= ImGui::SliderFloat("Percentage", &percentage, 0.f, 1.f);
+    return changed;
+}
+
+auto RangeFilter::particle_mask(const Particles &p) const -> BoolVec {
+
+    const auto &V = p.velocities;
+
+    auto vals = V.cast<float>().colwise().norm().transpose().eval();
+
+
+    return (range[0] < vals.array()) && (vals.array() < range[1]);
+}
+bool RangeFilter::gui() {
+    bool changed = false;
+
+    changed |= ImGui::DragFloatRange2("Range", &range[0], &range[1]);
+    changed |= ImGui::InputFloat("Min", &range[0]);
+    changed |= ImGui::InputFloat("Max", &range[1]);
     return changed;
 }
