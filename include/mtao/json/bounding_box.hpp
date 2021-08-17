@@ -18,8 +18,8 @@ struct adl_serializer<Eigen::AlignedBox<Scalar, D>> {
     // expect either an array or "x": something, "y": something
     static void from_json(const json &j, Eigen::AlignedBox<Scalar, D> &ab) {
 
-        mtao::json::detail::json2vector(j["min"], ab.min());
-        mtao::json::detail::json2vector(j["max"], ab.max());
+        ab.min() = j["min"].get<Eigen::Vector<Scalar, D>>();
+        ab.max() = j["min"].get<Eigen::Vector<Scalar, D>>();
     }
 };
 }// namespace nlohmann
@@ -28,12 +28,9 @@ struct adl_serializer<Eigen::AlignedBox<Scalar, D>> {
 namespace mtao::json {
 template<typename Scalar, int D>
 nlohmann::json bounding_box2json(const Eigen::AlignedBox<Scalar, D> &bbox) {
-    nlohmann::json obj;
-    for (int j = 0; j < D; ++j) {
-        obj["min"][std::string(1, 'x' + j)] = bbox.min()(j);
-        obj["max"][std::string(1, 'x' + j)] = bbox.max()(j);
-    }
-    return obj;
+    nlohmann::json js;
+    nlohmann::adl_serializer<Eigen::AlignedBox<Scalar, D>>::to_json(js, bbox);
+    return js;
 }
 
 }// namespace mtao::json

@@ -18,6 +18,8 @@ int main(int argc, char *argv[]) {
 
 
     js["Normal"] = Eigen::Vector3d::UnitZ();
+    Eigen::Vector3d N = js["Normal"].get<Eigen::Vector3d>();
+    std::cout << "N: " << N.transpose() << std::endl;
 
 
     js["bbox2"] = mtao::json::bounding_box2json(bbox);
@@ -36,4 +38,16 @@ int main(int argc, char *argv[]) {
 
     auto vec = mtao::json::json2vector<double, 3>(js["Normal"]);
     std::cout << vec.transpose() << std::endl;
+
+
+    Eigen::Matrix3d A = Eigen::Matrix3d::Random();
+    std::cout << "Random matrix: \n"
+              << A << std::endl;
+    js["A"] = A;
+    std::cout << "Jsoned:\n"
+              << js["A"].dump(2) << std::endl;
+
+    Eigen::MatrixXf B = js["A"].get<Eigen::MatrixXf>();
+    std::cout << "Dynamic float sized A:\n"
+              << B << std::endl;
 }
