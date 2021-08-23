@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mtao/types.h>
+#include <numbers>
 
 template<typename T>
 mtao::ColVectors<T, 3> enright_velocities(const mtao::ColVectors<T, 3> &P) {
@@ -11,12 +12,12 @@ mtao::ColVectors<T, 3> enright_velocities(const mtao::ColVectors<T, 3> &P) {
         const auto &x = p.x();
         const auto &y = p.y();
         const auto &z = p.z();
-        T s2x = std::sin(2 * M_PI * x);
-        T s2y = std::sin(2 * M_PI * y);
-        T s2z = std::sin(2 * M_PI * z);
-        v(0) = 2 * s2y * s2z * std::pow<T>(std::sin(M_PI * x), 2);
-        v(1) = -s2x * s2z * std::pow<T>(std::sin(M_PI * y), 2);
-        v(2) = -s2x * s2y * std::pow<T>(std::sin(M_PI * z), 2);
+        T s2x = std::sin(2 * std::numbers::pi_v<T> * x);
+        T s2y = std::sin(2 * std::numbers::pi_v<T> * y);
+        T s2z = std::sin(2 * std::numbers::pi_v<T> * z);
+        v(0) = 2 * s2y * s2z * std::pow<T>(std::sin(std::numbers::pi_v<T> * x), 2);
+        v(1) = -s2x * s2z * std::pow<T>(std::sin(std::numbers::pi_v<T> * y), 2);
+        v(2) = -s2x * s2y * std::pow<T>(std::sin(std::numbers::pi_v<T> * z), 2);
     }
     return V;
 }

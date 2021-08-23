@@ -3,6 +3,7 @@
 #include "imgui.h"
 #include <memory>
 #include <algorithm>
+#include <numeric>
 
 
 using namespace mtao::opengl;
@@ -20,7 +21,7 @@ void gui_func() {
         float look_distance, rotation_angle;
 
         ImGui::SliderFloat("look_distance", &look_distance, look_min, look_max, "%.3f");
-        ImGui::SliderFloat("angle", &rotation_angle, 0, M_PI, "%.3f");
+        ImGui::SliderFloat("angle", &rotation_angle, 0, std::numbers::pi_v<float>, "%.3f");
 
 
         ImGui::ColorEdit3("clear color", (float *)&clear_color);

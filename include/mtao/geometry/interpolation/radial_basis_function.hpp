@@ -1,6 +1,7 @@
 #pragma once
 #include <cmath>
 
+#include <numbers>
 #include "mtao/eigen/shape_checks.hpp"
 #include "mtao/types.hpp"
 
@@ -123,7 +124,7 @@ struct GaussianScalarFunction {
     Scalar df(Scalar v) const { return -v * std::exp(-.5 * v * v); }
     template<int D>
     Scalar normalization(Scalar radius) const {
-        return std::sqrt(2 * M_PI) * radius;
+        return std::sqrt(2 * std::numbers::pi_v<Scalar>) * radius;
     }
 };
 
@@ -155,7 +156,7 @@ struct SplineGaussianScalarFunction {
     }
     template<int D>
     Scalar normalization(Scalar radius) const {
-        return M_PI * radius;
+        return std::numbers::pi_v<Scalar> * radius;
     }
 };
 
@@ -181,7 +182,7 @@ struct DesbrunSplineScalarFunction {
     }
     template<int D>
     Scalar normalization(Scalar radius) const {
-        return (M_PI * std::pow(4 * radius, D)) / 15;
+        return (std::numbers::pi_v<Scalar> * std::pow(4 * radius, D)) / 15;
     }
 };
 
@@ -242,7 +243,7 @@ auto gaussian_rbg(const Eigen::MatrixBase<PointsType> &P,
     using Scalar = typename PointsType::Scalar;
     auto R = radial_basis_function(
       [](Scalar v) -> Scalar { return -v * std::exp(-.5 * v * v); }, P, v, radius);
-    R /= (std::sqrt(2 * M_PI) * radius);
+    R /= (std::sqrt(2 * std::numbers::pi_v<Scalar>) * radius);
     return R;
 }
 
@@ -264,7 +265,7 @@ auto spline_gaussian_rbg(const Eigen::MatrixBase<PointsType> &P,
       P,
       v,
       radius);
-    R /= (M_PI * radius);
+    R /= (std::numbers::pi_v<Scalar> * radius);
     return R;
 }
 template<typename PointsType, typename VecType>
@@ -284,7 +285,7 @@ auto desbrun_spline_rbg(const Eigen::MatrixBase<PointsType> &P,
       v,
       radius);
     R *= 15;
-    R /= (M_PI * radius * radius * radius * 64);
+    R /= (std::numbers::pi_v<Scalar> * radius * radius * radius * 64);
     return R;
 }
 }// namespace mtao::geometry::interpolation

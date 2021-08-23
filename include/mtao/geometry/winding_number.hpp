@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <numbers>
 
 #include "mtao/geometry/trigonometry.hpp"
 //#define USE_DET_COTAN
@@ -31,10 +32,10 @@ namespace internal::winding_number {
         S ba = std::atan2(b.y(), b.x());
         S ang = ba - aa;
 #endif
-        if (ang > M_PI) {
-            ang -= 2 * M_PI;
-        } else if (ang <= -M_PI) {
-            ang += 2 * M_PI;
+        if (ang > std::numbers::pi_v<S>) {
+            ang -= 2 * std::numbers::pi_v<S>;
+        } else if (ang <= -std::numbers::pi_v<S>) {
+            ang += 2 * std::numbers::pi_v<S>;
         }
         return ang;
     }
@@ -60,7 +61,7 @@ typename VDerived::Scalar winding_number_iterator(
 
         value += internal::winding_number::three_point_angle(a, b, p);
     }
-    value /= 2 * M_PI;
+    value /= 2 * std::numbers::pi_v<S>;
     return value;
 }
 template<typename PDerived, typename VDerived, typename Container>
@@ -110,7 +111,7 @@ auto mesh_winding_number(const Eigen::MatrixBase<VDerived> &V,
 
             value += internal::winding_number::three_point_angle(a, b, p);
         }
-        value /= 2 * M_PI;
+        value /= 2 * std::numbers::pi_v<S>;
         return value;
     } else {
         mtao::Vector<S, PDerived::ColsAtCompileTime> R(p.cols());
@@ -145,7 +146,7 @@ double mesh_winding_number(const Eigen::MatrixBase<VDerived> &V,
         value += internal::winding_number::three_point_angle(a, b, p);
         // std::cout << "{" << value << "}";
     }
-    value /= 2 * M_PI;
+    value /= 2 * std::numbers::pi_v<S>;
     return value;
 }
 template<typename PDerived, typename VDerived, typename EDerived>

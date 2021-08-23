@@ -1,6 +1,7 @@
 #pragma once
 #include <Eigen/Core>
 #include <cmath>
+#include <numbers>
 #include <iostream>
 #include <type_traits>
 
@@ -10,7 +11,7 @@ namespace mtao::geometry {
 
 // The Solid Angle of a Plane Triangle
 // A. Van Oosterom, J. Strackee
-// divided by 2*M_PI to make the solid angle from the interior of a closed
+// divided by 2*pi_v to make the solid angle from the interior of a closed
 // geometry 1
 
 // The actual implementations
@@ -32,7 +33,7 @@ auto solid_angle(const AType &a,
     auto cN = c.norm();
     return std::atan2<typename AType::Scalar>(
              num, aN * bN * cN + aN * b.dot(c) + bN * a.dot(c) + cN * a.dot(b))
-           / (2 * M_PI);
+           / (2 * std::numbers::pi_v<typename AType::Scalar>);
 }
 
 template<eigen::concepts::SquareMatrix3Compatible MType>
@@ -44,7 +45,7 @@ auto solid_angle(const MType &M) -> typename MType::Scalar {
     auto C = B.diagonal().cwiseSqrt().eval();
     return std::atan2<typename MType::Scalar>(
              num, C.prod() + C(0) * B(1, 2) + C(1) * B(0, 2) + C(2) * B(0, 1))
-           / (2 * M_PI);
+           / (2 * std::numbers::pi_v<typename MType::Scalar>);
 }
 
 // NOTE: this is going to be pretty slow for large meshes...

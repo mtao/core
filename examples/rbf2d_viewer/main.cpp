@@ -333,7 +333,7 @@ class MeshViewer : public mtao::opengl::Window2 {
             if (substep > remaining) {
                 substep = remaining;
             }
-            spdlog::debug("{} remaining, taking step of {}", substep);
+            spdlog::debug("{} remaining, taking step of {}",remaining, substep);
             sph_V.row(1).array() -= substep * .1;
             for (int j = 0; j < 20; ++j) {
                 auto pressure = sph_pressure();

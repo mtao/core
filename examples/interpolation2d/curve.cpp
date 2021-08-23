@@ -1,4 +1,5 @@
 #include "curve.hpp"
+#include <numbers>
 #include <mtao/eigen/stack.h>
 #include <mtao/eigen/stl2eigen.hpp>
 #include <mtao/geometry/interpolation/mean_value.hpp>
@@ -48,14 +49,14 @@ double Curve::winding_number(const mtao::Vec2d &V) const {
         S aa = std::atan2(a.y(), a.x());
         S ba = std::atan2(b.y(), b.x());
         S ang = ba - aa;
-        if (ang > M_PI) {
-            ang -= 2 * M_PI;
-        } else if (ang <= -M_PI) {
-            ang += 2 * M_PI;
+        if (ang > std::numbers::pi_v) {
+            ang -= 2 * std::numbers::pi_v;
+        } else if (ang <= -std::numbers::pi_v) {
+            ang += 2 * std::numbers::pi_v;
         }
         value += ang;
     }
-    return value / (2 * M_PI);
+    return value / (2 * std::numbers::pi_v);
 }
 bool Curve::inside(const mtao::Vec2d &V) const {
     return std::abs(winding_number(V)) > 1;

@@ -2,6 +2,7 @@
 #include "mtao/geometry/bishop_frame.hpp"
 #include "mtao/geometry/mesh/shapes/disc.hpp"
 #include <iostream>
+#include <numbers>
 
 
 namespace mtao::geometry::mesh::shapes {
@@ -68,7 +69,7 @@ namespace internal {
     mtao::ColVectors<T, 3> TubeConstructor::create_vertices(const mtao::ColVectors<T, 3> &P) const {
 
         using VecX = mtao::VectorX<T>;
-        VecX theta = VecX::LinSpaced(subdivisions + 1, 0, 2 * M_PI).head(subdivisions);
+        VecX theta = VecX::LinSpaced(subdivisions + 1, 0, 2 * std::numbers::pi_v<T>).head(subdivisions);
 
 
         mtao::ColVectors<T, 2> CS = mtao::eigen::hstack(theta.array().cos(), theta.array().sin()).transpose();

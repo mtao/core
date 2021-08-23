@@ -2,6 +2,7 @@
 #include "mtao/geometry/mesh/halfedge.hpp"
 #include "mtao/geometry/mesh/halfedge_iterator.hpp"
 #include "mtao/types.hpp"
+#include <numbers>
 namespace mtao::geometry::mesh {
 template<typename TDerived>
 void HalfEdgeMesh::make_topology(
@@ -162,10 +163,10 @@ auto HalfEdgeMesh::winding_number(const Eigen::MatrixBase<Derived> &V,
         S aa = std::atan2(a.y(), a.x());
         S ba = std::atan2(b.y(), b.x());
         S ang = ba - aa;
-        if (ang > M_PI) {
-            ang -= 2 * M_PI;
-        } else if (ang <= -M_PI) {
-            ang += 2 * M_PI;
+        if (ang > std::numbers::pi_v<S>) {
+            ang -= 2 * std::numbers::pi_v<S>;
+        } else if (ang <= -std::numbers::pi_v<S>) {
+            ang += 2 * std::numbers::pi_v<S>;
         }
         value += ang;
     });

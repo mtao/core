@@ -9,7 +9,7 @@ std::tuple<mtao::ColVectors<T, 3>, mtao::ColVecs3i> tube(const mtao::ColVectors<
     using CVec = mtao::ColVectors<T, 3>;
     using VecX = mtao::VectorX<T>;
 
-    VecX theta = VecX::LinSpaced(subdivisions + 1, 0, 2 * M_PI).head(subdivisions);
+    VecX theta = VecX::LinSpaced(subdivisions + 1, 0, 2 * std::numbers::pi_v<T>).head(subdivisions);
 
 
     mtao::ColVectors<T, 2> CS = mtao::eigen::hstack(theta.array().cos(), theta.array().sin()).transpose();

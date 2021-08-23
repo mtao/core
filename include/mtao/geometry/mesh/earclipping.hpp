@@ -7,6 +7,7 @@
 #include "mtao/logging/logger.hpp"
 #include "mtao/type_utils.h"
 #include "mtao/types.hpp"
+#include <numbers>
 
 namespace mtao::geometry::mesh {
 template<typename VDerived, typename BeginIt, typename EndIt>
@@ -38,7 +39,7 @@ std::vector<std::array<int, 3>> earclipping_stl(
             auto c = V.col(*it2);
             double ang = mtao::geometry::trigonometry::angle(c - b, a - b)(0);
             inner_ang_sum += ang;
-            outer_ang_sum += 2 * M_PI - ang;
+            outer_ang_sum += 2 * std::numbers::pi_v<double> - ang;
         }
 
         bool reverse_orientation = outer_ang_sum < inner_ang_sum;
@@ -64,7 +65,7 @@ std::vector<std::array<int, 3>> earclipping_stl(
             }
             // double ang = mtao::geometry::trigonometry::angle(cb,ab)(0);
             double ang = mtao::geometry::trigonometry::angle(c - b, a - b)(0);
-            if (ang > M_PI || ang < 0) {
+            if (ang > std::numbers::pi_v<double> || ang < 0) {
                 return false;
             }
             for (auto mit = beginit; mit != endit; ++mit) {

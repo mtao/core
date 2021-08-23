@@ -1,5 +1,6 @@
 #pragma once
 #include <mtao/eigen/stack.h>
+#include <numbers>
 
 namespace mtao::geometry::mesh::shapes {
 namespace internal {
@@ -22,7 +23,7 @@ namespace internal {
     template<bool CenterPoint = false, typename T = double>
     mtao::ColVectors<T, 3> disc_points(const mtao::Vector<T, 3> &U, const mtao::Vector<T, 3> &V, int N) {
         using VecX = mtao::VectorX<T>;
-        VecX theta = VecX::LinSpaced(N + 1, 0, 2 * M_PI).head(N);
+        VecX theta = VecX::LinSpaced(N + 1, 0, 2 * std::numbers::pi_v<T>).head(N);
 
         mtao::ColVectors<T, 2> CS = mtao::eigen::hstack(theta.array().cos(), theta.array().sin()).transpose();
         mtao::ColVectors<T, 3> R = mtao::eigen::hstack(U, V) * CS;
