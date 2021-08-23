@@ -51,6 +51,8 @@ ADD_EXECUTABLE(partio_sequence_streamline_visualizer partio_sequence_streamline_
     partio_sequence_streamline_visualizer/filter.cpp
     partio_sequence_streamline_visualizer/viewer.cpp
     partio_sequence_streamline_visualizer/particles.cpp
+    partio_sequence_streamline_visualizer/tube_mesh_constructor.cpp
+    partio_sequence_streamline_visualizer/tube_mesh_constructor_gui.cpp
 
     )
 TARGET_LINK_LIBRARIES(partio_sequence_streamline_visualizer mtao::geometry cxxopts mtao::visualization std::filesystem igl::core tbb)

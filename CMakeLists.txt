@@ -258,6 +258,7 @@ ADD_LIBRARY(mtao_visualization ${MTAO_LIBRARY_TYPE}
     src/opengl/shaders.cpp
     src/opengl/drawables.cpp
     src/visualization/imgui/interval_scaler_settings_widget.cpp
+    src/visualization/imgui/utils.cpp
     src/visualization/interval_scaler_settings.cpp
     src/visualization/imgui/colormap_settings_widget.cpp
 

@@ -9,13 +9,20 @@ struct ColorMapSettingsWidget : public IntervalScalerSettingsWidget {
     enum ColorMapType : char { Parula = 0,
                                Jet = 1,
                                Waves = 2,
-                               Winter = 3 };
+                               Winter = 3,
+                               END// Any code that specifies END should default to parula
+    };
+    // char* for imgui
+    static const std::array<std::string, int(ColorMapType::END)> ColorMapNames;
 
     bool gui();
 
 
     mtao::ColVecs4d get_rgba(const mtao::VecXd &) const;
     mtao::ColVecs4f get_rgba(const mtao::VecXf &) const;
+
+    void set_type(ColorMapType);
+    ColorMapType get_type() const;
 
   private:
     ColorMapType type = ColorMapType::Parula;

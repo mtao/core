@@ -1,6 +1,5 @@
 #pragma once
 
-#include <mtao/visualization/imgui/colormap_settings_widget.hpp>
 #include <mtao/opengl/Window.h>
 #include <mtao/opengl/objects/mesh.h>
 #include <filesystem>
@@ -10,27 +9,23 @@
 #include <Corrade/Utility/Arguments.h>
 #include <variant>
 #include <set>
+#include "tube_mesh_constructor_gui.hpp"
 class MeshViewer : public mtao::opengl::Window3 {
     std::filesystem::path base_dir;
     std::string relative_format = "frame_{}/particles.bgeo.gz";
     std::vector<Particles> particles;
-    enum ParticleColorMode : char { All,
-                                    Selected,
-                                    Velocity,
-                                    Density };
-    ParticleColorMode particle_color_mode = ParticleColorMode::All;
-
-    mtao::visualization::imgui::ColorMapSettingsWidget colmap_widget;
 
 
     std::vector<int> active_indices;
     bool show_all_particles = true;
-    std::optional<int> tail_size;
-    bool pipe_geometry = false;
-    float tube_radius = .1;
-    int tube_subdivisions = 3;
+    bool show_tubes = false;
+
+    std::string config_path = "./fluidsim_streamlines_config.js";
 
     int current_frame = -1;
+
+    // [start,end)
+    std::array<int, 2> filter_interval(int index) const;
 
     Magnum::Shaders::Flat3D _flat_shader;
     Magnum::Shaders::VertexColor3D _vcolor_shader;
@@ -41,13 +36,12 @@ class MeshViewer : public mtao::opengl::Window3 {
     //mtao::opengl::MeshDrawable<Magnum::Shaders::Flat3D> *point_drawable = nullptr;
     mtao::opengl::MeshDrawable<Magnum::Shaders::VertexColor3D> *point_drawable = nullptr;
 
-    mtao::opengl::objects::Mesh<3> tube_mesh;
-    mtao::opengl::MeshDrawable<Magnum::Shaders::VertexColor3D> *tube_drawable = nullptr;
 
     mtao::opengl::objects::Mesh<3> mesh;
     //mtao::opengl::MeshDrawable<Magnum::Shaders::Flat3D> *point_drawable = nullptr;
     mtao::opengl::MeshDrawable<Magnum::Shaders::Phong> *mesh_drawable = nullptr;
 
+    TubeMeshConstructorGui tube_mesh_gui;
 
     std::shared_ptr<SphereFilter> sphere_filter;
     std::shared_ptr<PlaneFilter> plane_filter;
@@ -63,15 +57,15 @@ class MeshViewer : public mtao::opengl::Window3 {
     MeshViewer(const Arguments &args);
     void gui() override;
 
+    void save_settings(const std::filesystem::path &path) const;
+    void load_settings(const std::filesystem::path &path);
+    void save_settings() const;
+    void load_settings();
+
     const Particles &frame_particles(int index) const;
     mtao::ColVecs3d frame_positions(int index) const;
     mtao::ColVecs3d frame_velocities(int index) const;
 
-    std::tuple<mtao::ColVecs3d, mtao::VecXd> get_pos_scalar(int index) const;
-    std::vector<std::tuple<mtao::ColVecs3d, mtao::VecXd>> get_pos_scalar_tail(int index) const;
-
-    std::tuple<mtao::ColVecs3d, mtao::VecXd, mtao::ColVecs3i> get_pos_scalar_tubes(int index) const;
-    std::tuple<mtao::ColVecs3d, mtao::VecXd, mtao::ColVecs2i> get_pos_scalar_lines(int index) const;
     mtao::VecXd frame_densities(int index) const;
     bool frame_exists(int index) const;
     int frame_file_count() const;

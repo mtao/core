@@ -12,7 +12,7 @@ using namespace mtao::algebra;
 template<typename T, typename U>
 void divisibility_check_recurse(T &value, const U &co, std::string str = "") {
     for (auto &&c : value.children) {
-        std::string v = fmt::format(str + "=>{}", co[c->value]);
+        std::string v = str + fmt::format("=>{}", co[c->value]);
         std::cout << v << std::endl;
         CHECK(co[c->value] % co[value.value] == 0);
 
@@ -22,7 +22,7 @@ void divisibility_check_recurse(T &value, const U &co, std::string str = "") {
 template<typename T, typename U>
 void divisibility_check_recurse_inv(T &value, const U &co, std::string str = "") {
     for (auto &&c : value.children) {
-        std::string v = fmt::format(str + "=>{}", co[c->value]);
+        std::string v = str + fmt::format("=>{}", co[c->value]);
         std::cout << v << std::endl;
         CHECK(co[value.value] % co[c->value] == 0);
 

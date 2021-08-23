@@ -1,23 +1,27 @@
 #include "mtao/visualization/imgui/colormap_settings_widget.hpp"
+#include "mtao/visualization/imgui/utils.hpp"
+
 #include <imgui.h>
 #include <colormap/colormap.h>
 
 
 namespace mtao::visualization::imgui {
 
+const std::array<std::string, int(ColorMapSettingsWidget::ColorMapType::END)> ColorMapSettingsWidget::ColorMapNames = {
+    "Parula",
+    "Jet",
+    "Waves",
+    "Winter"
+};
 
 bool ColorMapSettingsWidget::gui() {
     bool ret = false;
 
     {
-        static const char *items[] = {
-            "Parula",
-            "Jet",
-            "Waves",
-            "Winter",
-        };
+
+        static const auto items = utils::strs_to_charPtr(ColorMapNames);
         int m = static_cast<char>(type);
-        ret |= ImGui::Combo("Type", &m, items, IM_ARRAYSIZE(items));
+        ret |= ImGui::Combo("Type", &m, items.data(), items.size());
         type = static_cast<ColorMapType>(char(m));
     }
 
@@ -65,6 +69,11 @@ mtao::Vec4d ColorMapSettingsWidget::get_color(double x) const {
     }
     return mtao::Vec4d(c.r, c.g, c.b, c.a);
 }
+void ColorMapSettingsWidget::set_type(ColorMapType type) {
+    this->type = type;
+}
+
+auto ColorMapSettingsWidget::get_type() const -> ColorMapType { return type; }
 
 
 }// namespace mtao::visualization::imgui

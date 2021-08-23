@@ -6,6 +6,15 @@ Sphere::Sphere(float rad, int subdivs) : _radius(rad), _subdivisions(subdivs) {
     update();
 }
 
+void Sphere::set_radius(float rad) {
+    _radius = rad;
+}
+void Sphere::set_subdivisions(int sub) {
+    _subdivisions = sub;
+}
+void PositionedSphere::set_center(const mtao::Vec3f &c) {
+    _center = c;
+}
 void Sphere::update() {
     auto [V, F] = geometry::mesh::shapes::sphere<float>(_subdivisions);
     V *= _radius;

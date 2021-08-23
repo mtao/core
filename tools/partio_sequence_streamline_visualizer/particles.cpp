@@ -1,4 +1,3 @@
-#pragma once
 #include <mtao/geometry/point_cloud/partio_loader.hpp>
 #include "particles.hpp"
 #include <mtao/eigen/slice.hpp>

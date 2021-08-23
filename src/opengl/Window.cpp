@@ -252,7 +252,7 @@ Magnum::Image2D WindowBase::current_frame() {
     return fb.read(fb.viewport(), Magnum::Image2D{ Magnum::PixelFormat::RGBA8Unorm });
 }
 void WindowBase::record_frame_to_file() {
-        std::string filename = std::filesystem::path(_recording_path) / fmt::format(_recording_filename_format.c_str(), _recording_index);
+        std::string filename = std::filesystem::path(_recording_path) / fmt::vformat(_recording_filename_format.c_str(), _recording_index);
         auto img = current_frame();
 
         if (_image_saver && _image_saver->exportToFile(img, filename)) {

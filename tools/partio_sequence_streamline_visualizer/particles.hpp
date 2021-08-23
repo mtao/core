@@ -1,3 +1,4 @@
+#pragma once
 #include <mtao/types.hpp>
 #include <filesystem>
 

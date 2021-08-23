@@ -13,6 +13,8 @@ struct Sphere : public Mesh<3> {
     virtual void update();
     float radius() const { return _radius; }
     int subdivisions() const { return _subdivisions; }
+    void set_radius(float rad);
+    void set_subdivisions(int sub);
 
   private:
     float _radius = 1;
@@ -26,6 +28,7 @@ struct PositionedSphere : public Sphere {
     bool gui();
     virtual void update() override;
     const mtao::Vec3f &center() const { return _center; }
+    void set_center(const mtao::Vec3f &c);
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   private:
