@@ -61,7 +61,7 @@ typename VDerived::Scalar winding_number_iterator(
 
         value += internal::winding_number::three_point_angle(a, b, p);
     }
-    value /= 2 * std::numbers::pi_v<S>;
+    value *= 2 * std::numbers::inv_pi_v<S>;
     return value;
 }
 template<typename PDerived, typename VDerived, typename Container>
@@ -111,7 +111,7 @@ auto mesh_winding_number(const Eigen::MatrixBase<VDerived> &V,
 
             value += internal::winding_number::three_point_angle(a, b, p);
         }
-        value /= 2 * std::numbers::pi_v<S>;
+        value *= .5 * std::numbers::inv_pi_v<S>;
         return value;
     } else {
         mtao::Vector<S, PDerived::ColsAtCompileTime> R(p.cols());
@@ -146,7 +146,7 @@ double mesh_winding_number(const Eigen::MatrixBase<VDerived> &V,
         value += internal::winding_number::three_point_angle(a, b, p);
         // std::cout << "{" << value << "}";
     }
-    value /= 2 * std::numbers::pi_v<S>;
+    value *= .5 * std::numbers::inv_pi_v<S>;
     return value;
 }
 template<typename PDerived, typename VDerived, typename EDerived>

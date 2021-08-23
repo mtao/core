@@ -243,7 +243,7 @@ auto gaussian_rbg(const Eigen::MatrixBase<PointsType> &P,
     using Scalar = typename PointsType::Scalar;
     auto R = radial_basis_function(
       [](Scalar v) -> Scalar { return -v * std::exp(-.5 * v * v); }, P, v, radius);
-    R /= (std::sqrt(2 * std::numbers::pi_v<Scalar>) * radius);
+    R = R * std::sqrt(.5 * std::numbers::inv_pi_v<Scalar>) / radius;
     return R;
 }
 
@@ -265,7 +265,7 @@ auto spline_gaussian_rbg(const Eigen::MatrixBase<PointsType> &P,
       P,
       v,
       radius);
-    R /= (std::numbers::pi_v<Scalar> * radius);
+    R = R * std::numbers::inv_pi_v<Scalar> / radius;
     return R;
 }
 template<typename PointsType, typename VecType>
