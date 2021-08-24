@@ -20,7 +20,8 @@ class MeshViewer : public mtao::opengl::Window3 {
     bool show_all_particles = true;
     bool show_tubes = false;
 
-    std::string config_path = "./fluidsim_streamlines_config.js";
+    std::string config_path = "/tmp/fluidsim_streamlines_config.js";
+    //std::string config_path = "./fluidsim_streamlines_config.js";
 
     int current_frame = -1;
 
@@ -78,7 +79,7 @@ class MeshViewer : public mtao::opengl::Window3 {
     void set_frame(int index);
 
     void reset_all_indices();
-    void select_particles(std::vector<int> &&indices, bool set_active);
+    void select_particles(std::vector<int> &&indices, bool set_active, bool deactivate_tubes = true);
 
     void select_particles_from_plane(bool set_active);
     void select_particles_from_sphere(bool set_active);

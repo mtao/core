@@ -15,7 +15,7 @@ std::string MeshViewer::frame_fmt() const {
     return base_dir / relative_format;
 }
 std::filesystem::path MeshViewer::frame_path(int index) const {
-    return fmt::format(frame_fmt(), index);
+    return fmt::vformat(frame_fmt(), fmt::make_format_args(index));
 }
 Particles MeshViewer::frame_particles_from_disk(int index) const {
     return Particles(frame_path(index));
@@ -83,6 +83,7 @@ void MeshViewer::gui() {
         } else {
             ImGui::Text("File not Found");
         }
+        ImGui::TreePop();
     }
     if (point_drawable) {
         ImGui::InputFloat("Point size", &point_drawable->point_size);
@@ -265,9 +266,9 @@ void MeshViewer::select_particles_from_all(bool set_active) {
     select_particles(std::move(indices), set_active);
 }
 
-void MeshViewer::select_particles(std::vector<int> &&indices, bool set_active) {
+void MeshViewer::select_particles(std::vector<int> &&indices, bool set_active, bool deactivate_tubes) {
 
-    show_tubes = false;
+    show_tubes &= deactivate_tubes;
 
     show_all_particles = !set_active;
     active_indices = std::move(indices);

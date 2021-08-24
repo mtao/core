@@ -122,6 +122,10 @@ std::vector<std::tuple<mtao::ColVecs3d, mtao::VecXd>> TubeMeshConstructor::get_p
 }
 
 std::tuple<mtao::ColVecs3d, mtao::VecXd, mtao::ColVecs2i> TubeMeshConstructor::get_pos_scalar_lines(int index) const {
+    if(show_all_particles) {
+        spdlog::warn("Tube mesh constructor is unwilling to generate geometry for all particles. Try deactivating show_all_particles but fully populating active_indices");
+        return {};
+    }
     auto tails = get_pos_scalar_tail(index);
 
     std::vector<mtao::ColVecs3d> tV(tails.size());
@@ -135,14 +139,14 @@ std::tuple<mtao::ColVecs3d, mtao::VecXd, mtao::ColVecs2i> TubeMeshConstructor::g
         TV = V;
         TF = F;
         TE.resize(2, TV.cols() - 1);
-        spdlog::info("Local V,T,E sizes: {},{},{}", TV.cols(), TF.cols(), TE.cols());
+        //spdlog::info("Local V,T,E sizes: {},{},{}", TV.cols(), TF.cols(), TE.cols());
         for (int j = 0; j < TE.cols(); ++j) {
             auto e = TE.col(j);
             int val = j + offset;
             e << val, val + 1;
         }
 
-        std::cout << TE << std::endl;
+        // std::cout << TE << std::endl;
         offset += TV.cols();
     }
     std::tuple<mtao::ColVecs3d, mtao::VecXd, mtao::ColVecs2i> ret;

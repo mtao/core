@@ -34,7 +34,7 @@ TubeMeshConstructorGui::TubeMeshConstructorGui(
   const std::vector<Particles> &particles,
   const std::vector<int> &active_indices,
   const bool &show_all_particles,
-  Magnum::SceneGraph::DrawableGroup3D &draw_group) : TubeMeshConstructor(particles, active_indices, show_all_particles), _phong_shader(Magnum::Shaders::Phong::Flag::VertexColor), mtao::opengl::MeshDrawable<Magnum::Shaders::Phong>(*this, _phong_shader, draw_group) {}
+  Magnum::SceneGraph::DrawableGroup3D &draw_group) : TubeMeshConstructor(particles, active_indices, show_all_particles), mtao::opengl::MeshDrawable<Magnum::Shaders::Phong>(*this, _phong_shader, draw_group), _phong_shader(Magnum::Shaders::Phong::Flag::VertexColor) {}
 
 bool TubeMeshConstructorGui::gui() {
     {
@@ -51,6 +51,7 @@ bool TubeMeshConstructorGui::gui() {
         return true;
     }
     if (ImGui::Checkbox("Tube Geometry", &pipe_geometry)) {
+        pipe_geometry = true;
         return true;
     }
     if (ImGui::InputInt("Tube subdivision", &tube_subdivisions)) {
@@ -145,6 +146,6 @@ std::tuple<mtao::ColVecs3d, mtao::ColVecs4d, mtao::ColVecs2i> TubeMeshConstructo
 }
 void TubeMeshConstructorGui::save_ply(int index, const std::string &path_format) const {
     auto [V, C, T] = get_pos_col_tubes(index);
-    std::string path = fmt::format(path_format, index);
+    std::string path = fmt::vformat(path_format, fmt::make_format_args(index));
     mtao::geometry::mesh::write_plyD(V, C.topRows<3>().eval(), T, path);
 }

@@ -305,9 +305,9 @@ void RangeFilter::load_config(const nlohmann::json &js) {
 nlohmann::json IntersectionFilter::config() const {
 
     nlohmann::json js = Filter::config();
-    auto &arr = js["children"] = nlohmann::json::array({});
+    auto &arr = js["children"];
     for (auto &&[name, ptr, active] : filters) {
-        arr.emplace_back(std::tuple{ name, active });
+        arr[name] = active ;
     }
     return js;
 }
@@ -315,6 +315,7 @@ nlohmann::json IntersectionFilter::config() const {
 void IntersectionFilter::load_config(const nlohmann::json &js) {
     Filter::load_config(js);
     std::set<std::string> actives;
+    std::cout << js["children"].dump() << std::endl;
     for (auto &&[name, active] : js["children"].items()) {
         if (active) {
             actives.emplace(name);
