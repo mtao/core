@@ -58,6 +58,7 @@ struct MeshFilter : public Filter {
     Eigen::MatrixXf V;
     Eigen::MatrixXi F;
     igl::AABB<Eigen::MatrixXf, 3> aabb;
+    Eigen::AffineCompact3d point_transform = Eigen::AffineCompact3d::Identity();
     float mesh_distance = .1;
     MeshFilter(const Eigen::MatrixXf &V, const Eigen::MatrixXi &F);
     BoolVec particle_mask(const Particles &p) const override;

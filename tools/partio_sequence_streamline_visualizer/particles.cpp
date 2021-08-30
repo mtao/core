@@ -18,3 +18,11 @@ mtao::ColVecs3d Particles::positions_from_indices(const std::vector<int> &P) con
 mtao::VecXd Particles::densities_from_indices(const std::vector<int> &P) const {
     return mtao::eigen::row_slice(densities, P);
 }
+void Particles::save_subset(const std::filesystem::path &path, const std::vector<int> &P) const {
+
+    mtao::geometry::point_cloud::PartioFileWriter writer(path);
+    writer.set_positions(positions_from_indices(P));
+    writer.set_velocities(velocities_from_indices(P));
+    writer.set_densities(densities_from_indices(P));
+}
+

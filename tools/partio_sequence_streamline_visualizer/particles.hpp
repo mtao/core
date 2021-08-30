@@ -16,6 +16,9 @@ struct Particles {
     mtao::ColVecs3d velocities_from_indices(const std::vector<int> &P) const;
     mtao::VecXd densities_from_indices(const std::vector<int> &P) const;
 
+
+    void save_subset(const std::filesystem::path &path, const std::vector<int> &P) const;
+
     int count() const {
         return positions.cols();
     }

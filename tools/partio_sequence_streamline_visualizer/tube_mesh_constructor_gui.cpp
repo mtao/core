@@ -24,17 +24,22 @@ void TubeMeshConstructorGui::update(int index) {
         deactivate();
         //activate_edges();
         auto [V, C, E] = get_pos_col_lines(index);
+        if (V.size() == 0 || C.size() == 0 || E.size() == 0) {
+            spdlog::info("No geometry returned when requesting lines, no lines to show");
+        } else {
 
-        setEdgeBuffer(V.cast<float>().eval(), E.cast<unsigned int>().eval());
-        spdlog::info("Updating tube line geometry {} {} {} (E range {} {})", V.cols(), C.cols(), E.cols(), E.minCoeff(), E.maxCoeff());
-        setColorBuffer(C.cast<float>().eval());
+            setEdgeBuffer(V.cast<float>().eval(), E.cast<unsigned int>().eval());
+            spdlog::info("Updating tube line geometry {} {} {} (E range {} {})", V.cols(), C.cols(), E.cols(), E.minCoeff(), E.maxCoeff());
+            setColorBuffer(C.cast<float>().eval());
+        }
     }
 }
 TubeMeshConstructorGui::TubeMeshConstructorGui(
   const std::vector<Particles> &particles,
   const std::vector<int> &active_indices,
   const bool &show_all_particles,
-  Magnum::SceneGraph::DrawableGroup3D &draw_group) : TubeMeshConstructor(particles, active_indices, show_all_particles), mtao::opengl::MeshDrawable<Magnum::Shaders::Phong>(*this, _phong_shader, draw_group), _phong_shader(Magnum::Shaders::Phong::Flag::VertexColor) {}
+  const mtao::visualization::imgui::ColorMapSettingsWidget &colmap_widget,
+  Magnum::SceneGraph::DrawableGroup3D &draw_group) : TubeMeshConstructor(particles, active_indices, show_all_particles), mtao::opengl::MeshDrawable<Magnum::Shaders::Phong>(*this, _phong_shader, draw_group), _colmap_widget(colmap_widget), _phong_shader(Magnum::Shaders::Phong::Flag::VertexColor) {}
 
 bool TubeMeshConstructorGui::gui() {
     {
@@ -62,27 +67,12 @@ bool TubeMeshConstructorGui::gui() {
         return true;
     }
 
-    if (ImGui::TreeNode("Colormap settings")) {
-        if (_colmap_widget.gui()) {
-            return true;
-        }
-        ImGui::TreePop();
-    }
 
     return false;
 }
 nlohmann::json TubeMeshConstructorGui::config() const {
     nlohmann::json js;
 
-    {// read off colormap settings
-        auto &colmap_js = js["colormap"];
-        colmap_js["type"] =
-          mtao::visualization::imgui::ColorMapSettingsWidget::ColorMapNames[int(_colmap_widget.get_type())];
-        {
-            colmap_js["scale"] = _colmap_widget.scale;
-            colmap_js["shift"] = _colmap_widget.shift;
-        }
-    }
 
     js["tail_size"] = tail_size;
     js["tube_radius"] = tube_radius;
@@ -104,27 +94,6 @@ void TubeMeshConstructorGui::load_config(const std::filesystem::path &path) {
 
 void TubeMeshConstructorGui::load_config(const nlohmann::json &js) {
 
-    {// read off colormap settings
-        const auto &colmap_js = js["colormap"];
-        const std::string colmap_type = colmap_js["type"].get<std::string>();
-        for (auto &&[index, name] : mtao::iterator::enumerate(mtao::visualization::imgui::ColorMapSettingsWidget::ColorMapNames)) {
-            if (name == colmap_type) {
-                _colmap_widget.set_type(
-                  mtao::visualization::imgui::ColorMapSettingsWidget::ColorMapType(index));
-            }
-        }
-        {
-            if (colmap_js.contains("min")) {
-                _colmap_widget.min_value = colmap_js["min"].get<int>();
-                _colmap_widget.max_value = colmap_js["max"].get<int>();
-                _colmap_widget.update_scale_shift();
-            } else {
-                _colmap_widget.scale = colmap_js["scale"].get<int>();
-                _colmap_widget.shift = colmap_js["shift"].get<int>();
-                _colmap_widget.update_minmax();
-            }
-        }
-    }
 
     tail_size = js["tail_size"].get<int>();
     tube_radius = js["tube_radius"].get<float>();

@@ -106,7 +106,7 @@ auto MeshFilter::particle_mask(const Particles &p) const -> BoolVec {
     mtao::VecXi I;
 
 
-    auto P = p.positions.transpose().cast<float>().eval();
+    auto P = (point_transform * p.positions).transpose().cast<float>().eval();
     aabb.squared_distance(V, F, P, sqrD, I, C);
     spdlog::info("Got squared dist");
     return sqrD.array() < mesh_distance * mesh_distance;

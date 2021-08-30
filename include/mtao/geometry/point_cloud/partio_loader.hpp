@@ -20,6 +20,7 @@ struct PartioFileWriter {
     void set_velocities(const mtao::ColVecs3d &V);
     void set_colors(const mtao::ColVecs4d &C);
     void set_radii(const mtao::VecXd &R);
+    void set_densities(const mtao::VecXd &R);
     void set_ids(const mtao::VecXi &I);
     void update_size(int size);
     void write();

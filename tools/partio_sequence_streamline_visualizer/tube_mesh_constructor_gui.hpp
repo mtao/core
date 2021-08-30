@@ -18,6 +18,7 @@ struct TubeMeshConstructorGui : public TubeMeshConstructor
       const std::vector<Particles> &particles,
       const std::vector<int> &active_indices,
       const bool &show_all_particles,
+    const mtao::visualization::imgui::ColorMapSettingsWidget &colmap_widget,
       Magnum::SceneGraph::DrawableGroup3D &draw_group);
     bool gui();
     void save(const std::string &filename);
@@ -38,6 +39,6 @@ struct TubeMeshConstructorGui : public TubeMeshConstructor
     void save_ply(int index, const std::string &path_format) const;
 
   private:
-    mtao::visualization::imgui::ColorMapSettingsWidget _colmap_widget;
+    const mtao::visualization::imgui::ColorMapSettingsWidget& _colmap_widget;
     Magnum::Shaders::Phong _phong_shader;
 };

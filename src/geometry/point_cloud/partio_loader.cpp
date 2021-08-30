@@ -34,6 +34,9 @@ void PartioFileWriter::set_ids(const mtao::VecXi &I) {
 void PartioFileWriter::set_radii(const mtao::VecXd &I) {
     set_attribute("radius", I);
 }
+void PartioFileWriter::set_densities(const mtao::VecXd &I) {
+    set_attribute("density", I);
+}
 
 void PartioFileWriter::write() {
 

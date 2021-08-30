@@ -1,4 +1,6 @@
 #include "viewer.hpp"
+#include <mtao/iterator/enumerate.hpp>
+#include <numbers>
 #include <spdlog/spdlog.h>
 #include <iostream>
 #include <numeric>
@@ -6,9 +8,28 @@
 #include <fmt/format.h>
 #include <tbb/parallel_for.h>
 #include <mtao/geometry/mesh/read_obj.hpp>
+#include <nlohmann/json.hpp>
 
 std::filesystem::path MeshViewer::mesh_path() const {
-    return base_dir / "mesh.obj";
+    std::filesystem::path local_path = base_dir / "mesh.obj";
+    if (std::filesystem::exists(local_path)) {
+        return local_path;
+    }
+
+    std::filesystem::path meshinfo_path = base_dir / "mesh_info.json";
+    if (std::filesystem::exists(meshinfo_path)) {
+        nlohmann::json js;
+        std::ifstream(meshinfo_path) >> js;
+        std::cout << js << std::endl;
+
+        local_path = js["mesh"]["filename"].get<std::string>();
+        std::cout << "Local path: " << local_path << std::endl;
+        if (std::filesystem::exists(local_path)) {
+            return local_path;
+        }
+    }
+    spdlog::warn("No valid mesh file path found");
+    return {};
 }
 
 std::string MeshViewer::frame_fmt() const {
@@ -46,7 +67,7 @@ int MeshViewer::frame_file_count() const {
     return j;
 }
 
-MeshViewer::MeshViewer(const Arguments &args) : Window3(args), tube_mesh_gui(particles, active_indices, show_all_particles, drawables()) {
+MeshViewer::MeshViewer(const Arguments &args) : Window3(args), tube_mesh_gui(particles, active_indices, show_all_particles, _colmap_widget, drawables()) {
     //MeshViewer(const Arguments& args): Window3(args,Magnum::GL::Version::GL210), _wireframe_shader{} {
     Corrade::Utility::Arguments myargs;
     myargs.addArgument("path").parse(args.argc, args.argv);
@@ -85,24 +106,22 @@ void MeshViewer::gui() {
         }
         ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Colormap settings")) {
+        if (_colmap_widget.gui()) {
+            current_frame_updated();
+        }
+        ImGui::TreePop();
+    }
     if (point_drawable) {
         ImGui::InputFloat("Point size", &point_drawable->point_size);
     }
-    if (ImGui::Checkbox("Show Tubes", &show_tubes)) {
-        current_frame_updated();
-    }
-
-    if (show_tubes) {
-        if (ImGui::TreeNode("Tube Mesh")) {
-            if (tube_mesh_gui.gui()) {
+    if (ImGui::Checkbox("Do Particle Filtering", &do_particle_filtering)) {
+        if (do_particle_filtering) {
+            if (show_tubes) {
+                show_tubes = false;
                 current_frame_updated();
             }
-            ImGui::TreePop();
         }
-    }
-
-    if (point_drawable) {
-        point_drawable->gui("Points");
     }
     int old_index = current_frame;
     if (ImGui::InputInt("Current frame", &current_frame)) {
@@ -111,7 +130,42 @@ void MeshViewer::gui() {
             current_frame_updated();
         }
     }
+    filter_gui();
 
+
+    if (do_particle_filtering) {
+        particle_gui();
+    } else {
+        tube_gui();
+    }
+    drawable_gui();
+}
+
+
+void MeshViewer::tube_gui() {
+    if (ImGui::Checkbox("Show Tubes", &show_tubes)) {
+        current_frame_updated();
+    }
+    if (show_tubes) {
+        if (ImGui::TreeNode("Tube Mesh")) {
+            if (tube_mesh_gui.gui()) {
+                current_frame_updated();
+            }
+            ImGui::TreePop();
+        }
+    }
+    if (ImGui::Button("Save PLY")) {
+        tube_mesh_gui.save_ply(current_frame, "tubes_{:04}.ply");
+    }
+}
+
+
+void MeshViewer::particle_gui() {
+    ImGui::Text("Particle gui");
+}
+
+
+void MeshViewer::filter_gui() {
     if (ImGui::TreeNode("Filters")) {
         if (plane_filter) {
             if (ImGui::TreeNode("Plane Filter")) {
@@ -197,19 +251,34 @@ void MeshViewer::gui() {
         }
         ImGui::TreePop();
     }
-
+}
+void MeshViewer::drawable_gui() {
+    if (point_drawable) {
+        point_drawable->gui("Points");
+    }
     if (mesh_drawable) {
         mesh_drawable->gui("Mesh Viewer");
+        if (ImGui::InputFloat("Mesh Scale", &mesh_scale)) {
+            update_mesh_orientation();
+        }
+
+        if (ImGui::InputFloat3("Mesh Rotation", euler_angles.data())) {
+            update_mesh_orientation();
+        }
+    }
+    if (ImGui::Button("Hide filter geometry")) {
+        if (_plane_viewer) {
+            _plane_viewer->set_visibility(false);
+        }
+        if (_sphere_viewer) {
+            _sphere_viewer->set_visibility(false);
+        }
     }
     if (_plane_viewer) {
         _plane_viewer->gui("Plane Viewer");
     }
     if (_sphere_viewer) {
         _sphere_viewer->gui("Sphere Viewer");
-    }
-
-    if (ImGui::Button("Save PLY")) {
-        tube_mesh_gui.save_ply(current_frame, "tubes_{:04}.ply");
     }
 }
 
@@ -358,6 +427,7 @@ void MeshViewer::initialize_drawables() {
     _sphere_viewer = new mtao::opengl::MeshDrawable<Magnum::Shaders::Phong>{ *sphere_filter, _phong_shader, drawables() };
     _sphere_viewer->data().diffuse_color = { .32, .32, .32, 1. };
     _sphere_viewer->data().ambient_color = { .32, .32, .32, 1. };
+    _sphere_viewer->set_visibility(false);
 
     plane_filter = std::make_shared<PlaneFilter>();
 
@@ -365,6 +435,7 @@ void MeshViewer::initialize_drawables() {
     _plane_viewer = new mtao::opengl::MeshDrawable<Magnum::Shaders::Phong>{ *plane_filter, _phong_shader, drawables() };
     _plane_viewer->data().diffuse_color = { .32, .32, .32, 1. };
     _plane_viewer->data().ambient_color = { .32, .32, .32, 1. };
+    _plane_viewer->set_visibility(false);
 
     range_filter = std::make_shared<RangeFilter>();
     prune_filter = std::make_shared<PruneFilter>();
@@ -381,6 +452,33 @@ void MeshViewer::initialize_drawables() {
     //point_drawable->deactivate();
     //mesh_drawable->deactivate();
 }
+void MeshViewer::update_mesh_orientation() {
+    // asdf
+    mesh.resetTransformation();
+    auto tr = [](double v) -> double {
+        return std::numbers::pi_v<double> * v / 180.0;
+    };
+    auto tr_m = [](double v) -> Magnum::Deg {
+        return Magnum::Deg(v);
+    };
+
+    mesh.rotate(tr_m(euler_angles[0]), Magnum::Vector3::xAxis());
+    mesh.rotate(tr_m(euler_angles[1]), Magnum::Vector3::yAxis());
+    mesh.rotate(tr_m(euler_angles[2]), Magnum::Vector3::zAxis());
+    mesh.scale(Magnum::Vector3(mesh_scale));
+
+    using namespace Eigen;
+    if (mesh_filter) {
+        mesh_filter->point_transform.setIdentity();
+        mesh_filter->point_transform.scale(mesh_scale);
+
+        mesh_filter->point_transform.rotate(AngleAxisd(tr(euler_angles[0]), Vector3d::UnitX()));
+        mesh_filter->point_transform.rotate(AngleAxisd(tr(euler_angles[1]), Vector3d::UnitY()));
+        mesh_filter->point_transform.rotate(AngleAxisd(tr(euler_angles[2]), Vector3d::UnitZ()));
+        mesh_filter->point_transform =
+          mesh_filter->point_transform.inverse();
+    }
+}
 
 
 void MeshViewer::save_settings(const std::filesystem::path &path) const {
@@ -395,6 +493,18 @@ void MeshViewer::save_settings(const std::filesystem::path &path) const {
     filters["intersection"] = intersection_filter->config();
     filters["range"] = range_filter->config();
     filters["prune"] = prune_filter->config();
+
+    {// read off colormap settings
+        auto &colmap_js = js["colormap"];
+        colmap_js["type"] =
+          mtao::visualization::imgui::ColorMapSettingsWidget::ColorMapNames[int(_colmap_widget.get_type())];
+        {
+            colmap_js["scale"] = _colmap_widget.scale;
+            colmap_js["shift"] = _colmap_widget.shift;
+        }
+    }
+
+
     std::ofstream ofs(path);
     ofs << js;
 }
@@ -412,10 +522,104 @@ void MeshViewer::load_settings(const std::filesystem::path &path) {
     intersection_filter->load_config(filters["intersection"]);
     range_filter->load_config(filters["range"]);
     prune_filter->load_config(filters["prune"]);
+
+    {// read off colormap settings
+
+        auto colmap_js = [&]() -> nlohmann::json {
+            if (js.contains("colormap")) {
+                return js["colormap"];
+            } else if (js.contains("tube_mesh_gui")) {
+                const auto &tmgjs = js["tube_mesh_gui"];
+                if (tmgjs.contains("colormap")) {
+                    {
+                        return tmgjs["colormap"];
+                    }
+                }
+            }
+            return {};
+        }();
+        const std::string colmap_type = colmap_js["type"].get<std::string>();
+        for (auto &&[index, name] : mtao::iterator::enumerate(mtao::visualization::imgui::ColorMapSettingsWidget::ColorMapNames)) {
+            if (name == colmap_type) {
+                _colmap_widget.set_type(
+                  mtao::visualization::imgui::ColorMapSettingsWidget::ColorMapType(index));
+            }
+        }
+        {
+            if (colmap_js.contains("min")) {
+                _colmap_widget.min_value = colmap_js["min"].get<int>();
+                _colmap_widget.max_value = colmap_js["max"].get<int>();
+                _colmap_widget.update_scale_shift();
+            } else {
+                _colmap_widget.scale = colmap_js["scale"].get<int>();
+                _colmap_widget.shift = colmap_js["shift"].get<int>();
+                _colmap_widget.update_minmax();
+            }
+        }
+    }
 }
 void MeshViewer::save_settings() const {
     save_settings(config_path);
 }
 void MeshViewer::load_settings() {
     load_settings(config_path);
+}
+
+void MeshViewer::save_filtered_particles(const std::string &path_fmt) {
+
+    if (show_all_particles) {
+        spdlog::error("Cannot save filtered particles while showing all of them. Odds are you're wasting space by copying the input data");
+        return;
+    }
+    auto parent_path = std::filesystem::path(path_fmt).parent_path();
+    if (std::filesystem::exists(parent_path)) {
+        if (!std::filesystem::is_directory(parent_path)) {
+            spdlog::error("Cannot save filtered particles because [{}] is not a directory", std::string(parent_path));
+        }
+    } else {
+        bool created_parent = std::filesystem::create_directories(parent_path);
+        if (created_parent) {
+            spdlog::info("Created directory to save particles {}", std::string(parent_path));
+        }
+    }
+
+    bool do_write = overwrite_old_particles;
+    // check if any file we would write will be overwritten
+    if (!overwrite_old_particles) {
+        for (size_t index = 0; index < particles.size(); ++index) {
+
+            std::filesystem::path path = fmt::vformat(path_fmt, fmt::make_format_args(index));
+            do_write = overwrite_old_particles || !std::filesystem::exists(path);
+            if (do_write) {
+
+                spdlog::error("Cannot write particles because a file already exists, Check the directory or enable overwriting");
+                break;
+            }
+        }
+    }
+    {
+        // check if there's a file that might accidnetally result in a continuation of hte current sequence
+        std::filesystem::path path = fmt::vformat(path_fmt, fmt::make_format_args(particles.size()));
+        if (std::filesystem::exists(path)) {
+            if (overwrite_old_particles) {
+
+                spdlog::warn("Cannot write particles because a continuation could happen creating an invalid sequence");
+            } else {
+                spdlog::error("Cannot write particles because a continuation could happen creating an invalid sequence. This can be forced with overwritting enabled");
+                do_write = false;
+            }
+        }
+    }
+
+    if (do_write) {
+        for (auto &&[index, parts] : mtao::iterator::enumerate(particles)) {
+
+            std::filesystem::path path = fmt::vformat(path_fmt, fmt::make_format_args(index));
+
+            parts.save_subset(path, active_indices);
+        }
+    }
+}
+void MeshViewer::save_filtered_particles() {
+    save_filtered_particles(particles_output_path);
 }

@@ -15,6 +15,7 @@ class MeshViewer : public mtao::opengl::Window3 {
     std::string relative_format = "frame_{}/particles.bgeo.gz";
     std::vector<Particles> particles;
 
+    bool do_particle_filtering = false;
 
     std::vector<int> active_indices;
     bool show_all_particles = true;
@@ -23,7 +24,13 @@ class MeshViewer : public mtao::opengl::Window3 {
     std::string config_path = "/tmp/fluidsim_streamlines_config.js";
     //std::string config_path = "./fluidsim_streamlines_config.js";
 
+
+    std::string particles_output_path = "/tmp//particles/particles{:04d}.bgeo.gz";
+    bool overwrite_old_particles = false;
+
     int current_frame = -1;
+    std::array<float, 3> euler_angles = std::array<float, 3>{ { 0.f, 0.f, 0.f } };
+    float mesh_scale = 1.0f;
 
     // [start,end)
     std::array<int, 2> filter_interval(int index) const;
@@ -42,6 +49,7 @@ class MeshViewer : public mtao::opengl::Window3 {
     //mtao::opengl::MeshDrawable<Magnum::Shaders::Flat3D> *point_drawable = nullptr;
     mtao::opengl::MeshDrawable<Magnum::Shaders::Phong> *mesh_drawable = nullptr;
 
+    mtao::visualization::imgui::ColorMapSettingsWidget _colmap_widget;
     TubeMeshConstructorGui tube_mesh_gui;
 
     std::shared_ptr<SphereFilter> sphere_filter;
@@ -57,6 +65,11 @@ class MeshViewer : public mtao::opengl::Window3 {
   public:
     MeshViewer(const Arguments &args);
     void gui() override;
+    void tube_gui();
+    void particle_gui();
+    void frame_gui();
+    void filter_gui();
+    void drawable_gui();
 
     void save_settings(const std::filesystem::path &path) const;
     void load_settings(const std::filesystem::path &path);
@@ -78,6 +91,8 @@ class MeshViewer : public mtao::opengl::Window3 {
     void current_frame_updated();
     void set_frame(int index);
 
+    void update_mesh_orientation();
+
     void reset_all_indices();
     void select_particles(std::vector<int> &&indices, bool set_active, bool deactivate_tubes = true);
 
@@ -88,6 +103,10 @@ class MeshViewer : public mtao::opengl::Window3 {
     void select_particles_from_prune(bool set_active);
 
     void select_particles_from_all(bool set_active);
+
+
+    void save_filtered_particles(const std::string &path_format);
+    void save_filtered_particles();
 
     std::string frame_fmt() const;
     std::filesystem::path frame_path(int index) const;
