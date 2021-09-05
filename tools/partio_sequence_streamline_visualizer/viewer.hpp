@@ -61,6 +61,7 @@ class MeshViewer : public mtao::opengl::Window3 {
 
     std::shared_ptr<PruneFilter> prune_filter;
     std::shared_ptr<RangeFilter> range_filter;
+    std::shared_ptr<RangeFilter> range_filter2;
 
   public:
     MeshViewer(const Arguments &args);
@@ -100,6 +101,7 @@ class MeshViewer : public mtao::opengl::Window3 {
     void select_particles_from_sphere(bool set_active);
     void select_particles_from_mesh(bool set_active);
     void select_particles_from_range(bool set_active);
+    void select_particles_from_range2(bool set_active);
     void select_particles_from_prune(bool set_active);
 
     void select_particles_from_all(bool set_active);

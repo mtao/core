@@ -3,6 +3,7 @@
 #include <nlohmann/json.hpp>
 #include <mtao/opengl/objects/plane.hpp>
 #include <mtao/opengl/objects/sphere.hpp>
+#include <igl/fast_winding_number.h>
 #include <igl/AABB.h>
 
 struct Filter {
@@ -58,8 +59,12 @@ struct MeshFilter : public Filter {
     Eigen::MatrixXf V;
     Eigen::MatrixXi F;
     igl::AABB<Eigen::MatrixXf, 3> aabb;
+    igl::FastWindingNumberBVH fwn_bvh;
     Eigen::AffineCompact3d point_transform = Eigen::AffineCompact3d::Identity();
     float mesh_distance = .1;
+    bool include_all_interior = true;// useful for open meshes
+    bool include_interior = true;
+    bool include_exterior = true;
     MeshFilter(const Eigen::MatrixXf &V, const Eigen::MatrixXi &F);
     BoolVec particle_mask(const Particles &p) const override;
     bool gui() override;

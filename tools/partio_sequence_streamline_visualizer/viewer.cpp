@@ -232,6 +232,19 @@ void MeshViewer::filter_gui() {
                 ImGui::TreePop();
             }
         }
+        if (range_filter2) {
+            if (ImGui::TreeNode("Range Filter2")) {
+                if (range_filter2->gui()) {
+                    select_particles_from_range2(false);
+                }
+
+                if (ImGui::Button("Select Particles")) {
+                    select_particles_from_range2(true);
+                }
+
+                ImGui::TreePop();
+            }
+        }
         if (intersection_filter) {
             if (ImGui::TreeNode("All Filter")) {
                 if (intersection_filter->gui()) {
@@ -327,6 +340,15 @@ void MeshViewer::select_particles_from_range(bool set_active) {
     select_particles(std::move(indices), set_active);
 }
 
+void MeshViewer::select_particles_from_range2(bool set_active) {
+    if (current_frame < 0) {
+        return;
+    }
+    auto [start, end] = filter_interval(current_frame);
+    auto indices = range_filter2->selected_particles(particles, start, end);
+    select_particles(std::move(indices), set_active);
+}
+
 void MeshViewer::select_particles_from_all(bool set_active) {
     if (current_frame < 0) {
         return;
@@ -338,6 +360,12 @@ void MeshViewer::select_particles_from_all(bool set_active) {
 void MeshViewer::select_particles(std::vector<int> &&indices, bool set_active, bool deactivate_tubes) {
 
     show_tubes &= deactivate_tubes;
+    if (show_tubes) {
+        if (!set_active) {
+            spdlog::info("Forcing show active because tubes consume too much memory without it");
+        }
+        set_active = true;
+    }
 
     show_all_particles = !set_active;
     active_indices = std::move(indices);
@@ -438,6 +466,7 @@ void MeshViewer::initialize_drawables() {
     _plane_viewer->set_visibility(false);
 
     range_filter = std::make_shared<RangeFilter>();
+    range_filter2 = std::make_shared<RangeFilter>();
     prune_filter = std::make_shared<PruneFilter>();
 
     intersection_filter = std::make_shared<IntersectionFilter>();
@@ -445,6 +474,7 @@ void MeshViewer::initialize_drawables() {
     intersection_filter->filters.emplace_back("Mesh", mesh_filter, false);
     intersection_filter->filters.emplace_back("Sphere", sphere_filter, false);
     intersection_filter->filters.emplace_back("Range", range_filter, false);
+    intersection_filter->filters.emplace_back("Range2", range_filter2, false);
     intersection_filter->filters.emplace_back("Prune", prune_filter, false);
 
 
@@ -492,6 +522,7 @@ void MeshViewer::save_settings(const std::filesystem::path &path) const {
     filters["mesh"] = mesh_filter->config();
     filters["intersection"] = intersection_filter->config();
     filters["range"] = range_filter->config();
+    filters["range2"] = range_filter2->config();
     filters["prune"] = prune_filter->config();
 
     {// read off colormap settings
@@ -521,6 +552,9 @@ void MeshViewer::load_settings(const std::filesystem::path &path) {
     mesh_filter->load_config(filters["mesh"]);
     intersection_filter->load_config(filters["intersection"]);
     range_filter->load_config(filters["range"]);
+    if (filters.contains("range2")) {
+        range_filter2->load_config(filters["range2"]);
+    }
     prune_filter->load_config(filters["prune"]);
 
     {// read off colormap settings

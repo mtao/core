@@ -1,4 +1,5 @@
 #include "filter.hpp"
+#include <tbb/parallel_for.h>
 #include <set>
 #include "mtao/visualization/imgui/utils.hpp"
 #include "mtao/opengl/objects/sphere.hpp"
@@ -98,6 +99,8 @@ bool SphereFilter::gui() {
 MeshFilter::MeshFilter(const Eigen::MatrixXf &V, const Eigen::MatrixXi &F) : V(std::move(V)), F(std::move(F)) {
 
     aabb.init(V, F);
+
+    igl::fast_winding_number(V, F, 2, fwn_bvh);
 }
 
 auto MeshFilter::particle_mask(const Particles &p) const -> BoolVec {
@@ -107,13 +110,58 @@ auto MeshFilter::particle_mask(const Particles &p) const -> BoolVec {
 
 
     auto P = (point_transform * p.positions).transpose().cast<float>().eval();
-    aabb.squared_distance(V, F, P, sqrD, I, C);
-    spdlog::info("Got squared dist");
-    return sqrD.array() < mesh_distance * mesh_distance;
+
+    BoolVec in_mesh_band;
+    BoolVec interior_flag;
+
+    // if we need to look outside we always want a band
+    // if we look inside and don't want to see everything we want a band
+    bool has_band = include_exterior || (include_interior && !include_all_interior);
+    if (has_band) {
+        aabb.squared_distance(V, F, P, sqrD, I, C);
+        in_mesh_band = sqrD.array() < mesh_distance * mesh_distance;
+    }
+    // if we need to distinguish between inside/outside we need to do inside/outside checks
+    // if we need all of the insdie we need an inside/outside check
+    bool has_interior = ((include_exterior ^ include_interior) || include_all_interior);
+    if (has_interior) {
+        interior_flag.resize(P.rows());
+        //mtao::VecXd W;
+        //igl::fast_winding_number(fwn_bvh, 2, P, W);
+        //interior_flag = W.array().abs() > .5;
+
+        tbb::parallel_for(int(0), int(P.rows()), [&](int j) {
+            mtao::VecXd W;
+            igl::fast_winding_number(fwn_bvh, 2, P.row(j), W);
+            bool inside = std::abs(W(0)) > .5;
+            if (include_all_interior && inside) {
+                interior_flag(j) = true;
+            } else if (include_exterior && !inside) {
+                interior_flag(j) = true;
+            } else if (include_interior && inside) {
+                interior_flag(j) = true;
+            } else {
+                interior_flag(j) = false;
+            }
+        });
+    }
+    if (has_band && has_interior) {
+        return in_mesh_band && interior_flag;
+    } else if (has_band) {
+        return in_mesh_band;
+    } else if (has_interior) {
+        return interior_flag;
+    } else {
+        spdlog::error("MeshFilter didn't haev a mesh band or interior: include_all_interior {}, include_interior {}, include_exterior {}", include_all_interior, include_interior, include_exterior);
+        return {};
+    }
 }
 bool MeshFilter::gui() {
     bool changed = false;
     changed |= ImGui::InputFloat("Distance", &mesh_distance);
+    changed |= ImGui::Checkbox("Include All Interior", &include_all_interior);
+    changed |= ImGui::Checkbox("Include Interior", &include_interior);
+    changed |= ImGui::Checkbox("Include Exterior", &include_exterior);
     return changed;
 }
 auto IntersectionFilter::particle_mask(const Particles &p) const -> BoolVec {
@@ -307,7 +355,7 @@ nlohmann::json IntersectionFilter::config() const {
     nlohmann::json js = Filter::config();
     auto &arr = js["children"];
     for (auto &&[name, ptr, active] : filters) {
-        arr[name] = active ;
+        arr[name] = active;
     }
     return js;
 }
