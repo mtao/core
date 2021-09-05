@@ -203,6 +203,8 @@ set(MTAO_COMMON_SRCS
     src/cmdline_parser.cpp
     src/algebra/pascal_triangle.cpp
     src/utils/get_relative_path.cpp
+    src/filesystem/get_relative_path.cpp
+    src/filesystem/prepend_to_filename.cpp
     )
 
 if(MTAO_USE_JSON)
