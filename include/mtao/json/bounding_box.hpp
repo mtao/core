@@ -19,7 +19,7 @@ struct adl_serializer<Eigen::AlignedBox<Scalar, D>> {
     static void from_json(const json &j, Eigen::AlignedBox<Scalar, D> &ab) {
 
         ab.min() = j["min"].get<Eigen::Vector<Scalar, D>>();
-        ab.max() = j["min"].get<Eigen::Vector<Scalar, D>>();
+        ab.max() = j["max"].get<Eigen::Vector<Scalar, D>>();
     }
 };
 }// namespace nlohmann
