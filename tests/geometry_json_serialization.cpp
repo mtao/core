@@ -50,4 +50,16 @@ int main(int argc, char *argv[]) {
     Eigen::MatrixXf B = js["A"].get<Eigen::MatrixXf>();
     std::cout << "Dynamic float sized A:\n"
               << B << std::endl;
+
+
+    {
+        js["vec"] = { { "x", 3 }, { "y", 4 } };
+        auto vec = js["vec"].get<Eigen::Vector2d>();
+        std::cout << vec << std::endl;
+    }
+    {
+        js["vec"] = { 2, 4, 6 };
+        auto vec = js["vec"].get<Eigen::Vector3i>();
+        std::cout << vec << std::endl;
+    }
 }
