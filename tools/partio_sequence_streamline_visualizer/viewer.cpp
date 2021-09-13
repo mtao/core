@@ -162,6 +162,18 @@ void MeshViewer::tube_gui() {
 
 void MeshViewer::particle_gui() {
     ImGui::Text("Particle gui");
+    if (tube_mesh_gui.color_gui()) {
+        current_frame_updated();
+    }
+
+    if (particles_output_path.size() < 1000) {
+        particles_output_path.resize(1000);
+    }
+    if (ImGui::InputText("Path", &particles_output_path[0], particles_output_path.size())) {
+    }
+    if (ImGui::Button("Save Filtered Particles")) {
+        save_filtered_particles();
+    }
 }
 
 
@@ -214,6 +226,19 @@ void MeshViewer::filter_gui() {
 
                 if (ImGui::Button("Select Particles")) {
                     select_particles_from_prune(true);
+                }
+
+                ImGui::TreePop();
+            }
+        }
+        if (jump_filter) {
+            if (ImGui::TreeNode("Jump Filter")) {
+                if (jump_filter->gui()) {
+                    select_particles_from_jump(false);
+                }
+
+                if (ImGui::Button("Select Particles")) {
+                    select_particles_from_jump(true);
                 }
 
                 ImGui::TreePop();
@@ -349,6 +374,15 @@ void MeshViewer::select_particles_from_range2(bool set_active) {
     select_particles(std::move(indices), set_active);
 }
 
+void MeshViewer::select_particles_from_jump(bool set_active) {
+    if (current_frame < 0) {
+        return;
+    }
+    auto [start, end] = filter_interval(current_frame);
+    auto indices = jump_filter->selected_particles(particles, start, end);
+    select_particles(std::move(indices), set_active);
+}
+
 void MeshViewer::select_particles_from_all(bool set_active) {
     if (current_frame < 0) {
         return;
@@ -468,6 +502,7 @@ void MeshViewer::initialize_drawables() {
     range_filter = std::make_shared<RangeFilter>();
     range_filter2 = std::make_shared<RangeFilter>();
     prune_filter = std::make_shared<PruneFilter>();
+    jump_filter = std::make_shared<JumpFilter>();
 
     intersection_filter = std::make_shared<IntersectionFilter>();
     intersection_filter->filters.emplace_back("Plane", plane_filter, false);
@@ -476,6 +511,7 @@ void MeshViewer::initialize_drawables() {
     intersection_filter->filters.emplace_back("Range", range_filter, false);
     intersection_filter->filters.emplace_back("Range2", range_filter2, false);
     intersection_filter->filters.emplace_back("Prune", prune_filter, false);
+    intersection_filter->filters.emplace_back("Jump", jump_filter, false);
 
 
     //_plane_viewer->deactivate();
@@ -650,7 +686,12 @@ void MeshViewer::save_filtered_particles(const std::string &path_fmt) {
 
             std::filesystem::path path = fmt::vformat(path_fmt, fmt::make_format_args(index));
 
-            parts.save_subset(path, active_indices);
+            if (path.extension() == ".obj") {
+                parts.save_subset_obj(path, active_indices);
+            } else {
+                parts.save_subset_obj(path, active_indices);
+                //parts.save_subset(path, active_indices);
+            }
         }
     }
 }

@@ -18,6 +18,7 @@ struct Particles {
 
 
     void save_subset(const std::filesystem::path &path, const std::vector<int> &P) const;
+    void save_subset_obj(const std::filesystem::path &path, const std::vector<int> &P) const;
 
     int count() const {
         return positions.cols();

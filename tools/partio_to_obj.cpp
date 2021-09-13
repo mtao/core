@@ -3,6 +3,7 @@
 #include <spdlog/spdlog.h>
 #include <mtao/eigen/stack.hpp>
 #include <mtao/geometry/mesh/write_obj.hpp>
+#include <cxxopts.hpp>
 
 
 int main(int argc, char *argv[]) {
@@ -21,18 +22,18 @@ int main(int argc, char *argv[]) {
       "avoid-overwriting", "avoid overwriting existing files")(
       "h,help", "Print usage");
     // clang-format: on
-    options.parse_positional({ "input_format", "output_format" });
-    options.positional_help({ "<input_format> <output_format>" });
+    options.parse_positional({ "input_file", "output_file" });
+    options.positional_help({ "<input_file> <output_file>" });
 
     auto result = options.parse(argc, argv);
 
     bool help_out = result.count("help");
     bool test_files = result.count("test");
     bool avoid_overwritting = result.count("avoid-overwriting");
-    if (!bool(result.count("input_format"))) {
+    if (!bool(result.count("input_file"))) {
         help_out = true;
     }
-    if (!bool(result.count("output_format"))) {
+    if (!bool(result.count("output_file"))) {
         help_out = true;
     }
     if (help_out) {
@@ -42,8 +43,8 @@ int main(int argc, char *argv[]) {
     std::list<std::string> paths;
 
 
-    std::string input_format = result["input_format"].as<std::string>();
-    std::string output_format = result["output_format"].as<std::string>();
+    std::string input_file = result["input_file"].as<std::string>();
+    std::string output_file = result["output_file"].as<std::string>();
     int dim = result["dimension"].as<int>();
     int count = result["count"].as<int>();
     double thickness = result["thickness"].as<double>();
@@ -57,7 +58,6 @@ int main(int argc, char *argv[]) {
     const std::string input_filename = argv[1];
     const std::string output_filename = argv[2];
     //if (!mtao::geometry::point_cloud::partio_has_velocity(input_filename)) {
-        spdlog::info("Showing just particles");
         auto P = mtao::geometry::point_cloud::points_from_partio(input_filename);
         mtao::geometry::mesh::write_objD(P, mtao::ColVecs2i{}, output_filename);
 

@@ -41,7 +41,7 @@ TubeMeshConstructorGui::TubeMeshConstructorGui(
   const mtao::visualization::imgui::ColorMapSettingsWidget &colmap_widget,
   Magnum::SceneGraph::DrawableGroup3D &draw_group) : TubeMeshConstructor(particles, active_indices, show_all_particles), mtao::opengl::MeshDrawable<Magnum::Shaders::Phong>(*this, _phong_shader, draw_group), _colmap_widget(colmap_widget), _phong_shader(Magnum::Shaders::Phong::Flag::VertexColor) {}
 
-bool TubeMeshConstructorGui::gui() {
+bool TubeMeshConstructorGui::color_gui() {
     {
 
         static const auto items = mtao::visualization::imgui::utils::strs_to_charPtr(ScalarFunctionModeNames);
@@ -50,6 +50,13 @@ bool TubeMeshConstructorGui::gui() {
             scalar_function_mode = static_cast<ScalarFunctionMode>(char(m));
             return true;
         }
+    }
+    return false;
+}
+bool TubeMeshConstructorGui::gui() {
+
+    if(color_gui()) {
+        return true;
     }
     if (ImGui::InputInt("Tail size", &tail_size)) {
         tail_size = std::max<int>(2, tail_size);

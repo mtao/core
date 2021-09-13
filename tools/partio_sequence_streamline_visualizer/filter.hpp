@@ -98,6 +98,7 @@ struct RangeFilter : public Filter {
 
 // prunes particles that move drastically far away from their velocity, using a window to estimate timesteps
 struct JumpFilter : public Filter {
+    BoolVec particle_mask(const Particles &p) const override;
     BoolVec particle_mask(const std::vector<Particles> &particles, int start, int end) const override;
     bool gui() override;
     size_t window = 2;

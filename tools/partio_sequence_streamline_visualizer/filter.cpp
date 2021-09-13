@@ -39,7 +39,7 @@ bool Filter::filter_mode_gui() {
 
     int m = static_cast<char>(_filter_mode);
     if (ImGui::Combo("Filter Type", &m, items.data(), items.size())) {
-        _filter_mode = static_cast<FilterMode>(char(m));
+        _filter_mode = modes[m];
         return true;
     }
     return false;
@@ -231,7 +231,9 @@ auto RangeFilter::particle_mask(const std::vector<Particles> &particles, int sta
     case RangeMode::Velocity:
         return particle_mask(particles[start]);
     case RangeMode::Distance: {
+        spdlog::info("Doing distance");
         if (filter_mode() == FilterMode::All) {
+            spdlog::info("Doing all!");
             start = 0;
             end = particles.size();
         }
@@ -239,8 +241,10 @@ auto RangeFilter::particle_mask(const std::vector<Particles> &particles, int sta
         for (int j = start; j < end - 1; ++j) {
             const auto &P = particles[j].positions;
             const auto &P2 = particles[j + 1].positions;
-            d += (P - P2).colwise().norm().transpose();
-            spdlog::info("did {} {}", j, d.norm());
+            mtao::VecXd d2 = (P - P2).colwise().norm().transpose();
+            d = d.cwiseMax(d2);
+
+            spdlog::info("did {} {}", j, d.maxCoeff());
         }
         return (range[0] < d.array()) && (d.array() < range[1]);
     }
@@ -375,10 +379,10 @@ void IntersectionFilter::load_config(const nlohmann::json &js) {
 }
 
 
-// auto JumpFilter::particle_mask(const Particles &p) const -> BoolVec {
-//     throw std::invalid_argument("Cannot call single point particle mask on jump filter without more particles");
-//     return BoolVec::Constant(p.size(), true);
-// }
+auto JumpFilter::particle_mask(const Particles &p) const -> BoolVec {
+    throw std::invalid_argument("Cannot call single point particle mask on jump filter without more particles");
+    return BoolVec::Constant(p.count(), true);
+}
 auto JumpFilter::particle_mask(const std::vector<Particles> &particles, int start, int end) const -> BoolVec {
 
 
@@ -403,13 +407,30 @@ auto JumpFilter::particle_mask(const std::vector<Particles> &particles, int star
     auto estimate_timesteps = [&](int j) -> mtao::VecXd {
         auto d = distances(j);
         const auto &v = particles[j].velocities;
-        return d.array() / v.colwise().norm().transpose().array();
+        mtao::VecXd dt = d.array() / v.colwise().norm().transpose().array();
+        BoolVec seems_valid = (dt.array().isFinite() && dt.array() < 1);
+        double t = 0;
+        for (auto &&[valid, p] : mtao::iterator::zip(seems_valid, dt)) {
+            if (valid) {
+                t += p;
+            }
+        }
+        t /= seems_valid.count();
+        for (auto &&[valid, p] : mtao::iterator::zip(seems_valid, dt)) {
+            if (!valid) {
+                p = t;
+            }
+        }
+        dt = (dt.array() > 1e-5).select(dt, 1e-5);
+
+        return dt;
     };
 
     mtao::VecXd timestep_estimates(particles.size());
     for (auto &&[j, dt] : mtao::iterator::enumerate(timestep_estimates)) {
         dt = estimate_timesteps(j).mean();
     }
+    std::cout << timestep_estimates.transpose() << std::endl;
 
     BoolVec R = BoolVec::Constant(true, particles[0].count());
     for (size_t j = 0; j < particles.size(); ++j) {
@@ -429,7 +450,7 @@ auto JumpFilter::particle_mask(const std::vector<Particles> &particles, int star
         end = std::min(particles.size(), j);
         double mean_ts = timestep_estimates.segment(start, end - start).mean();
         auto ts = estimate_timesteps(j);
-        R = R && (ts.array() < mean_ts);
+        R = R && (ts.array() < (1 + percentage) * mean_ts);
     }
 
 

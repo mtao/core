@@ -21,6 +21,7 @@ struct TubeMeshConstructorGui : public TubeMeshConstructor
     const mtao::visualization::imgui::ColorMapSettingsWidget &colmap_widget,
       Magnum::SceneGraph::DrawableGroup3D &draw_group);
     bool gui();
+    bool color_gui();
     void save(const std::string &filename);
     void update(int index);
     const mtao::visualization::imgui::ColorMapSettingsWidget &colmap_widget() const { return _colmap_widget; }

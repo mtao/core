@@ -58,6 +58,7 @@ class MeshViewer : public mtao::opengl::Window3 {
     mtao::opengl::MeshDrawable<Magnum::Shaders::Phong> *_sphere_viewer = nullptr;
     std::shared_ptr<MeshFilter> mesh_filter;
     std::shared_ptr<IntersectionFilter> intersection_filter;
+    std::shared_ptr<JumpFilter> jump_filter;
 
     std::shared_ptr<PruneFilter> prune_filter;
     std::shared_ptr<RangeFilter> range_filter;
@@ -103,6 +104,7 @@ class MeshViewer : public mtao::opengl::Window3 {
     void select_particles_from_range(bool set_active);
     void select_particles_from_range2(bool set_active);
     void select_particles_from_prune(bool set_active);
+    void select_particles_from_jump(bool set_active);
 
     void select_particles_from_all(bool set_active);
 
