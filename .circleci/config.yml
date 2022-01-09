@@ -3,31 +3,31 @@ version: 2
 jobs:
     build:
         docker:
-            - image: "cimg/base:2022.01"
+            - image: "cimg/base:stable"
             #- image: "ubuntu:latest"
         steps:
             - checkout
             - run:
                 name: Updating apt and install git
-                command: 'apt-get update && apt-get install -y git'
+                command: 'sudo apt-get update && sudo apt-get install -y git'
             - run:
                 name: Installing gcc g++
-                command: 'DEBIAN_FRONTEND=noninteractive apt-get install -y gcc g++ clang'
+                command: 'DEBIAN_FRONTEND=noninteractive sudo apt-get install -y gcc g++ clang'
             - run:
                 name: Installing cmake
-                command: 'DEBIAN_FRONTEND=noninteractive apt-get install -y cmake'
+                command: 'DEBIAN_FRONTEND=noninteractive sudo apt-get install -y cmake'
             - run:
                 name: Installing boost threads
-                command: 'apt-get install -y libboost-thread-dev'
+                command: 'sudo apt-get install -y libboost-thread-dev'
             - run:
                 name: Installing numerical libs
-                command: 'apt-get install -y libeigen3-dev libblas-dev liblapack-dev'
+                command: 'sudo apt-get install -y libeigen3-dev libblas-dev liblapack-dev'
             - run:
                 name: Installing graphics libs
-                command: 'apt-get install -y libglfw3-dev libgl-dev libpng++-dev libxinerama-dev xorg-dev'
+                command: 'sudo apt-get install -y libglfw3-dev libgl-dev libpng++-dev libxinerama-dev xorg-dev'
             - run:
                 name: Installing partio libs
-                command: 'apt-get install -y python3-dev freeglut3-dev'
+                command: 'sudo apt-get install -y python3-dev freeglut3-dev'
             - run:
                 name: Making CMake build files
                 command: 'cmake -H. -Bbuild -DBUILD_TESTING=ON -DCMAKE_BUILD_TYPE="Debug" -DMTAO_USE_PYTHON=OFF'
