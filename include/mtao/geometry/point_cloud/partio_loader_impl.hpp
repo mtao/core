@@ -81,7 +81,10 @@ mtao::ColVectors<T, D> PartioFileReader::vector_attribute(const std::string &nam
     iterator.addAccessor(acc);
 
     int cnt = 0;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wambiguous-reversed-operator"
     for (auto it = _handle->begin(); it != _handle->end(); ++it) {
+#pragma GCC diagnostic pop
         float *data = acc.raw<T>(it);
         R.col(cnt++) = Eigen::Map<const mtao::Vector<T, D>>{ data };
     }
