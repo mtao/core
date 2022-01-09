@@ -10,6 +10,8 @@ using namespace Magnum;
 class AlgebraicMesh : public GL::Mesh {
   public:
     AlgebraicMesh() {}
+    AlgebraicMesh(AlgebraicMesh&&) = default;
+    AlgebraicMesh& operator=(AlgebraicMesh&&) = default;
     AlgebraicMesh(const mtao::ColVectors<unsigned int, 3> &F);
     AlgebraicMesh(const mtao::ColVectors<unsigned int, 2> &E);
     void makeVertexIndexBuffer(unsigned int size);
@@ -76,6 +78,8 @@ class Mesh : public MeshObject<D> {
     using AlgebraicMesh::setVertexBuffer;
     using ColVecs = mtao::ColVectors<float, D>;
     Mesh() {}
+    Mesh(Mesh&&) = default;
+    Mesh& operator=(Mesh&&) = default;
     Mesh(const ColVecs &V, const mtao::ColVectors<unsigned int, 3> &F) {
         setTriangleBuffer(V, F);
     }

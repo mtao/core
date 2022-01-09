@@ -1,6 +1,7 @@
 #pragma once
 #include "mesh.h"
 #include "mtao/geometry/grid/grid.h"
+#include <type_traits>
 #include "mtao/geometry/grid/triangulation.hpp"
 
 
@@ -9,6 +10,7 @@ namespace mtao::opengl::objects {
 template<int D>
 class Grid : public Mesh<D> {
   public:
+      // this is the underlying actual grid type used
     using GridType = typename mtao::geometry::grid::GridD<float, D>;
     Grid() = default;
     Grid(const GridType &g) { set(g); }
