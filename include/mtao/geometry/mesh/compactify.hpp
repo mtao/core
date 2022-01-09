@@ -5,6 +5,7 @@
 
 namespace mtao::geometry::mesh {
 
+// compactifies a bunch of ColVectors
 template<typename VDerived, typename CDerived>
 auto compactify(const Eigen::MatrixBase<VDerived> &V,
                 const Eigen::MatrixBase<CDerived> &C) {
@@ -35,6 +36,8 @@ auto compactify(const Eigen::MatrixBase<VDerived> &V,
 
     return std::make_tuple(mV, mC);
 }
+
+// compactifies a bunch of ColVectors
 template<typename VDerived, typename CDerived, typename Allocator>
 auto compactify(const Eigen::MatrixBase<VDerived> &V,
                 const std::vector<CDerived, Allocator> &Cs) {
@@ -42,7 +45,7 @@ auto compactify(const Eigen::MatrixBase<VDerived> &V,
     using Scalar = typename VDerived::Scalar;
     using RetVerts = mtao::ColVectors<Scalar, VRows>;
 
-    constexpr static int CRows = CDerived::RowsAtCompileTime;
+    // constexpr static int CRows = CDerived::RowsAtCompileTime;
     using Index = typename CDerived::Scalar;
     // using RetCells = mtao::ColVectors<Index,CRows>;
 
