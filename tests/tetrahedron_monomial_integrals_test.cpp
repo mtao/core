@@ -29,11 +29,13 @@ TEST_CASE("tetrahedron_monomials", "[trigonometry]") {
         std::cout << v << " ";
     }
     std::cout << std::endl;
+    /*
     auto get_integral = [&](size_t degree, size_t index) {
         size_t off = (degree * (degree + 1) * (degree + 2)) / 6;
         int k = off + index;
         return integrals2[k];
     };
+    */
     /*
     CHECK(get_integral(0, 0) == Approx(1. / 6));
 

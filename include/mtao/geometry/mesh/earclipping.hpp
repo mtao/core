@@ -127,7 +127,7 @@ std::vector<std::array<int, 3>> earclipping_stl(
         auto c = V.col(f[2]);
         auto cb = c - b;
         auto ab = a - b;
-        auto ac = a - c;
+        // auto ac = a - c;
         if (cb.x() * ab.y() - cb.y() * ab.x() < 1e-10) {
             std::swap(f[0], f[1]);
         }

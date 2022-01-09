@@ -134,7 +134,7 @@ class MeshDrawable : public DrawableBase<ShaderType> {
         }
         return ret;
     }
-    virtual void gui(const std::string &name = "") { Base::gui(name); }
+    virtual void gui(const std::string &name = "") override { Base::gui(name); }
 
     float line_width = 1.0;
     float point_size = 1.0;

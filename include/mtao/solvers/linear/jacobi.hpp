@@ -9,7 +9,7 @@ namespace mtao::solvers::linear {
 // x = D^{-1}(b - (U+L)x)
 
 template<typename MatrixType>
-class JacobiLinearSolver;
+struct JacobiLinearSolver;
 template<typename MatrixType>
 struct solver_traits<JacobiLinearSolver<MatrixType>> {
     using Scalar = typename MatrixType::Scalar;

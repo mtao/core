@@ -18,7 +18,8 @@ bool is_cyclic_ordered(const std::vector<int> &indices) {
 
     return true;
 }
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wempty-body"
 TEST_CASE("Polygon", "[cyclic_order]") {
     for (int N = 3; N < 50; ++N) {
         std::stringstream ss;
@@ -78,3 +79,4 @@ TEST_CASE("Near Diagonal Fan", "[cyclic_order]") {
         REQUIRE(is_cyclic_ordered(order));
     }
 }
+#pragma GCC diagnostic pop

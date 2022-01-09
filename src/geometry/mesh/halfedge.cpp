@@ -132,10 +132,14 @@ namespace geometry {
 
             int cell = e.cell();
 #ifndef NAIVE_BAD_CELL_CHECK
+            // in debug builds cell is only used in an assert, which disappears
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-lambda-capture"
             cell_iterator{ e }([&vertices, cell](const HalfEdge &e) {
                 assert(e.cell() == cell);
                 vertices.push_back(e.vertex());
             });
+#pragma GCC diagnostic pop
 #else//NAIVE_BAD_CELL_CHECK
             int count = 0;
             cell_iterator{ e }.run_earlyout([&](const HalfEdge &e) {
@@ -161,19 +165,27 @@ namespace geometry {
         std::vector<int> HalfEdgeMesh::dual_cell(const HalfEdge &e) const {
             std::vector<int> vertices;
             int vertex = e.vertex();
+            // in debug builds this causes issues
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-lambda-capture"
             vertex_iterator{ e }([&vertices, vertex](const HalfEdge &e) {
                 assert(e.vertex() == vertex);
                 vertices.emplace_back(e.cell());
             });
+#pragma GCC diagnostic pop
             return vertices;
         }
         std::vector<int> HalfEdgeMesh::one_ring(const HalfEdge &e) const {
             std::vector<int> vertices;
             int vertex = e.vertex();
+            // in debug builds this causes issues
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-lambda-capture"
             vertex_iterator{ e }([&vertices, vertex](const HalfEdge &e) {
                 assert(e.vertex() == vertex);
                 vertices.emplace_back(e.get_dual().vertex());
             });
+#pragma GCC diagnostic pop
             return vertices;
         }
 

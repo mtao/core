@@ -24,11 +24,11 @@ constexpr bool is_array() {
 }
 template<typename T>
 constexpr bool is_row_major() {
-    return T::Options & Eigen::RowMajor;
+    return int(T::Options) & int(Eigen::RowMajor);
 }
 template<typename T>
 constexpr bool is_col_major() {
-    return T::Options & Eigen::ColMajor;
+    return int(T::Options) & int(Eigen::ColMajor);
 }
 template<typename T>
 constexpr bool is_sparse(const T &A) {

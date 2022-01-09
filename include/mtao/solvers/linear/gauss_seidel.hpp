@@ -12,7 +12,7 @@ namespace mtao::solvers::linear {
 // x = L^{-1}(b - (D+R)x)
 
 template<typename MatrixType>
-class GaussSeidelLinearSolver;
+struct GaussSeidelLinearSolver;
 template<typename MatrixType>
 struct solver_traits<GaussSeidelLinearSolver<MatrixType>> {
     using Scalar = typename MatrixType::Scalar;
