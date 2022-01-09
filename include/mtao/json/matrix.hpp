@@ -81,39 +81,35 @@ struct adl_serializer<Mat> {
     }
 
     static void from_json(const json &js, Mat &M) {
-        if constexpr (mtao::eigen::concepts::PlainObjectBaseDerived<Mat>) {
+        static_assert(mtao::eigen::concepts::PlainObjectBaseDerived<Mat>);
 
-            int rows = js.contains("rows") ? js["rows"].get<int>() : 1;
-            int cols = js.contains("cols") ? js["cols"].get<int>() : 1;
-            if constexpr (StaticRow) {
-                rows = Mat::RowsAtCompileTime;
-            }
-            if constexpr (StaticCol) {
-                cols = Mat::ColsAtCompileTime;
-            }
-            M.resize(rows, cols);
-            if constexpr (RowVec || ColVec) {
-                if (try_misc_vec_formats(js, M)) {
-                    return;
-                }
-            }
-            const auto &data = js["data"];
-            if constexpr (RowVec) {
-                M = mtao::eigen::stl2eigen(data.template get<std::vector<typename Mat::Scalar>>()).transpose();
+        int rows = js.contains("rows") ? js["rows"].get<int>() : 1;
+        int cols = js.contains("cols") ? js["cols"].get<int>() : 1;
+        if constexpr (StaticRow) {
+            rows = Mat::RowsAtCompileTime;
+        }
+        if constexpr (StaticCol) {
+            cols = Mat::ColsAtCompileTime;
+        }
+        M.resize(rows, cols);
+        if constexpr (RowVec || ColVec) {
+            if (try_misc_vec_formats(js, M)) {
                 return;
             }
-            if constexpr (ColVec) {
-                M = mtao::eigen::stl2eigen(data.template get<std::vector<typename Mat::Scalar>>());
-                return;
-            }
-            for (auto &&[row, v] : mtao::iterator::enumerate(data)) {
-                auto r = M.row(row);
+        }
+        const auto &data = js["data"];
+        if constexpr (RowVec) {
+            M = mtao::eigen::stl2eigen(data.template get<std::vector<typename Mat::Scalar>>()).transpose();
+            return;
+        }
+        if constexpr (ColVec) {
+            M = mtao::eigen::stl2eigen(data.template get<std::vector<typename Mat::Scalar>>());
+            return;
+        }
+        for (auto &&[row, v] : mtao::iterator::enumerate(data)) {
+            auto r = M.row(row);
 
-                r = mtao::eigen::stl2eigen(v.template get<std::vector<typename Mat::Scalar>>()).transpose();
-            }
-        } else {
-
-            throw std::bad_cast("nhlomann json: cannot write to a Eigen object without storage");
+            r = mtao::eigen::stl2eigen(v.template get<std::vector<typename Mat::Scalar>>()).transpose();
         }
     }
 };
