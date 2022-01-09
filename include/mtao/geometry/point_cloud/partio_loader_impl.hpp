@@ -56,7 +56,7 @@ void PartioFileWriter::set_attribute(const std::string &name, const T &V) {
     }
 }
 
-template<typename T, int D = 1>
+template<typename T, int D>
 bool PartioFileReader::has_attribute(const std::string &name) const {
     Partio::ParticleAttribute attr;
     if (_handle->attributeInfo(name.c_str(), attr) && Partio::typeCheck<T>(attr.type) && attr.count == D) {

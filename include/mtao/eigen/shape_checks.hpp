@@ -141,7 +141,7 @@ constexpr void shape_check_with_throw(const MatType &N) {
 }
 
 template<int... C, typename MatType>
-constexpr void col_check_with_throw(const MatType &N, std::integer_sequence<int, C...> Seq) {
+void col_check_with_throw(const MatType &N, std::integer_sequence<int, C...> Seq) {
     if (!col_check_oneof(N, Seq)) {
         std::string msg = fmt::format("Col check: wrong size, got {} expected one of {}", N.cols(), std::make_tuple(C...));
         throw std::invalid_argument(msg);
@@ -149,7 +149,7 @@ constexpr void col_check_with_throw(const MatType &N, std::integer_sequence<int,
 }
 
 template<int... R, typename MatType>
-constexpr void row_check_with_throw(const MatType &N, std::integer_sequence<int, R...> Seq) {
+void row_check_with_throw(const MatType &N, std::integer_sequence<int, R...> Seq) {
 
     if (!row_check_oneof(N, Seq)) {
         std::string msg = fmt::format("Row check: wrong size, got {} expected {}", N.rows(), std::make_tuple(R...));
@@ -157,7 +157,7 @@ constexpr void row_check_with_throw(const MatType &N, std::integer_sequence<int,
     }
 }
 template<int... R, int... C, typename MatType>
-constexpr void shape_check_with_throw(const MatType &N, std::integer_sequence<int, R...> RSeq, std::integer_sequence<int, C...> CSeq) {
+void shape_check_with_throw(const MatType &N, std::integer_sequence<int, R...> RSeq, std::integer_sequence<int, C...> CSeq) {
     row_check_with_throw(N, RSeq) && col_check_with_throw(N, CSeq);
 }
 }// namespace mtao::eigen

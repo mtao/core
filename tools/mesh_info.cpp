@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cxxopts.hpp>
 #include <fstream>
+#include <optional>
 #include <nlohmann/json.hpp>
 #include <mtao/geometry/mesh/read_obj.hpp>
 #include <mtao/geometry/mesh/boundary_facets.h>

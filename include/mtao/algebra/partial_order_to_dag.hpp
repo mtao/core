@@ -29,6 +29,10 @@ data_structures::DirectedAcyclicGraph<size_t> partial_order_to_dag(
     };
     // auto traverse_tree = [&](size_t index, const NodeType::Ptr& node_ptr) {};
     for (auto &&[index, p] : mtao::iterator::enumerate(container)) {
+        // This named variable seems required for clang 
+        // otherwise clang emits a reference_to_local_in_enclosing_context
+        const auto& pp = p;
+        const auto& indexindex= index;
         NodeType::Ptr new_node = std::make_shared<NodeType>();
         new_node->value = index;
 
@@ -43,7 +47,7 @@ data_structures::DirectedAcyclicGraph<size_t> partial_order_to_dag(
             while (!queue.empty()) {
                 auto ptr = queue.front();
                 queue.pop();
-                std::partial_ordering order = op(p, value_from_node(*ptr));
+                std::partial_ordering order = op(pp, value_from_node(*ptr));
                 if (order > 0) {
                     new_node->children.emplace(ptr);
                 } else if (order != 0) {
@@ -57,8 +61,8 @@ data_structures::DirectedAcyclicGraph<size_t> partial_order_to_dag(
                     spdlog::error(
                       "partial_order_to_dag::scan_for_children hit a non-dag "
                       "relationship {}({}) {}({})",
-                      p,
-                      index,
+                      pp,
+                      indexindex,
                       value_from_node(*ptr),
                       ptr->value);
                 }

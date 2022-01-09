@@ -4,6 +4,7 @@
 #include "mtao/solvers/linear/linear.hpp"
 #include "mtao/solvers/cholesky/ldlt.hpp"
 #include <iostream>
+#include <optional>
 
 
 namespace mtao::solvers::linear {
