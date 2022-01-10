@@ -2,6 +2,7 @@
 #include "mtao/geometry/mesh/halfedge.hpp"
 #include "mtao/geometry/mesh/halfedge_iterator.hpp"
 #include "mtao/types.hpp"
+#include <tbb/parallel_for_each.h>
 #include <numbers>
 namespace mtao::geometry::mesh {
 template<typename TDerived>
@@ -11,18 +12,12 @@ void HalfEdgeMesh::make_topology(
     // MAke edge connectivity
     auto e2v = vertex_edges_no_topology();
 
-#ifdef _OPENMP
-    std::vector<int> verts(e2v.size());
-    std::transform(e2v.begin(), e2v.end(), verts.begin(), [](auto &&pr) { return std::get<0>(pr); });
+#if defined(MTAO_TBB_ENABLED)
 
-    size_t idx = 0;
-#pragma omp parallel for
-    for (idx = 0; idx < verts.size(); ++idx) {
-        int vidx = verts[idx];
-        HalfEdgeMesh::set_one_ring_adjacencies_quadcross(e2v.at(vidx),
-                                                         tangent_map,
-                                                         T);
-    }
+    tbb::parallel_for_each(e2v.begin(), e2v.end(), [&](auto &&val) {
+        auto &&[vidx, edges] = val;
+        HalfEdgeMesh::set_one_ring_adjacencies_quadcross(edges, tangent_map, T);
+    });
 
 #else
     for (auto &&[vidx, edges] : e2v) {
@@ -47,16 +42,12 @@ void EmbeddedHalfEdgeMesh<S, D>::make_topology() {
         }
     }
 #endif
-#ifdef _OPENMP
-    std::vector<int> verts(e2v.size());
-    std::transform(e2v.begin(), e2v.end(), verts.begin(), [](auto &&pr) { return std::get<0>(pr); });
+#if defined(MTAO_TBB_ENABLED)
 
-    size_t idx = 0;
-#pragma omp parallel for
-    for (idx = 0; idx < verts.size(); ++idx) {
-        int vidx = verts[idx];
-        set_one_ring_adjacencies_quadcross(V(vidx), e2v.at(vidx));
-    }
+    tbb::parallel_for_each(e2v.begin(), e2v.end(), [&](auto &&val) {
+        auto &&[vidx, edges] = val;
+        set_one_ring_adjacencies_quadcross(V(vidx), edges);
+    });
 
 #else
     for (auto &&[vidx, edges] : e2v) {

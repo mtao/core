@@ -4,6 +4,7 @@
 #include "mtao/geometry/barycentric.hpp"
 #include "mtao/geometry/volume.h"
 #include "mtao/logging/timer.hpp"
+#include <tbb/parallel_for.h>
 using namespace mtao::logging;
 namespace mtao::geometry::mesh::triangle {
 Mesh::Mesh(const std::tuple<mtao::ColVectors<REAL, 2>, mtao::ColVectors<int, 2>> &VE) : Mesh(std::get<0>(VE), std::get<1>(VE)) {
@@ -63,8 +64,7 @@ mtao::VectorX<bool> Mesh::verify_delauney() const {
     mtao::VectorX<bool> valid(F.cols());
     auto &&mC = *C;
 
-#pragma omp parallel for
-    for (int i = 0; i < F.cols(); ++i) {
+    tbb::parallel_for(int(0), int(F.cols()), [&](int i) {
         auto f = F.col(i);
         mtao::Matrix<REAL, 2, 3> T;
         for (int i = 0; i < 3; ++i) {
@@ -86,7 +86,7 @@ mtao::VectorX<bool> Mesh::verify_delauney() const {
 
                }
                */
-    }
+    });
 
     int count = valid.rows() - valid.count();
     if (count > 0) {

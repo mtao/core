@@ -6,6 +6,7 @@
 #include <mtao/geometry/interpolation/wachpress.hpp>
 #include <mtao/geometry/interpolation/radial_basis_function.hpp>
 #include "mtao/overload.hpp"
+#include <tbb/parallel_for.h>
 
 
 void Curve::clear() {
@@ -87,10 +88,7 @@ mtao::VecXd Curve::CurveEvaluator::operator()(const mtao::VecXd &coeffs, const m
 mtao::VecXd Curve::CurveEvaluator::from_coefficients(const mtao::VecXd &coeffs, const mtao::ColVecs2d &V) const {
 
     mtao::VecXd ret(V.cols());
-#if defined(_OPENMP)
-#pragma omp parallel for
-#endif
-    for (int i = 0; i < V.cols(); ++i) {
+    tbb::parallel_for(int(0), int(V.cols()), [&](int i) {
         mtao::VecXd weights(coeffs.rows());
         std::visit(mtao::overloaded{
                      [&](const InterpParameters<InterpMode::Wachpress> &) {
@@ -111,15 +109,12 @@ mtao::VecXd Curve::CurveEvaluator::from_coefficients(const mtao::VecXd &coeffs, 
                    },
                    interp_params);
         ret(i) = coeffs.dot(weights);
-    }
+    });
     return ret;
 }
 mtao::ColVecs2d Curve::CurveEvaluator::grad_from_coefficients(const mtao::VecXd &coeffs, const mtao::ColVecs2d &V) const {
     mtao::ColVecs2d L(2, V.cols());
-#if defined(_OPENMP)
-#pragma omp parallel for
-#endif
-    for (int i = 0; i < V.cols(); ++i) {
+    tbb::parallel_for(int(0), int(V.cols()), [&](int i) {
         mtao::ColVecs2d weights(2, coeffs.rows());
         std::visit(mtao::overloaded{
                      [&](const InterpParameters<InterpMode::Wachpress> &) {
@@ -140,6 +135,6 @@ mtao::ColVecs2d Curve::CurveEvaluator::grad_from_coefficients(const mtao::VecXd 
                    },
                    interp_params);
         L.col(i) = weights.rowwise().sum();
-    }
+    });
     return L;
 }

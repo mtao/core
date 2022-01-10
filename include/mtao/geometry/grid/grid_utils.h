@@ -43,9 +43,9 @@ namespace internal {
                 constexpr static int NN = N + 1;
                 constexpr static int MyNN = Reverse ? M - NN - 1 : NN;
                 if constexpr (Parallel) {
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
+//#ifdef _OPENMP
+//#pragma omp parallel for
+//#endif
                     for (int i = 0; i < bounds[MyN]; ++i) {
 
                         idx[MyN] = i;
@@ -62,9 +62,9 @@ namespace internal {
                 }
                 idx[MyNN] = 0;
             } else if constexpr (Parallel) {
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
+//#ifdef _OPENMP
+//#pragma omp parallel for
+//#endif
                 for (int i = 0; i < bounds[MyN]; ++i) {
                     idx[MyN] = i;
                     masked_multi_looper<N + 1, M, Mask, coord_type, Func, Reverse>::run(bounds, idx, f, mask);
@@ -89,10 +89,10 @@ namespace internal {
                 constexpr static int NN = N + 1;
                 constexpr static int MyNN = Reverse ? M - NN - 1 : NN;
                 if constexpr (Parallel) {
-#ifdef _OPENMP
-                    auto &i = idx[MyN];
-#pragma omp parallel for
-#endif
+//#ifdef _OPENMP
+//                    auto &i = idx[MyN];
+//#pragma omp parallel for
+//#endif
                     for (int i = begin[MyN]; i < end[MyN]; ++i) {
                         idx[MyN] = i;
                         for (auto &j = idx[MyNN] = begin[MyNN]; j < end[MyNN]; ++j) {
@@ -108,9 +108,9 @@ namespace internal {
                 }
                 idx[MyNN] = begin[MyNN];
             } else if constexpr (Parallel) {
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
+//#ifdef _OPENMP
+//#pragma omp parallel for
+//#endif
                 for (int i = begin[MyN]; i < end[MyN]; ++i) {
                     idx[MyN] = i;
                     masked_multi_looper<N + 1, M, Mask, coord_type, Func, Reverse>::run(begin, end, idx, f, mask);

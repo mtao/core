@@ -3,6 +3,7 @@
 #include <cassert>
 #include <numeric>
 #include <stdexcept>
+#include <tbb/parallel_for.h>
 
 #include "mtao/types.hpp"
 #include "mtao/util.h"
@@ -44,17 +45,14 @@ namespace geometry {
 
         mtao::VectorX<Scalar> C(S.cols());
 
-        mtao::Matrix<Scalar, E, D> v(V.rows(), S.rows());
-#ifdef _OPENMP
-#pragma omp parallel for private(v)
-#endif
-        for (int i = 0; i < S.cols(); ++i) {
+        tbb::parallel_for(int(0), int(S.cols()), [&](int i) {
             auto s = S.col(i);
+            mtao::Matrix<Scalar, E, D> v(V.rows(), S.rows());
             for (int j = 0; j < s.rows(); ++j) {
                 v.col(j) = V.col(s(j));
             }
             C(i) = volume(v);
-        }
+        });
         return C;
     }
 

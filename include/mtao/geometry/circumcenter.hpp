@@ -2,6 +2,8 @@
 #define CIRCUMCENTER_H
 #include <mtao/types.h>
 
+
+#include <tbb/parallel_for.h>
 #include <Eigen/Dense>
 
 namespace mtao {
@@ -52,15 +54,15 @@ namespace geometry {
 
         Eigen::Matrix<Scalar, E, N> C(V.rows(), S.cols());
 
-        Eigen::Matrix<Scalar, E, D> v(V.rows(), S.rows());
-#pragma omp parallel for private(v)
-        for (int i = 0; i < S.cols(); ++i) {
+
+        tbb::parallel_for(int(0), int(S.cols()), [&](int i) {
             auto s = S.col(i);
+            Eigen::Matrix<Scalar, E, D> v(V.rows(), S.rows());
             for (int j = 0; j < S.rows(); ++j) {
                 v.col(j) = V.col(s(j));
             }
             C.col(i) = circumcenter(v);
-        }
+        });
         return C;
     }
 }// namespace geometry
