@@ -58,6 +58,7 @@ ADD_MYTEST(log_test log_test.cpp)
 ADD_MYTEST(profiler_test profiler_test.cpp)
 
 ADD_MYTEST(tuple_call_test tuple_call_test.cpp)
+ADD_MYTEST(hierarchical_stopwatch_test hierarchical_stopwatch_test.cpp)
 
 
 

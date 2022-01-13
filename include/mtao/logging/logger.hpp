@@ -5,8 +5,7 @@
 #include <map>
 #include <sstream>
 
-namespace mtao {
-namespace logging {
+namespace mtao::logging {
 
     enum class Level : char { Off = 0,
                               Fatal = 1,
@@ -141,7 +140,6 @@ namespace logging {
     auto log(Level l) -> Logger::Instance;
 
 
-}// namespace logging
 }// namespace mtao
 
 

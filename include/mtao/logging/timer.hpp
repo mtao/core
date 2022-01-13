@@ -7,8 +7,7 @@
 #include <map>
 #include "mtao/logging/logger.hpp"
 
-namespace mtao {
-namespace logging {
+namespace mtao::logging {
 
     struct timer {
       public:
@@ -28,7 +27,6 @@ namespace logging {
         decltype(clock_type::now()) m_start;
         mtao::logging::LoggerContext m_logger;
     };
-}// namespace logging
 }// namespace mtao
 
 
