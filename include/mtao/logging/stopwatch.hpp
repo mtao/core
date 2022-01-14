@@ -32,10 +32,13 @@ class HierarchicalStopwatch : std::enable_shared_from_this<HierarchicalStopwatch
     const std::string &name() const;
     const std::string &hierarchical_name() const;
     std::list<std::string> hierarchy_names() const;
+    std::list<size_t> parent_ids() const;
+    std::list<size_t> hierarchy_ids() const;
 
 
   private:
     const std::string m_name;
+    size_t m_id;
     Ptr m_parent = nullptr;
     const std::string m_hierarchical_name;
     std::shared_ptr<spdlog::logger> m_logger = s_default_logger;
@@ -51,6 +54,7 @@ class HierarchicalStopwatch : std::enable_shared_from_this<HierarchicalStopwatch
     static std::shared_ptr<spdlog::logger> s_default_logger;
     static WeakPtr s_parent_stopwatch;
     static std::mutex s_parent_mutex;
+    static size_t s_current_log_index;
 };
 
 HierarchicalStopwatch::Ptr hierarchical_stopwatch(std::string name, std::shared_ptr<spdlog::logger> logger = {}, spdlog::level::level_enum level = spdlog::level::info);

@@ -57,5 +57,12 @@ ADD_EXECUTABLE(partio_sequence_streamline_visualizer partio_sequence_streamline_
     )
 TARGET_LINK_LIBRARIES(partio_sequence_streamline_visualizer mtao::geometry cxxopts mtao::visualization std::filesystem igl::core tbb)
 endif()
+
+endif()
+if(MTAO_USE_JSON)
+    add_executable(stopwatch_json2trace_event stopwatch_json2trace_event.cpp)
+    TARGET_LINK_LIBRARIES(stopwatch_json2trace_event PRIVATE mtao::common cxxopts std::filesystem
+    nlohmann_json::nlohmann_json)
+
 endif()
 #Half Iex IexMath IlmThread Imath tbb

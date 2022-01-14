@@ -4,11 +4,11 @@ namespace mtao::logging {
 
 void set_json_format(spdlog::logger &logger, bool messages_are_json) {
     if (messages_are_json) {
-        const static std::string pattern = { "{\"time\": \"%Y-%m-%dT%H:%M:%S.%f%z\", \"name\": \"%n\", \"level\": \"%^%l%$\", \"process\": %P, \"thread\": %t, \"message\": %v}" };
+        const static std::string pattern = { "{\"time\": \"%Y-%m-%dT%H:%M:%S.%f%z\", \"epoch_secs\": %E, \"epoch_ms\": %e, \"name\": \"%n\", \"level\": \"%^%l%$\", \"process\": %P, \"thread\": %t, \"message\": %v}" };
         logger.set_pattern(pattern);
     } else {
         // https://github.com/gabime/spdlog/issues/1797
-        const static std::string pattern = { "{\"time\": \"%Y-%m-%dT%H:%M:%S.%f%z\", \"name\": \"%n\", \"level\": \"%^%l%$\", \"process\": %P, \"thread\": %t, \"message\": \"%v\"}" };
+        const static std::string pattern = { "{\"time\": \"%Y-%m-%dT%H:%M:%S.%f%z\", \"epoch_secs\": %E, \"epoch_ms\": %e, \"name\": \"%n\", \"level\": \"%^%l%$\", \"process\": %P, \"thread\": %t, \"message\": \"%v\"}" };
         logger.set_pattern(pattern);
     }
 }
