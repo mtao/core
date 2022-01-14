@@ -184,11 +184,13 @@ set(MTAO_COMMON_SRCS
     include/mtao/logging/logger.hpp
     include/mtao/logging/timer.hpp
     include/mtao/logging/stopwatch.hpp
+    include/mtao/logging/json_sink.hpp
     include/mtao/logging/profiler.hpp
     include/mtao/cmdline_parser.hpp
     src/logging/logger.cpp
     src/logging/timer.cpp
     src/logging/stopwatch.cpp
+    src/logging/json_sink.cpp
     src/logging/profiler.cpp
     src/cmdline_parser.cpp
     src/algebra/pascal_triangle.cpp

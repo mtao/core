@@ -1,4 +1,5 @@
 #include "mtao/logging/stopwatch.hpp"
+#include <fmt/ranges.h>
 
 
 namespace mtao::logging {
@@ -11,12 +12,12 @@ HierarchicalStopwatch::HierarchicalStopwatch(std::string name, std::shared_ptr<s
   //
   : m_name(std::move(name)),
     m_parent(s_parent_stopwatch.lock()),
-    m_hierarchical_name(make_hierarchical_name()),
+    m_hierarchical_name(fmt::format("{}", fmt::join(hierarchy_names(), ":"))),
     m_logger(bool(logger) ? std::move(logger) : bool(m_parent) ? m_parent->m_logger
                                                                : s_default_logger),
     m_level(std::move(level)), m_start_tp(clock::now()) {
 
-    m_logger->log(m_level, "{{\"type\":\"stopwatch_start\", \"name\":\"{}\"}}", hierarchical_name());
+    m_logger->log(m_level, "{{\"type\":\"stopwatch_start\", \"name\":\"{}\", \"hierarchy\": [\"{}\"]}}", this->name(), fmt::join(hierarchy_names(), "\",\""));
     //m_logger->log(m_level, "Stopwatch[{}] start", hierarchical_name());
 }
 
@@ -25,7 +26,7 @@ HierarchicalStopwatch::~HierarchicalStopwatch() {
     std::chrono::duration<double, std::milli> dur(end_tp - m_start_tp);
     //m_logger->log(m_level, "Stopwatch[{}] end", hierarchical_name());
     // this duration might be off by a very small amount
-    m_logger->log(m_level, "{{\"type\":\"stopwatch_end\", \"name\":\"{}\",\"duration\":{}}}", hierarchical_name(), dur.count());
+    m_logger->log(m_level, "{{\"type\":\"stopwatch_end\", \"name\":\"{}\",\"duration\":{:5}}}", hierarchical_name(), dur.count());
     //m_logger->log(m_level, "Stopwatch[{}] took {}", hierarchical_name(), dur.count());
 
 
@@ -39,14 +40,16 @@ const std::string &HierarchicalStopwatch::name() const {
 const std::string &HierarchicalStopwatch::hierarchical_name() const {
     return m_hierarchical_name;
 }
-
-std::string HierarchicalStopwatch::make_hierarchical_name() const {
+std::list<std::string> HierarchicalStopwatch::hierarchy_names() const {
     if (bool(m_parent)) {
-        return fmt::format("{}::{}", m_parent->hierarchical_name(), name());
+        auto list = m_parent->hierarchy_names();
+        list.emplace_back(name());
+        return list;
     } else {
-        return name();
+        return std::list<std::string>{ { name() } };
     }
 }
+
 HierarchicalStopwatch::Ptr hierarchical_stopwatch(std::string name, std::shared_ptr<spdlog::logger> logger, spdlog::level::level_enum level) {
     return HierarchicalStopwatch::create(name, logger, level);
 }

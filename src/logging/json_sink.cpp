@@ -1,0 +1,20 @@
+#include "mtao/logging/json_sink.hpp"
+#include <spdlog/sinks/basic_file_sink.h>
+namespace mtao::logging {
+
+void set_json_format(spdlog::logger &logger, bool messages_are_json) {
+    if (messages_are_json) {
+        const static std::string pattern = { "{\"time\": \"%Y-%m-%dT%H:%M:%S.%f%z\", \"name\": \"%n\", \"level\": \"%^%l%$\", \"process\": %P, \"thread\": %t, \"message\": %v}" };
+        logger.set_pattern(pattern);
+    } else {
+        // https://github.com/gabime/spdlog/issues/1797
+        const static std::string pattern = { "{\"time\": \"%Y-%m-%dT%H:%M:%S.%f%z\", \"name\": \"%n\", \"level\": \"%^%l%$\", \"process\": %P, \"thread\": %t, \"message\": \"%v\"}" };
+        logger.set_pattern(pattern);
+    }
+}
+std::shared_ptr<spdlog::logger> make_json_file_logger(const std::string &name, const std::filesystem::path &path, bool messages_are_json) {
+    auto logger = spdlog::basic_logger_mt(name, path);
+    set_json_format(*logger, messages_are_json);
+    return logger;
+}
+}// namespace mtao::logging

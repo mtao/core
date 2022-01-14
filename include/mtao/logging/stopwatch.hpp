@@ -4,6 +4,7 @@
 #include <spdlog/logger.h>
 #include <spdlog/spdlog.h>
 #include <chrono>
+#include <list>
 
 namespace mtao::logging {
 
@@ -30,6 +31,7 @@ class HierarchicalStopwatch : std::enable_shared_from_this<HierarchicalStopwatch
 
     const std::string &name() const;
     const std::string &hierarchical_name() const;
+    std::list<std::string> hierarchy_names() const;
 
 
   private:
@@ -43,8 +45,6 @@ class HierarchicalStopwatch : std::enable_shared_from_this<HierarchicalStopwatch
 
     //
 
-
-    std::string make_hierarchical_name() const;
 
   protected:
     HierarchicalStopwatch(std::string name, std::shared_ptr<spdlog::logger> logger = s_default_logger, spdlog::level::level_enum level = spdlog::level::info);
