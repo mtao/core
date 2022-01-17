@@ -1,10 +1,13 @@
 
 #include <iostream>
+#include <spdlog/spdlog.h>
 #include <mtao/solvers/linear/preconditioned_conjugate_gradient.hpp>
+#include <mtao/solvers/linear/conjugate_gradient.hpp>
 #include <catch2/catch.hpp>
 #include <iterator>
 #include <iostream>
 #include <algorithm>
+#include <mtao/logging/json_sink.hpp>
 
 using E = std::array<int, 2>;
 
@@ -80,6 +83,27 @@ TEST_CASE("Random Spasre PCG", "[pcg,linear,cholesky]") {
     x.setZero();
     mtao::solvers::linear::CholeskyPCGSolve(A, b, x);
 
+
+    REQUIRE((A * x - b).norm() < 1e-5);
+}
+
+TEST_CASE("Random CG With Log", "[log,cg,linear,cholesky]") {
+
+    Eigen::MatrixXd A(10, 10);
+    A.setRandom();
+    A = A * A.transpose();
+    A.diagonal().array() += 10;
+
+    std::cout << A << std::endl;
+    mtao::VecXd b = mtao::VecXd::Random(10);
+
+    mtao::VecXd x(b);
+    x.setZero();
+
+    spdlog::info("Logger time!");
+    auto logger = mtao::logging::make_json_file_logger("cholpcgsolve", "cholpgslog.log", true);
+
+    mtao::solvers::linear::CGSolve(A, b, x, 1e-8, logger);
 
     REQUIRE((A * x - b).norm() < 1e-5);
 }

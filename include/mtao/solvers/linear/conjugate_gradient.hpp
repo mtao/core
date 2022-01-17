@@ -32,9 +32,13 @@ struct ConjugateGradientLinearSolver
     void compute() {
 
         r = b() - A() * x();
+        std::cout << r.transpose() << std::endl;
+        std::cout << x().transpose() << std::endl;
+        std::cout << b().transpose() << std::endl;
         p = r;
         Ap = A() * p;
         rsnorm = r.squaredNorm();
+        std::cout << rsnorm << std::endl;
     }
     void step() {
         alpha = (rsnorm) / (p.dot(Ap));
@@ -56,10 +60,12 @@ struct ConjugateGradientLinearSolver
 };
 
 template<typename Matrix, typename Vector>
-void CGSolve(const Matrix &A, const Vector &b, Vector &x, typename Matrix::Scalar threshold = 1e-5) {
+void CGSolve(const Matrix &A, const Vector &b, Vector &x, typename Matrix::Scalar threshold = 1e-5, std::shared_ptr<spdlog::logger> logger = {}, const std::string &name = "cgsolve") {
     auto residual = (b - A * x).template lpNorm<Eigen::Infinity>();
     auto solver = ConjugateGradientLinearSolver<Matrix, Vector>(10 * A.rows(), threshold * residual);
-    //auto solver = IterativeLinearSolver<PreconditionedConjugateGradientCapsule<Matrix,Vector, Preconditioner> >(A.rows(), 1e-5);
+    solver.set_logger(logger);
+    solver.set_name(name);
+    // auto solver = IterativeLinearSolver<PreconditionedConjugateGradientCapsule<Matrix,Vector, Preconditioner> >(A.rows(), 1e-5);
     solver.solve(A, b, x);
     x = solver.x();
 }
