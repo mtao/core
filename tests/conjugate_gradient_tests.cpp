@@ -103,7 +103,7 @@ TEST_CASE("Random CG With Log", "[log,cg,linear,cholesky]") {
     spdlog::info("Logger time!");
     auto logger = mtao::logging::make_json_file_logger("cholpcgsolve", "cholpgslog.log", true);
 
-    mtao::solvers::linear::CGSolve(A, b, x, 1e-8, logger);
+    mtao::solvers::linear::CGSolve(A, b, x, 1e-10, logger);
 
     REQUIRE((A * x - b).norm() < 1e-5);
 }
