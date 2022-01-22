@@ -48,6 +48,7 @@ int main(int argc, char *argv[]) {
             outjs.emplace_back(ejs);
         }
     } catch (const nlohmann::detail::parse_error &e) {
+        std::cerr << e.what() << std::endl;
         std::cout << outjs << std::endl;
         return 0;
     }
