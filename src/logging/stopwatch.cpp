@@ -64,7 +64,7 @@ std::list<size_t> HierarchicalStopwatch::hierarchy_ids() const {
         list.emplace_back(m_id);
         return list;
     } else {
-        return std::list<size_t>{ { m_id } };
+        return std::list<size_t>{ m_id };
     }
 }
 
