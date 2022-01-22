@@ -56,6 +56,8 @@ concept SparseCompressedBaseDerived = std::derived_from<T, typename Eigen::Spars
 template<typename T>
 concept SparseMatrixBaseDerived = std::derived_from<T, typename Eigen::SparseMatrixBase<T>>;
 
+template <typename T>
+concept IsEigenMatrix = MatrixBaseDerived<T> || SparseMatrixBaseDerived<T>;
 
 }// namespace mtao::eigen::concepts
 

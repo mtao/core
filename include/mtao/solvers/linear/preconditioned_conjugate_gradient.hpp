@@ -64,27 +64,29 @@ struct PCGSolver : public IterativeLinearSolver<PCGSolver<MatrixType, VectorType
 };
 
 template<typename Preconditioner, typename Matrix, typename Vector>
-void PCGSolve(const Matrix &A, const Vector &b, Vector &x, typename Matrix::Scalar threshold = 1e-5) {
+void PCGSolve(const Matrix &A, const Vector &b, Vector &x, typename Matrix::Scalar threshold = 1e-5, std::shared_ptr<spdlog::logger> logger = {}, const std::string &name = "pcgsolve") {
     auto residual = (b - A * x).template lpNorm<Eigen::Infinity>();
     auto solver = PCGSolver<Matrix, Vector, Preconditioner>(5 * A.rows(), threshold * residual);
-    //auto solver = IterativeLinearSolver<PreconditionedConjugateGradientCapsule<Matrix,Vector, Preconditioner> >(A.rows(), 1e-5);
+    solver.set_logger(logger);
+    solver.set_name(name);
+    // auto solver = IterativeLinearSolver<PreconditionedConjugateGradientCapsule<Matrix,Vector, Preconditioner> >(A.rows(), 1e-5);
     solver.solve(A, b, x);
     x = solver.x();
 }
 
 
 template<typename Matrix, typename Vector>
-void DenseCholeskyPCGSolve(const Matrix &A, const Vector &b, Vector &x, typename Matrix::Scalar threshold = 1e-5) {
-    PCGSolve<cholesky::DenseLDLT_MIC0<std::decay_t<decltype(A)>>>(A, b, x, threshold);
+void DenseCholeskyPCGSolve(const Matrix &A, const Vector &b, Vector &x, typename Matrix::Scalar threshold = 1e-5, std::shared_ptr<spdlog::logger> logger = {}, const std::string &name = "densecholpcgsolve") {
+    PCGSolve<cholesky::DenseLDLT_MIC0<std::decay_t<decltype(A)>>>(A, b, x, threshold, logger, name);
 }
 
 template<typename Matrix, typename Vector>
-void SparseCholeskyPCGSolve(const Matrix &A, const Vector &b, Vector &x, typename Matrix::Scalar threshold = 1e-5) {
-    PCGSolve<cholesky::SparseLDLT_MIC0<Matrix, Vector>>(A, b, x, threshold);
+void SparseCholeskyPCGSolve(const Matrix &A, const Vector &b, Vector &x, typename Matrix::Scalar threshold = 1e-5, std::shared_ptr<spdlog::logger> logger = {}, const std::string &name = "sparsecholpcgsolve") {
+    PCGSolve<cholesky::SparseLDLT_MIC0<Matrix, Vector>>(A, b, x, threshold, logger, name);
 }
 template<typename Matrix, typename Vector>
-void CholeskyPCGSolve(const Matrix &A, const Vector &b, Vector &x, typename Matrix::Scalar threshold = 1e-5) {
-    PCGSolve<cholesky::LDLT_MIC0<Matrix, Vector>>(A, b, x, threshold);
+void CholeskyPCGSolve(const Matrix &A, const Vector &b, Vector &x, typename Matrix::Scalar threshold = 1e-5, std::shared_ptr<spdlog::logger> logger = {}, const std::string &name = "cholpcgsolve") {
+    PCGSolve<cholesky::LDLT_MIC0<Matrix, Vector>>(A, b, x, threshold, logger, name);
 }
 
 }// namespace mtao::solvers::linear
