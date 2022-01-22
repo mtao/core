@@ -65,6 +65,7 @@ struct MeshFilter : public Filter {
     bool include_all_interior = true;// useful for open meshes
     bool include_interior = true;
     bool include_exterior = true;
+    bool invert_selection = false;
     MeshFilter(const Eigen::MatrixXf &V, const Eigen::MatrixXi &F);
     BoolVec particle_mask(const Particles &p) const override;
     bool gui() override;

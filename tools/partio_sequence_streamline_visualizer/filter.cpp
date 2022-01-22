@@ -146,15 +146,19 @@ auto MeshFilter::particle_mask(const Particles &p) const -> BoolVec {
         });
     }
     if (has_band && has_interior) {
-        return in_mesh_band && interior_flag;
+        interior_flag = in_mesh_band && interior_flag;
     } else if (has_band) {
-        return in_mesh_band;
+        interior_flag = in_mesh_band;
     } else if (has_interior) {
-        return interior_flag;
+        interior_flag = interior_flag;
     } else {
         spdlog::error("MeshFilter didn't haev a mesh band or interior: include_all_interior {}, include_interior {}, include_exterior {}", include_all_interior, include_interior, include_exterior);
         return {};
     }
+    if (invert_selection) {
+        interior_flag = !interior_flag;
+    }
+    return interior_flag;
 }
 bool MeshFilter::gui() {
     bool changed = false;
@@ -162,6 +166,7 @@ bool MeshFilter::gui() {
     changed |= ImGui::Checkbox("Include All Interior", &include_all_interior);
     changed |= ImGui::Checkbox("Include Interior", &include_interior);
     changed |= ImGui::Checkbox("Include Exterior", &include_exterior);
+    changed |= ImGui::Checkbox("Invert selection", &invert_selection);
     return changed;
 }
 auto IntersectionFilter::particle_mask(const Particles &p) const -> BoolVec {
