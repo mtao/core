@@ -171,13 +171,17 @@ bool MeshFilter::gui() {
 }
 auto IntersectionFilter::particle_mask(const Particles &p) const -> BoolVec {
     auto it = filters.begin();
-    BoolVec R = BoolVec::Constant(true, p.count());
+    BoolVec R = BoolVec::Constant(p.count(), true);
     for (; it != filters.end(); ++it) {
         const auto &[name, filter, active] = *it;
         if (active) {
-            R = R && filter->particle_mask(p);
+            spdlog::info("IntersectionFilter utilizing {}, started with {} / {} particles", name, R.count(), R.size());
+            BoolVec n = filter->particle_mask(p);
+            R = (R && n);
+            spdlog::info("Went to {} using {} / {} particles", R.count(), n.count(), n.size());
         }
     }
+    spdlog::info("Finished with {} / {} particles", R.count(), R.size());
     return R;
 }
 bool IntersectionFilter::gui() {
@@ -211,28 +215,43 @@ auto RangeFilter::filter_mode_preferences() const -> std::vector<FilterMode> {
             return { FilterMode::Current };
         case Distance:
             return { FilterMode::Interval, FilterMode::All };
+        case Density:
+            return { FilterMode::Current, FilterMode::Interval, FilterMode::All };
         }
     }
 }
 auto RangeFilter::particle_mask(const Particles &p) const -> BoolVec {
 
-    if (filter_mode() != FilterMode::Current) {
-        spdlog::warn("Filter mode must be Current in single-task particle mask");
+    mtao::VecXf vals;
+    switch (_range_mode) {
+    case RangeMode::Density: {
+        vals = p.densities.cast<float>();
+        break;
     }
-    if (_range_mode != RangeMode::Velocity) {
+    case RangeMode::Velocity: {
+        if (filter_mode() != FilterMode::Current) {
+            spdlog::warn("Filter mode must be Current in single-task particle mask");
+            return BoolVec::Constant(p.count(), false);
+        }
+        const auto &V = p.velocities;
+        vals = V.cast<float>().colwise().norm().transpose().eval();
+        break;
+    }
+    case RangeMode::Distance: {
         spdlog::warn("Range Mode must be Velocity Particle for single-task particle mask");
+        return BoolVec::Constant(p.count(), false);
     }
-    const auto &V = p.velocities;
-    auto vals = V.cast<float>().colwise().norm().transpose().eval();
+    }
 
 
-    return (range[0] < vals.array()) && (vals.array() < range[1]);
+    return (range[0] <= vals.array()) && (vals.array() <= range[1]);
 }
 auto RangeFilter::particle_mask(const std::vector<Particles> &particles, int start, int end) const -> BoolVec {
 
 
     switch (_range_mode) {
     default:
+    case RangeMode::Density:
     case RangeMode::Velocity:
         return particle_mask(particles[start]);
     case RangeMode::Distance: {
@@ -262,6 +281,7 @@ bool RangeFilter::gui() {
         static const char *items[] = {
             "Distance",
             "Velocity",
+            "Density",
         };
         int m = static_cast<char>(_range_mode);
         if (ImGui::Combo("Range Type", &m, items, IM_ARRAYSIZE(items))) {
@@ -325,12 +345,20 @@ nlohmann::json MeshFilter::config() const {
 
     nlohmann::json js = Filter::config();
     js["mesh_distance"] = mesh_distance;
+    js["include_exterior"] = include_exterior;
+    js["include_interior"] = include_interior;
+    js["include_all_interior"] = include_all_interior;
+    js["invert_selection"] = invert_selection;
     return js;
 }
 
 void MeshFilter::load_config(const nlohmann::json &js) {
     Filter::load_config(js);
     mesh_distance = js["mesh_distance"].get<float>();
+    include_exterior = js["include_exterior"].get<bool>();
+    include_interior = js["include_interior"].get<bool>();
+    include_all_interior = js["include_all_interior"].get<bool>();
+    invert_selection = js["invert_selection"].get<bool>();
 }
 nlohmann::json PruneFilter::config() const {
 

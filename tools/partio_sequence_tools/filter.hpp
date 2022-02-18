@@ -37,6 +37,7 @@ struct Filter {
     FilterMode _filter_mode = FilterMode::Current;
 };
 
+// filters particles according to whether they lie in a halfplane
 struct PlaneFilter : public Filter
   , public mtao::opengl::objects::Plane {
 
@@ -46,6 +47,7 @@ struct PlaneFilter : public Filter
     void load_config(const nlohmann::json &) override;
 };
 
+// filters particles according to whether they lie in a sphere
 struct SphereFilter : public Filter
   , public mtao::opengl::objects::PositionedSphere {
 
@@ -91,7 +93,8 @@ struct RangeFilter : public Filter {
     std::vector<FilterMode> filter_mode_preferences() const override;
 
     enum RangeMode : char { Distance,
-                            Velocity };
+                            Velocity,
+                            Density };
     RangeMode _range_mode;
     nlohmann::json config() const override;
     void load_config(const nlohmann::json &) override;

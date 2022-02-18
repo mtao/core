@@ -115,14 +115,28 @@ void MeshViewer::gui() {
     if (point_drawable) {
         ImGui::InputFloat("Point size", &point_drawable->point_size);
     }
-    if (ImGui::Checkbox("Do Particle Filtering", &do_particle_filtering)) {
-        if (do_particle_filtering) {
-            if (show_tubes) {
-                show_tubes = false;
-                current_frame_updated();
-            }
+
+    //bool do_particle_filtering = particle_filtering_mode == ParticleFilteringMode::Static;
+    {
+        static const char *items[] = {
+            "Off",
+            "Static",
+            "Dynamic"
+        };
+        int m = static_cast<char>(particle_filtering_mode);
+        if (ImGui::Combo("Particle Filtering Mode", &m, items, IM_ARRAYSIZE(items))) {
+            particle_filtering_mode = static_cast<ParticleFilteringMode>(char(m));
+            current_frame_updated();
         }
     }
+    //if (ImGui::Checkbox("Particle Filtering", &do_particle_filtering)) {
+    //    if (do_particle_filtering) {
+    //        if (show_tubes) {
+    //            show_tubes = false;
+    //            current_frame_updated();
+    //        }
+    //    }
+    //}
     int old_index = current_frame;
     if (ImGui::InputInt("Current frame", &current_frame)) {
         current_frame = std::clamp<int>(current_frame, 0, particles.size() - 1);
@@ -133,7 +147,7 @@ void MeshViewer::gui() {
     filter_gui();
 
 
-    if (do_particle_filtering) {
+    if (particle_filtering_mode != ParticleFilteringMode::Static) {
         particle_gui();
     } else {
         tube_gui();
@@ -172,7 +186,17 @@ void MeshViewer::particle_gui() {
     if (ImGui::InputText("Path", &particles_output_path[0], particles_output_path.size())) {
     }
     if (ImGui::Button("Save Filtered Particles")) {
-        save_filtered_particles();
+        switch (particle_filtering_mode) {
+        case ParticleFilteringMode::Static:
+            save_filtered_particles();
+            break;
+        case ParticleFilteringMode::Dynamic:
+            save_dynamic_filtered_particles();
+            break;
+        default:
+            spdlog::error("CAnnot save filtered particles when mode is off");
+            break;
+        }
     }
 }
 
@@ -321,6 +345,7 @@ void MeshViewer::drawable_gui() {
 }
 
 void MeshViewer::reset_all_indices() {
+    particle_filter_type = ParticleFilterType::All;
     active_indices.resize(particles[0].count());
     std::iota(active_indices.begin(), active_indices.end(), 0);
     show_all_particles = true;
@@ -330,6 +355,7 @@ void MeshViewer::select_particles_from_mesh(bool set_active) {
     if (current_frame < 0) {
         return;
     }
+    particle_filter_type = ParticleFilterType::Mesh;
     auto indices = mesh_filter->selected_particles(frame_particles(current_frame));
     select_particles(std::move(indices), set_active);
 }
@@ -338,6 +364,7 @@ void MeshViewer::select_particles_from_sphere(bool set_active) {
     if (current_frame < 0) {
         return;
     }
+    particle_filter_type = ParticleFilterType::Sphere;
     auto indices = sphere_filter->selected_particles(frame_particles(current_frame));
     select_particles(std::move(indices), set_active);
 }
@@ -346,6 +373,7 @@ void MeshViewer::select_particles_from_plane(bool set_active) {
     if (current_frame < 0) {
         return;
     }
+    particle_filter_type = ParticleFilterType::Plane;
     auto indices = plane_filter->selected_particles(frame_particles(current_frame));
     select_particles(std::move(indices), set_active);
 }
@@ -353,6 +381,7 @@ void MeshViewer::select_particles_from_prune(bool set_active) {
     if (current_frame < 0) {
         return;
     }
+    particle_filter_type = ParticleFilterType::Prune;
     auto indices = prune_filter->selected_particles(frame_particles(current_frame));
     select_particles(std::move(indices), set_active);
 }
@@ -360,6 +389,7 @@ void MeshViewer::select_particles_from_range(bool set_active) {
     if (current_frame < 0) {
         return;
     }
+    particle_filter_type = ParticleFilterType::Range;
     auto [start, end] = filter_interval(current_frame);
     auto indices = range_filter->selected_particles(particles, start, end);
     select_particles(std::move(indices), set_active);
@@ -369,6 +399,7 @@ void MeshViewer::select_particles_from_range2(bool set_active) {
     if (current_frame < 0) {
         return;
     }
+    particle_filter_type = ParticleFilterType::Range2;
     auto [start, end] = filter_interval(current_frame);
     auto indices = range_filter2->selected_particles(particles, start, end);
     select_particles(std::move(indices), set_active);
@@ -378,17 +409,87 @@ void MeshViewer::select_particles_from_jump(bool set_active) {
     if (current_frame < 0) {
         return;
     }
+    particle_filter_type = ParticleFilterType::Jump;
     auto [start, end] = filter_interval(current_frame);
     auto indices = jump_filter->selected_particles(particles, start, end);
     select_particles(std::move(indices), set_active);
 }
 
 void MeshViewer::select_particles_from_all(bool set_active) {
+
     if (current_frame < 0) {
         return;
     }
+    particle_filter_type = ParticleFilterType::All;
     auto indices = intersection_filter->selected_particles(frame_particles(current_frame));
     select_particles(std::move(indices), set_active);
+}
+
+std::shared_ptr<Filter> MeshViewer::get_filter(ParticleFilterType mode) const {
+    switch (mode) {
+    case ParticleFilterType::Plane:
+        return plane_filter;
+    case ParticleFilterType::Sphere:
+        return sphere_filter;
+    case ParticleFilterType::Mesh:
+        return mesh_filter;
+    case ParticleFilterType::Range:
+        return range_filter;
+    case ParticleFilterType::Range2:
+        return range_filter2;
+    case ParticleFilterType::Prune:
+        return prune_filter;
+    case ParticleFilterType::Jump:
+        return jump_filter;
+    case ParticleFilterType::All:
+        return intersection_filter;
+    default:
+    case ParticleFilterType::None:
+        return {};
+    }
+}
+
+void MeshViewer::select_particles_from_filter(bool set_active, bool deactivate_tubes) {
+    //
+    select_particles_from_filter(particle_filter_type);
+}
+void MeshViewer::select_particles_from_filter(ParticleFilterType type, bool set_active, bool deactivate_tubes) {
+
+    auto filter = get_filter(type);
+    if (!bool(filter)) {
+        reset_all_indices();
+
+    } else {
+        std::vector<int> indices;
+        switch (filter->filter_mode()) {
+        case Filter::FilterMode::Current: {
+            if (current_frame < 0) {
+                return;
+            }
+            indices = filter->selected_particles(frame_particles(current_frame));
+            break;
+        }
+        case Filter::FilterMode::Interval: {
+            auto [a, b] = filter_interval(current_frame);
+            if (a < 0 || b > frame_file_count()) {
+                return;
+            }
+
+            indices = filter->selected_particles(particles, a, b);
+            break;
+        }
+        case Filter::FilterMode::All: {
+            int a = 0;
+            int b = frame_file_count();
+
+            indices = filter->selected_particles(particles, a, b);
+            break;
+        }
+        default:
+            break;
+        }
+    }
+    //
 }
 
 void MeshViewer::select_particles(std::vector<int> &&indices, bool set_active, bool deactivate_tubes) {
@@ -682,9 +783,16 @@ void MeshViewer::save_filtered_particles(const std::string &path_fmt) {
     }
 
     if (do_write) {
+
         for (auto &&[index, parts] : mtao::iterator::enumerate(particles)) {
 
             std::filesystem::path path = fmt::vformat(path_fmt, fmt::make_format_args(index));
+            if (particle_filtering_mode == ParticleFilteringMode::Dynamic) {
+                active_indices.resize(particles[0].count());
+                std::iota(active_indices.begin(), active_indices.end(), 0);
+                select_particles_from_all(true);
+                set_frame(index);
+            }
 
             if (path.extension() == ".obj") {
                 parts.save_subset_obj(path, active_indices);
@@ -696,5 +804,8 @@ void MeshViewer::save_filtered_particles(const std::string &path_fmt) {
     }
 }
 void MeshViewer::save_filtered_particles() {
+    save_filtered_particles(particles_output_path);
+}
+void MeshViewer::save_dynamic_filtered_particles() {
     save_filtered_particles(particles_output_path);
 }

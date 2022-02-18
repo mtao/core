@@ -15,7 +15,28 @@ class MeshViewer : public mtao::opengl::Window3 {
     std::string relative_format = "frame_{}/particles.bgeo.gz";
     std::vector<Particles> particles;
 
-    bool do_particle_filtering = false;
+    enum ParticleFilteringMode : char {
+        Off,
+        Static,
+        Dynamic
+
+    };
+
+    enum ParticleFilterType {
+        None,
+        Plane,
+        Sphere,
+        Mesh,
+        Range,
+        Range2,
+        Prune,
+        Jump,
+        All
+    };
+
+
+    ParticleFilteringMode particle_filtering_mode = ParticleFilteringMode::Off;
+    ParticleFilterType particle_filter_type = None;
 
     std::vector<int> active_indices;
     bool show_all_particles = true;
@@ -96,6 +117,9 @@ class MeshViewer : public mtao::opengl::Window3 {
     void update_mesh_orientation();
 
     void reset_all_indices();
+    void select_particles_from_filter(bool set_active, bool deactivate_tubes = true);
+    void select_particles_from_filter(ParticleFilterType mode, bool set_active, bool deactivate_tubes = true);
+    std::shared_ptr<Filter> get_filter(ParticleFilterType mode) const;
     void select_particles(std::vector<int> &&indices, bool set_active, bool deactivate_tubes = true);
 
     void select_particles_from_plane(bool set_active);
@@ -111,6 +135,7 @@ class MeshViewer : public mtao::opengl::Window3 {
 
     void save_filtered_particles(const std::string &path_format);
     void save_filtered_particles();
+    void save_dynamic_filtered_particles();
 
     std::string frame_fmt() const;
     std::filesystem::path frame_path(int index) const;

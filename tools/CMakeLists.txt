@@ -45,17 +45,31 @@ if(MTAO_USE_OPENVDB)
 ADD_EXECUTABLE(partio_to_vdb_points partio_to_vdb_points.cpp)
 TARGET_LINK_LIBRARIES(partio_to_vdb_points mtao::geometry cxxopts openvdb)
 endif()
+add_library(partio_sequence_tools
+    partio_sequence_tools/filter.cpp
+    partio_sequence_tools/particles.cpp
+    partio_sequence_tools/tube_mesh_constructor.cpp
+    partio_sequence_tools/tube_mesh_constructor_gui.cpp
+    )
+TARGET_LINK_LIBRARIES(partio_sequence_tools PUBLIC mtao::geometry
+    mtao::visualization igl::core
+    std::filesystem 
+    PRIVATE igl::core tbb
+    )
+
+add_executable(partio_sequence_nearby_filter
+    partio_sequence_nearby_filter.cpp)
+target_link_libraries(partio_sequence_nearby_filter PRIVATE
+    partio_sequence_tools tbb cxxopts igl::core)
 
 if(MTAO_USE_OPENGL)
 ADD_EXECUTABLE(partio_sequence_streamline_visualizer partio_sequence_streamline_visualizer.cpp
-    partio_sequence_streamline_visualizer/filter.cpp
-    partio_sequence_streamline_visualizer/viewer.cpp
-    partio_sequence_streamline_visualizer/particles.cpp
-    partio_sequence_streamline_visualizer/tube_mesh_constructor.cpp
-    partio_sequence_streamline_visualizer/tube_mesh_constructor_gui.cpp
+    partio_sequence_tools/viewer.cpp
 
     )
-TARGET_LINK_LIBRARIES(partio_sequence_streamline_visualizer mtao::geometry cxxopts mtao::visualization std::filesystem igl::core tbb)
+TARGET_LINK_LIBRARIES(partio_sequence_streamline_visualizer cxxopts
+    mtao::visualization igl::core
+    partio_sequence_tools)
 endif()
 
 endif()
