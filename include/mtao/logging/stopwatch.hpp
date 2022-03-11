@@ -35,6 +35,7 @@ class HierarchicalStopwatch : std::enable_shared_from_this<HierarchicalStopwatch
     std::list<size_t> parent_ids() const;
     std::list<size_t> hierarchy_ids() const;
 
+    static std::shared_ptr<spdlog::logger> current_logger();
 
   private:
     const std::string m_name;
