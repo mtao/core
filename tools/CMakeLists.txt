@@ -51,11 +51,13 @@ add_library(partio_sequence_tools
     partio_sequence_tools/tube_mesh_constructor.cpp
     partio_sequence_tools/tube_mesh_constructor_gui.cpp
     )
+if(MTAO_USE_OPENGL)
 TARGET_LINK_LIBRARIES(partio_sequence_tools PUBLIC mtao::geometry
     mtao::visualization igl::core
     std::filesystem 
     PRIVATE igl::core tbb
     )
+endif()
 
 add_executable(partio_sequence_nearby_filter
     partio_sequence_nearby_filter.cpp)
