@@ -14,7 +14,7 @@ ElTopoTracker &ElTopoTracker::operator=(const ElTopoTracker &o) {
     m_defrag_mesh = o.m_defrag_mesh;
     m_defrag_dirty = o.m_defrag_dirty;
     m_init_params = std::make_unique<SurfTrackInitializationParameters>(*o.m_init_params);
-    m_init_params->m_subdivision_scheme = m_subdivision_scheme;
+    m_init_params->m_subdivision_scheme = m_subdivision_scheme.get();
     auto [V, F] = o.get_mesh();
     m_surf = make_surftrack(V, F);
     return *this;
@@ -25,7 +25,7 @@ ElTopoTracker::ElTopoTracker(const ElTopoTracker &o) {
     m_defrag_mesh = o.m_defrag_mesh;
     m_defrag_dirty = o.m_defrag_dirty;
     m_init_params = std::make_unique<SurfTrackInitializationParameters>(*o.m_init_params);
-    m_init_params->m_subdivision_scheme = m_subdivision_scheme;
+    m_init_params->m_subdivision_scheme = m_subdivision_scheme.get();
     auto [V, F] = o.get_mesh();
     m_surf = make_surftrack(V, F);
 }
@@ -51,7 +51,7 @@ ElTopoTracker::ElTopoTracker(const CRefCV3d &V, const CRefCV3i &F, bool collisio
 
 
     m_subdivision_scheme.reset(new ButterflyScheme());
-    m_init_params->m_subdivision_scheme = m_subdivision_scheme;
+    m_init_params->m_subdivision_scheme = m_subdivision_scheme.get();
     if (m_verbose) std::cout << "Made initial parameters" << std::endl;
 
 
