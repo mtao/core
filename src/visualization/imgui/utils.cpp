@@ -1,4 +1,5 @@
 #include "mtao/visualization/imgui/utils.hpp"
+#include <algorithm>
 namespace mtao::visualization::imgui::utils {
 
 namespace internal {
