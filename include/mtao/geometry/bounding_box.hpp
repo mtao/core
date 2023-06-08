@@ -21,8 +21,6 @@ namespace geometry {
     auto bounding_box_slow(const mtao::ColVectors<T, D> &V) {
         BBox<T, D> bb;
         if (V.cols() > 0) {
-            bb.extend(V.rowwise().minCoeff());
-            bb.extend(V.rowwise().maxCoeff());
             for (auto &&p : colvector_loop(V)) {
                 bb.extend(p);
             }
