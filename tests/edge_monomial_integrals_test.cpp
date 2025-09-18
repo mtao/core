@@ -1,4 +1,5 @@
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include <catch2/catch.hpp>
 #include <iostream>

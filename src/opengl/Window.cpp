@@ -27,6 +27,7 @@
 #include <iostream>
 #include <Magnum/GL/Extensions.h>
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 
 using namespace Magnum;
